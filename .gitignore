@@ -1,0 +1,17 @@
+## 3252X
+
+# Compiler files
+3252X/cache
+3252X/out
+
+# Ignores development broadcast logs
+3252X/broadcast
+3252X/broadcast/*/31337/
+3252X/broadcast/**/dry-run/
+
+# Docs
+3252X/docs/
+
+# Dotenv file
+3252X/.env
+
