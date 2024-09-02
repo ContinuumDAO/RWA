@@ -1,9 +1,9 @@
-[submodule "3252X/lib/openzeppelin-contracts-upgradeable"]
-	path = 3252X/lib/openzeppelin-contracts-upgradeable
+[submodule "CTM3525X/lib/openzeppelin-contracts-upgradeable"]
+	path = CTM3525X/lib/openzeppelin-contracts-upgradeable
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
-[submodule "3252X/lib/forge-std"]
-	path = 3252X/lib/forge-std
+[submodule "CTM3525X/lib/forge-std"]
+	path = /lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
-[submodule "3252X/lib/openzeppelin-contracts"]
-	path = 3252X/lib/openzeppelin-contracts
+[submodule "CTM3525X/lib/openzeppelin-contracts"]
+	path = CTM3525X/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts

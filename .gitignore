@@ -1,20 +1,17 @@
 # Compiler files
-3252X/cache/
-3252X/out/
-out/
-cache/
-3252X/node_modules/
+CTM3525X/cache/
+CTM3525X/out/
+CTM3525X/node_modules/
 node_modules/
 
 # Ignores development broadcast logs
-!/broadcast
-/broadcast/*/31337/
-/broadcast/**/dry-run/
+!CTM3525X/broadcast
+CTM3525X/broadcast/*/31337/
+CTM3525X/broadcast/**/dry-run/
 
 # Docs
-docs/
-3252X/docs
+CTM3525X/docs
 
 # Dotenv file
 .env
-3252X/.env
+CTM3525X/.env
