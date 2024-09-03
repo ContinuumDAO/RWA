@@ -1,0 +1,215 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IC3Caller",
+  "sourceName": "contracts/c3Caller/IC3Caller.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "dappID",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_txSender",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "uuid",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "internalType": "string",
+              "name": "fromChainID",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "sourceTx",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "fallbackTo",
+              "type": "string"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct C3CallerStructLib.C3EvmMessage",
+          "name": "message",
+          "type": "tuple"
+        }
+      ],
+      "name": "c3Fallback",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_dappID",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_caller",
+          "type": "address"
+        },
+        {
+          "internalType": "string[]",
+          "name": "_to",
+          "type": "string[]"
+        },
+        {
+          "internalType": "string[]",
+          "name": "_toChainIDs",
+          "type": "string[]"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_data",
+          "type": "bytes"
+        }
+      ],
+      "name": "c3broadcast",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_dappID",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_caller",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "_to",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_toChainID",
+          "type": "string"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_data",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_extra",
+          "type": "bytes"
+        }
+      ],
+      "name": "c3call",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "context",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "uuid",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "string",
+          "name": "fromChainID",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "sourceTx",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_dappID",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_txSender",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "uuid",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "internalType": "string",
+              "name": "fromChainID",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "sourceTx",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "fallbackTo",
+              "type": "string"
+            },
+            {
+              "internalType": "bytes",
+              "name": "data",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct C3CallerStructLib.C3EvmMessage",
+          "name": "message",
+          "type": "tuple"
+        }
+      ],
+      "name": "execute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

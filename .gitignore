@@ -1,17 +1,17 @@
 # Compiler files
-CTM3525X/cache/
-CTM3525X/out/
-CTM3525X/node_modules/
+CTMRWA001/cache/
+CTMRWA001/out/
+CTMRWA001/node_modules/
 node_modules/
 
 # Ignores development broadcast logs
-!CTM3525X/broadcast
-CTM3525X/broadcast/*/31337/
-CTM3525X/broadcast/**/dry-run/
+!CTMRWA001/broadcast
+CTMRWA001/broadcast/*/31337/
+CTMRWA001/broadcast/**/dry-run/
 
 # Docs
-CTM3525X/docs
+CTMRWA001/docs
 
 # Dotenv file
 .env
-CTM3525X/.env
+CTMRWA001/.env
