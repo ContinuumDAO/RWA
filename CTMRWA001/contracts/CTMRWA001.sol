@@ -14,18 +14,26 @@ import "./extensions/IERC721Metadata.sol";
 import "./extensions/ICTMRWA001Metadata.sol";
 import "./periphery/interface/ICTMRWA001MetadataDescriptor.sol";
 
-import {GovernDapp} from "./routerV2/GovernDapp.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp {
+contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     using Strings for *;
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
+    address public admin;
+    address public ctmRwa001XChain;
+
     event SetMetadataDescriptor(address indexed metadataDescriptor);
-    event LogFallback(bytes4 selector, bytes data, bytes reason);
+
+    struct TokenContract {
+        string chainIdStr;
+        string contractStr;
+    }
+
+    TokenContract[] public tokenContract;
 
     struct TokenData {
         uint256 id;
@@ -60,20 +68,37 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
 
     ICTMRWA001MetadataDescriptor public metadataDescriptor;
 
+
     constructor(
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,
-        address _feeManager,
-        address _gov,
-        address _c3callerProxy,
-        address _txSender,
-        uint256 _dappID
-    ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+        address _ctmRwa001XChain
+    ) {
+        admin = msg.sender;
         _tokenIdGenerator = 1;
         _name = tokenName_;
         _symbol = symbol_;
         _decimals = decimals_;
+        ctmRwa001XChain = _ctmRwa001XChain;
+
+        _addTokenContract(cID().toString(), _toLower(address(this).toHexString()));
+    }
+    
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "CTMRWA001: This is an onlyAdmin function");
+        _;
+    }
+
+    modifier onlyGateKeeper() {
+        require(msg.sender == ctmRwa001XChain, "CTMRWA001: This can only be called by CTMRWA001X");
+        _;
+    }
+    
+
+    function changeAdmin(address _admin) external onlyAdmin onlyGateKeeper returns(bool) {
+        admin = _admin;
+        return true;
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
@@ -107,6 +132,65 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
         return _decimals;
     }
 
+    function addXTokenInfo(
+        address _admin,
+        string[] memory _chainIdsStr,
+        string[] memory _contractAddrsStr
+    ) external onlyGateKeeper returns(bool){
+        require(_admin == admin, "CTMRWA001X: AdminOnly function");
+        require(_chainIdsStr.length == _contractAddrsStr.length, "CTMRWA001: Length mismatch chainIds and contractAddrs");
+
+        for(uint256 i=0; i<_chainIdsStr.length; i++) {
+            if(!stringsEqual(_chainIdsStr[i], cID().toString())) {
+                bool success = _addTokenContract(_chainIdsStr[i], _contractAddrsStr[i]);
+                if(!success) return(false);
+            }
+        }
+
+        return(true);
+    }
+
+    function _addTokenContract(string memory _chainIdStr, string memory _contractAddrStr) internal returns(bool) {
+
+        for(uint256 i=0; i<tokenContract.length; i++) {
+            if(stringsEqual(tokenContract[i].chainIdStr, _chainIdStr)) {
+                return(false); // Cannot change an entry
+            }
+        }
+
+        tokenContract.push(TokenContract(_chainIdStr, _contractAddrStr));
+        return(true);
+    }
+
+    function getTokenContract(string memory _chainIdStr) external view returns(string memory) {
+        for(uint256 i=0; i<tokenContract.length; i++) {
+            if(stringsEqual(tokenContract[i].chainIdStr, _toLower(_chainIdStr))) {
+                return(tokenContract[i].contractStr);
+            }
+        }
+        return("");
+    }
+
+    // Check that another CTMRWA001 token contract is part of the same set as this one
+    function checkTokenCompatibility(
+        string memory _otherChainIdStr,
+        string memory _otherContractStr
+    ) external view returns(bool) {
+        string memory otherChainIdStr = _toLower(_otherChainIdStr);
+        string memory otherContractStr = _toLower(_otherContractStr);
+
+        for(uint256 i=0; i<tokenContract.length; i++) {
+            if(stringsEqual(otherChainIdStr, tokenContract[i].chainIdStr)
+            && stringsEqual(otherContractStr, tokenContract[i].contractStr)) return(true);
+        }
+        return(false);
+    }
+
+    function idOf(uint256 tokenId_) public view virtual returns(uint256) {
+        _requireMinted(tokenId_);
+        return _allTokens[_allTokensIndex[tokenId_]].id;
+    }
+   
     function balanceOf(uint256 tokenId_) public view virtual override returns (uint256) {
         _requireMinted(tokenId_);
         return _allTokens[_allTokensIndex[tokenId_]].balance;
@@ -121,6 +205,16 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
     function slotOf(uint256 tokenId_) public view virtual override returns (uint256) {
         _requireMinted(tokenId_);
         return _allTokens[_allTokensIndex[tokenId_]].slot;
+    }
+
+    function getTokenInfo(uint256 tokenId_) external view returns(uint256,uint256,address,uint256) {
+        _requireMinted(tokenId_);
+        return(
+            _allTokens[_allTokensIndex[tokenId_]].id,
+            _allTokens[_allTokensIndex[tokenId_]].balance,
+            _allTokens[_allTokensIndex[tokenId_]].owner,
+            _allTokens[_allTokensIndex[tokenId_]].slot
+        );
     }
 
     function _baseURI() internal view virtual returns (string memory) {
@@ -180,7 +274,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
         address to_,
         uint256 value_
     ) public payable virtual override returns (uint256 newTokenId) {
-        _spendAllowance(_msgSender(), fromTokenId_, value_);
+        this.spendAllowance(_msgSender(), fromTokenId_, value_);
 
         newTokenId = _createDerivedTokenId(fromTokenId_);
         _mint(to_, newTokenId, CTMRWA001.slotOf(fromTokenId_), 0);
@@ -192,7 +286,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
         uint256 toTokenId_,
         uint256 value_
     ) public payable virtual override {
-        _spendAllowance(_msgSender(), fromTokenId_, value_);
+        this.spendAllowance(_msgSender(), fromTokenId_, value_);
         _transferValue(fromTokenId_, toTokenId_, value_);
     }
 
@@ -227,6 +321,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
     ) public payable virtual override {
         safeTransferFrom(from_, to_, tokenId_, "");
     }
+
 
     function approve(address to_, uint256 tokenId_) public payable virtual override {
         address owner = CTMRWA001.ownerOf(tokenId_);
@@ -288,7 +383,11 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
         );
     }
 
-    function _spendAllowance(address operator_, uint256 tokenId_, uint256 value_) internal virtual {
+    function isApprovedOrOwner(address operator_, uint256 tokenId_) external view onlyGateKeeper returns(bool) {
+        return(_isApprovedOrOwner(operator_, tokenId_));
+    }
+
+    function spendAllowance(address operator_, uint256 tokenId_, uint256 value_) external virtual {
         uint256 currentAllowance = CTMRWA001.allowance(tokenId_, operator_);
         if (!_isApprovedOrOwner(operator_, tokenId_) && currentAllowance != type(uint256).max) {
             require(currentAllowance >= value_, "CTMRWA001: insufficient allowance");
@@ -309,6 +408,10 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
         _mint(to_, tokenId, slot_, value_);  
     }
 
+    function mintFromX(address to_, uint256 slot_, uint256 value_) external onlyGateKeeper returns (uint256 tokenId) {
+        return(_mint(to_, slot_, value_));
+    }
+
     function _mint(address to_, uint256 tokenId_, uint256 slot_, uint256 value_) internal virtual {
         require(to_ != address(0), "CTMRWA001: mint to the zero address");
         require(tokenId_ != 0, "CTMRWA001: cannot mint zero tokenId");
@@ -318,6 +421,10 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
         __mintToken(to_, tokenId_, slot_);
         __mintValue(tokenId_, value_);
         _afterValueTransfer(address(0), to_, 0, tokenId_, slot_, value_);
+    }
+
+    function mintFromX(address to_, uint256 tokenId_, uint256 slot_, uint256 value_) external onlyGateKeeper {
+        _mint(to_, tokenId_, slot_, value_);
     }
 
     function _mintValue(uint256 tokenId_, uint256 value_) internal virtual {
@@ -411,6 +518,10 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
         ownerData.ownedTokens.pop();
     }
 
+    function removeTokenFromOwnerEnumeration(address from_, uint256 tokenId_) external onlyGateKeeper {
+        _removeTokenFromOwnerEnumeration(from_, tokenId_);
+    }
+
     function _addTokenToAllTokensEnumeration(TokenData memory tokenData_) private {
         _allTokensIndex[tokenData_.id] = _allTokens.length;
         _allTokens.push(tokenData_);
@@ -441,6 +552,10 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
         emit Approval(CTMRWA001.ownerOf(tokenId_), to_, tokenId_);
     }
 
+    function approveFromX(address to_, uint256 tokenId_) external onlyGateKeeper {
+        _approve(to_, tokenId_);
+    }
+
     function _approveValue(
         uint256 tokenId_,
         address to_,
@@ -463,6 +578,10 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
             delete _approvedValues[tokenId_][approval];
         }
         delete tokenData.valueApprovals;
+    }
+
+    function clearApprovedValues(uint256 tokenId_) external onlyGateKeeper {
+        _clearApprovedValues(tokenId_);
     }
 
     function _existApproveValue(address to_, uint256 tokenId_) internal view virtual returns (bool) {
@@ -623,6 +742,16 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
         uint256 value_
     ) internal virtual {}
 
+    function _beforeValueTransferX(
+        string memory fromAddressStr_,
+        string memory toAddressStr,
+        string memory toChainIdStr_,
+        uint256 fromTokenId_,
+        uint256 toTokenId_,
+        uint256 slot_,
+        uint256 value_
+    ) internal virtual {}
+
     function _afterValueTransfer(
         address from_,
         address to_,
@@ -654,14 +783,35 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable, GovernDapp
         }
         return (size > 0);
     }
+    
 
-    function _c3Fallback(bytes4 _selector,
-        bytes calldata _data,
-        bytes calldata _reason) internal override returns (bool) {
-
-
-        emit LogFallback(_selector, _data, _reason);
-        return true;
+    function cID() internal view returns (uint256) {
+        return block.chainid;
     }
+
+    function stringsEqual(
+        string memory a,
+        string memory b
+    ) public pure returns (bool) {
+        bytes32 ka = keccak256(abi.encode(a));
+        bytes32 kb = keccak256(abi.encode(b));
+        return (ka == kb);
+    }
+
+    function _toLower(string memory str) internal pure returns (string memory) {
+        bytes memory bStr = bytes(str);
+        bytes memory bLower = new bytes(bStr.length);
+        for (uint i = 0; i < bStr.length; i++) {
+            // Uppercase character...
+            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
+                // So we add 32 to make it lowercase
+                bLower[i] = bytes1(uint8(bStr[i]) + 32);
+            } else {
+                bLower[i] = bStr[i];
+            }
+        }
+        return string(bLower);
+    }
+
 }
 

@@ -45,6 +45,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ContextUpgradeable__factory>;
     getContractFactory(
+      name: "AccessControl",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AccessControl__factory>;
+    getContractFactory(
+      name: "IAccessControl",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAccessControl__factory>;
+    getContractFactory(
       name: "Pausable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Pausable__factory>;
@@ -60,6 +68,10 @@ declare module "hardhat/types/runtime" {
       name: "IERC721Receiver",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC721Receiver__factory>;
+    getContractFactory(
+      name: "ERC165",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ERC165__factory>;
     getContractFactory(
       name: "IERC165",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -149,6 +161,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CTMRWA001Upgradeable__factory>;
     getContractFactory(
+      name: "CTMRWA001X",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CTMRWA001X__factory>;
+    getContractFactory(
       name: "ICTMRWA001Metadata",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICTMRWA001Metadata__factory>;
@@ -197,6 +213,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC721MetadataUpgradeable__factory>;
     getContractFactory(
+      name: "FeeManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.FeeManager__factory>;
+    getContractFactory(
       name: "ICTMRWA001",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICTMRWA001__factory>;
@@ -213,6 +233,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ICTMRWA001Upgradeable__factory>;
     getContractFactory(
+      name: "ICTMRWA001X",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ICTMRWA001X__factory>;
+    getContractFactory(
       name: "IERC721",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC721__factory>;
@@ -228,6 +252,10 @@ declare module "hardhat/types/runtime" {
       name: "IERC721Upgradeable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC721Upgradeable__factory>;
+    getContractFactory(
+      name: "IFeeManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IFeeManager__factory>;
     getContractFactory(
       name: "CTMRWA001AllRoundMock",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -288,6 +316,10 @@ declare module "hardhat/types/runtime" {
       name: "CTMRWA001ReceiverMock",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CTMRWA001ReceiverMock__factory>;
+    getContractFactory(
+      name: "CTMRWA001TxFee",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CTMRWA001TxFee__factory>;
     getContractFactory(
       name: "ERC721ReceiverMock",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -358,6 +390,16 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ContextUpgradeable>;
     getContractAt(
+      name: "AccessControl",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AccessControl>;
+    getContractAt(
+      name: "IAccessControl",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAccessControl>;
+    getContractAt(
       name: "Pausable",
       address: string,
       signer?: ethers.Signer
@@ -377,6 +419,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC721Receiver>;
+    getContractAt(
+      name: "ERC165",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ERC165>;
     getContractAt(
       name: "IERC165",
       address: string,
@@ -488,6 +535,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.CTMRWA001Upgradeable>;
     getContractAt(
+      name: "CTMRWA001X",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CTMRWA001X>;
+    getContractAt(
       name: "ICTMRWA001Metadata",
       address: string,
       signer?: ethers.Signer
@@ -548,6 +600,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IERC721MetadataUpgradeable>;
     getContractAt(
+      name: "FeeManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.FeeManager>;
+    getContractAt(
       name: "ICTMRWA001",
       address: string,
       signer?: ethers.Signer
@@ -568,6 +625,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ICTMRWA001Upgradeable>;
     getContractAt(
+      name: "ICTMRWA001X",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ICTMRWA001X>;
+    getContractAt(
       name: "IERC721",
       address: string,
       signer?: ethers.Signer
@@ -587,6 +649,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC721Upgradeable>;
+    getContractAt(
+      name: "IFeeManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IFeeManager>;
     getContractAt(
       name: "CTMRWA001AllRoundMock",
       address: string,
@@ -662,6 +729,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.CTMRWA001ReceiverMock>;
+    getContractAt(
+      name: "CTMRWA001TxFee",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CTMRWA001TxFee>;
     getContractAt(
       name: "ERC721ReceiverMock",
       address: string,

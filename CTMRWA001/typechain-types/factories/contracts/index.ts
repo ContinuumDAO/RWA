@@ -16,11 +16,15 @@ export { CTMRWA001SlotApprovableUpgradeable__factory } from "./CTMRWA001SlotAppr
 export { CTMRWA001SlotEnumerable__factory } from "./CTMRWA001SlotEnumerable__factory";
 export { CTMRWA001SlotEnumerableUpgradeable__factory } from "./CTMRWA001SlotEnumerableUpgradeable__factory";
 export { CTMRWA001Upgradeable__factory } from "./CTMRWA001Upgradeable__factory";
+export { CTMRWA001X__factory } from "./CTMRWA001X__factory";
+export { FeeManager__factory } from "./FeeManager__factory";
 export { ICTMRWA001__factory } from "./ICTMRWA001__factory";
 export { ICTMRWA001Receiver__factory } from "./ICTMRWA001Receiver__factory";
 export { ICTMRWA001ReceiverUpgradeable__factory } from "./ICTMRWA001ReceiverUpgradeable__factory";
 export { ICTMRWA001Upgradeable__factory } from "./ICTMRWA001Upgradeable__factory";
+export { ICTMRWA001X__factory } from "./ICTMRWA001X__factory";
 export { IERC721__factory } from "./IERC721__factory";
 export { IERC721Receiver__factory } from "./IERC721Receiver__factory";
 export { IERC721ReceiverUpgradeable__factory } from "./IERC721ReceiverUpgradeable__factory";
 export { IERC721Upgradeable__factory } from "./IERC721Upgradeable__factory";
+export { IFeeManager__factory } from "./IFeeManager__factory";

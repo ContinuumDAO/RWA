@@ -1278,9 +1278,40 @@ function shouldBehaveLikeCTMRWA001SlotApprovable (errorPrefix) {
   });
 }
 
+function shouldBehaveLikeCTMRWA001TxFee (errorPrefix) {
+  shouldSupportInterfaces([
+    'CTMRWA001SlotApprovable',
+  ]);
+
+  beforeEach(async function () {
+    [ firstOwner, secondOwner, approved, valueApproved, anotherApproved, operator, slotOperator, feeManager, gov, c3callerProxy, txSender, other ] = await ethers.getSigners();
+
+    await this.token.mint(firstOwner.address, firstTokenId, firstSlot, firstTokenValue);
+    await this.token.mint(secondOwner.address, secondTokenId, firstSlot, secondTokenValue);
+    await this.token.mint(firstOwner.address, thirdTokenId, secondSlot, thirdTokenValue);
+    await this.token.mint(secondOwner.address, fourthTokenId, secondSlot, fourthTokenValue);
+  });
+
+  describe('setApprovalForSlot', function () {
+    context('after being set as slot operator', function () {
+      let tx = null;
+      let receipt = null;
+
+      beforeEach(async function () {
+        tx = await this.token.connect(firstOwner).setApprovalForSlot(firstOwner.address, firstSlot, slotOperator.address, true);
+        receipt = await tx.wait();
+      });
+
+      
+      });
+    });
+}
+
+
 module.exports = {
   shouldBehaveLikeCTMRWA001,
   shouldBehaveLikeCTMRWA001Metadata,
   shouldBehaveLikeCTMRWA001SlotEnumerable,
-  shouldBehaveLikeCTMRWA001SlotApprovable
+  shouldBehaveLikeCTMRWA001SlotApprovable,
+  shouldBehaveLikeCTMRWA001TxFee
 }

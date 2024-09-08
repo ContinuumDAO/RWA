@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "../c3Caller/C3CallerDapp.sol";
+import "../c3Caller/C3GovClient.sol";
 import "./TheiaUtils.sol";
 
 abstract contract GovernDapp is C3CallerDapp {

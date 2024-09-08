@@ -12,21 +12,13 @@ contract CTMRWA001SlotEnumerableUpgradeable is Initializable, ContextUpgradeable
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
-        address _feeManager,
-        address _gov,
-        address _c3CallerProxy,
-        address _txSender,
-        uint256 _dappID
+        address _ctmRwa001XChain
     ) internal onlyInitializing {
         __CTMRWA001_init_unchained(
             name_,
             symbol_,
             decimals_,
-            _feeManager,
-            _gov,
-            _c3CallerProxy,
-            _txSender,
-            _dappID
+            _ctmRwa001XChain
         );
     }
 
@@ -34,11 +26,7 @@ contract CTMRWA001SlotEnumerableUpgradeable is Initializable, ContextUpgradeable
         string memory,
         string memory,
         uint8,
-        address,
-        address,
-        address,
-        address,
-        uint256
+        address
     ) internal onlyInitializing {
     }
 

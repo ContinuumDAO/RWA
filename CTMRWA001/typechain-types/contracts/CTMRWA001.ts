@@ -30,37 +30,42 @@ import type {
 
 export interface CTMRWA001Interface extends utils.Interface {
   functions: {
-    "addTxSender(address)": FunctionFragment;
+    "addXTokenInfo(address,string[],string[])": FunctionFragment;
+    "admin()": FunctionFragment;
     "allowance(uint256,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "approve(uint256,address,uint256)": FunctionFragment;
+    "approveFromX(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "balanceOf(uint256)": FunctionFragment;
-    "c3CallerProxy()": FunctionFragment;
-    "c3Fallback(uint256,bytes,bytes)": FunctionFragment;
-    "changeGov(address)": FunctionFragment;
+    "changeAdmin(address)": FunctionFragment;
+    "checkTokenCompatibility(string,string)": FunctionFragment;
+    "clearApprovedValues(uint256)": FunctionFragment;
     "contractURI()": FunctionFragment;
-    "dappID()": FunctionFragment;
-    "delay()": FunctionFragment;
-    "disableTxSender(address)": FunctionFragment;
-    "doGov(string,string,bytes)": FunctionFragment;
-    "doGovBroadcast(string[],string[],bytes)": FunctionFragment;
+    "ctmRwa001XChain()": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
-    "gov()": FunctionFragment;
+    "getTokenContract(string)": FunctionFragment;
+    "getTokenInfo(uint256)": FunctionFragment;
+    "idOf(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
-    "isValidSender(address)": FunctionFragment;
+    "isApprovedOrOwner(address,uint256)": FunctionFragment;
     "metadataDescriptor()": FunctionFragment;
+    "mintFromX(address,uint256,uint256,uint256)": FunctionFragment;
+    "mintFromX(address,uint256,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
+    "removeTokenFromOwnerEnumeration(address,uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256,bytes)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
-    "setDelay(uint256)": FunctionFragment;
     "slotOf(uint256)": FunctionFragment;
     "slotURI(uint256)": FunctionFragment;
+    "spendAllowance(address,uint256,uint256)": FunctionFragment;
+    "stringsEqual(string,string)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
     "tokenByIndex(uint256)": FunctionFragment;
+    "tokenContract(uint256)": FunctionFragment;
     "tokenOfOwnerByIndex(address,uint256)": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
     "totalSupply()": FunctionFragment;
@@ -72,37 +77,42 @@ export interface CTMRWA001Interface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "addTxSender"
+      | "addXTokenInfo"
+      | "admin"
       | "allowance"
       | "approve(address,uint256)"
       | "approve(uint256,address,uint256)"
+      | "approveFromX"
       | "balanceOf(address)"
       | "balanceOf(uint256)"
-      | "c3CallerProxy"
-      | "c3Fallback"
-      | "changeGov"
+      | "changeAdmin"
+      | "checkTokenCompatibility"
+      | "clearApprovedValues"
       | "contractURI"
-      | "dappID"
-      | "delay"
-      | "disableTxSender"
-      | "doGov"
-      | "doGovBroadcast"
+      | "ctmRwa001XChain"
       | "getApproved"
-      | "gov"
+      | "getTokenContract"
+      | "getTokenInfo"
+      | "idOf"
       | "isApprovedForAll"
-      | "isValidSender"
+      | "isApprovedOrOwner"
       | "metadataDescriptor"
+      | "mintFromX(address,uint256,uint256,uint256)"
+      | "mintFromX(address,uint256,uint256)"
       | "name"
       | "ownerOf"
+      | "removeTokenFromOwnerEnumeration"
       | "safeTransferFrom(address,address,uint256)"
       | "safeTransferFrom(address,address,uint256,bytes)"
       | "setApprovalForAll"
-      | "setDelay"
       | "slotOf"
       | "slotURI"
+      | "spendAllowance"
+      | "stringsEqual"
       | "supportsInterface"
       | "symbol"
       | "tokenByIndex"
+      | "tokenContract"
       | "tokenOfOwnerByIndex"
       | "tokenURI"
       | "totalSupply"
@@ -113,9 +123,14 @@ export interface CTMRWA001Interface extends utils.Interface {
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "addTxSender",
-    values: [PromiseOrValue<string>]
+    functionFragment: "addXTokenInfo",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[]
+    ]
   ): string;
+  encodeFunctionData(functionFragment: "admin", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "allowance",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
@@ -133,6 +148,10 @@ export interface CTMRWA001Interface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "approveFromX",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "balanceOf(address)",
     values: [PromiseOrValue<string>]
   ): string;
@@ -141,68 +160,78 @@ export interface CTMRWA001Interface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "c3CallerProxy",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "c3Fallback",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "changeGov",
+    functionFragment: "changeAdmin",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "checkTokenCompatibility",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "clearApprovedValues",
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "contractURI",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "dappID", values?: undefined): string;
-  encodeFunctionData(functionFragment: "delay", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "disableTxSender",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "doGov",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "doGovBroadcast",
-    values: [
-      PromiseOrValue<string>[],
-      PromiseOrValue<string>[],
-      PromiseOrValue<BytesLike>
-    ]
+    functionFragment: "ctmRwa001XChain",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(functionFragment: "gov", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getTokenContract",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTokenInfo",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "idOf",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "isValidSender",
-    values: [PromiseOrValue<string>]
+    functionFragment: "isApprovedOrOwner",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "metadataDescriptor",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "mintFromX(address,uint256,uint256,uint256)",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintFromX(address,uint256,uint256)",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
     values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "removeTokenFromOwnerEnumeration",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "safeTransferFrom(address,address,uint256)",
@@ -226,10 +255,6 @@ export interface CTMRWA001Interface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
-    functionFragment: "setDelay",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "slotOf",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
@@ -238,12 +263,28 @@ export interface CTMRWA001Interface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
+    functionFragment: "spendAllowance",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "stringsEqual",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "tokenByIndex",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "tokenContract",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
@@ -288,9 +329,10 @@ export interface CTMRWA001Interface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "addTxSender",
+    functionFragment: "addXTokenInfo",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "approve(address,uint256)",
@@ -298,6 +340,10 @@ export interface CTMRWA001Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "approve(uint256,address,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "approveFromX",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -309,45 +355,64 @@ export interface CTMRWA001Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "c3CallerProxy",
+    functionFragment: "changeAdmin",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "c3Fallback", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "changeGov", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "checkTokenCompatibility",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "clearApprovedValues",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "contractURI",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "dappID", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "delay", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "disableTxSender",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "doGov", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "doGovBroadcast",
+    functionFragment: "ctmRwa001XChain",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getTokenContract",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTokenInfo",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "idOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isApprovedForAll",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isValidSender",
+    functionFragment: "isApprovedOrOwner",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "metadataDescriptor",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "mintFromX(address,uint256,uint256,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "mintFromX(address,uint256,uint256)",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "removeTokenFromOwnerEnumeration",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "safeTransferFrom(address,address,uint256)",
     data: BytesLike
@@ -360,9 +425,16 @@ export interface CTMRWA001Interface extends utils.Interface {
     functionFragment: "setApprovalForAll",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "setDelay", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "slotOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "slotURI", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "spendAllowance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "stringsEqual",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
@@ -370,6 +442,10 @@ export interface CTMRWA001Interface extends utils.Interface {
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "tokenByIndex",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "tokenContract",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -402,9 +478,6 @@ export interface CTMRWA001Interface extends utils.Interface {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
     "ApprovalValue(uint256,address,uint256)": EventFragment;
-    "LogChangeGov(address,address,uint256,uint256)": EventFragment;
-    "LogFallback(bytes4,bytes,bytes)": EventFragment;
-    "LogTxSender(address,bool)": EventFragment;
     "SetMetadataDescriptor(address)": EventFragment;
     "SlotChanged(uint256,uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
@@ -414,9 +487,6 @@ export interface CTMRWA001Interface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalValue"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LogChangeGov"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LogFallback"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LogTxSender"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SetMetadataDescriptor"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SlotChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
@@ -458,42 +528,6 @@ export type ApprovalValueEvent = TypedEvent<
 >;
 
 export type ApprovalValueEventFilter = TypedEventFilter<ApprovalValueEvent>;
-
-export interface LogChangeGovEventObject {
-  oldGov: string;
-  newGov: string;
-  effectiveTime: BigNumber;
-  chainID: BigNumber;
-}
-export type LogChangeGovEvent = TypedEvent<
-  [string, string, BigNumber, BigNumber],
-  LogChangeGovEventObject
->;
-
-export type LogChangeGovEventFilter = TypedEventFilter<LogChangeGovEvent>;
-
-export interface LogFallbackEventObject {
-  selector: string;
-  data: string;
-  reason: string;
-}
-export type LogFallbackEvent = TypedEvent<
-  [string, string, string],
-  LogFallbackEventObject
->;
-
-export type LogFallbackEventFilter = TypedEventFilter<LogFallbackEvent>;
-
-export interface LogTxSenderEventObject {
-  txSender: string;
-  vaild: boolean;
-}
-export type LogTxSenderEvent = TypedEvent<
-  [string, boolean],
-  LogTxSenderEventObject
->;
-
-export type LogTxSenderEventFilter = TypedEventFilter<LogTxSenderEvent>;
 
 export interface SetMetadataDescriptorEventObject {
   metadataDescriptor: string;
@@ -569,10 +603,14 @@ export interface CTMRWA001 extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    addTxSender(
-      txSender: PromiseOrValue<string>,
+    addXTokenInfo(
+      _admin: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
+
+    admin(overrides?: CallOverrides): Promise<[string]>;
 
     allowance(
       tokenId_: PromiseOrValue<BigNumberish>,
@@ -593,6 +631,12 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    approveFromX(
+      to_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     "balanceOf(address)"(
       owner_: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -603,51 +647,45 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    c3CallerProxy(overrides?: CallOverrides): Promise<[string]>;
-
-    c3Fallback(
-      _dappID: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
-      _reason: PromiseOrValue<BytesLike>,
+    changeAdmin(
+      _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    changeGov(
-      newGov: PromiseOrValue<string>,
+    checkTokenCompatibility(
+      _otherChainIdStr: PromiseOrValue<string>,
+      _otherContractStr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    clearApprovedValues(
+      tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     contractURI(overrides?: CallOverrides): Promise<[string]>;
 
-    dappID(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    delay(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    disableTxSender(
-      txSender: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    doGov(
-      _to: PromiseOrValue<string>,
-      _toChainID: PromiseOrValue<string>,
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    doGovBroadcast(
-      _targets: PromiseOrValue<string>[],
-      _toChainIDs: PromiseOrValue<string>[],
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ctmRwa001XChain(overrides?: CallOverrides): Promise<[string]>;
 
     getApproved(
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    gov(overrides?: CallOverrides): Promise<[string]>;
+    getTokenContract(
+      _chainIdStr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    getTokenInfo(
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber, string, BigNumber]>;
+
+    idOf(
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     isApprovedForAll(
       owner_: PromiseOrValue<string>,
@@ -655,12 +693,28 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    isValidSender(
-      txSender: PromiseOrValue<string>,
+    isApprovedOrOwner(
+      operator_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     metadataDescriptor(overrides?: CallOverrides): Promise<[string]>;
+
+    "mintFromX(address,uint256,uint256,uint256)"(
+      to_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    "mintFromX(address,uint256,uint256)"(
+      to_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
@@ -668,6 +722,12 @@ export interface CTMRWA001 extends BaseContract {
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[string] & { owner_: string }>;
+
+    removeTokenFromOwnerEnumeration(
+      from_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
     "safeTransferFrom(address,address,uint256)"(
       from_: PromiseOrValue<string>,
@@ -690,11 +750,6 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    setDelay(
-      _delay: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     slotOf(
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -704,6 +759,19 @@ export interface CTMRWA001 extends BaseContract {
       slot_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    spendAllowance(
+      operator_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    stringsEqual(
+      a: PromiseOrValue<string>,
+      b: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     supportsInterface(
       interfaceId: PromiseOrValue<BytesLike>,
@@ -716,6 +784,11 @@ export interface CTMRWA001 extends BaseContract {
       index_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    tokenContract(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string, string] & { chainIdStr: string; contractStr: string }>;
 
     tokenOfOwnerByIndex(
       owner_: PromiseOrValue<string>,
@@ -754,10 +827,14 @@ export interface CTMRWA001 extends BaseContract {
     valueDecimals(overrides?: CallOverrides): Promise<[number]>;
   };
 
-  addTxSender(
-    txSender: PromiseOrValue<string>,
+  addXTokenInfo(
+    _admin: PromiseOrValue<string>,
+    _chainIdsStr: PromiseOrValue<string>[],
+    _contractAddrsStr: PromiseOrValue<string>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
+
+  admin(overrides?: CallOverrides): Promise<string>;
 
   allowance(
     tokenId_: PromiseOrValue<BigNumberish>,
@@ -778,6 +855,12 @@ export interface CTMRWA001 extends BaseContract {
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  approveFromX(
+    to_: PromiseOrValue<string>,
+    tokenId_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   "balanceOf(address)"(
     owner_: PromiseOrValue<string>,
     overrides?: CallOverrides
@@ -788,51 +871,45 @@ export interface CTMRWA001 extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  c3CallerProxy(overrides?: CallOverrides): Promise<string>;
-
-  c3Fallback(
-    _dappID: PromiseOrValue<BigNumberish>,
-    _data: PromiseOrValue<BytesLike>,
-    _reason: PromiseOrValue<BytesLike>,
+  changeAdmin(
+    _admin: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  changeGov(
-    newGov: PromiseOrValue<string>,
+  checkTokenCompatibility(
+    _otherChainIdStr: PromiseOrValue<string>,
+    _otherContractStr: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  clearApprovedValues(
+    tokenId_: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   contractURI(overrides?: CallOverrides): Promise<string>;
 
-  dappID(overrides?: CallOverrides): Promise<BigNumber>;
-
-  delay(overrides?: CallOverrides): Promise<BigNumber>;
-
-  disableTxSender(
-    txSender: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  doGov(
-    _to: PromiseOrValue<string>,
-    _toChainID: PromiseOrValue<string>,
-    _data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  doGovBroadcast(
-    _targets: PromiseOrValue<string>[],
-    _toChainIDs: PromiseOrValue<string>[],
-    _data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ctmRwa001XChain(overrides?: CallOverrides): Promise<string>;
 
   getApproved(
     tokenId_: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  gov(overrides?: CallOverrides): Promise<string>;
+  getTokenContract(
+    _chainIdStr: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  getTokenInfo(
+    tokenId_: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, BigNumber, string, BigNumber]>;
+
+  idOf(
+    tokenId_: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   isApprovedForAll(
     owner_: PromiseOrValue<string>,
@@ -840,12 +917,28 @@ export interface CTMRWA001 extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  isValidSender(
-    txSender: PromiseOrValue<string>,
+  isApprovedOrOwner(
+    operator_: PromiseOrValue<string>,
+    tokenId_: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   metadataDescriptor(overrides?: CallOverrides): Promise<string>;
+
+  "mintFromX(address,uint256,uint256,uint256)"(
+    to_: PromiseOrValue<string>,
+    tokenId_: PromiseOrValue<BigNumberish>,
+    slot_: PromiseOrValue<BigNumberish>,
+    value_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  "mintFromX(address,uint256,uint256)"(
+    to_: PromiseOrValue<string>,
+    slot_: PromiseOrValue<BigNumberish>,
+    value_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   name(overrides?: CallOverrides): Promise<string>;
 
@@ -853,6 +946,12 @@ export interface CTMRWA001 extends BaseContract {
     tokenId_: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  removeTokenFromOwnerEnumeration(
+    from_: PromiseOrValue<string>,
+    tokenId_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   "safeTransferFrom(address,address,uint256)"(
     from_: PromiseOrValue<string>,
@@ -875,11 +974,6 @@ export interface CTMRWA001 extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  setDelay(
-    _delay: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   slotOf(
     tokenId_: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
@@ -889,6 +983,19 @@ export interface CTMRWA001 extends BaseContract {
     slot_: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  spendAllowance(
+    operator_: PromiseOrValue<string>,
+    tokenId_: PromiseOrValue<BigNumberish>,
+    value_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  stringsEqual(
+    a: PromiseOrValue<string>,
+    b: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   supportsInterface(
     interfaceId: PromiseOrValue<BytesLike>,
@@ -901,6 +1008,11 @@ export interface CTMRWA001 extends BaseContract {
     index_: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  tokenContract(
+    arg0: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<[string, string] & { chainIdStr: string; contractStr: string }>;
 
   tokenOfOwnerByIndex(
     owner_: PromiseOrValue<string>,
@@ -939,10 +1051,14 @@ export interface CTMRWA001 extends BaseContract {
   valueDecimals(overrides?: CallOverrides): Promise<number>;
 
   callStatic: {
-    addTxSender(
-      txSender: PromiseOrValue<string>,
+    addXTokenInfo(
+      _admin: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<boolean>;
+
+    admin(overrides?: CallOverrides): Promise<string>;
 
     allowance(
       tokenId_: PromiseOrValue<BigNumberish>,
@@ -963,6 +1079,12 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    approveFromX(
+      to_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     "balanceOf(address)"(
       owner_: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -973,51 +1095,45 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    c3CallerProxy(overrides?: CallOverrides): Promise<string>;
-
-    c3Fallback(
-      _dappID: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
-      _reason: PromiseOrValue<BytesLike>,
+    changeAdmin(
+      _admin: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    changeGov(
-      newGov: PromiseOrValue<string>,
+    checkTokenCompatibility(
+      _otherChainIdStr: PromiseOrValue<string>,
+      _otherContractStr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    clearApprovedValues(
+      tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
     contractURI(overrides?: CallOverrides): Promise<string>;
 
-    dappID(overrides?: CallOverrides): Promise<BigNumber>;
-
-    delay(overrides?: CallOverrides): Promise<BigNumber>;
-
-    disableTxSender(
-      txSender: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    doGov(
-      _to: PromiseOrValue<string>,
-      _toChainID: PromiseOrValue<string>,
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    doGovBroadcast(
-      _targets: PromiseOrValue<string>[],
-      _toChainIDs: PromiseOrValue<string>[],
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    ctmRwa001XChain(overrides?: CallOverrides): Promise<string>;
 
     getApproved(
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    gov(overrides?: CallOverrides): Promise<string>;
+    getTokenContract(
+      _chainIdStr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getTokenInfo(
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber, string, BigNumber]>;
+
+    idOf(
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     isApprovedForAll(
       owner_: PromiseOrValue<string>,
@@ -1025,12 +1141,28 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    isValidSender(
-      txSender: PromiseOrValue<string>,
+    isApprovedOrOwner(
+      operator_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     metadataDescriptor(overrides?: CallOverrides): Promise<string>;
+
+    "mintFromX(address,uint256,uint256,uint256)"(
+      to_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "mintFromX(address,uint256,uint256)"(
+      to_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
@@ -1038,6 +1170,12 @@ export interface CTMRWA001 extends BaseContract {
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    removeTokenFromOwnerEnumeration(
+      from_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     "safeTransferFrom(address,address,uint256)"(
       from_: PromiseOrValue<string>,
@@ -1060,11 +1198,6 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setDelay(
-      _delay: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     slotOf(
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1074,6 +1207,19 @@ export interface CTMRWA001 extends BaseContract {
       slot_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    spendAllowance(
+      operator_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    stringsEqual(
+      a: PromiseOrValue<string>,
+      b: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     supportsInterface(
       interfaceId: PromiseOrValue<BytesLike>,
@@ -1086,6 +1232,11 @@ export interface CTMRWA001 extends BaseContract {
       index_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    tokenContract(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string, string] & { chainIdStr: string; contractStr: string }>;
 
     tokenOfOwnerByIndex(
       owner_: PromiseOrValue<string>,
@@ -1158,39 +1309,6 @@ export interface CTMRWA001 extends BaseContract {
       _value?: null
     ): ApprovalValueEventFilter;
 
-    "LogChangeGov(address,address,uint256,uint256)"(
-      oldGov?: PromiseOrValue<string> | null,
-      newGov?: PromiseOrValue<string> | null,
-      effectiveTime?: PromiseOrValue<BigNumberish> | null,
-      chainID?: null
-    ): LogChangeGovEventFilter;
-    LogChangeGov(
-      oldGov?: PromiseOrValue<string> | null,
-      newGov?: PromiseOrValue<string> | null,
-      effectiveTime?: PromiseOrValue<BigNumberish> | null,
-      chainID?: null
-    ): LogChangeGovEventFilter;
-
-    "LogFallback(bytes4,bytes,bytes)"(
-      selector?: null,
-      data?: null,
-      reason?: null
-    ): LogFallbackEventFilter;
-    LogFallback(
-      selector?: null,
-      data?: null,
-      reason?: null
-    ): LogFallbackEventFilter;
-
-    "LogTxSender(address,bool)"(
-      txSender?: PromiseOrValue<string> | null,
-      vaild?: null
-    ): LogTxSenderEventFilter;
-    LogTxSender(
-      txSender?: PromiseOrValue<string> | null,
-      vaild?: null
-    ): LogTxSenderEventFilter;
-
     "SetMetadataDescriptor(address)"(
       metadataDescriptor?: PromiseOrValue<string> | null
     ): SetMetadataDescriptorEventFilter;
@@ -1233,10 +1351,14 @@ export interface CTMRWA001 extends BaseContract {
   };
 
   estimateGas: {
-    addTxSender(
-      txSender: PromiseOrValue<string>,
+    addXTokenInfo(
+      _admin: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
+
+    admin(overrides?: CallOverrides): Promise<BigNumber>;
 
     allowance(
       tokenId_: PromiseOrValue<BigNumberish>,
@@ -1257,6 +1379,12 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    approveFromX(
+      to_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     "balanceOf(address)"(
       owner_: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -1267,51 +1395,45 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    c3CallerProxy(overrides?: CallOverrides): Promise<BigNumber>;
-
-    c3Fallback(
-      _dappID: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
-      _reason: PromiseOrValue<BytesLike>,
+    changeAdmin(
+      _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    changeGov(
-      newGov: PromiseOrValue<string>,
+    checkTokenCompatibility(
+      _otherChainIdStr: PromiseOrValue<string>,
+      _otherContractStr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    clearApprovedValues(
+      tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     contractURI(overrides?: CallOverrides): Promise<BigNumber>;
 
-    dappID(overrides?: CallOverrides): Promise<BigNumber>;
-
-    delay(overrides?: CallOverrides): Promise<BigNumber>;
-
-    disableTxSender(
-      txSender: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    doGov(
-      _to: PromiseOrValue<string>,
-      _toChainID: PromiseOrValue<string>,
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    doGovBroadcast(
-      _targets: PromiseOrValue<string>[],
-      _toChainIDs: PromiseOrValue<string>[],
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ctmRwa001XChain(overrides?: CallOverrides): Promise<BigNumber>;
 
     getApproved(
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    gov(overrides?: CallOverrides): Promise<BigNumber>;
+    getTokenContract(
+      _chainIdStr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTokenInfo(
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    idOf(
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     isApprovedForAll(
       owner_: PromiseOrValue<string>,
@@ -1319,18 +1441,40 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    isValidSender(
-      txSender: PromiseOrValue<string>,
+    isApprovedOrOwner(
+      operator_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     metadataDescriptor(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "mintFromX(address,uint256,uint256,uint256)"(
+      to_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    "mintFromX(address,uint256,uint256)"(
+      to_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     ownerOf(
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    removeTokenFromOwnerEnumeration(
+      from_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     "safeTransferFrom(address,address,uint256)"(
@@ -1354,11 +1498,6 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    setDelay(
-      _delay: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     slotOf(
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1366,6 +1505,19 @@ export interface CTMRWA001 extends BaseContract {
 
     slotURI(
       slot_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    spendAllowance(
+      operator_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    stringsEqual(
+      a: PromiseOrValue<string>,
+      b: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1378,6 +1530,11 @@ export interface CTMRWA001 extends BaseContract {
 
     tokenByIndex(
       index_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    tokenContract(
+      arg0: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1419,10 +1576,14 @@ export interface CTMRWA001 extends BaseContract {
   };
 
   populateTransaction: {
-    addTxSender(
-      txSender: PromiseOrValue<string>,
+    addXTokenInfo(
+      _admin: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
+
+    admin(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     allowance(
       tokenId_: PromiseOrValue<BigNumberish>,
@@ -1443,6 +1604,12 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    approveFromX(
+      to_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     "balanceOf(address)"(
       owner_: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -1453,51 +1620,45 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    c3CallerProxy(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    c3Fallback(
-      _dappID: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
-      _reason: PromiseOrValue<BytesLike>,
+    changeAdmin(
+      _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    changeGov(
-      newGov: PromiseOrValue<string>,
+    checkTokenCompatibility(
+      _otherChainIdStr: PromiseOrValue<string>,
+      _otherContractStr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    clearApprovedValues(
+      tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     contractURI(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    dappID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    delay(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    disableTxSender(
-      txSender: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    doGov(
-      _to: PromiseOrValue<string>,
-      _toChainID: PromiseOrValue<string>,
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    doGovBroadcast(
-      _targets: PromiseOrValue<string>[],
-      _toChainIDs: PromiseOrValue<string>[],
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ctmRwa001XChain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getApproved(
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    gov(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getTokenContract(
+      _chainIdStr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getTokenInfo(
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    idOf(
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     isApprovedForAll(
       owner_: PromiseOrValue<string>,
@@ -1505,8 +1666,9 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    isValidSender(
-      txSender: PromiseOrValue<string>,
+    isApprovedOrOwner(
+      operator_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1514,11 +1676,32 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    "mintFromX(address,uint256,uint256,uint256)"(
+      to_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "mintFromX(address,uint256,uint256)"(
+      to_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     ownerOf(
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    removeTokenFromOwnerEnumeration(
+      from_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     "safeTransferFrom(address,address,uint256)"(
@@ -1542,11 +1725,6 @@ export interface CTMRWA001 extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    setDelay(
-      _delay: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     slotOf(
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1554,6 +1732,19 @@ export interface CTMRWA001 extends BaseContract {
 
     slotURI(
       slot_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    spendAllowance(
+      operator_: PromiseOrValue<string>,
+      tokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    stringsEqual(
+      a: PromiseOrValue<string>,
+      b: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1566,6 +1757,11 @@ export interface CTMRWA001 extends BaseContract {
 
     tokenByIndex(
       index_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    tokenContract(
+      arg0: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

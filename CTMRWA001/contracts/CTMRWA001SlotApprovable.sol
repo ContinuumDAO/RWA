@@ -15,20 +15,12 @@ contract CTMRWA001SlotApprovable is Context, CTMRWA001SlotEnumerable, ICTMRWA001
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
-        address _feeManager,
-        address _gov,
-        address _c3CallerProxy,
-        address _txSender,
-        uint256 _dappID
+        address _ctmRwa001XChain
     ) CTMRWA001SlotEnumerable(
         name_,
         symbol_,
         decimals_,
-        _feeManager,
-        _gov,
-        _c3CallerProxy,
-        _txSender,
-        _dappID
+        _ctmRwa001XChain
     ) {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, CTMRWA001SlotEnumerable) returns (bool) {

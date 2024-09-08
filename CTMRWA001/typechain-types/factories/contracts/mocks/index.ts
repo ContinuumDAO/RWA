@@ -7,5 +7,6 @@ export { CTMRWA001AllRoundMockUpgradeable__factory } from "./CTMRWA001AllRoundMo
 export { CTMRWA001BaseMock__factory } from "./CTMRWA001BaseMock__factory";
 export { CTMRWA001BaseMockUpgradeable__factory } from "./CTMRWA001BaseMockUpgradeable__factory";
 export { CTMRWA001ReceiverMock__factory } from "./CTMRWA001ReceiverMock__factory";
+export { CTMRWA001TxFee__factory } from "./CTMRWA001TxFee__factory";
 export { ERC721ReceiverMock__factory } from "./ERC721ReceiverMock__factory";
 export { NonReceiverMockUpgradeable__factory } from "./NonReceiverMockUpgradeable__factory";

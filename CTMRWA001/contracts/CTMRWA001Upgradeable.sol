@@ -39,11 +39,7 @@ contract CTMRWA001Upgradeable is Initializable, ContextUpgradeable, ICTMRWA001Me
     string private _name_;
     string private _symbol_;
     uint8 private _decimals_;
-    address private _feeManager_;
-    address private _gov_;
-    address private _c3CallerProxy_;
-    address private _txSender_;
-    uint256 private _dappID_;
+    address _ctmRwa001XChain_;
     uint256 private _tokenIdGenerator_;
 
     // id => (approval => allowance)
@@ -63,21 +59,13 @@ contract CTMRWA001Upgradeable is Initializable, ContextUpgradeable, ICTMRWA001Me
         string memory _name, 
         string memory _symbol, 
         uint8 _decimals,
-        address _feeManager,
-        address _gov,
-        address _c3CallerProxy,
-        address _txSender,
-        uint256 _dappID
+        address _ctmRwa001XChain
     ) internal onlyInitializing {
         __CTMRWA001_init_unchained(
             _name,
             _symbol,
             _decimals,
-            _feeManager,
-            _gov,
-            _c3CallerProxy,
-            _txSender,
-            _dappID
+            _ctmRwa001XChain
         );
     }
 
@@ -85,21 +73,13 @@ contract CTMRWA001Upgradeable is Initializable, ContextUpgradeable, ICTMRWA001Me
         string memory _name, 
         string memory _symbol, 
         uint8 _decimals,
-        address _feeManager,
-        address _gov,
-        address _c3CallerProxy,
-        address _txSender,
-        uint256 _dappID
+        address _ctmRwa001XChain
     ) internal onlyInitializing {
         _tokenIdGenerator_ = 1;
         _name_ = _name;
         _symbol_ = _symbol;
         _decimals_ = _decimals;
-        _feeManager_ = _feeManager;
-        _gov_ = _gov;
-        _c3CallerProxy_ = _c3CallerProxy;
-        _txSender_ = _txSender;
-        _dappID_ = _dappID; 
+        _ctmRwa001XChain_ = _ctmRwa001XChain;
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {

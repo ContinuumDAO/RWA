@@ -16,21 +16,13 @@ contract CTMRWA001UpgradeableWithInit is CTMRWA001Upgradeable {
             string memory name_, 
             string memory symbol_, 
             uint8 decimals_,
-            address _feeManager,
-            address _gov,
-            address _c3CallerProxy,
-            address _txSender,
-            uint256 _dappID
+            address _ctmRwa001XChain
         ) payable initializer {
         __CTMRWA001_init(
             name_,
             symbol_,
             decimals_,
-            _feeManager,
-            _gov,
-            _c3CallerProxy,
-            _txSender,
-            _dappID
+            _ctmRwa001XChain
         );
     }
 }
@@ -41,21 +33,13 @@ contract CTMRWA001BurnableUpgradeableWithInit is CTMRWA001BurnableUpgradeable {
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
-        address _feeManager,
-        address _gov,
-        address _c3CallerProxy,
-        address _txSender,
-        uint256 _dappID
+        address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001Burnable_init(
             name_,
             symbol_,
             decimals_,
-            _feeManager,
-            _gov,
-            _c3CallerProxy,
-            _txSender,
-            _dappID
+            _ctmRwa001XChain
         );
     }
 }
@@ -66,21 +50,13 @@ contract CTMRWA001MintableUpgradeableWithInit is CTMRWA001MintableUpgradeable {
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
-        address _feeManager,
-        address _gov,
-        address _c3CallerProxy,
-        address _txSender,
-        uint256 _dappID
+        address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001Mintable_init(
             name_,
             symbol_,
             decimals_,
-            _feeManager,
-            _gov,
-            _c3CallerProxy,
-            _txSender,
-            _dappID
+            _ctmRwa001XChain
         );
     }
 }
@@ -91,21 +67,14 @@ contract CTMRWA001SlotApprovableUpgradeableWithInit is CTMRWA001SlotApprovableUp
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
-        address _feeManager,
-        address _gov,
-        address _c3CallerProxy,
-        address _txSender,
-        uint256 _dappID)
+        address _ctmRwa001XChain
+    )
      payable initializer {
         __CTMRWA001SlotApprovable_init(
             name_,
             symbol_,
             decimals_,
-            _feeManager,
-            _gov,
-            _c3CallerProxy,
-            _txSender,
-            _dappID
+           _ctmRwa001XChain
         );
     }
 }
@@ -116,21 +85,13 @@ contract CTMRWA001SlotEnumerableUpgradeableWithInit is CTMRWA001SlotEnumerableUp
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
-        address _feeManager,
-        address _gov,
-        address _c3CallerProxy,
-        address _txSender,
-        uint256 _dappID
+        address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001SlotEnumerable_init(
             name_,
             symbol_,
             decimals_,
-            _feeManager,
-            _gov,
-            _c3CallerProxy,
-            _txSender,
-            _dappID
+            _ctmRwa001XChain
         );
     }
 }
@@ -141,21 +102,13 @@ contract CTMRWA001AllRoundMockUpgradeableWithInit is CTMRWA001AllRoundMockUpgrad
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
-        address _feeManager,
-        address _gov,
-        address _c3CallerProxy,
-        address _txSender,
-        uint256 _dappID
+        address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001AllRoundMock_init(
             name_,
             symbol_,
             decimals_,
-            _feeManager,
-            _gov,
-            _c3CallerProxy,
-            _txSender,
-            _dappID
+            _ctmRwa001XChain
         );
     }
 }
@@ -166,21 +119,13 @@ contract CTMRWA001BaseMockUpgradeableWithInit is CTMRWA001BaseMockUpgradeable {
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
-        address _feeManager,
-        address _gov,
-        address _c3CallerProxy,
-        address _txSender,
-        uint256 _dappID
+        address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001BaseMock_init(
             name_,
             symbol_,
             decimals_,
-            _feeManager,
-            _gov,
-            _c3CallerProxy,
-            _txSender,
-            _dappID
+            _ctmRwa001XChain
         );
     }
 }

@@ -123,3 +123,4 @@ interface ICTMRWA001 is IERC165, IERC721 {
         uint256 _value
     ) external payable returns (uint256);
 }
+

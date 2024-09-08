@@ -11,20 +11,12 @@ contract CTMRWA001SlotEnumerable is Context, CTMRWA001, ICTMRWA001SlotEnumerable
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
-        address _feeManager,
-        address _gov,
-        address _c3CallerProxy,
-        address _txSender,
-        uint256 _dappID
+        address _ctmRwa001XChain
     ) CTMRWA001(
         name_,
         symbol_,
         decimals_,
-        _feeManager,
-        _gov,
-        _c3CallerProxy,
-        _txSender,
-        _dappID
+        _ctmRwa001XChain
     ) {}
 
     struct SlotData {
