@@ -4,12 +4,15 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./routerV2/GovernDapp.sol";
 import "./IFeeManager.sol";
 
 contract FeeManager is GovernDapp, IFeeManager {
-    using Math for uint256;
+    using Strings for *;
     using SafeERC20 for IERC20;
+    using SafeMath for uint256;
 
     address[] public feeTokenList;
     mapping(address => uint256) public feeTokenIndexMap;
@@ -49,8 +52,8 @@ contract FeeManager is GovernDapp, IFeeManager {
     uint256 public constant FROM_CHAIN_PAY = 1;
     uint256 public constant TO_CHAIN_PAY = 2;
 
-    mapping(uint256 => mapping(address => uint256)) private _fromFeeConfigs; // key is fromChainID, value key is tokenAddress
-    mapping(uint256 => mapping(address => uint256)) private _toFeeConfigs; // key is toChainID, value key is tokenAddress
+    mapping(string => mapping(address => uint256)) private _fromFeeConfigs; // key is fromChainIDStr, value key is tokenAddress
+    mapping(string => mapping(address => uint256)) private _toFeeConfigs; // key is toChainIDStr, value key is tokenAddress
 
     mapping(address => uint256) private _liqBaseFeeConfigs; // key is tokenAddress
 
@@ -88,13 +91,13 @@ contract FeeManager is GovernDapp, IFeeManager {
     }
 
     function setFeeConfig(
-        uint256 srcChainID,
-        uint256 dstChainID,
+        string memory srcChainIDStr,
+        string memory dstChainIDStr,
         uint256 payFrom, // 1:from 2:to 0:free
         address[] memory feetokens,
         uint256[] memory fee // human readable * 100
     ) external onlyGov returns (bool) {
-        require(srcChainID > 0 || dstChainID > 0, "FM: ChainID empty");
+        require(bytes(srcChainIDStr).length > 0 || bytes(dstChainIDStr).length > 0, "FM: ChainID empty");
         require(
             payFrom == FROM_CHAIN_PAY || payFrom == TO_CHAIN_PAY,
             "FM: Invalid payFrom"
@@ -104,26 +107,27 @@ contract FeeManager is GovernDapp, IFeeManager {
         for (uint256 index = 0; index < feetokens.length; index++) {
             require(
                 feeTokenIndexMap[feetokens[index]] > 0,
-                "FM: token not exist"
+                "FM: fee token does not exist"
             );
+            string memory thisChainIdStr = block.chainid.toString();
             if (payFrom == FROM_CHAIN_PAY) {
-                _fromFeeConfigs[block.chainid][feetokens[index]] = fee[index];
+                _fromFeeConfigs[thisChainIdStr][feetokens[index]] = fee[index];
             } else if (payFrom == TO_CHAIN_PAY) {
-                _toFeeConfigs[dstChainID][feetokens[index]] = fee[index];
+                _toFeeConfigs[dstChainIDStr][feetokens[index]] = fee[index];
             }
         }
         return true;
     }
 
     function getXChainFee(
-        uint256 fromChainID,
-        uint256 toChainID,
+        string memory fromChainIDStr,
+        string memory toChainIDStr,
         address feeToken
     ) public view returns (uint256) {
-        require(fromChainID > 0 || toChainID > 0, "FM: Invalid chainID");
-        uint256 fee = getFromChainFee(fromChainID, feeToken);
+        require(bytes(fromChainIDStr).length > 0 || bytes(toChainIDStr).length > 0, "FM: Invalid chainIDStr");
+        uint256 fee = getFromChainFee(fromChainIDStr, feeToken);
         if (fee == 0) {
-            fee = getToChainFee(toChainID, feeToken);
+            fee = getToChainFee(toChainIDStr, feeToken);
         }
         return fee;
     }
@@ -135,7 +139,7 @@ contract FeeManager is GovernDapp, IFeeManager {
                 address(this),
                 fee
             ),
-            "FeeConfig: Fee payment failed"
+            "FM: Fee payment failed"
         );
         return (fee);
     }
@@ -149,22 +153,22 @@ contract FeeManager is GovernDapp, IFeeManager {
         if (bal < amount) {
             amount = bal;
         }
-        require(IERC20(feeToken).transfer(msg.sender, amount), "transfer fail");
+        require(IERC20(feeToken).transfer(msg.sender, amount), "FM: transfer fail");
         return true;
     }
 
     function getFromChainFee(
-        uint256 fromChainID,
+        string memory fromChainIDStr,
         address feeToken
     ) public view returns (uint256) {
-        return _fromFeeConfigs[fromChainID][feeToken];
+        return _fromFeeConfigs[fromChainIDStr][feeToken];
     }
 
     function getToChainFee(
-        uint256 toChainID,
+        string memory toChainIDStr,
         address feeToken
     ) public view returns (uint256) {
-        return _toFeeConfigs[toChainID][feeToken];
+        return _toFeeConfigs[toChainIDStr][feeToken];
     }
 
     function _c3Fallback(

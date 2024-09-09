@@ -45,14 +45,14 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "fromChainID",
-        type: "uint256",
+        internalType: "string",
+        name: "fromChainIDStr",
+        type: "string",
       },
       {
-        internalType: "uint256",
-        name: "toChainID",
-        type: "uint256",
+        internalType: "string",
+        name: "toChainIDStr",
+        type: "string",
       },
       {
         internalType: "address",

@@ -30,7 +30,8 @@ import type {
 
 export interface CTMRWA001XInterface extends utils.Interface {
   functions: {
-    "addNewChainIdAndToken(address,string,string[],string[])": FunctionFragment;
+    "addNewChainIdAndToken(string,string[],string[],string)": FunctionFragment;
+    "addNewChainIdAndTokenX(string,string[],string[],string,string)": FunctionFragment;
     "addTxSender(address)": FunctionFragment;
     "addXChainInfo(string,string,string[],string[])": FunctionFragment;
     "addXChainInfoX(string[],string[],string)": FunctionFragment;
@@ -50,6 +51,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
     "getChainContract(string)": FunctionFragment;
     "gov()": FunctionFragment;
     "isValidSender(address)": FunctionFragment;
+    "mintNewToken(string,string,uint256,uint256,string,address)": FunctionFragment;
     "mintX(string,string,uint256,uint256,uint256,uint256,string,string)": FunctionFragment;
     "mintX(string,string,uint256,uint256,uint256,string,string)": FunctionFragment;
     "setDelay(uint256)": FunctionFragment;
@@ -64,6 +66,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "addNewChainIdAndToken"
+      | "addNewChainIdAndTokenX"
       | "addTxSender"
       | "addXChainInfo"
       | "addXChainInfoX"
@@ -83,6 +86,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
       | "getChainContract"
       | "gov"
       | "isValidSender"
+      | "mintNewToken"
       | "mintX(string,string,uint256,uint256,uint256,uint256,string,string)"
       | "mintX(string,string,uint256,uint256,uint256,string,string)"
       | "setDelay"
@@ -98,9 +102,19 @@ export interface CTMRWA001XInterface extends utils.Interface {
     functionFragment: "addNewChainIdAndToken",
     values: [
       PromiseOrValue<string>,
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addNewChainIdAndTokenX",
+    values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>[],
-      PromiseOrValue<string>[]
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
     ]
   ): string;
   encodeFunctionData(
@@ -202,6 +216,17 @@ export interface CTMRWA001XInterface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
+    functionFragment: "mintNewToken",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
     functionFragment: "mintX(string,string,uint256,uint256,uint256,uint256,string,string)",
     values: [
       PromiseOrValue<string>,
@@ -281,6 +306,10 @@ export interface CTMRWA001XInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "addNewChainIdAndTokenX",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "addTxSender",
     data: BytesLike
   ): Result;
@@ -330,6 +359,10 @@ export interface CTMRWA001XInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "mintNewToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "mintX(string,string,uint256,uint256,uint256,uint256,string,string)",
     data: BytesLike
   ): Result;
@@ -361,6 +394,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
   ): Result;
 
   events: {
+    "AddNewChainAndToken(string,string,string[],string[])": EventFragment;
     "ChangeAdminDest(string,string,string)": EventFragment;
     "LogChangeGov(address,address,uint256,uint256)": EventFragment;
     "LogFallback(bytes4,bytes,bytes)": EventFragment;
@@ -370,6 +404,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
     "TransferToDestX(string,string,uint256,uint256,uint256,uint256,string,string)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "AddNewChainAndToken"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ChangeAdminDest"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LogChangeGov"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LogFallback"): EventFragment;
@@ -378,6 +413,20 @@ export interface CTMRWA001XInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "TransferFromSourceX"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferToDestX"): EventFragment;
 }
+
+export interface AddNewChainAndTokenEventObject {
+  fromChainIdStr: string;
+  fromContractStr: string;
+  chainIdsStr: string[];
+  ctmRwa001AddrsStr: string[];
+}
+export type AddNewChainAndTokenEvent = TypedEvent<
+  [string, string, string[], string[]],
+  AddNewChainAndTokenEventObject
+>;
+
+export type AddNewChainAndTokenEventFilter =
+  TypedEventFilter<AddNewChainAndTokenEvent>;
 
 export interface ChangeAdminDestEventObject {
   currentAdminStr: string;
@@ -504,10 +553,19 @@ export interface CTMRWA001X extends BaseContract {
 
   functions: {
     addNewChainIdAndToken(
-      _admin: PromiseOrValue<string>,
-      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
       _chainIdsStr: PromiseOrValue<string>[],
       _otherCtmRwa001AddrsStr: PromiseOrValue<string>[],
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    addNewChainIdAndTokenX(
+      _adminStr: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _otherCtmRwa001AddrsStr: PromiseOrValue<string>[],
+      _fromContractStr: PromiseOrValue<string>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -606,6 +664,16 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    mintNewToken(
+      toAddressStr_: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     "mintX(string,string,uint256,uint256,uint256,uint256,string,string)"(
       fromAddressStr_: PromiseOrValue<string>,
       toAddressStr_: PromiseOrValue<string>,
@@ -682,10 +750,19 @@ export interface CTMRWA001X extends BaseContract {
   };
 
   addNewChainIdAndToken(
-    _admin: PromiseOrValue<string>,
-    _ctmRwa001AddrStr: PromiseOrValue<string>,
+    toChainIdStr_: PromiseOrValue<string>,
     _chainIdsStr: PromiseOrValue<string>[],
     _otherCtmRwa001AddrsStr: PromiseOrValue<string>[],
+    _ctmRwa001AddrStr: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  addNewChainIdAndTokenX(
+    _adminStr: PromiseOrValue<string>,
+    _chainIdsStr: PromiseOrValue<string>[],
+    _otherCtmRwa001AddrsStr: PromiseOrValue<string>[],
+    _fromContractStr: PromiseOrValue<string>,
+    _ctmRwa001AddrStr: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -784,6 +861,16 @@ export interface CTMRWA001X extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  mintNewToken(
+    toAddressStr_: PromiseOrValue<string>,
+    toChainIdStr_: PromiseOrValue<string>,
+    slot_: PromiseOrValue<BigNumberish>,
+    value_: PromiseOrValue<BigNumberish>,
+    _ctmRwa001AddrStr: PromiseOrValue<string>,
+    feeToken: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   "mintX(string,string,uint256,uint256,uint256,uint256,string,string)"(
     fromAddressStr_: PromiseOrValue<string>,
     toAddressStr_: PromiseOrValue<string>,
@@ -860,10 +947,19 @@ export interface CTMRWA001X extends BaseContract {
 
   callStatic: {
     addNewChainIdAndToken(
-      _admin: PromiseOrValue<string>,
-      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
       _chainIdsStr: PromiseOrValue<string>[],
       _otherCtmRwa001AddrsStr: PromiseOrValue<string>[],
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    addNewChainIdAndTokenX(
+      _adminStr: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _otherCtmRwa001AddrsStr: PromiseOrValue<string>[],
+      _fromContractStr: PromiseOrValue<string>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -962,6 +1058,16 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    mintNewToken(
+      toAddressStr_: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      feeToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     "mintX(string,string,uint256,uint256,uint256,uint256,string,string)"(
       fromAddressStr_: PromiseOrValue<string>,
       toAddressStr_: PromiseOrValue<string>,
@@ -1038,6 +1144,19 @@ export interface CTMRWA001X extends BaseContract {
   };
 
   filters: {
+    "AddNewChainAndToken(string,string,string[],string[])"(
+      fromChainIdStr?: null,
+      fromContractStr?: null,
+      chainIdsStr?: null,
+      ctmRwa001AddrsStr?: null
+    ): AddNewChainAndTokenEventFilter;
+    AddNewChainAndToken(
+      fromChainIdStr?: null,
+      fromContractStr?: null,
+      chainIdsStr?: null,
+      ctmRwa001AddrsStr?: null
+    ): AddNewChainAndTokenEventFilter;
+
     "ChangeAdminDest(string,string,string)"(
       currentAdminStr?: null,
       newAdminStr?: null,
@@ -1140,10 +1259,19 @@ export interface CTMRWA001X extends BaseContract {
 
   estimateGas: {
     addNewChainIdAndToken(
-      _admin: PromiseOrValue<string>,
-      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
       _chainIdsStr: PromiseOrValue<string>[],
       _otherCtmRwa001AddrsStr: PromiseOrValue<string>[],
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    addNewChainIdAndTokenX(
+      _adminStr: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _otherCtmRwa001AddrsStr: PromiseOrValue<string>[],
+      _fromContractStr: PromiseOrValue<string>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1242,6 +1370,16 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    mintNewToken(
+      toAddressStr_: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     "mintX(string,string,uint256,uint256,uint256,uint256,string,string)"(
       fromAddressStr_: PromiseOrValue<string>,
       toAddressStr_: PromiseOrValue<string>,
@@ -1319,10 +1457,19 @@ export interface CTMRWA001X extends BaseContract {
 
   populateTransaction: {
     addNewChainIdAndToken(
-      _admin: PromiseOrValue<string>,
-      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
       _chainIdsStr: PromiseOrValue<string>[],
       _otherCtmRwa001AddrsStr: PromiseOrValue<string>[],
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addNewChainIdAndTokenX(
+      _adminStr: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _otherCtmRwa001AddrsStr: PromiseOrValue<string>[],
+      _fromContractStr: PromiseOrValue<string>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1419,6 +1566,16 @@ export interface CTMRWA001X extends BaseContract {
     isValidSender(
       txSender: PromiseOrValue<string>,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    mintNewToken(
+      toAddressStr_: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     "mintX(string,string,uint256,uint256,uint256,uint256,string,string)"(

@@ -4,7 +4,6 @@
 import type {
   BaseContract,
   BigNumber,
-  BigNumberish,
   BytesLike,
   CallOverrides,
   ContractTransaction,
@@ -27,7 +26,7 @@ export interface IFeeManagerInterface extends utils.Interface {
   functions: {
     "getFeeTokenIndexMap(address)": FunctionFragment;
     "getFeeTokenList()": FunctionFragment;
-    "getXChainFee(uint256,uint256,address)": FunctionFragment;
+    "getXChainFee(string,string,address)": FunctionFragment;
   };
 
   getFunction(
@@ -48,8 +47,8 @@ export interface IFeeManagerInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getXChainFee",
     values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
       PromiseOrValue<string>
     ]
   ): string;
@@ -107,8 +106,8 @@ export interface IFeeManager extends BaseContract {
     ): Promise<ContractTransaction>;
 
     getXChainFee(
-      fromChainID: PromiseOrValue<BigNumberish>,
-      toChainID: PromiseOrValue<BigNumberish>,
+      fromChainIDStr: PromiseOrValue<string>,
+      toChainIDStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -124,8 +123,8 @@ export interface IFeeManager extends BaseContract {
   ): Promise<ContractTransaction>;
 
   getXChainFee(
-    fromChainID: PromiseOrValue<BigNumberish>,
-    toChainID: PromiseOrValue<BigNumberish>,
+    fromChainIDStr: PromiseOrValue<string>,
+    toChainIDStr: PromiseOrValue<string>,
     feeToken: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -139,8 +138,8 @@ export interface IFeeManager extends BaseContract {
     getFeeTokenList(overrides?: CallOverrides): Promise<string[]>;
 
     getXChainFee(
-      fromChainID: PromiseOrValue<BigNumberish>,
-      toChainID: PromiseOrValue<BigNumberish>,
+      fromChainIDStr: PromiseOrValue<string>,
+      toChainIDStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -159,8 +158,8 @@ export interface IFeeManager extends BaseContract {
     ): Promise<BigNumber>;
 
     getXChainFee(
-      fromChainID: PromiseOrValue<BigNumberish>,
-      toChainID: PromiseOrValue<BigNumberish>,
+      fromChainIDStr: PromiseOrValue<string>,
+      toChainIDStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -177,8 +176,8 @@ export interface IFeeManager extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getXChainFee(
-      fromChainID: PromiseOrValue<BigNumberish>,
-      toChainID: PromiseOrValue<BigNumberish>,
+      fromChainIDStr: PromiseOrValue<string>,
+      toChainIDStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

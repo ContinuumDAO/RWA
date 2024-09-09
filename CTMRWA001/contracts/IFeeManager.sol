@@ -3,8 +3,8 @@ pragma solidity ^0.8.20;
 
 interface IFeeManager {
     function getXChainFee(
-        uint256 fromChainID,
-        uint256 toChainID,
+        string memory fromChainIDStr,
+        string memory toChainIDStr,
         address feeToken
     ) external returns (uint256);
 
