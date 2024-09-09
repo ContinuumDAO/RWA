@@ -40,6 +40,7 @@ export interface CTMRWA001SlotEnumerableInterface extends utils.Interface {
     "balanceOf(uint256)": FunctionFragment;
     "burnValueX(uint256,uint256)": FunctionFragment;
     "changeAdmin(address)": FunctionFragment;
+    "changeAdminX(address)": FunctionFragment;
     "checkTokenCompatibility(string,string)": FunctionFragment;
     "clearApprovedValues(uint256)": FunctionFragment;
     "contractURI()": FunctionFragment;
@@ -93,6 +94,7 @@ export interface CTMRWA001SlotEnumerableInterface extends utils.Interface {
       | "balanceOf(uint256)"
       | "burnValueX"
       | "changeAdmin"
+      | "changeAdminX"
       | "checkTokenCompatibility"
       | "clearApprovedValues"
       | "contractURI"
@@ -177,6 +179,10 @@ export interface CTMRWA001SlotEnumerableInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "changeAdmin",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "changeAdminX",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
@@ -394,6 +400,10 @@ export interface CTMRWA001SlotEnumerableInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "burnValueX", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "changeAdmin",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "changeAdminX",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -710,6 +720,11 @@ export interface CTMRWA001SlotEnumerable extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    changeAdminX(
+      _admin: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     checkTokenCompatibility(
       _otherChainIdStr: PromiseOrValue<string>,
       _otherContractStr: PromiseOrValue<string>,
@@ -965,6 +980,11 @@ export interface CTMRWA001SlotEnumerable extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  changeAdminX(
+    _admin: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   checkTokenCompatibility(
     _otherChainIdStr: PromiseOrValue<string>,
     _otherContractStr: PromiseOrValue<string>,
@@ -1216,6 +1236,11 @@ export interface CTMRWA001SlotEnumerable extends BaseContract {
     ): Promise<boolean>;
 
     changeAdmin(
+      _admin: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    changeAdminX(
       _admin: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -1551,6 +1576,11 @@ export interface CTMRWA001SlotEnumerable extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    changeAdminX(
+      _admin: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     checkTokenCompatibility(
       _otherChainIdStr: PromiseOrValue<string>,
       _otherContractStr: PromiseOrValue<string>,
@@ -1803,6 +1833,11 @@ export interface CTMRWA001SlotEnumerable extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     changeAdmin(
+      _admin: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    changeAdminX(
       _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

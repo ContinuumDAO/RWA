@@ -22,6 +22,10 @@ contract CTMRWA001X is  GovernDapp {
 
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
+    event SetChainContract(string[] chainIdsStr, string[] contractAddrsStr, string fromContractStr, string fromChainIdStr);
+
+    event ChangeAdminDest(string currentAdminStr, string newAdminStr, string fromChainIdStr);
+
     event TransferFromSourceX(
         string fromAddressStr,
         string toAddressStr,
@@ -92,18 +96,51 @@ contract CTMRWA001X is  GovernDapp {
 
      // Cross chain functions
 
+    // Synchronise the CTMRWA001X GateKeeper contract address across other chains. Governance controlled
     function addXChainInfo(
-        uint256[] memory chainIds,
-        address[] memory contractAddrs
-    ) external onlyCaller returns(bool){
-        require(chainIds.length == contractAddrs.length, "CTMRWA001: Length mismatch chainIds and contractAddrs");
+        string memory _tochainIdStr,
+        string memory _toContractStr,
+        string[] memory _chainIdsStr,
+        string[] memory _contractAddrsStr
+    ) external payable onlyGov {
+        require(_chainIdsStr.length>0, "CTMRWA001X: Zero length _chainIdsStr");
+        require(_chainIdsStr.length == _contractAddrsStr.length, "CTMRWA001X: Length mismatch chainIds and contractAddrs");
+        string memory fromContractStr = address(this).toHexString();
 
-        for(uint256 i=0; i<chainIds.length; i++) {
-            if(chainIds[i] != cID()) {
-                bool success = _addChainContract(chainIds[i], contractAddrs[i]);
-                if(!success) revert("CTMRWA001X: _addXChainInfo failed");
+        string memory funcCall = "addXChainInfoX(string,string[],string[],string)";
+        bytes memory callData = abi.encodeWithSignature(
+            funcCall,
+            _chainIdsStr,
+            _contractAddrsStr,
+            fromContractStr
+        );
+
+        c3call(_toContractStr, _tochainIdStr, callData);
+
+    }
+
+    function addXChainInfoX(
+        string[] memory _chainIdsStr,
+        string[] memory _contractAddrsStr,
+        string memory _fromContractStr
+    ) external onlyCaller returns(bool){
+        uint256 chainId;
+        bool ok;
+
+        (, string memory fromChainIdStr,) = context();
+        fromChainIdStr = _toLower(fromChainIdStr);
+
+        for(uint256 i=0; i<_chainIdsStr.length; i++) {
+            (chainId, ok) = strToUint(_chainIdsStr[i]);
+            require(ok && chainId!=0,"CTMRWA001X: Illegal chainId");
+            address contractAddr = stringToAddress(_contractAddrsStr[i]);
+            if(chainId != cID()) {
+                bool success = _addChainContract(chainId, contractAddr);
+                if(!success) revert("CTMRWA001X: _addXChainInfoX failed");
             }
         }
+
+        emit SetChainContract(_chainIdsStr, _contractAddrsStr, _fromContractStr, fromChainIdStr);
 
         return(true);
     }
@@ -119,11 +156,61 @@ contract CTMRWA001X is  GovernDapp {
     }
 
     // Change the admin address of a deployed CTMRWA001 instance
-    function changeAdmin(
+    function changeAdminCrossChain(
+        string memory _newAdminStr,
+        string memory toChainIdStr_,
+        string memory _ctmRwa001AddrStr,
+        address feeToken
+    ) public payable virtual returns(bool) {
+        address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
+        address currentAdmin = ICTMRWA001X(ctmRwa001Addr).admin();
+        require(msg.sender == currentAdmin, "CTMRWA001X: Only admin can change the admin");
+
+        string memory currentAdminStr = currentAdmin.toHexString();
+        string memory _toContractStr = ICTMRWA001X(ctmRwa001Addr).getTokenContract(toChainIdStr_);
+
+        string memory targetStr = this.getChainContract(toChainIdStr_);
+        require(bytes(targetStr).length>0, "CTMRWA001X: Target contract address not found");
+
+        (uint256 toChainId, bool ok) = strToUint(toChainIdStr_);
+        require(ok && toChainId!=0, "CTMRWA001X: Invalid toChainIdStr_");
+        uint256 xChainFee = FeeManager(feeManager).getXChainFee(cID(), toChainId, feeToken);
+        FeeManager(feeManager).payFee(xChainFee, feeToken);
+
+        string memory funcCall = "adminX(string,string,string,string,string)";
+        bytes memory callData = abi.encodeWithSignature(
+            funcCall,
+            currentAdminStr,
+            _newAdminStr,
+            _ctmRwa001AddrStr,
+            _toContractStr
+        );
+
+        c3call(targetStr, toChainIdStr_, callData);
+
+        return(true);
+    }
+
+
+    function adminX(
         string memory _currentAdminStr,
         string memory _newAdminStr,
+        string memory _fromContractStr,
         string memory _ctmRwa001AddrStr
     ) external onlyCaller returns(bool) {
+        address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
+        address newAdmin = stringToAddress(_newAdminStr);
+
+        (, string memory fromChainIdStr,) = context();
+        fromChainIdStr = _toLower(fromChainIdStr);
+
+        string memory storedContractStr = ICTMRWA001X(ctmRwa001Addr).getTokenContract(fromChainIdStr);
+        require(stringsEqual(storedContractStr, _fromContractStr), "CTMRWA001X: From an invalid CTMRWA001");
+
+        ICTMRWA001X(ctmRwa001Addr).changeAdminX(newAdmin);
+
+        emit ChangeAdminDest(_currentAdminStr, _newAdminStr, fromChainIdStr);
+
         return(true);
     }
 
@@ -157,9 +244,9 @@ contract CTMRWA001X is  GovernDapp {
         uint256 value_,
         string memory _ctmRwa001AddrStr,
         address feeToken
-    ) public virtual returns (uint256 newTokenId) {
+    ) public payable virtual {
         (uint256 toChainId, bool ok) = strToUint(toChainIdStr_);
-        require(ok, "CTMRWA001:Destination Chain invalid");
+        require(ok && toChainId!=0, "CTMRWA001:Destination Chain invalid");
         require(toChainId != cID(), "CTMRWA001: Not a cross-chain transfer");
         address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
         ICTMRWA001X(ctmRwa001Addr).spendAllowance(msg.sender, fromTokenId_, value_);
@@ -169,6 +256,9 @@ contract CTMRWA001X is  GovernDapp {
 
         string memory targetStr = this.getChainContract(toChainIdStr_);
         require(bytes(targetStr).length>0, "CTMRWA001: Target contract address not found");
+
+        uint256 xChainFee = FeeManager(feeManager).getXChainFee(cID(), toChainId, feeToken);
+        FeeManager(feeManager).payFee(xChainFee, feeToken);
 
         (,,,uint256 slot) = ICTMRWA001X(ctmRwa001Addr).getTokenInfo(fromTokenId_);
         string memory _toContractStr = ICTMRWA001X(ctmRwa001Addr).getTokenContract(toChainIdStr_);
@@ -214,14 +304,13 @@ contract CTMRWA001X is  GovernDapp {
         address feeToken
     ) public payable virtual {
         (uint256 toChainId, bool ok) = strToUint(toChainIdStr_);
-        require(ok, "CTMRWA001:Destination Chain invalid");
+        require(ok && toChainId!=0, "CTMRWA001:Destination Chain invalid");
         require(toChainId != cID(), "CTMRWA001: Not a cross-chain transfer");
         address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
         
         ICTMRWA001X(ctmRwa001Addr).spendAllowance(msg.sender, fromTokenId_, value_);
         require(bytes(toAddressStr_).length>0, "CTMRWA001: Destination address has zero length");
         string memory fromAddressStr = msg.sender.toHexString();
-
 
         uint256 xChainFee = FeeManager(feeManager).getXChainFee(cID(), toChainId, feeToken);
         FeeManager(feeManager).payFee(xChainFee, feeToken);
@@ -275,7 +364,6 @@ contract CTMRWA001X is  GovernDapp {
         string memory _ctmRwa001AddrStr
     ) external onlyCaller returns(bool){
 
-        address toAddr = stringToAddress(toAddressStr_);
         address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
 
         (, string memory fromChainIdStr,) = context();
@@ -284,7 +372,6 @@ contract CTMRWA001X is  GovernDapp {
         string memory storedContractStr = ICTMRWA001X(ctmRwa001Addr).getTokenContract(fromChainIdStr);
         require(stringsEqual(storedContractStr, _fromContractStr), "CTMRWA001X: From an invalid CTMRWA001");
 
-        //ICTMRWA001X(ctmRwa001Addr).mintFromX(toAddr, toTokenId_, slot_, value_);
         ICTMRWA001X(ctmRwa001Addr).mintValueX(toTokenId_, slot_, value_);
 
         emit TransferToDestX(
@@ -309,7 +396,7 @@ contract CTMRWA001X is  GovernDapp {
         address feeToken
     ) public payable virtual {
         (uint256 toChainId, bool ok) = strToUint(toChainIdStr_);
-        require(ok, "CTMRWA001:Destination Chain invalid");
+        require(ok && toChainId!=0, "CTMRWA001:Destination Chain invalid");
         require(toChainId != cID(), "CTMRWA001: Not a cross-chain transfer");
         address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
         require(ICTMRWA001X(ctmRwa001Addr).isApprovedOrOwner(msg.sender, fromTokenId_), "CTMRWA001: transfer caller is not owner nor approved");
@@ -323,7 +410,7 @@ contract CTMRWA001X is  GovernDapp {
 
         string memory _toContractStr = ICTMRWA001X(ctmRwa001Addr).getTokenContract(toChainIdStr_);
 
-        (uint256 id,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwa001Addr).getTokenInfo(fromTokenId_);
+        (,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwa001Addr).getTokenInfo(fromTokenId_);
 
         _beforeValueTransferX(fromAddressStr, toAddressStr_, toChainIdStr_, fromTokenId_, fromTokenId_, slot, value);
 

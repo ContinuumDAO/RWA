@@ -32,11 +32,13 @@ export interface CTMRWA001XInterface extends utils.Interface {
   functions: {
     "addNewChainIdAndToken(address,string,string[],string[])": FunctionFragment;
     "addTxSender(address)": FunctionFragment;
-    "addXChainInfo(uint256[],address[])": FunctionFragment;
+    "addXChainInfo(string,string,string[],string[])": FunctionFragment;
+    "addXChainInfoX(string[],string[],string)": FunctionFragment;
+    "adminX(string,string,string,string)": FunctionFragment;
     "c3CallerProxy()": FunctionFragment;
     "c3Fallback(uint256,bytes,bytes)": FunctionFragment;
     "chainIdStr()": FunctionFragment;
-    "changeAdmin(string,string,string)": FunctionFragment;
+    "changeAdminCrossChain(string,string,string,address)": FunctionFragment;
     "changeGov(address)": FunctionFragment;
     "dappID()": FunctionFragment;
     "delay()": FunctionFragment;
@@ -64,10 +66,12 @@ export interface CTMRWA001XInterface extends utils.Interface {
       | "addNewChainIdAndToken"
       | "addTxSender"
       | "addXChainInfo"
+      | "addXChainInfoX"
+      | "adminX"
       | "c3CallerProxy"
       | "c3Fallback"
       | "chainIdStr"
-      | "changeAdmin"
+      | "changeAdminCrossChain"
       | "changeGov"
       | "dappID"
       | "delay"
@@ -105,7 +109,29 @@ export interface CTMRWA001XInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "addXChainInfo",
-    values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<string>[]]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[]
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addXChainInfoX",
+    values: [
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "adminX",
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "c3CallerProxy",
@@ -124,8 +150,9 @@ export interface CTMRWA001XInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "changeAdmin",
+    functionFragment: "changeAdminCrossChain",
     values: [
+      PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<string>
@@ -262,13 +289,18 @@ export interface CTMRWA001XInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "addXChainInfoX",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "adminX", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "c3CallerProxy",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "c3Fallback", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "chainIdStr", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "changeAdmin",
+    functionFragment: "changeAdminCrossChain",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "changeGov", data: BytesLike): Result;
@@ -329,19 +361,35 @@ export interface CTMRWA001XInterface extends utils.Interface {
   ): Result;
 
   events: {
+    "ChangeAdminDest(string,string,string)": EventFragment;
     "LogChangeGov(address,address,uint256,uint256)": EventFragment;
     "LogFallback(bytes4,bytes,bytes)": EventFragment;
     "LogTxSender(address,bool)": EventFragment;
+    "SetChainContract(string[],string[],string,string)": EventFragment;
     "TransferFromSourceX(string,string,uint256,uint256,uint256,uint256,string,string)": EventFragment;
     "TransferToDestX(string,string,uint256,uint256,uint256,uint256,string,string)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "ChangeAdminDest"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LogChangeGov"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LogFallback"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LogTxSender"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetChainContract"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferFromSourceX"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferToDestX"): EventFragment;
 }
+
+export interface ChangeAdminDestEventObject {
+  currentAdminStr: string;
+  newAdminStr: string;
+  fromChainIdStr: string;
+}
+export type ChangeAdminDestEvent = TypedEvent<
+  [string, string, string],
+  ChangeAdminDestEventObject
+>;
+
+export type ChangeAdminDestEventFilter = TypedEventFilter<ChangeAdminDestEvent>;
 
 export interface LogChangeGovEventObject {
   oldGov: string;
@@ -378,6 +426,20 @@ export type LogTxSenderEvent = TypedEvent<
 >;
 
 export type LogTxSenderEventFilter = TypedEventFilter<LogTxSenderEvent>;
+
+export interface SetChainContractEventObject {
+  chainIdsStr: string[];
+  contractAddrsStr: string[];
+  fromContractStr: string;
+  fromChainIdStr: string;
+}
+export type SetChainContractEvent = TypedEvent<
+  [string[], string[], string, string],
+  SetChainContractEventObject
+>;
+
+export type SetChainContractEventFilter =
+  TypedEventFilter<SetChainContractEvent>;
 
 export interface TransferFromSourceXEventObject {
   fromAddressStr: string;
@@ -455,8 +517,25 @@ export interface CTMRWA001X extends BaseContract {
     ): Promise<ContractTransaction>;
 
     addXChainInfo(
-      chainIds: PromiseOrValue<BigNumberish>[],
-      contractAddrs: PromiseOrValue<string>[],
+      _tochainIdStr: PromiseOrValue<string>,
+      _toContractStr: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    addXChainInfoX(
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
+      _fromContractStr: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    adminX(
+      _currentAdminStr: PromiseOrValue<string>,
+      _newAdminStr: PromiseOrValue<string>,
+      _fromContractStr: PromiseOrValue<string>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -471,11 +550,12 @@ export interface CTMRWA001X extends BaseContract {
 
     chainIdStr(overrides?: CallOverrides): Promise<[string]>;
 
-    changeAdmin(
-      _currentAdminStr: PromiseOrValue<string>,
+    changeAdminCrossChain(
       _newAdminStr: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
       _ctmRwa001AddrStr: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     changeGov(
@@ -588,7 +668,7 @@ export interface CTMRWA001X extends BaseContract {
       value_: PromiseOrValue<BigNumberish>,
       _ctmRwa001AddrStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     "transferFromX(string,string,uint256,string,address)"(
@@ -615,8 +695,25 @@ export interface CTMRWA001X extends BaseContract {
   ): Promise<ContractTransaction>;
 
   addXChainInfo(
-    chainIds: PromiseOrValue<BigNumberish>[],
-    contractAddrs: PromiseOrValue<string>[],
+    _tochainIdStr: PromiseOrValue<string>,
+    _toContractStr: PromiseOrValue<string>,
+    _chainIdsStr: PromiseOrValue<string>[],
+    _contractAddrsStr: PromiseOrValue<string>[],
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  addXChainInfoX(
+    _chainIdsStr: PromiseOrValue<string>[],
+    _contractAddrsStr: PromiseOrValue<string>[],
+    _fromContractStr: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  adminX(
+    _currentAdminStr: PromiseOrValue<string>,
+    _newAdminStr: PromiseOrValue<string>,
+    _fromContractStr: PromiseOrValue<string>,
+    _ctmRwa001AddrStr: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -631,11 +728,12 @@ export interface CTMRWA001X extends BaseContract {
 
   chainIdStr(overrides?: CallOverrides): Promise<string>;
 
-  changeAdmin(
-    _currentAdminStr: PromiseOrValue<string>,
+  changeAdminCrossChain(
     _newAdminStr: PromiseOrValue<string>,
+    toChainIdStr_: PromiseOrValue<string>,
     _ctmRwa001AddrStr: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    feeToken: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   changeGov(
@@ -748,7 +846,7 @@ export interface CTMRWA001X extends BaseContract {
     value_: PromiseOrValue<BigNumberish>,
     _ctmRwa001AddrStr: PromiseOrValue<string>,
     feeToken: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   "transferFromX(string,string,uint256,string,address)"(
@@ -775,8 +873,25 @@ export interface CTMRWA001X extends BaseContract {
     ): Promise<void>;
 
     addXChainInfo(
-      chainIds: PromiseOrValue<BigNumberish>[],
-      contractAddrs: PromiseOrValue<string>[],
+      _tochainIdStr: PromiseOrValue<string>,
+      _toContractStr: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    addXChainInfoX(
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
+      _fromContractStr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    adminX(
+      _currentAdminStr: PromiseOrValue<string>,
+      _newAdminStr: PromiseOrValue<string>,
+      _fromContractStr: PromiseOrValue<string>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -791,10 +906,11 @@ export interface CTMRWA001X extends BaseContract {
 
     chainIdStr(overrides?: CallOverrides): Promise<string>;
 
-    changeAdmin(
-      _currentAdminStr: PromiseOrValue<string>,
+    changeAdminCrossChain(
       _newAdminStr: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
       _ctmRwa001AddrStr: PromiseOrValue<string>,
+      feeToken: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -909,7 +1025,7 @@ export interface CTMRWA001X extends BaseContract {
       _ctmRwa001AddrStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<void>;
 
     "transferFromX(string,string,uint256,string,address)"(
       toAddressStr_: PromiseOrValue<string>,
@@ -922,6 +1038,17 @@ export interface CTMRWA001X extends BaseContract {
   };
 
   filters: {
+    "ChangeAdminDest(string,string,string)"(
+      currentAdminStr?: null,
+      newAdminStr?: null,
+      fromChainIdStr?: null
+    ): ChangeAdminDestEventFilter;
+    ChangeAdminDest(
+      currentAdminStr?: null,
+      newAdminStr?: null,
+      fromChainIdStr?: null
+    ): ChangeAdminDestEventFilter;
+
     "LogChangeGov(address,address,uint256,uint256)"(
       oldGov?: PromiseOrValue<string> | null,
       newGov?: PromiseOrValue<string> | null,
@@ -954,6 +1081,19 @@ export interface CTMRWA001X extends BaseContract {
       txSender?: PromiseOrValue<string> | null,
       vaild?: null
     ): LogTxSenderEventFilter;
+
+    "SetChainContract(string[],string[],string,string)"(
+      chainIdsStr?: null,
+      contractAddrsStr?: null,
+      fromContractStr?: null,
+      fromChainIdStr?: null
+    ): SetChainContractEventFilter;
+    SetChainContract(
+      chainIdsStr?: null,
+      contractAddrsStr?: null,
+      fromContractStr?: null,
+      fromChainIdStr?: null
+    ): SetChainContractEventFilter;
 
     "TransferFromSourceX(string,string,uint256,uint256,uint256,uint256,string,string)"(
       fromAddressStr?: null,
@@ -1013,8 +1153,25 @@ export interface CTMRWA001X extends BaseContract {
     ): Promise<BigNumber>;
 
     addXChainInfo(
-      chainIds: PromiseOrValue<BigNumberish>[],
-      contractAddrs: PromiseOrValue<string>[],
+      _tochainIdStr: PromiseOrValue<string>,
+      _toContractStr: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    addXChainInfoX(
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
+      _fromContractStr: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    adminX(
+      _currentAdminStr: PromiseOrValue<string>,
+      _newAdminStr: PromiseOrValue<string>,
+      _fromContractStr: PromiseOrValue<string>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1029,11 +1186,12 @@ export interface CTMRWA001X extends BaseContract {
 
     chainIdStr(overrides?: CallOverrides): Promise<BigNumber>;
 
-    changeAdmin(
-      _currentAdminStr: PromiseOrValue<string>,
+    changeAdminCrossChain(
       _newAdminStr: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
       _ctmRwa001AddrStr: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     changeGov(
@@ -1146,7 +1304,7 @@ export interface CTMRWA001X extends BaseContract {
       value_: PromiseOrValue<BigNumberish>,
       _ctmRwa001AddrStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     "transferFromX(string,string,uint256,string,address)"(
@@ -1174,8 +1332,25 @@ export interface CTMRWA001X extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     addXChainInfo(
-      chainIds: PromiseOrValue<BigNumberish>[],
-      contractAddrs: PromiseOrValue<string>[],
+      _tochainIdStr: PromiseOrValue<string>,
+      _toContractStr: PromiseOrValue<string>,
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addXChainInfoX(
+      _chainIdsStr: PromiseOrValue<string>[],
+      _contractAddrsStr: PromiseOrValue<string>[],
+      _fromContractStr: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    adminX(
+      _currentAdminStr: PromiseOrValue<string>,
+      _newAdminStr: PromiseOrValue<string>,
+      _fromContractStr: PromiseOrValue<string>,
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1190,11 +1365,12 @@ export interface CTMRWA001X extends BaseContract {
 
     chainIdStr(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    changeAdmin(
-      _currentAdminStr: PromiseOrValue<string>,
+    changeAdminCrossChain(
       _newAdminStr: PromiseOrValue<string>,
+      toChainIdStr_: PromiseOrValue<string>,
       _ctmRwa001AddrStr: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     changeGov(
@@ -1307,7 +1483,7 @@ export interface CTMRWA001X extends BaseContract {
       value_: PromiseOrValue<BigNumberish>,
       _ctmRwa001AddrStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     "transferFromX(string,string,uint256,string,address)"(

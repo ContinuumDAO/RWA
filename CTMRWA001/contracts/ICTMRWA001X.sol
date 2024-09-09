@@ -3,6 +3,8 @@
 pragma solidity ^0.8.20;
 
 interface ICTMRWA001X {
+    function admin() external returns(address);
+    function changeAdminX(address _admin) external returns(bool);
     function addXTokenInfo(
         address _admin,
         string[] memory _chainIdsStr,

@@ -96,7 +96,12 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     }
     
 
-    function changeAdmin(address _admin) external onlyAdmin onlyGateKeeper returns(bool) {
+    function changeAdminX(address _admin) external onlyGateKeeper returns(bool) {
+        admin = _admin;
+        return true;
+    }
+
+    function changeAdmin(address _admin) external onlyAdmin returns(bool) {
         admin = _admin;
         return true;
     }

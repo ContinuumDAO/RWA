@@ -26,8 +26,10 @@ import type {
 export interface ICTMRWA001XInterface extends utils.Interface {
   functions: {
     "addXTokenInfo(address,string[],string[])": FunctionFragment;
+    "admin()": FunctionFragment;
     "approveFromX(address,uint256)": FunctionFragment;
     "burnValueX(uint256,uint256)": FunctionFragment;
+    "changeAdminX(address)": FunctionFragment;
     "checkTokenCompatibility(string,string)": FunctionFragment;
     "clearApprovedValues(uint256)": FunctionFragment;
     "getTokenContract(string)": FunctionFragment;
@@ -43,8 +45,10 @@ export interface ICTMRWA001XInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "addXTokenInfo"
+      | "admin"
       | "approveFromX"
       | "burnValueX"
+      | "changeAdminX"
       | "checkTokenCompatibility"
       | "clearApprovedValues"
       | "getTokenContract"
@@ -65,6 +69,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
       PromiseOrValue<string>[]
     ]
   ): string;
+  encodeFunctionData(functionFragment: "admin", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "approveFromX",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
@@ -72,6 +77,10 @@ export interface ICTMRWA001XInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "burnValueX",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "changeAdminX",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "checkTokenCompatibility",
@@ -135,11 +144,16 @@ export interface ICTMRWA001XInterface extends utils.Interface {
     functionFragment: "addXTokenInfo",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "approveFromX",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "burnValueX", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "changeAdminX",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "checkTokenCompatibility",
     data: BytesLike
@@ -215,6 +229,10 @@ export interface ICTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    admin(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     approveFromX(
       to_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
@@ -224,6 +242,11 @@ export interface ICTMRWA001X extends BaseContract {
     burnValueX(
       fromTokenId_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    changeAdminX(
+      _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -304,6 +327,10 @@ export interface ICTMRWA001X extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  admin(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   approveFromX(
     to_: PromiseOrValue<string>,
     tokenId_: PromiseOrValue<BigNumberish>,
@@ -313,6 +340,11 @@ export interface ICTMRWA001X extends BaseContract {
   burnValueX(
     fromTokenId_: PromiseOrValue<BigNumberish>,
     value_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  changeAdminX(
+    _admin: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -393,6 +425,8 @@ export interface ICTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    admin(overrides?: CallOverrides): Promise<string>;
+
     approveFromX(
       to_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
@@ -402,6 +436,11 @@ export interface ICTMRWA001X extends BaseContract {
     burnValueX(
       fromTokenId_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    changeAdminX(
+      _admin: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -485,6 +524,10 @@ export interface ICTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    admin(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     approveFromX(
       to_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
@@ -494,6 +537,11 @@ export interface ICTMRWA001X extends BaseContract {
     burnValueX(
       fromTokenId_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    changeAdminX(
+      _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -568,6 +616,10 @@ export interface ICTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    admin(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     approveFromX(
       to_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
@@ -577,6 +629,11 @@ export interface ICTMRWA001X extends BaseContract {
     burnValueX(
       fromTokenId_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    changeAdminX(
+      _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
