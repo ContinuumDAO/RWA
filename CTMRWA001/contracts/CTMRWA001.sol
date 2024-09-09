@@ -637,6 +637,26 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         );
     }
 
+    function burnValueX(uint256 fromTokenId_, uint256 value_) external onlyGateKeeper returns(bool) {
+        require(_exists(fromTokenId_), "CTMRWA001: transfer from invalid token ID");
+
+        TokenData storage fromTokenData = _allTokens[_allTokensIndex[fromTokenId_]];
+        require(fromTokenData.balance >= value_, "CTMRWA001: insufficient balance for transfer");
+
+        fromTokenData.balance -= value_;
+        return(true);
+    }
+
+    function mintValueX(uint256 toTokenId_, uint256 slot_, uint256 value_) external onlyGateKeeper returns(bool) {
+        require(_exists(toTokenId_), "CTMRWA001: transfer to invalid token ID");
+
+        TokenData storage toTokenData = _allTokens[_allTokensIndex[toTokenId_]];
+        require(toTokenData.slot == slot_, "CTMRWA001: Destination slot is not the same as source slot");
+
+        toTokenData.balance += value_;
+        return(true);
+    }
+
     function _transferTokenId(
         address from_,
         address to_,

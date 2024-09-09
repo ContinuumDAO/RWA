@@ -40,6 +40,7 @@ export interface CTMRWA001BaseMockInterface extends utils.Interface {
     "balanceOf(uint256)": FunctionFragment;
     "burn(uint256)": FunctionFragment;
     "burnValue(uint256,uint256)": FunctionFragment;
+    "burnValueX(uint256,uint256)": FunctionFragment;
     "changeAdmin(address)": FunctionFragment;
     "checkTokenCompatibility(string,string)": FunctionFragment;
     "clearApprovedValues(uint256)": FunctionFragment;
@@ -56,6 +57,7 @@ export interface CTMRWA001BaseMockInterface extends utils.Interface {
     "mintFromX(address,uint256,uint256,uint256)": FunctionFragment;
     "mintFromX(address,uint256,uint256)": FunctionFragment;
     "mintValue(uint256,uint256)": FunctionFragment;
+    "mintValueX(uint256,uint256,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
     "removeTokenFromOwnerEnumeration(address,uint256)": FunctionFragment;
@@ -91,6 +93,7 @@ export interface CTMRWA001BaseMockInterface extends utils.Interface {
       | "balanceOf(uint256)"
       | "burn"
       | "burnValue"
+      | "burnValueX"
       | "changeAdmin"
       | "checkTokenCompatibility"
       | "clearApprovedValues"
@@ -107,6 +110,7 @@ export interface CTMRWA001BaseMockInterface extends utils.Interface {
       | "mintFromX(address,uint256,uint256,uint256)"
       | "mintFromX(address,uint256,uint256)"
       | "mintValue"
+      | "mintValueX"
       | "name"
       | "ownerOf"
       | "removeTokenFromOwnerEnumeration"
@@ -173,6 +177,10 @@ export interface CTMRWA001BaseMockInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "burnValue",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnValueX",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
@@ -252,6 +260,14 @@ export interface CTMRWA001BaseMockInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "mintValue",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintValueX",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
@@ -385,6 +401,7 @@ export interface CTMRWA001BaseMockInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burnValue", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "burnValueX", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "changeAdmin",
     data: BytesLike
@@ -440,6 +457,7 @@ export interface CTMRWA001BaseMockInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "mintValue", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "mintValueX", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(
@@ -691,6 +709,12 @@ export interface CTMRWA001BaseMock extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     changeAdmin(
       _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -770,6 +794,13 @@ export interface CTMRWA001BaseMock extends BaseContract {
 
     mintValue(
       tokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
+      slot_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -940,6 +971,12 @@ export interface CTMRWA001BaseMock extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  burnValueX(
+    fromTokenId_: PromiseOrValue<BigNumberish>,
+    value_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   changeAdmin(
     _admin: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1019,6 +1056,13 @@ export interface CTMRWA001BaseMock extends BaseContract {
 
   mintValue(
     tokenId_: PromiseOrValue<BigNumberish>,
+    value_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  mintValueX(
+    toTokenId_: PromiseOrValue<BigNumberish>,
+    slot_: PromiseOrValue<BigNumberish>,
     value_: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -1189,6 +1233,12 @@ export interface CTMRWA001BaseMock extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     changeAdmin(
       _admin: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -1271,6 +1321,13 @@ export interface CTMRWA001BaseMock extends BaseContract {
       value_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
@@ -1514,6 +1571,12 @@ export interface CTMRWA001BaseMock extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     changeAdmin(
       _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1593,6 +1656,13 @@ export interface CTMRWA001BaseMock extends BaseContract {
 
     mintValue(
       tokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
+      slot_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -1764,6 +1834,12 @@ export interface CTMRWA001BaseMock extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     changeAdmin(
       _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1845,6 +1921,13 @@ export interface CTMRWA001BaseMock extends BaseContract {
 
     mintValue(
       tokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
+      slot_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

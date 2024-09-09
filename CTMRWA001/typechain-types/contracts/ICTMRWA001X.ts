@@ -27,6 +27,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
   functions: {
     "addXTokenInfo(address,string[],string[])": FunctionFragment;
     "approveFromX(address,uint256)": FunctionFragment;
+    "burnValueX(uint256,uint256)": FunctionFragment;
     "checkTokenCompatibility(string,string)": FunctionFragment;
     "clearApprovedValues(uint256)": FunctionFragment;
     "getTokenContract(string)": FunctionFragment;
@@ -34,6 +35,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
     "isApprovedOrOwner(address,uint256)": FunctionFragment;
     "mintFromX(address,uint256,uint256,uint256)": FunctionFragment;
     "mintFromX(address,uint256,uint256)": FunctionFragment;
+    "mintValueX(uint256,uint256,uint256)": FunctionFragment;
     "removeTokenFromOwnerEnumeration(address,uint256)": FunctionFragment;
     "spendAllowance(address,uint256,uint256)": FunctionFragment;
   };
@@ -42,6 +44,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "addXTokenInfo"
       | "approveFromX"
+      | "burnValueX"
       | "checkTokenCompatibility"
       | "clearApprovedValues"
       | "getTokenContract"
@@ -49,6 +52,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
       | "isApprovedOrOwner"
       | "mintFromX(address,uint256,uint256,uint256)"
       | "mintFromX(address,uint256,uint256)"
+      | "mintValueX"
       | "removeTokenFromOwnerEnumeration"
       | "spendAllowance"
   ): FunctionFragment;
@@ -64,6 +68,10 @@ export interface ICTMRWA001XInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "approveFromX",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnValueX",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "checkTokenCompatibility",
@@ -103,6 +111,14 @@ export interface ICTMRWA001XInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "mintValueX",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
     functionFragment: "removeTokenFromOwnerEnumeration",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
@@ -123,6 +139,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
     functionFragment: "approveFromX",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "burnValueX", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "checkTokenCompatibility",
     data: BytesLike
@@ -151,6 +168,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
     functionFragment: "mintFromX(address,uint256,uint256)",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "mintValueX", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "removeTokenFromOwnerEnumeration",
     data: BytesLike
@@ -203,6 +221,12 @@ export interface ICTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     checkTokenCompatibility(
       _otherChainIdStr: PromiseOrValue<string>,
       _otherContractStr: PromiseOrValue<string>,
@@ -252,6 +276,13 @@ export interface ICTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     removeTokenFromOwnerEnumeration(
       from_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
@@ -276,6 +307,12 @@ export interface ICTMRWA001X extends BaseContract {
   approveFromX(
     to_: PromiseOrValue<string>,
     tokenId_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  burnValueX(
+    fromTokenId_: PromiseOrValue<BigNumberish>,
+    value_: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -328,6 +365,13 @@ export interface ICTMRWA001X extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  mintValueX(
+    toTokenId_: PromiseOrValue<BigNumberish>,
+    slot_: PromiseOrValue<BigNumberish>,
+    value_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   removeTokenFromOwnerEnumeration(
     from_: PromiseOrValue<string>,
     tokenId_: PromiseOrValue<BigNumberish>,
@@ -354,6 +398,12 @@ export interface ICTMRWA001X extends BaseContract {
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     checkTokenCompatibility(
       _otherChainIdStr: PromiseOrValue<string>,
@@ -404,6 +454,13 @@ export interface ICTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     removeTokenFromOwnerEnumeration(
       from_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
@@ -431,6 +488,12 @@ export interface ICTMRWA001X extends BaseContract {
     approveFromX(
       to_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -471,6 +534,13 @@ export interface ICTMRWA001X extends BaseContract {
 
     "mintFromX(address,uint256,uint256)"(
       to_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
       slot_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -504,6 +574,12 @@ export interface ICTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     checkTokenCompatibility(
       _otherChainIdStr: PromiseOrValue<string>,
       _otherContractStr: PromiseOrValue<string>,
@@ -541,6 +617,13 @@ export interface ICTMRWA001X extends BaseContract {
 
     "mintFromX(address,uint256,uint256)"(
       to_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
       slot_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }

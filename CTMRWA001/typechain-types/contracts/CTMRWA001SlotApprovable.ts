@@ -38,6 +38,7 @@ export interface CTMRWA001SlotApprovableInterface extends utils.Interface {
     "approveFromX(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "balanceOf(uint256)": FunctionFragment;
+    "burnValueX(uint256,uint256)": FunctionFragment;
     "changeAdmin(address)": FunctionFragment;
     "checkTokenCompatibility(string,string)": FunctionFragment;
     "clearApprovedValues(uint256)": FunctionFragment;
@@ -53,6 +54,7 @@ export interface CTMRWA001SlotApprovableInterface extends utils.Interface {
     "metadataDescriptor()": FunctionFragment;
     "mintFromX(address,uint256,uint256,uint256)": FunctionFragment;
     "mintFromX(address,uint256,uint256)": FunctionFragment;
+    "mintValueX(uint256,uint256,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
     "removeTokenFromOwnerEnumeration(address,uint256)": FunctionFragment;
@@ -91,6 +93,7 @@ export interface CTMRWA001SlotApprovableInterface extends utils.Interface {
       | "approveFromX"
       | "balanceOf(address)"
       | "balanceOf(uint256)"
+      | "burnValueX"
       | "changeAdmin"
       | "checkTokenCompatibility"
       | "clearApprovedValues"
@@ -106,6 +109,7 @@ export interface CTMRWA001SlotApprovableInterface extends utils.Interface {
       | "metadataDescriptor"
       | "mintFromX(address,uint256,uint256,uint256)"
       | "mintFromX(address,uint256,uint256)"
+      | "mintValueX"
       | "name"
       | "ownerOf"
       | "removeTokenFromOwnerEnumeration"
@@ -170,6 +174,10 @@ export interface CTMRWA001SlotApprovableInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "balanceOf(uint256)",
     values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnValueX",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "changeAdmin",
@@ -240,6 +248,14 @@ export interface CTMRWA001SlotApprovableInterface extends utils.Interface {
     functionFragment: "mintFromX(address,uint256,uint256)",
     values: [
       PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintValueX",
+    values: [
+      PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>
     ]
@@ -396,6 +412,7 @@ export interface CTMRWA001SlotApprovableInterface extends utils.Interface {
     functionFragment: "balanceOf(uint256)",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "burnValueX", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "changeAdmin",
     data: BytesLike
@@ -453,6 +470,7 @@ export interface CTMRWA001SlotApprovableInterface extends utils.Interface {
     functionFragment: "mintFromX(address,uint256,uint256)",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "mintValueX", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(
@@ -725,6 +743,12 @@ export interface CTMRWA001SlotApprovable extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     changeAdmin(
       _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -796,6 +820,13 @@ export interface CTMRWA001SlotApprovable extends BaseContract {
 
     "mintFromX(address,uint256,uint256)"(
       to_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
       slot_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -982,6 +1013,12 @@ export interface CTMRWA001SlotApprovable extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  burnValueX(
+    fromTokenId_: PromiseOrValue<BigNumberish>,
+    value_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   changeAdmin(
     _admin: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1053,6 +1090,13 @@ export interface CTMRWA001SlotApprovable extends BaseContract {
 
   "mintFromX(address,uint256,uint256)"(
     to_: PromiseOrValue<string>,
+    slot_: PromiseOrValue<BigNumberish>,
+    value_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  mintValueX(
+    toTokenId_: PromiseOrValue<BigNumberish>,
     slot_: PromiseOrValue<BigNumberish>,
     value_: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1239,6 +1283,12 @@ export interface CTMRWA001SlotApprovable extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     changeAdmin(
       _admin: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -1314,6 +1364,13 @@ export interface CTMRWA001SlotApprovable extends BaseContract {
       value_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
@@ -1585,6 +1642,12 @@ export interface CTMRWA001SlotApprovable extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     changeAdmin(
       _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1656,6 +1719,13 @@ export interface CTMRWA001SlotApprovable extends BaseContract {
 
     "mintFromX(address,uint256,uint256)"(
       to_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
       slot_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1843,6 +1913,12 @@ export interface CTMRWA001SlotApprovable extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    burnValueX(
+      fromTokenId_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     changeAdmin(
       _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -1916,6 +1992,13 @@ export interface CTMRWA001SlotApprovable extends BaseContract {
 
     "mintFromX(address,uint256,uint256)"(
       to_: PromiseOrValue<string>,
+      slot_: PromiseOrValue<BigNumberish>,
+      value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    mintValueX(
+      toTokenId_: PromiseOrValue<BigNumberish>,
       slot_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }

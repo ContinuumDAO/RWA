@@ -49,7 +49,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
     "gov()": FunctionFragment;
     "isValidSender(address)": FunctionFragment;
     "mintX(string,string,uint256,uint256,uint256,uint256,string,string)": FunctionFragment;
-    "mintX(string,string,uint256,uint256,string,string)": FunctionFragment;
+    "mintX(string,string,uint256,uint256,uint256,string,string)": FunctionFragment;
     "setDelay(uint256)": FunctionFragment;
     "strToUint(string)": FunctionFragment;
     "stringToAddress(string)": FunctionFragment;
@@ -80,7 +80,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
       | "gov"
       | "isValidSender"
       | "mintX(string,string,uint256,uint256,uint256,uint256,string,string)"
-      | "mintX(string,string,uint256,uint256,string,string)"
+      | "mintX(string,string,uint256,uint256,uint256,string,string)"
       | "setDelay"
       | "strToUint"
       | "stringToAddress"
@@ -188,10 +188,11 @@ export interface CTMRWA001XInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "mintX(string,string,uint256,uint256,string,string)",
+    functionFragment: "mintX(string,string,uint256,uint256,uint256,string,string)",
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
@@ -301,7 +302,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "mintX(string,string,uint256,uint256,string,string)",
+    functionFragment: "mintX(string,string,uint256,uint256,uint256,string,string)",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setDelay", data: BytesLike): Result;
@@ -331,11 +332,15 @@ export interface CTMRWA001XInterface extends utils.Interface {
     "LogChangeGov(address,address,uint256,uint256)": EventFragment;
     "LogFallback(bytes4,bytes,bytes)": EventFragment;
     "LogTxSender(address,bool)": EventFragment;
+    "TransferFromSourceX(string,string,uint256,uint256,uint256,uint256,string,string)": EventFragment;
+    "TransferToDestX(string,string,uint256,uint256,uint256,uint256,string,string)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "LogChangeGov"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LogFallback"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LogTxSender"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferFromSourceX"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferToDestX"): EventFragment;
 }
 
 export interface LogChangeGovEventObject {
@@ -373,6 +378,41 @@ export type LogTxSenderEvent = TypedEvent<
 >;
 
 export type LogTxSenderEventFilter = TypedEventFilter<LogTxSenderEvent>;
+
+export interface TransferFromSourceXEventObject {
+  fromAddressStr: string;
+  toAddressStr: string;
+  fromtokenId: BigNumber;
+  toTokenId: BigNumber;
+  slot: BigNumber;
+  value: BigNumber;
+  fromCtmRwa001AddrStr: string;
+  toCtmRwa001AddrStr: string;
+}
+export type TransferFromSourceXEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber, BigNumber, BigNumber, string, string],
+  TransferFromSourceXEventObject
+>;
+
+export type TransferFromSourceXEventFilter =
+  TypedEventFilter<TransferFromSourceXEvent>;
+
+export interface TransferToDestXEventObject {
+  fromAddressStr: string;
+  toAddressStr: string;
+  fromTokenId: BigNumber;
+  toTokenId: BigNumber;
+  slot: BigNumber;
+  value: BigNumber;
+  fromContractStr: string;
+  ctmRwa001AddrStr: string;
+}
+export type TransferToDestXEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber, BigNumber, BigNumber, string, string],
+  TransferToDestXEventObject
+>;
+
+export type TransferToDestXEventFilter = TypedEventFilter<TransferToDestXEvent>;
 
 export interface CTMRWA001X extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -498,9 +538,10 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "mintX(string,string,uint256,uint256,string,string)"(
+    "mintX(string,string,uint256,uint256,uint256,string,string)"(
       fromAddressStr_: PromiseOrValue<string>,
       toAddressStr_: PromiseOrValue<string>,
+      fromTokenId_: PromiseOrValue<BigNumberish>,
       slot_: PromiseOrValue<BigNumberish>,
       balance_: PromiseOrValue<BigNumberish>,
       _fromContractStr: PromiseOrValue<string>,
@@ -553,7 +594,7 @@ export interface CTMRWA001X extends BaseContract {
     "transferFromX(string,string,uint256,string,address)"(
       toAddressStr_: PromiseOrValue<string>,
       toChainIdStr_: PromiseOrValue<string>,
-      tokenId_: PromiseOrValue<BigNumberish>,
+      fromTokenId_: PromiseOrValue<BigNumberish>,
       _ctmRwa001AddrStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -657,9 +698,10 @@ export interface CTMRWA001X extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  "mintX(string,string,uint256,uint256,string,string)"(
+  "mintX(string,string,uint256,uint256,uint256,string,string)"(
     fromAddressStr_: PromiseOrValue<string>,
     toAddressStr_: PromiseOrValue<string>,
+    fromTokenId_: PromiseOrValue<BigNumberish>,
     slot_: PromiseOrValue<BigNumberish>,
     balance_: PromiseOrValue<BigNumberish>,
     _fromContractStr: PromiseOrValue<string>,
@@ -712,7 +754,7 @@ export interface CTMRWA001X extends BaseContract {
   "transferFromX(string,string,uint256,string,address)"(
     toAddressStr_: PromiseOrValue<string>,
     toChainIdStr_: PromiseOrValue<string>,
-    tokenId_: PromiseOrValue<BigNumberish>,
+    fromTokenId_: PromiseOrValue<BigNumberish>,
     _ctmRwa001AddrStr: PromiseOrValue<string>,
     feeToken: PromiseOrValue<string>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -816,9 +858,10 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    "mintX(string,string,uint256,uint256,string,string)"(
+    "mintX(string,string,uint256,uint256,uint256,string,string)"(
       fromAddressStr_: PromiseOrValue<string>,
       toAddressStr_: PromiseOrValue<string>,
+      fromTokenId_: PromiseOrValue<BigNumberish>,
       slot_: PromiseOrValue<BigNumberish>,
       balance_: PromiseOrValue<BigNumberish>,
       _fromContractStr: PromiseOrValue<string>,
@@ -871,7 +914,7 @@ export interface CTMRWA001X extends BaseContract {
     "transferFromX(string,string,uint256,string,address)"(
       toAddressStr_: PromiseOrValue<string>,
       toChainIdStr_: PromiseOrValue<string>,
-      tokenId_: PromiseOrValue<BigNumberish>,
+      fromTokenId_: PromiseOrValue<BigNumberish>,
       _ctmRwa001AddrStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -911,6 +954,48 @@ export interface CTMRWA001X extends BaseContract {
       txSender?: PromiseOrValue<string> | null,
       vaild?: null
     ): LogTxSenderEventFilter;
+
+    "TransferFromSourceX(string,string,uint256,uint256,uint256,uint256,string,string)"(
+      fromAddressStr?: null,
+      toAddressStr?: null,
+      fromtokenId?: null,
+      toTokenId?: null,
+      slot?: null,
+      value?: null,
+      fromCtmRwa001AddrStr?: null,
+      toCtmRwa001AddrStr?: null
+    ): TransferFromSourceXEventFilter;
+    TransferFromSourceX(
+      fromAddressStr?: null,
+      toAddressStr?: null,
+      fromtokenId?: null,
+      toTokenId?: null,
+      slot?: null,
+      value?: null,
+      fromCtmRwa001AddrStr?: null,
+      toCtmRwa001AddrStr?: null
+    ): TransferFromSourceXEventFilter;
+
+    "TransferToDestX(string,string,uint256,uint256,uint256,uint256,string,string)"(
+      fromAddressStr?: null,
+      toAddressStr?: null,
+      fromTokenId?: null,
+      toTokenId?: null,
+      slot?: null,
+      value?: null,
+      fromContractStr?: null,
+      ctmRwa001AddrStr?: null
+    ): TransferToDestXEventFilter;
+    TransferToDestX(
+      fromAddressStr?: null,
+      toAddressStr?: null,
+      fromTokenId?: null,
+      toTokenId?: null,
+      slot?: null,
+      value?: null,
+      fromContractStr?: null,
+      ctmRwa001AddrStr?: null
+    ): TransferToDestXEventFilter;
   };
 
   estimateGas: {
@@ -1011,9 +1096,10 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    "mintX(string,string,uint256,uint256,string,string)"(
+    "mintX(string,string,uint256,uint256,uint256,string,string)"(
       fromAddressStr_: PromiseOrValue<string>,
       toAddressStr_: PromiseOrValue<string>,
+      fromTokenId_: PromiseOrValue<BigNumberish>,
       slot_: PromiseOrValue<BigNumberish>,
       balance_: PromiseOrValue<BigNumberish>,
       _fromContractStr: PromiseOrValue<string>,
@@ -1066,7 +1152,7 @@ export interface CTMRWA001X extends BaseContract {
     "transferFromX(string,string,uint256,string,address)"(
       toAddressStr_: PromiseOrValue<string>,
       toChainIdStr_: PromiseOrValue<string>,
-      tokenId_: PromiseOrValue<BigNumberish>,
+      fromTokenId_: PromiseOrValue<BigNumberish>,
       _ctmRwa001AddrStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -1171,9 +1257,10 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    "mintX(string,string,uint256,uint256,string,string)"(
+    "mintX(string,string,uint256,uint256,uint256,string,string)"(
       fromAddressStr_: PromiseOrValue<string>,
       toAddressStr_: PromiseOrValue<string>,
+      fromTokenId_: PromiseOrValue<BigNumberish>,
       slot_: PromiseOrValue<BigNumberish>,
       balance_: PromiseOrValue<BigNumberish>,
       _fromContractStr: PromiseOrValue<string>,
@@ -1226,7 +1313,7 @@ export interface CTMRWA001X extends BaseContract {
     "transferFromX(string,string,uint256,string,address)"(
       toAddressStr_: PromiseOrValue<string>,
       toChainIdStr_: PromiseOrValue<string>,
-      tokenId_: PromiseOrValue<BigNumberish>,
+      fromTokenId_: PromiseOrValue<BigNumberish>,
       _ctmRwa001AddrStr: PromiseOrValue<string>,
       feeToken: PromiseOrValue<string>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }

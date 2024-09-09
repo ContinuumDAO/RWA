@@ -60,6 +60,30 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "uint256",
+        name: "fromTokenId_",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "value_",
+        type: "uint256",
+      },
+    ],
+    name: "burnValueX",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "string",
         name: "_otherChainIdStr",
         type: "string",
@@ -223,6 +247,35 @@ const _abi = [
         internalType: "uint256",
         name: "tokenId",
         type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "toTokenId_",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "slot_",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "value_",
+        type: "uint256",
+      },
+    ],
+    name: "mintValueX",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "nonpayable",
