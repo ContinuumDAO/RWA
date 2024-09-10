@@ -36,22 +36,25 @@ export interface CTMRWA001XInterface extends utils.Interface {
     "addXChainInfo(string,string,string[],string[])": FunctionFragment;
     "addXChainInfoX(string[],string[],string)": FunctionFragment;
     "adminX(string,string,string,string)": FunctionFragment;
-    "attachCTMRWA001ID(address)": FunctionFragment;
     "c3CallerProxy()": FunctionFragment;
     "c3Fallback(uint256,bytes,bytes)": FunctionFragment;
     "chainIdStr()": FunctionFragment;
     "changeAdminCrossChain(string,string,string,address)": FunctionFragment;
     "changeGov(address)": FunctionFragment;
     "checkAttached(address)": FunctionFragment;
+    "ctmRwa001Deployer()": FunctionFragment;
     "dappID()": FunctionFragment;
     "delay()": FunctionFragment;
-    "deployCTMRWA001(string,uint256)": FunctionFragment;
+    "deployAllCTMRWA001X(bool,uint256,string,string,uint8,string[],address)": FunctionFragment;
+    "deployCTMRWA001(string,uint256,string,string,uint8,string)": FunctionFragment;
+    "deployCTMRWA001Local(uint256,string,string,uint8)": FunctionFragment;
     "disableTxSender(address)": FunctionFragment;
     "doGov(string,string,bytes)": FunctionFragment;
     "doGovBroadcast(string[],string[],bytes)": FunctionFragment;
     "feeManager()": FunctionFragment;
     "getChainContract(string)": FunctionFragment;
     "gov()": FunctionFragment;
+    "isUniqueId(uint256)": FunctionFragment;
     "isValidSender(address)": FunctionFragment;
     "mintNewToken(string,string,uint256,uint256,string,address)": FunctionFragment;
     "mintX(string,string,uint256,uint256,uint256,uint256,string,string)": FunctionFragment;
@@ -73,22 +76,25 @@ export interface CTMRWA001XInterface extends utils.Interface {
       | "addXChainInfo"
       | "addXChainInfoX"
       | "adminX"
-      | "attachCTMRWA001ID"
       | "c3CallerProxy"
       | "c3Fallback"
       | "chainIdStr"
       | "changeAdminCrossChain"
       | "changeGov"
       | "checkAttached"
+      | "ctmRwa001Deployer"
       | "dappID"
       | "delay"
+      | "deployAllCTMRWA001X"
       | "deployCTMRWA001"
+      | "deployCTMRWA001Local"
       | "disableTxSender"
       | "doGov"
       | "doGovBroadcast"
       | "feeManager"
       | "getChainContract"
       | "gov"
+      | "isUniqueId"
       | "isValidSender"
       | "mintNewToken"
       | "mintX(string,string,uint256,uint256,uint256,uint256,string,string)"
@@ -153,10 +159,6 @@ export interface CTMRWA001XInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "attachCTMRWA001ID",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "c3CallerProxy",
     values?: undefined
   ): string;
@@ -189,11 +191,43 @@ export interface CTMRWA001XInterface extends utils.Interface {
     functionFragment: "checkAttached",
     values: [PromiseOrValue<string>]
   ): string;
+  encodeFunctionData(
+    functionFragment: "ctmRwa001Deployer",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "dappID", values?: undefined): string;
   encodeFunctionData(functionFragment: "delay", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "deployAllCTMRWA001X",
+    values: [
+      PromiseOrValue<boolean>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>[],
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
     functionFragment: "deployCTMRWA001",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "deployCTMRWA001Local",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "disableTxSender",
@@ -224,6 +258,10 @@ export interface CTMRWA001XInterface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "isUniqueId",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
   encodeFunctionData(
     functionFragment: "isValidSender",
     values: [PromiseOrValue<string>]
@@ -336,10 +374,6 @@ export interface CTMRWA001XInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "adminX", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "attachCTMRWA001ID",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "c3CallerProxy",
     data: BytesLike
   ): Result;
@@ -354,10 +388,22 @@ export interface CTMRWA001XInterface extends utils.Interface {
     functionFragment: "checkAttached",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "ctmRwa001Deployer",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "dappID", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "delay", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "deployAllCTMRWA001X",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "deployCTMRWA001",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "deployCTMRWA001Local",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -375,6 +421,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isUniqueId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isValidSender",
     data: BytesLike
@@ -417,6 +464,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
   events: {
     "AddNewChainAndToken(string,string,string[],string[])": EventFragment;
     "ChangeAdminDest(string,string,string)": EventFragment;
+    "CreateNewCTMRWA001(address,uint256,address,string,string)": EventFragment;
     "LogChangeGov(address,address,uint256,uint256)": EventFragment;
     "LogFallback(bytes4,bytes,bytes)": EventFragment;
     "LogTxSender(address,bool)": EventFragment;
@@ -427,6 +475,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
 
   getEvent(nameOrSignatureOrTopic: "AddNewChainAndToken"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ChangeAdminDest"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CreateNewCTMRWA001"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LogChangeGov"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LogFallback"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LogTxSender"): EventFragment;
@@ -460,6 +509,21 @@ export type ChangeAdminDestEvent = TypedEvent<
 >;
 
 export type ChangeAdminDestEventFilter = TypedEventFilter<ChangeAdminDestEvent>;
+
+export interface CreateNewCTMRWA001EventObject {
+  ctmRwa001Token: string;
+  ID: BigNumber;
+  newAdmin: string;
+  fromChainIdStr: string;
+  fromContractStr: string;
+}
+export type CreateNewCTMRWA001Event = TypedEvent<
+  [string, BigNumber, string, string, string],
+  CreateNewCTMRWA001EventObject
+>;
+
+export type CreateNewCTMRWA001EventFilter =
+  TypedEventFilter<CreateNewCTMRWA001Event>;
 
 export interface LogChangeGovEventObject {
   oldGov: string;
@@ -619,11 +683,6 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    attachCTMRWA001ID(
-      _ctmRwa001Addr: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     c3CallerProxy(overrides?: CallOverrides): Promise<[string]>;
 
     c3Fallback(
@@ -653,14 +712,39 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean, BigNumber]>;
 
+    ctmRwa001Deployer(overrides?: CallOverrides): Promise<[string]>;
+
     dappID(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     delay(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    deployAllCTMRWA001X(
+      includeLocal: PromiseOrValue<boolean>,
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      toChainIdsStr_: PromiseOrValue<string>[],
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     deployCTMRWA001(
-      _adminStr: PromiseOrValue<string>,
-      _value: PromiseOrValue<BigNumberish>,
+      _newAdminStr: PromiseOrValue<string>,
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      _fromContractStr: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    deployCTMRWA001Local(
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     disableTxSender(
@@ -690,6 +774,11 @@ export interface CTMRWA001X extends BaseContract {
     ): Promise<[string]>;
 
     gov(overrides?: CallOverrides): Promise<[string]>;
+
+    isUniqueId(
+      _ID: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     isValidSender(
       txSender: PromiseOrValue<string>,
@@ -827,11 +916,6 @@ export interface CTMRWA001X extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  attachCTMRWA001ID(
-    _ctmRwa001Addr: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   c3CallerProxy(overrides?: CallOverrides): Promise<string>;
 
   c3Fallback(
@@ -861,14 +945,39 @@ export interface CTMRWA001X extends BaseContract {
     overrides?: CallOverrides
   ): Promise<[boolean, BigNumber]>;
 
+  ctmRwa001Deployer(overrides?: CallOverrides): Promise<string>;
+
   dappID(overrides?: CallOverrides): Promise<BigNumber>;
 
   delay(overrides?: CallOverrides): Promise<BigNumber>;
 
+  deployAllCTMRWA001X(
+    includeLocal: PromiseOrValue<boolean>,
+    _ID: PromiseOrValue<BigNumberish>,
+    tokenName_: PromiseOrValue<string>,
+    symbol_: PromiseOrValue<string>,
+    decimals_: PromiseOrValue<BigNumberish>,
+    toChainIdsStr_: PromiseOrValue<string>[],
+    feeToken: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   deployCTMRWA001(
-    _adminStr: PromiseOrValue<string>,
-    _value: PromiseOrValue<BigNumberish>,
+    _newAdminStr: PromiseOrValue<string>,
+    _ID: PromiseOrValue<BigNumberish>,
+    tokenName_: PromiseOrValue<string>,
+    symbol_: PromiseOrValue<string>,
+    decimals_: PromiseOrValue<BigNumberish>,
+    _fromContractStr: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  deployCTMRWA001Local(
+    _ID: PromiseOrValue<BigNumberish>,
+    tokenName_: PromiseOrValue<string>,
+    symbol_: PromiseOrValue<string>,
+    decimals_: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   disableTxSender(
@@ -898,6 +1007,11 @@ export interface CTMRWA001X extends BaseContract {
   ): Promise<string>;
 
   gov(overrides?: CallOverrides): Promise<string>;
+
+  isUniqueId(
+    _ID: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   isValidSender(
     txSender: PromiseOrValue<string>,
@@ -1035,11 +1149,6 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    attachCTMRWA001ID(
-      _ctmRwa001Addr: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, boolean]>;
-
     c3CallerProxy(overrides?: CallOverrides): Promise<string>;
 
     c3Fallback(
@@ -1069,15 +1178,40 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean, BigNumber]>;
 
+    ctmRwa001Deployer(overrides?: CallOverrides): Promise<string>;
+
     dappID(overrides?: CallOverrides): Promise<BigNumber>;
 
     delay(overrides?: CallOverrides): Promise<BigNumber>;
 
+    deployAllCTMRWA001X(
+      includeLocal: PromiseOrValue<boolean>,
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      toChainIdsStr_: PromiseOrValue<string>[],
+      feeToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     deployCTMRWA001(
-      _adminStr: PromiseOrValue<string>,
-      _value: PromiseOrValue<BigNumberish>,
+      _newAdminStr: PromiseOrValue<string>,
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      _fromContractStr: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    deployCTMRWA001Local(
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     disableTxSender(
       txSender: PromiseOrValue<string>,
@@ -1106,6 +1240,11 @@ export interface CTMRWA001X extends BaseContract {
     ): Promise<string>;
 
     gov(overrides?: CallOverrides): Promise<string>;
+
+    isUniqueId(
+      _ID: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     isValidSender(
       txSender: PromiseOrValue<string>,
@@ -1221,6 +1360,21 @@ export interface CTMRWA001X extends BaseContract {
       newAdminStr?: null,
       fromChainIdStr?: null
     ): ChangeAdminDestEventFilter;
+
+    "CreateNewCTMRWA001(address,uint256,address,string,string)"(
+      ctmRwa001Token?: null,
+      ID?: null,
+      newAdmin?: null,
+      fromChainIdStr?: null,
+      fromContractStr?: null
+    ): CreateNewCTMRWA001EventFilter;
+    CreateNewCTMRWA001(
+      ctmRwa001Token?: null,
+      ID?: null,
+      newAdmin?: null,
+      fromChainIdStr?: null,
+      fromContractStr?: null
+    ): CreateNewCTMRWA001EventFilter;
 
     "LogChangeGov(address,address,uint256,uint256)"(
       oldGov?: PromiseOrValue<string> | null,
@@ -1358,11 +1512,6 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    attachCTMRWA001ID(
-      _ctmRwa001Addr: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     c3CallerProxy(overrides?: CallOverrides): Promise<BigNumber>;
 
     c3Fallback(
@@ -1392,14 +1541,39 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    ctmRwa001Deployer(overrides?: CallOverrides): Promise<BigNumber>;
+
     dappID(overrides?: CallOverrides): Promise<BigNumber>;
 
     delay(overrides?: CallOverrides): Promise<BigNumber>;
 
+    deployAllCTMRWA001X(
+      includeLocal: PromiseOrValue<boolean>,
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      toChainIdsStr_: PromiseOrValue<string>[],
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     deployCTMRWA001(
-      _adminStr: PromiseOrValue<string>,
-      _value: PromiseOrValue<BigNumberish>,
+      _newAdminStr: PromiseOrValue<string>,
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      _fromContractStr: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    deployCTMRWA001Local(
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     disableTxSender(
@@ -1429,6 +1603,11 @@ export interface CTMRWA001X extends BaseContract {
     ): Promise<BigNumber>;
 
     gov(overrides?: CallOverrides): Promise<BigNumber>;
+
+    isUniqueId(
+      _ID: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     isValidSender(
       txSender: PromiseOrValue<string>,
@@ -1567,11 +1746,6 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    attachCTMRWA001ID(
-      _ctmRwa001Addr: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
     c3CallerProxy(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     c3Fallback(
@@ -1601,14 +1775,39 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    ctmRwa001Deployer(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     dappID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     delay(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    deployAllCTMRWA001X(
+      includeLocal: PromiseOrValue<boolean>,
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      toChainIdsStr_: PromiseOrValue<string>[],
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     deployCTMRWA001(
-      _adminStr: PromiseOrValue<string>,
-      _value: PromiseOrValue<BigNumberish>,
+      _newAdminStr: PromiseOrValue<string>,
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      _fromContractStr: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    deployCTMRWA001Local(
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     disableTxSender(
@@ -1638,6 +1837,11 @@ export interface CTMRWA001X extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     gov(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    isUniqueId(
+      _ID: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     isValidSender(
       txSender: PromiseOrValue<string>,

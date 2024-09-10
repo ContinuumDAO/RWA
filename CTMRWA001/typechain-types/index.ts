@@ -66,6 +66,8 @@ export type { CTMRWA001Burnable } from "./contracts/CTMRWA001Burnable";
 export { CTMRWA001Burnable__factory } from "./factories/contracts/CTMRWA001Burnable__factory";
 export type { CTMRWA001BurnableUpgradeable } from "./contracts/CTMRWA001BurnableUpgradeable";
 export { CTMRWA001BurnableUpgradeable__factory } from "./factories/contracts/CTMRWA001BurnableUpgradeable__factory";
+export type { CTMRWA001Deployer } from "./contracts/CTMRWA001Deployer";
+export { CTMRWA001Deployer__factory } from "./factories/contracts/CTMRWA001Deployer__factory";
 export type { CTMRWA001Mintable } from "./contracts/CTMRWA001Mintable";
 export { CTMRWA001Mintable__factory } from "./factories/contracts/CTMRWA001Mintable__factory";
 export type { CTMRWA001MintableUpgradeable } from "./contracts/CTMRWA001MintableUpgradeable";
@@ -78,6 +80,8 @@ export type { CTMRWA001SlotEnumerable } from "./contracts/CTMRWA001SlotEnumerabl
 export { CTMRWA001SlotEnumerable__factory } from "./factories/contracts/CTMRWA001SlotEnumerable__factory";
 export type { CTMRWA001SlotEnumerableUpgradeable } from "./contracts/CTMRWA001SlotEnumerableUpgradeable";
 export { CTMRWA001SlotEnumerableUpgradeable__factory } from "./factories/contracts/CTMRWA001SlotEnumerableUpgradeable__factory";
+export type { CTMRWA001Token } from "./contracts/CTMRWA001Token";
+export { CTMRWA001Token__factory } from "./factories/contracts/CTMRWA001Token__factory";
 export type { CTMRWA001Upgradeable } from "./contracts/CTMRWA001Upgradeable";
 export { CTMRWA001Upgradeable__factory } from "./factories/contracts/CTMRWA001Upgradeable__factory";
 export type { CTMRWA001X } from "./contracts/CTMRWA001X";

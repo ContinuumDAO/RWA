@@ -33,6 +33,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
     "changeAdminX(address)": FunctionFragment;
     "checkTokenCompatibility(string,string)": FunctionFragment;
     "clearApprovedValues(uint256)": FunctionFragment;
+    "deploy(uint256,string,string,uint8,address)": FunctionFragment;
     "getTokenContract(string)": FunctionFragment;
     "getTokenInfo(uint256)": FunctionFragment;
     "isApprovedOrOwner(address,uint256)": FunctionFragment;
@@ -53,6 +54,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
       | "changeAdminX"
       | "checkTokenCompatibility"
       | "clearApprovedValues"
+      | "deploy"
       | "getTokenContract"
       | "getTokenInfo"
       | "isApprovedOrOwner"
@@ -95,6 +97,16 @@ export interface ICTMRWA001XInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "clearApprovedValues",
     values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "deploy",
+    values: [
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>,
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<string>
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenContract",
@@ -169,6 +181,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
     functionFragment: "clearApprovedValues",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "deploy", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getTokenContract",
     data: BytesLike
@@ -271,6 +284,15 @@ export interface ICTMRWA001X extends BaseContract {
 
     clearApprovedValues(
       tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    deploy(
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      gateway: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -378,6 +400,15 @@ export interface ICTMRWA001X extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  deploy(
+    _ID: PromiseOrValue<BigNumberish>,
+    tokenName_: PromiseOrValue<string>,
+    symbol_: PromiseOrValue<string>,
+    decimals_: PromiseOrValue<BigNumberish>,
+    gateway: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   getTokenContract(
     _chainIdStr: PromiseOrValue<string>,
     overrides?: CallOverrides
@@ -479,6 +510,15 @@ export interface ICTMRWA001X extends BaseContract {
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    deploy(
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      gateway: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     getTokenContract(
       _chainIdStr: PromiseOrValue<string>,
@@ -587,6 +627,15 @@ export interface ICTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    deploy(
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      gateway: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     getTokenContract(
       _chainIdStr: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -682,6 +731,15 @@ export interface ICTMRWA001X extends BaseContract {
 
     clearApprovedValues(
       tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    deploy(
+      _ID: PromiseOrValue<BigNumberish>,
+      tokenName_: PromiseOrValue<string>,
+      symbol_: PromiseOrValue<string>,
+      decimals_: PromiseOrValue<BigNumberish>,
+      gateway: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

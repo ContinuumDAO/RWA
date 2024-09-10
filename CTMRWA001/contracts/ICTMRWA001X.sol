@@ -11,6 +11,13 @@ interface ICTMRWA001X {
         string[] memory _chainIdsStr,
         string[] memory _contractAddrsStr
     ) external returns(bool);
+    function deploy(
+        uint256 _ID,
+        string memory tokenName_, 
+        string memory symbol_, 
+        uint8 decimals_,
+        address gateway
+    ) external returns(address);
     function checkTokenCompatibility(
         string memory _otherChainIdStr,
         string memory _otherContractStr

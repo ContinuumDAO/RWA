@@ -27,6 +27,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     uint256 public ID;
     address public admin;
     address public ctmRwa001XChain;
+    
 
     event SetMetadataDescriptor(address indexed metadataDescriptor);
 
@@ -83,6 +84,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         _symbol = symbol_;
         _decimals = decimals_;
         ctmRwa001XChain = _ctmRwa001XChain;
+        
 
         _addTokenContract(cID().toString(), _toLower(address(this).toHexString()));
     }

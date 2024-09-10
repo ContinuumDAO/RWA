@@ -133,6 +133,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CTMRWA001BurnableUpgradeable__factory>;
     getContractFactory(
+      name: "CTMRWA001Deployer",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CTMRWA001Deployer__factory>;
+    getContractFactory(
       name: "CTMRWA001Mintable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CTMRWA001Mintable__factory>;
@@ -156,6 +160,10 @@ declare module "hardhat/types/runtime" {
       name: "CTMRWA001SlotEnumerableUpgradeable",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CTMRWA001SlotEnumerableUpgradeable__factory>;
+    getContractFactory(
+      name: "CTMRWA001Token",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CTMRWA001Token__factory>;
     getContractFactory(
       name: "CTMRWA001Upgradeable",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -500,6 +508,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.CTMRWA001BurnableUpgradeable>;
     getContractAt(
+      name: "CTMRWA001Deployer",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CTMRWA001Deployer>;
+    getContractAt(
       name: "CTMRWA001Mintable",
       address: string,
       signer?: ethers.Signer
@@ -529,6 +542,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.CTMRWA001SlotEnumerableUpgradeable>;
+    getContractAt(
+      name: "CTMRWA001Token",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CTMRWA001Token>;
     getContractAt(
       name: "CTMRWA001Upgradeable",
       address: string,

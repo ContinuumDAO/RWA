@@ -10,6 +10,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import {ICTMRWA001X} from "./ICTMRWA001X.sol";
 
+//import "./CTMRWA001Token.sol";
+
 import "./FeeManager.sol";
 
 contract CTMRWA001X is  GovernDapp {
@@ -18,9 +20,18 @@ contract CTMRWA001X is  GovernDapp {
     using SafeMath for uint256;
 
     address public feeManager;
+    address public ctmRwa001Deployer;
     string public chainIdStr;
 
     event LogFallback(bytes4 selector, bytes data, bytes reason);
+
+    event CreateNewCTMRWA001(
+        address ctmRwa001Token, 
+        uint256 ID, 
+        address newAdmin, 
+        string fromChainIdStr, 
+        string fromContractStr
+    );
 
     event SetChainContract(string[] chainIdsStr, string[] contractAddrsStr, string fromContractStr, string fromChainIdStr);
 
@@ -68,12 +79,14 @@ contract CTMRWA001X is  GovernDapp {
 
     constructor(
         address _feeManager,
+        address _ctmRwa001Deployer,
         address _gov,
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID
     ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
         feeManager = _feeManager;
+        ctmRwa001Deployer = _ctmRwa001Deployer;
         
         chainIdStr = cID().toString();
         _addChainContract(cID(), address(this));
@@ -156,13 +169,146 @@ contract CTMRWA001X is  GovernDapp {
         return(true);
     }
 
-    // Deploys a new CTMRWA001 instance, with one tokenID/slot owned by admin with value _value
-    function deployCTMRWA001(
-        string memory _adminStr,
-        uint256 _value
+    function deployCTMRWA001Local(
+        uint256 _ID,
+        string memory tokenName_, 
+        string memory symbol_, 
+        uint8 decimals_
+    ) external payable returns(address) {
+        bool ok = this.isUniqueId(_ID);  // only checks local deployments!
+        require(ok, "CTMRWA001X: A local contract with this ID already exists");
 
+        address _ctmRwa001Token = ICTMRWA001X(ctmRwa001Deployer).deploy(
+            _ID,
+            tokenName_,
+            symbol_,
+            decimals_,
+            address(this)
+        );
+
+        ok = ICTMRWA001X(_ctmRwa001Token).attachId(_ID, msg.sender); // admin is still this contract
+        require(ok, "CTMRWA001X: Failed to set token ID");
+
+        ICTMRWA001X(_ctmRwa001Token).changeAdminX(msg.sender);
+
+        emit CreateNewCTMRWA001(_ctmRwa001Token, _ID, msg.sender, cID().toString(), "");
+
+        return(_ctmRwa001Token);
+    }
+
+    function deployAllCTMRWA001X(
+        bool includeLocal,
+        uint256 _ID,
+        string memory tokenName_, 
+        string memory symbol_, 
+        uint8 decimals_,
+        string[] memory toChainIdsStr_,
+        address feeToken
+    ) public payable {
+        uint256 nChains = toChainIdsStr_.length;
+        require(nChains >0 ,"CTMRWA001X: Zero length toChainIdsStr_");
+
+        string memory ctmRwa001AddrStr;
+
+        if(includeLocal) {
+            address ctmRwa001Addr = this.deployCTMRWA001Local(_ID, tokenName_, symbol_, decimals_);
+            ICTMRWA001X(ctmRwa001Addr).changeAdminX(msg.sender);
+            ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
+        } else {  // a CTMRWA001 token must be deployed already
+            ctmRwa001AddrStr = this.getChainContract(cID().toString());
+            require(bytes(ctmRwa001AddrStr).length>0, "CTMRWA001X: Target contract address not found");
+            address ctmRwa001Addr = stringToAddress(ctmRwa001AddrStr);
+            address currentAdmin = ICTMRWA001X(ctmRwa001Addr).admin();
+            require(msg.sender == currentAdmin, "CTMRWA001X: Only admin can deploy");
+        }
+
+        uint256 totalFee;
+        uint256 xChainFee;
+
+        for(uint256 i=0; i<nChains; i++) {
+            xChainFee = FeeManager(feeManager).getXChainFee(cID().toString(), toChainIdsStr_[i], feeToken);
+            totalFee += xChainFee;
+        }
+
+        FeeManager(feeManager).payFee(totalFee, feeToken);
+
+        for(uint256 i=0; i<nChains; i++){
+            _deployCTMRWA001X(
+                _ID, 
+                tokenName_, 
+                symbol_, 
+                decimals_, 
+                toChainIdsStr_[i], 
+                ctmRwa001AddrStr
+            );
+        }
+    }
+
+    function _deployCTMRWA001X(
+        uint256 _ID,
+        string memory tokenName_, 
+        string memory symbol_, 
+        uint8 decimals_,
+        string memory toChainIdStr_,
+        string memory _ctmRwa001AddrStr
+    ) internal returns (bool) {
+        require(!stringsEqual(toChainIdStr_, cID().toString()), "CTMRWA001X: Not a cross-chain transfer");
+        address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
+        address currentAdmin = ICTMRWA001X(ctmRwa001Addr).admin();
+        require(msg.sender == currentAdmin, "CTMRWA001X: Only admin can deploy");
+
+        string memory currentAdminStr = currentAdmin.toHexString();
+        
+        string memory targetStr = this.getChainContract(toChainIdStr_);
+        require(bytes(targetStr).length>0, "CTMRWA001X: Target contract address not found");
+
+        string memory funcCall = "deployCTMRWA001(string,string,uint256,string,string,uint256,string)";
+        bytes memory callData = abi.encodeWithSignature(
+            funcCall,
+            currentAdminStr,
+            _ID,
+            tokenName_,
+            symbol_,
+            decimals_,
+            _ctmRwa001AddrStr
+        );
+
+        c3call(targetStr, toChainIdStr_, callData);
+
+        return(true);
+        
+    }
+
+    // Deploys a new CTMRWA001 instance on a destination chain, with a given ID, owned by admin
+    function deployCTMRWA001(
+        string memory _newAdminStr,
+        uint256 _ID,
+        string memory tokenName_, 
+        string memory symbol_, 
+        uint8 decimals_,
+        string memory _fromContractStr
     ) external onlyCaller returns(bool) {
-        // TODO call CREATE2 with contract ABI, then call c3call to return deployed contract address
+
+        address newAdmin = stringToAddress(_newAdminStr);
+
+        (, string memory fromChainIdStr,) = context();
+        fromChainIdStr = _toLower(fromChainIdStr);
+
+        address _ctmRwa001Token = ICTMRWA001X(ctmRwa001Deployer).deploy(
+            _ID,
+            tokenName_,
+            symbol_,
+            decimals_,
+            address(this)
+        );
+
+        bool ok = ICTMRWA001X(_ctmRwa001Token).attachId(_ID, msg.sender); // admin is still this contract
+        require(ok, "CTMRWA001X: Failed to set token ID");
+
+        ICTMRWA001X(_ctmRwa001Token).changeAdminX(newAdmin);
+
+        emit CreateNewCTMRWA001(_ctmRwa001Token, _ID, newAdmin, fromChainIdStr, _fromContractStr);
+
         return(true);
     }
 
@@ -224,6 +370,14 @@ contract CTMRWA001X is  GovernDapp {
         return(true);
     }
 
+    function isUniqueId(uint256 _ID) external view returns(bool) {
+        for(uint256 i=0; i<_ctmRwa001Ids.length; i++) {
+            if(_ctmRwa001Ids[i].ID == _ID) return(false);
+        }
+        return(true);
+    }
+
+
     function checkAttached(address _ctmRwa001Addr) external view returns(bool, uint256) {
         for(uint256 i=0; i<_ctmRwa001Ids.length; i++) {
             if(stringsEqual(_ctmRwa001Ids[i].contractStr, _toLower(_ctmRwa001Addr.toHexString()))) {
@@ -233,15 +387,15 @@ contract CTMRWA001X is  GovernDapp {
         return(false, 0);
     }
 
-    function attachCTMRWA001ID(address _ctmRwa001Addr) external returns(uint256, bool) {
-        (bool attached, uint256 ID) = this.checkAttached(_ctmRwa001Addr);
+    // _nextID can be a random number. Check offline to see if other contracts have it
+    function _attachCTMRWA001ID(uint256 _nextID, address _ctmRwa001Addr) internal returns(uint256, bool) {
+        (bool attached,) = this.checkAttached(_ctmRwa001Addr);
         if (!attached) {
-            uint256 nextID = _ctmRwa001Ids.length + 1;
-            bool ok = ICTMRWA001X(_ctmRwa001Addr).attachId(nextID, msg.sender);
+            bool ok = ICTMRWA001X(_ctmRwa001Addr).attachId(_nextID, msg.sender);
             if(ok) {
-                CTMRWA001ID memory newAttach = CTMRWA001ID(ID, _toLower(_ctmRwa001Addr.toHexString()));
+                CTMRWA001ID memory newAttach = CTMRWA001ID(_nextID, _toLower(_ctmRwa001Addr.toHexString()));
                 _ctmRwa001Ids.push(newAttach);
-                return(ID, true);
+                return(_nextID, true);
             } else return(0, false);
         } else return(0, false);
     }
