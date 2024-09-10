@@ -28,6 +28,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
     "addXTokenInfo(address,string[],string[])": FunctionFragment;
     "admin()": FunctionFragment;
     "approveFromX(address,uint256)": FunctionFragment;
+    "attachId(uint256,address)": FunctionFragment;
     "burnValueX(uint256,uint256)": FunctionFragment;
     "changeAdminX(address)": FunctionFragment;
     "checkTokenCompatibility(string,string)": FunctionFragment;
@@ -47,6 +48,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
       | "addXTokenInfo"
       | "admin"
       | "approveFromX"
+      | "attachId"
       | "burnValueX"
       | "changeAdminX"
       | "checkTokenCompatibility"
@@ -73,6 +75,10 @@ export interface ICTMRWA001XInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "approveFromX",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "attachId",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "burnValueX",
@@ -149,6 +155,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
     functionFragment: "approveFromX",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "attachId", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burnValueX", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "changeAdminX",
@@ -236,6 +243,12 @@ export interface ICTMRWA001X extends BaseContract {
     approveFromX(
       to_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    attachId(
+      nextID: PromiseOrValue<BigNumberish>,
+      _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -337,6 +350,12 @@ export interface ICTMRWA001X extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  attachId(
+    nextID: PromiseOrValue<BigNumberish>,
+    _admin: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   burnValueX(
     fromTokenId_: PromiseOrValue<BigNumberish>,
     value_: PromiseOrValue<BigNumberish>,
@@ -432,6 +451,12 @@ export interface ICTMRWA001X extends BaseContract {
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    attachId(
+      nextID: PromiseOrValue<BigNumberish>,
+      _admin: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     burnValueX(
       fromTokenId_: PromiseOrValue<BigNumberish>,
@@ -534,6 +559,12 @@ export interface ICTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    attachId(
+      nextID: PromiseOrValue<BigNumberish>,
+      _admin: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     burnValueX(
       fromTokenId_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
@@ -623,6 +654,12 @@ export interface ICTMRWA001X extends BaseContract {
     approveFromX(
       to_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    attachId(
+      nextID: PromiseOrValue<BigNumberish>,
+      _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

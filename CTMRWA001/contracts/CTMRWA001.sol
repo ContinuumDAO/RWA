@@ -23,6 +23,8 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
+    // The ID is a unique identifier linking contracts across chains - same ID on each chains
+    uint256 public ID;
     address public admin;
     address public ctmRwa001XChain;
 
@@ -135,6 +137,14 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
      */
     function valueDecimals() public view virtual override returns (uint8) {
         return _decimals;
+    }
+
+    function attachId(uint256 nextID, address _admin) external onlyGateKeeper returns(bool) {
+        require(_admin == admin, "CTMRWA001X: attachId is an AdminOnly function");
+        if(ID == 0) { // not yet attached
+            ID = nextID;
+            return(true);
+        } else return(false);
     }
 
     function addXTokenInfo(

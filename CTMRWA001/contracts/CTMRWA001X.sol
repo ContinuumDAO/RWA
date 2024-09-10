@@ -49,12 +49,22 @@ contract CTMRWA001X is  GovernDapp {
         string ctmRwa001AddrStr
     );
 
+//  This holds the chainID and GateKeeper contract address of a single chain
     struct ChainContract {
         string chainIdStr;
         string contractStr;
     }
-
+//  This array holds ChainContract structs for all chains
     ChainContract[] _chainContract;
+
+//  This holds the contract address of an individual CTMRWA001 contract and its corresponding unique ID
+    struct CTMRWA001ID {
+        uint256 ID;
+        string contractStr;
+    }
+
+//  This is a list of all unique CTMRWA001 contracts on this chainID. Other chains may have matching IDs
+    CTMRWA001ID[] _ctmRwa001Ids;
 
     constructor(
         address _feeManager,
@@ -214,6 +224,28 @@ contract CTMRWA001X is  GovernDapp {
         return(true);
     }
 
+    function checkAttached(address _ctmRwa001Addr) external view returns(bool, uint256) {
+        for(uint256 i=0; i<_ctmRwa001Ids.length; i++) {
+            if(stringsEqual(_ctmRwa001Ids[i].contractStr, _toLower(_ctmRwa001Addr.toHexString()))) {
+                return(true, _ctmRwa001Ids[i].ID);
+            }
+        }
+        return(false, 0);
+    }
+
+    function attachCTMRWA001ID(address _ctmRwa001Addr) external returns(uint256, bool) {
+        (bool attached, uint256 ID) = this.checkAttached(_ctmRwa001Addr);
+        if (!attached) {
+            uint256 nextID = _ctmRwa001Ids.length + 1;
+            bool ok = ICTMRWA001X(_ctmRwa001Addr).attachId(nextID, msg.sender);
+            if(ok) {
+                CTMRWA001ID memory newAttach = CTMRWA001ID(ID, _toLower(_ctmRwa001Addr.toHexString()));
+                _ctmRwa001Ids.push(newAttach);
+                return(ID, true);
+            } else return(0, false);
+        } else return(0, false);
+    }
+
     // Add a new chainId/ctmRwa001Addr pair corresponding to other chains deployments
     function addNewChainIdAndToken(
         string memory toChainIdStr_,
@@ -225,14 +257,19 @@ contract CTMRWA001X is  GovernDapp {
         address currentAdmin = ICTMRWA001X(ctmRwa001Addr).admin();
         require(msg.sender == currentAdmin, "CTMRWA001X: Only admin function");
         string memory currentAdminStr = currentAdmin.toHexString();
+
+        (bool ok, uint256 Id) = this.checkAttached(ctmRwa001Addr);
+        require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
+
         string memory _toContractStr = ICTMRWA001X(ctmRwa001Addr).getTokenContract(toChainIdStr_);
 
         string memory targetStr = this.getChainContract(toChainIdStr_);
         require(bytes(targetStr).length>0, "CTMRWA001X: Target contract address not found");
 
-        string memory funcCall = "addNewChainIdAndTokenX(string,string,string[],string[],string,string)";
+        string memory funcCall = "addNewChainIdAndTokenX(string,uint256,string,string[],string[],string,string)";
         bytes memory callData = abi.encodeWithSignature(
             funcCall,
+            Id,
             currentAdminStr,
             _chainIdsStr,
             _otherCtmRwa001AddrsStr,
@@ -246,6 +283,7 @@ contract CTMRWA001X is  GovernDapp {
 
     function addNewChainIdAndTokenX(
         string memory _adminStr,
+        uint256 _Id,
         string[] memory _chainIdsStr,
         string[] memory _otherCtmRwa001AddrsStr,
         string memory _fromContractStr,
@@ -260,6 +298,9 @@ contract CTMRWA001X is  GovernDapp {
 
         address currentAdmin = ICTMRWA001X(ctmRwa001Addr).admin();
         require(admin == currentAdmin, "CTMRWA001X: No admin access to add chains/contracts");
+
+        (bool ok, uint256 Id) = this.checkAttached(ctmRwa001Addr);
+        require(ok && Id == _Id, "CTMRWA001X: Incorrect or unattached CTMRWA001 contract");
 
         bool success = ICTMRWA001X(ctmRwa001Addr).addXTokenInfo(
             admin, 

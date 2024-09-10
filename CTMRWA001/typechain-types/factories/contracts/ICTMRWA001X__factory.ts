@@ -74,6 +74,30 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
+        name: "nextID",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "_admin",
+        type: "address",
+      },
+    ],
+    name: "attachId",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
         name: "fromTokenId_",
         type: "uint256",
       },

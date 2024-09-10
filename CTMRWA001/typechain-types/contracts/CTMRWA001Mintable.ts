@@ -30,12 +30,14 @@ import type {
 
 export interface CTMRWA001MintableInterface extends utils.Interface {
   functions: {
+    "ID()": FunctionFragment;
     "addXTokenInfo(address,string[],string[])": FunctionFragment;
     "admin()": FunctionFragment;
     "allowance(uint256,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "approve(uint256,address,uint256)": FunctionFragment;
     "approveFromX(address,uint256)": FunctionFragment;
+    "attachId(uint256,address)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "balanceOf(uint256)": FunctionFragment;
     "burnValueX(uint256,uint256)": FunctionFragment;
@@ -82,12 +84,14 @@ export interface CTMRWA001MintableInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "ID"
       | "addXTokenInfo"
       | "admin"
       | "allowance"
       | "approve(address,uint256)"
       | "approve(uint256,address,uint256)"
       | "approveFromX"
+      | "attachId"
       | "balanceOf(address)"
       | "balanceOf(uint256)"
       | "burnValueX"
@@ -132,6 +136,7 @@ export interface CTMRWA001MintableInterface extends utils.Interface {
       | "valueDecimals"
   ): FunctionFragment;
 
+  encodeFunctionData(functionFragment: "ID", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "addXTokenInfo",
     values: [
@@ -160,6 +165,10 @@ export interface CTMRWA001MintableInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "approveFromX",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "attachId",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf(address)",
@@ -367,6 +376,7 @@ export interface CTMRWA001MintableInterface extends utils.Interface {
     values?: undefined
   ): string;
 
+  decodeFunctionResult(functionFragment: "ID", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "addXTokenInfo",
     data: BytesLike
@@ -385,6 +395,7 @@ export interface CTMRWA001MintableInterface extends utils.Interface {
     functionFragment: "approveFromX",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "attachId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "balanceOf(address)",
     data: BytesLike
@@ -650,6 +661,8 @@ export interface CTMRWA001Mintable extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    ID(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     addXTokenInfo(
       _admin: PromiseOrValue<string>,
       _chainIdsStr: PromiseOrValue<string>[],
@@ -681,6 +694,12 @@ export interface CTMRWA001Mintable extends BaseContract {
     approveFromX(
       to_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    attachId(
+      nextID: PromiseOrValue<BigNumberish>,
+      _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -906,6 +925,8 @@ export interface CTMRWA001Mintable extends BaseContract {
     valueDecimals(overrides?: CallOverrides): Promise<[number]>;
   };
 
+  ID(overrides?: CallOverrides): Promise<BigNumber>;
+
   addXTokenInfo(
     _admin: PromiseOrValue<string>,
     _chainIdsStr: PromiseOrValue<string>[],
@@ -937,6 +958,12 @@ export interface CTMRWA001Mintable extends BaseContract {
   approveFromX(
     to_: PromiseOrValue<string>,
     tokenId_: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  attachId(
+    nextID: PromiseOrValue<BigNumberish>,
+    _admin: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -1162,6 +1189,8 @@ export interface CTMRWA001Mintable extends BaseContract {
   valueDecimals(overrides?: CallOverrides): Promise<number>;
 
   callStatic: {
+    ID(overrides?: CallOverrides): Promise<BigNumber>;
+
     addXTokenInfo(
       _admin: PromiseOrValue<string>,
       _chainIdsStr: PromiseOrValue<string>[],
@@ -1195,6 +1224,12 @@ export interface CTMRWA001Mintable extends BaseContract {
       tokenId_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    attachId(
+      nextID: PromiseOrValue<BigNumberish>,
+      _admin: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     "balanceOf(address)"(
       owner_: PromiseOrValue<string>,
@@ -1494,6 +1529,8 @@ export interface CTMRWA001Mintable extends BaseContract {
   };
 
   estimateGas: {
+    ID(overrides?: CallOverrides): Promise<BigNumber>;
+
     addXTokenInfo(
       _admin: PromiseOrValue<string>,
       _chainIdsStr: PromiseOrValue<string>[],
@@ -1525,6 +1562,12 @@ export interface CTMRWA001Mintable extends BaseContract {
     approveFromX(
       to_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    attachId(
+      nextID: PromiseOrValue<BigNumberish>,
+      _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1751,6 +1794,8 @@ export interface CTMRWA001Mintable extends BaseContract {
   };
 
   populateTransaction: {
+    ID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     addXTokenInfo(
       _admin: PromiseOrValue<string>,
       _chainIdsStr: PromiseOrValue<string>[],
@@ -1782,6 +1827,12 @@ export interface CTMRWA001Mintable extends BaseContract {
     approveFromX(
       to_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    attachId(
+      nextID: PromiseOrValue<BigNumberish>,
+      _admin: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
