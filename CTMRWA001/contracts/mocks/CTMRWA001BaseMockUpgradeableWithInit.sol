@@ -13,12 +13,14 @@ import "../CTMRWA001Upgradeable.sol";
 
 contract CTMRWA001UpgradeableWithInit is CTMRWA001Upgradeable {
     constructor(
+            address _admin,
             string memory name_, 
             string memory symbol_, 
             uint8 decimals_,
             address _ctmRwa001XChain
         ) payable initializer {
         __CTMRWA001_init(
+            _admin,
             name_,
             symbol_,
             decimals_,
@@ -30,12 +32,14 @@ import "../CTMRWA001BurnableUpgradeable.sol";
 
 contract CTMRWA001BurnableUpgradeableWithInit is CTMRWA001BurnableUpgradeable {
     constructor(
+        address _admin,
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
         address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001Burnable_init(
+            _admin,
             name_,
             symbol_,
             decimals_,
@@ -47,12 +51,14 @@ import "../CTMRWA001MintableUpgradeable.sol";
 
 contract CTMRWA001MintableUpgradeableWithInit is CTMRWA001MintableUpgradeable {
     constructor(
+        address _admin,
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
         address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001Mintable_init(
+            _admin,
             name_,
             symbol_,
             decimals_,
@@ -64,6 +70,7 @@ import "../CTMRWA001SlotApprovableUpgradeable.sol";
 
 contract CTMRWA001SlotApprovableUpgradeableWithInit is CTMRWA001SlotApprovableUpgradeable {
     constructor(
+        address _admin,
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
@@ -71,6 +78,7 @@ contract CTMRWA001SlotApprovableUpgradeableWithInit is CTMRWA001SlotApprovableUp
     )
      payable initializer {
         __CTMRWA001SlotApprovable_init(
+            _admin,
             name_,
             symbol_,
             decimals_,
@@ -82,12 +90,14 @@ import "../CTMRWA001SlotEnumerableUpgradeable.sol";
 
 contract CTMRWA001SlotEnumerableUpgradeableWithInit is CTMRWA001SlotEnumerableUpgradeable {
     constructor(
+        address _admin,
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
         address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001SlotEnumerable_init(
+            _admin,
             name_,
             symbol_,
             decimals_,
@@ -99,12 +109,14 @@ import "./CTMRWA001AllRoundMockUpgradeable.sol";
 
 contract CTMRWA001AllRoundMockUpgradeableWithInit is CTMRWA001AllRoundMockUpgradeable {
     constructor(
+        address _admin,
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
         address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001AllRoundMock_init(
+            _admin,
             name_,
             symbol_,
             decimals_,
@@ -116,12 +128,14 @@ import "./CTMRWA001BaseMockUpgradeable.sol";
 
 contract CTMRWA001BaseMockUpgradeableWithInit is CTMRWA001BaseMockUpgradeable {
     constructor(
+        address _admin,
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
         address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001BaseMock_init(
+            _admin,
             name_,
             symbol_,
             decimals_,

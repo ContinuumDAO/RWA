@@ -20,7 +20,7 @@ contract C3CallerProxy is
         initGov(msg.sender);
         c3caller = _c3caller;
         __UUPSUpgradeable_init();
-        __Ownable_init();
+        __Ownable_init(msg.sender);
         transferOwnership(msg.sender);
     }
 

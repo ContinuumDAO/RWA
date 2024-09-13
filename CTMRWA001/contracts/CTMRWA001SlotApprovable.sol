@@ -12,11 +12,13 @@ contract CTMRWA001SlotApprovable is Context, CTMRWA001SlotEnumerable, ICTMRWA001
     mapping(address => mapping(uint256 => mapping(address => bool))) private _slotApprovals;
 
     constructor(
+        address _admin,
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
         address _ctmRwa001XChain
     ) CTMRWA001SlotEnumerable(
+        _admin,
         name_,
         symbol_,
         decimals_,

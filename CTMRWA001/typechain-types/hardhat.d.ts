@@ -321,13 +321,13 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.NonReceiverMockUpgradeableWithInit__factory>;
     getContractFactory(
+      name: "CTMRWA001BasicToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CTMRWA001BasicToken__factory>;
+    getContractFactory(
       name: "CTMRWA001ReceiverMock",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CTMRWA001ReceiverMock__factory>;
-    getContractFactory(
-      name: "CTMRWA001TxFee",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.CTMRWA001TxFee__factory>;
     getContractFactory(
       name: "ERC721ReceiverMock",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -743,15 +743,15 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.NonReceiverMockUpgradeableWithInit>;
     getContractAt(
+      name: "CTMRWA001BasicToken",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CTMRWA001BasicToken>;
+    getContractAt(
       name: "CTMRWA001ReceiverMock",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.CTMRWA001ReceiverMock>;
-    getContractAt(
-      name: "CTMRWA001TxFee",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.CTMRWA001TxFee>;
     getContractAt(
       name: "ERC721ReceiverMock",
       address: string,

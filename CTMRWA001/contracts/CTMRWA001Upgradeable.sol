@@ -36,6 +36,7 @@ contract CTMRWA001Upgradeable is Initializable, ContextUpgradeable, ICTMRWA001Me
         mapping(address => bool) approvals;
     }
 
+    address _admin_;
     string private _name_;
     string private _symbol_;
     uint8 private _decimals_;
@@ -56,12 +57,14 @@ contract CTMRWA001Upgradeable is Initializable, ContextUpgradeable, ICTMRWA001Me
     ICTMRWA001MetadataDescriptorUpgradeable public metadataDescriptor;
 
     function __CTMRWA001_init(
+        address _admin,
         string memory _name, 
         string memory _symbol, 
         uint8 _decimals,
         address _ctmRwa001XChain
     ) internal onlyInitializing {
         __CTMRWA001_init_unchained(
+            _admin,
             _name,
             _symbol,
             _decimals,
@@ -70,12 +73,14 @@ contract CTMRWA001Upgradeable is Initializable, ContextUpgradeable, ICTMRWA001Me
     }
 
     function __CTMRWA001_init_unchained(
+        address _admin,
         string memory _name, 
         string memory _symbol, 
         uint8 _decimals,
         address _ctmRwa001XChain
     ) internal onlyInitializing {
         _tokenIdGenerator_ = 1;
+        _admin_ = _admin;
         _name_ = _name;
         _symbol_ = _symbol;
         _decimals_ = _decimals;

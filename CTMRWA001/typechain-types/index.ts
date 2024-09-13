@@ -158,10 +158,10 @@ export type { CTMRWA001UpgradeableWithInit } from "./contracts/mocks/CTMRWA001Ba
 export { CTMRWA001UpgradeableWithInit__factory } from "./factories/contracts/mocks/CTMRWA001BaseMockUpgradeableWithInit.sol/CTMRWA001UpgradeableWithInit__factory";
 export type { NonReceiverMockUpgradeableWithInit } from "./contracts/mocks/CTMRWA001BaseMockUpgradeableWithInit.sol/NonReceiverMockUpgradeableWithInit";
 export { NonReceiverMockUpgradeableWithInit__factory } from "./factories/contracts/mocks/CTMRWA001BaseMockUpgradeableWithInit.sol/NonReceiverMockUpgradeableWithInit__factory";
+export type { CTMRWA001BasicToken } from "./contracts/mocks/CTMRWA001BasicToken";
+export { CTMRWA001BasicToken__factory } from "./factories/contracts/mocks/CTMRWA001BasicToken__factory";
 export type { CTMRWA001ReceiverMock } from "./contracts/mocks/CTMRWA001ReceiverMock";
 export { CTMRWA001ReceiverMock__factory } from "./factories/contracts/mocks/CTMRWA001ReceiverMock__factory";
-export type { CTMRWA001TxFee } from "./contracts/mocks/CTMRWA001TxFee";
-export { CTMRWA001TxFee__factory } from "./factories/contracts/mocks/CTMRWA001TxFee__factory";
 export type { ERC721ReceiverMock } from "./contracts/mocks/ERC721ReceiverMock";
 export { ERC721ReceiverMock__factory } from "./factories/contracts/mocks/ERC721ReceiverMock__factory";
 export type { NonReceiverMockUpgradeable } from "./contracts/mocks/NonReceiverMockUpgradeable";

@@ -7,7 +7,7 @@ export type { CTMRWA001AllRoundMock } from "./CTMRWA001AllRoundMock";
 export type { CTMRWA001AllRoundMockUpgradeable } from "./CTMRWA001AllRoundMockUpgradeable";
 export type { CTMRWA001BaseMock } from "./CTMRWA001BaseMock";
 export type { CTMRWA001BaseMockUpgradeable } from "./CTMRWA001BaseMockUpgradeable";
+export type { CTMRWA001BasicToken } from "./CTMRWA001BasicToken";
 export type { CTMRWA001ReceiverMock } from "./CTMRWA001ReceiverMock";
-export type { CTMRWA001TxFee } from "./CTMRWA001TxFee";
 export type { ERC721ReceiverMock } from "./ERC721ReceiverMock";
 export type { NonReceiverMockUpgradeable } from "./NonReceiverMockUpgradeable";

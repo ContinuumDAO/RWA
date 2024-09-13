@@ -3,6 +3,7 @@ CTMRWA001/cache/
 CTMRWA001/out/
 CTMRWA001/node_modules/
 node_modules/
+CTMRWA001/lib
 
 # Ignores development broadcast logs
 !CTMRWA001/broadcast

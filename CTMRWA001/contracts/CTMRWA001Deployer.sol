@@ -10,6 +10,7 @@ contract CTMRWA001Deployer {
 
     function deploy(
         uint256 _ID,
+        address admin,
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,
@@ -18,6 +19,7 @@ contract CTMRWA001Deployer {
         CTMRWA001Token ctmRwa001Token = new CTMRWA001Token{
             salt: bytes32(_ID) 
         }(
+            admin,
             tokenName_, 
             symbol_,
             decimals_,

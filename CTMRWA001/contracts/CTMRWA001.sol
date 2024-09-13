@@ -16,12 +16,12 @@ import "./periphery/interface/ICTMRWA001MetadataDescriptor.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+//import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     using Strings for *;
     using SafeERC20 for IERC20;
-    using SafeMath for uint256;
+    //using SafeMath for uint256;
 
     // The ID is a unique identifier linking contracts across chains - same ID on each chains
     uint256 public ID;
@@ -73,12 +73,13 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
 
 
     constructor(
+        address _admin,
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,
         address _ctmRwa001XChain
     ) {
-        admin = msg.sender;
+        admin = _admin;
         _tokenIdGenerator = 1;
         _name = tokenName_;
         _symbol = symbol_;

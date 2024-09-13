@@ -38,14 +38,18 @@ export interface CTMRWA001XInterface extends utils.Interface {
     "adminX(string,string,string,string)": FunctionFragment;
     "c3CallerProxy()": FunctionFragment;
     "c3Fallback(uint256,bytes,bytes)": FunctionFragment;
+    "chainContract(uint256)": FunctionFragment;
     "chainIdStr()": FunctionFragment;
     "changeAdminCrossChain(string,string,string,address)": FunctionFragment;
+    "changeFeeManager(address)": FunctionFragment;
     "changeGov(address)": FunctionFragment;
+    "changeTokenDeployer(address)": FunctionFragment;
     "checkAttached(address)": FunctionFragment;
     "ctmRwa001Deployer()": FunctionFragment;
+    "ctmRwa001Ids(uint256)": FunctionFragment;
     "dappID()": FunctionFragment;
     "delay()": FunctionFragment;
-    "deployAllCTMRWA001X(bool,uint256,string,string,uint8,string[],address)": FunctionFragment;
+    "deployAllCTMRWA001X(bool,string,string,uint8,string[],address)": FunctionFragment;
     "deployCTMRWA001(string,uint256,string,string,uint8,string)": FunctionFragment;
     "deployCTMRWA001Local(uint256,string,string,uint8)": FunctionFragment;
     "disableTxSender(address)": FunctionFragment;
@@ -56,6 +60,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
     "gov()": FunctionFragment;
     "isUniqueId(uint256)": FunctionFragment;
     "isValidSender(address)": FunctionFragment;
+    "lockCTMRWA001(string,address)": FunctionFragment;
     "mintNewToken(string,string,uint256,uint256,string,address)": FunctionFragment;
     "mintX(string,string,uint256,uint256,uint256,uint256,string,string)": FunctionFragment;
     "mintX(string,string,uint256,uint256,uint256,string,string)": FunctionFragment;
@@ -78,11 +83,15 @@ export interface CTMRWA001XInterface extends utils.Interface {
       | "adminX"
       | "c3CallerProxy"
       | "c3Fallback"
+      | "chainContract"
       | "chainIdStr"
       | "changeAdminCrossChain"
+      | "changeFeeManager"
       | "changeGov"
+      | "changeTokenDeployer"
       | "checkAttached"
       | "ctmRwa001Deployer"
+      | "ctmRwa001Ids"
       | "dappID"
       | "delay"
       | "deployAllCTMRWA001X"
@@ -96,6 +105,7 @@ export interface CTMRWA001XInterface extends utils.Interface {
       | "gov"
       | "isUniqueId"
       | "isValidSender"
+      | "lockCTMRWA001"
       | "mintNewToken"
       | "mintX(string,string,uint256,uint256,uint256,uint256,string,string)"
       | "mintX(string,string,uint256,uint256,uint256,string,string)"
@@ -171,6 +181,10 @@ export interface CTMRWA001XInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "chainContract",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "chainIdStr",
     values?: undefined
   ): string;
@@ -184,7 +198,15 @@ export interface CTMRWA001XInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "changeFeeManager",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "changeGov",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "changeTokenDeployer",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
@@ -195,13 +217,16 @@ export interface CTMRWA001XInterface extends utils.Interface {
     functionFragment: "ctmRwa001Deployer",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "ctmRwa001Ids",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
   encodeFunctionData(functionFragment: "dappID", values?: undefined): string;
   encodeFunctionData(functionFragment: "delay", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "deployAllCTMRWA001X",
     values: [
       PromiseOrValue<boolean>,
-      PromiseOrValue<BigNumberish>,
       PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
@@ -265,6 +290,10 @@ export interface CTMRWA001XInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "isValidSender",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "lockCTMRWA001",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "mintNewToken",
@@ -378,18 +407,34 @@ export interface CTMRWA001XInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "c3Fallback", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "chainContract",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "chainIdStr", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "changeAdminCrossChain",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "changeFeeManager",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "changeGov", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "changeTokenDeployer",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "checkAttached",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "ctmRwa001Deployer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "ctmRwa001Ids",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "dappID", data: BytesLike): Result;
@@ -424,6 +469,10 @@ export interface CTMRWA001XInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "isUniqueId", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isValidSender",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "lockCTMRWA001",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -692,6 +741,11 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    chainContract(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string, string] & { chainIdStr: string; contractStr: string }>;
+
     chainIdStr(overrides?: CallOverrides): Promise<[string]>;
 
     changeAdminCrossChain(
@@ -702,8 +756,18 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    changeFeeManager(
+      _feeManager: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     changeGov(
       newGov: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    changeTokenDeployer(
+      _tokenDeployer: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -714,13 +778,17 @@ export interface CTMRWA001X extends BaseContract {
 
     ctmRwa001Deployer(overrides?: CallOverrides): Promise<[string]>;
 
+    ctmRwa001Ids(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, string] & { ID: BigNumber; contractStr: string }>;
+
     dappID(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     delay(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     deployAllCTMRWA001X(
       includeLocal: PromiseOrValue<boolean>,
-      _ID: PromiseOrValue<BigNumberish>,
       tokenName_: PromiseOrValue<string>,
       symbol_: PromiseOrValue<string>,
       decimals_: PromiseOrValue<BigNumberish>,
@@ -784,6 +852,12 @@ export interface CTMRWA001X extends BaseContract {
       txSender: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    lockCTMRWA001(
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
     mintNewToken(
       toAddressStr_: PromiseOrValue<string>,
@@ -925,6 +999,11 @@ export interface CTMRWA001X extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  chainContract(
+    arg0: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<[string, string] & { chainIdStr: string; contractStr: string }>;
+
   chainIdStr(overrides?: CallOverrides): Promise<string>;
 
   changeAdminCrossChain(
@@ -935,8 +1014,18 @@ export interface CTMRWA001X extends BaseContract {
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  changeFeeManager(
+    _feeManager: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   changeGov(
     newGov: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  changeTokenDeployer(
+    _tokenDeployer: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -947,13 +1036,17 @@ export interface CTMRWA001X extends BaseContract {
 
   ctmRwa001Deployer(overrides?: CallOverrides): Promise<string>;
 
+  ctmRwa001Ids(
+    arg0: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, string] & { ID: BigNumber; contractStr: string }>;
+
   dappID(overrides?: CallOverrides): Promise<BigNumber>;
 
   delay(overrides?: CallOverrides): Promise<BigNumber>;
 
   deployAllCTMRWA001X(
     includeLocal: PromiseOrValue<boolean>,
-    _ID: PromiseOrValue<BigNumberish>,
     tokenName_: PromiseOrValue<string>,
     symbol_: PromiseOrValue<string>,
     decimals_: PromiseOrValue<BigNumberish>,
@@ -1017,6 +1110,12 @@ export interface CTMRWA001X extends BaseContract {
     txSender: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  lockCTMRWA001(
+    _ctmRwa001AddrStr: PromiseOrValue<string>,
+    feeToken: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   mintNewToken(
     toAddressStr_: PromiseOrValue<string>,
@@ -1158,6 +1257,11 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    chainContract(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string, string] & { chainIdStr: string; contractStr: string }>;
+
     chainIdStr(overrides?: CallOverrides): Promise<string>;
 
     changeAdminCrossChain(
@@ -1168,8 +1272,18 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    changeFeeManager(
+      _feeManager: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     changeGov(
       newGov: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    changeTokenDeployer(
+      _tokenDeployer: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1180,20 +1294,24 @@ export interface CTMRWA001X extends BaseContract {
 
     ctmRwa001Deployer(overrides?: CallOverrides): Promise<string>;
 
+    ctmRwa001Ids(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, string] & { ID: BigNumber; contractStr: string }>;
+
     dappID(overrides?: CallOverrides): Promise<BigNumber>;
 
     delay(overrides?: CallOverrides): Promise<BigNumber>;
 
     deployAllCTMRWA001X(
       includeLocal: PromiseOrValue<boolean>,
-      _ID: PromiseOrValue<BigNumberish>,
       tokenName_: PromiseOrValue<string>,
       symbol_: PromiseOrValue<string>,
       decimals_: PromiseOrValue<BigNumberish>,
       toChainIdsStr_: PromiseOrValue<string>[],
       feeToken: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
     deployCTMRWA001(
       _newAdminStr: PromiseOrValue<string>,
@@ -1250,6 +1368,12 @@ export interface CTMRWA001X extends BaseContract {
       txSender: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    lockCTMRWA001(
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      feeToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     mintNewToken(
       toAddressStr_: PromiseOrValue<string>,
@@ -1521,6 +1645,11 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    chainContract(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     chainIdStr(overrides?: CallOverrides): Promise<BigNumber>;
 
     changeAdminCrossChain(
@@ -1531,8 +1660,18 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    changeFeeManager(
+      _feeManager: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     changeGov(
       newGov: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    changeTokenDeployer(
+      _tokenDeployer: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1543,13 +1682,17 @@ export interface CTMRWA001X extends BaseContract {
 
     ctmRwa001Deployer(overrides?: CallOverrides): Promise<BigNumber>;
 
+    ctmRwa001Ids(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     dappID(overrides?: CallOverrides): Promise<BigNumber>;
 
     delay(overrides?: CallOverrides): Promise<BigNumber>;
 
     deployAllCTMRWA001X(
       includeLocal: PromiseOrValue<boolean>,
-      _ID: PromiseOrValue<BigNumberish>,
       tokenName_: PromiseOrValue<string>,
       symbol_: PromiseOrValue<string>,
       decimals_: PromiseOrValue<BigNumberish>,
@@ -1612,6 +1755,12 @@ export interface CTMRWA001X extends BaseContract {
     isValidSender(
       txSender: PromiseOrValue<string>,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    lockCTMRWA001(
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     mintNewToken(
@@ -1755,6 +1904,11 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    chainContract(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     chainIdStr(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     changeAdminCrossChain(
@@ -1765,8 +1919,18 @@ export interface CTMRWA001X extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    changeFeeManager(
+      _feeManager: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     changeGov(
       newGov: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    changeTokenDeployer(
+      _tokenDeployer: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1777,13 +1941,17 @@ export interface CTMRWA001X extends BaseContract {
 
     ctmRwa001Deployer(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    ctmRwa001Ids(
+      arg0: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     dappID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     delay(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     deployAllCTMRWA001X(
       includeLocal: PromiseOrValue<boolean>,
-      _ID: PromiseOrValue<BigNumberish>,
       tokenName_: PromiseOrValue<string>,
       symbol_: PromiseOrValue<string>,
       decimals_: PromiseOrValue<BigNumberish>,
@@ -1846,6 +2014,12 @@ export interface CTMRWA001X extends BaseContract {
     isValidSender(
       txSender: PromiseOrValue<string>,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    lockCTMRWA001(
+      _ctmRwa001AddrStr: PromiseOrValue<string>,
+      feeToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     mintNewToken(

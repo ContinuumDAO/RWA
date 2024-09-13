@@ -12,7 +12,19 @@ library C3CallerStructLib {
     }
 }
 
+interface IC3GovClient {
+    function gov() external view returns (address);
+    function pendingGov() external view returns (address);
+    function isOperator(address) external view returns (bool);
+    function changeGov(address _gov) external;
+    function applyGov() external;
+    function addOperator(address _op) external;
+    function getAllOperators() external view returns (address[] memory);
+    function revokeOperator(address _op) external;
+}
+
 interface IC3CallerProxy {
+    function c3caller() external returns (address);
     function isExecutor(address sender) external returns (bool);
 
     function isCaller(address sender) external returns (bool);

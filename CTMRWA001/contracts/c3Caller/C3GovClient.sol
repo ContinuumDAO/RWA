@@ -2,8 +2,9 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IC3GovClient} from "./IC3Caller.sol";
 
-contract C3GovClient is Initializable {
+contract C3GovClient is Initializable, IC3GovClient {
     address public gov;
     address public pendingGov;
     mapping(address => bool) public isOperator;

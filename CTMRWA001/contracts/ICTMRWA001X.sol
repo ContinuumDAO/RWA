@@ -2,8 +2,15 @@
 
 pragma solidity ^0.8.20;
 
+struct TokenContract {
+    string chainIdStr;
+    string contractStr;
+}
+
 interface ICTMRWA001X {
     function admin() external returns(address);
+    function ID() external returns(uint256);
+    function tokenContract() external returns(TokenContract[] memory);
     function changeAdminX(address _admin) external returns(bool);
     function attachId(uint256 nextID, address _admin) external returns(bool);
     function addXTokenInfo(
@@ -13,6 +20,7 @@ interface ICTMRWA001X {
     ) external returns(bool);
     function deploy(
         uint256 _ID,
+        address admin,
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,

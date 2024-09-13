@@ -9,24 +9,28 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 contract CTMRWA001AllRoundMockUpgradeable is Initializable, ContextUpgradeable, CTMRWA001SlotApprovableUpgradeable {
 
     function __CTMRWA001AllRoundMock_init(
+            address _admin,
             string memory name_, 
             string memory symbol_, 
             uint8 decimals_,
             address _ctmRwa001XChain
         ) internal onlyInitializing {
         __CTMRWA001_init_unchained(
+            _admin,
             name_,
             symbol_,
             decimals_,
             _ctmRwa001XChain
             );
         __CTMRWA001SlotEnumerable_init_unchained(
+            _admin,
             name_,
             symbol_,
             decimals_,
             _ctmRwa001XChain
         );
         __CTMRWA001SlotApprovable_init_unchained(
+            _admin,
             name_,
             symbol_,
             decimals_,

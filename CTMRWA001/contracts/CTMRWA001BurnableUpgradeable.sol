@@ -9,18 +9,21 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 contract CTMRWA001BurnableUpgradeable is Initializable, ContextUpgradeable, CTMRWA001MintableUpgradeable {
 
     function __CTMRWA001Burnable_init(
+        address _admin,
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
         address _ctmRwa001XChain
     ) internal onlyInitializing {
         __CTMRWA001_init_unchained(
+            _admin,
             name_, 
             symbol_, 
             decimals_,
             _ctmRwa001XChain
         );
         __CTMRWA001Mintable_init_unchained(
+            _admin,
             name_, 
             symbol_, 
             decimals_,
@@ -29,9 +32,11 @@ contract CTMRWA001BurnableUpgradeable is Initializable, ContextUpgradeable, CTMR
     }
 
     function __CTMRWA001Burnable_init_unchained(
+        address,
         string memory,
         string memory,
-        uint8
+        uint8,
+        address
     ) internal onlyInitializing {
     }
 

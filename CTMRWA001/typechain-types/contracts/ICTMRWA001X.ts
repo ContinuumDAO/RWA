@@ -23,6 +23,16 @@ import type {
   PromiseOrValue,
 } from "../common";
 
+export type TokenContractStruct = {
+  chainIdStr: PromiseOrValue<string>;
+  contractStr: PromiseOrValue<string>;
+};
+
+export type TokenContractStructOutput = [string, string] & {
+  chainIdStr: string;
+  contractStr: string;
+};
+
 export interface ICTMRWA001XInterface extends utils.Interface {
   functions: {
     "addXTokenInfo(address,string[],string[])": FunctionFragment;
@@ -42,6 +52,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
     "mintValueX(uint256,uint256,uint256)": FunctionFragment;
     "removeTokenFromOwnerEnumeration(address,uint256)": FunctionFragment;
     "spendAllowance(address,uint256,uint256)": FunctionFragment;
+    "tokenContract()": FunctionFragment;
   };
 
   getFunction(
@@ -63,6 +74,7 @@ export interface ICTMRWA001XInterface extends utils.Interface {
       | "mintValueX"
       | "removeTokenFromOwnerEnumeration"
       | "spendAllowance"
+      | "tokenContract"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -157,6 +169,10 @@ export interface ICTMRWA001XInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>
     ]
   ): string;
+  encodeFunctionData(
+    functionFragment: "tokenContract",
+    values?: undefined
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "addXTokenInfo",
@@ -209,6 +225,10 @@ export interface ICTMRWA001XInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "spendAllowance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "tokenContract",
     data: BytesLike
   ): Result;
 
@@ -353,6 +373,10 @@ export interface ICTMRWA001X extends BaseContract {
       value_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
+
+    tokenContract(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
   };
 
   addXTokenInfo(
@@ -467,6 +491,10 @@ export interface ICTMRWA001X extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  tokenContract(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     addXTokenInfo(
       _admin: PromiseOrValue<string>,
@@ -577,6 +605,10 @@ export interface ICTMRWA001X extends BaseContract {
       value_: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    tokenContract(
+      overrides?: CallOverrides
+    ): Promise<TokenContractStructOutput[]>;
   };
 
   filters: {};
@@ -686,6 +718,10 @@ export interface ICTMRWA001X extends BaseContract {
       value_: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
+
+    tokenContract(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -791,6 +827,10 @@ export interface ICTMRWA001X extends BaseContract {
       operator_: PromiseOrValue<string>,
       tokenId_: PromiseOrValue<BigNumberish>,
       value_: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    tokenContract(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };

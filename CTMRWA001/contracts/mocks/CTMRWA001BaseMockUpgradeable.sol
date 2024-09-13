@@ -8,12 +8,14 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 
 contract CTMRWA001BaseMockUpgradeable is Initializable, ContextUpgradeable, CTMRWA001Upgradeable {
     function __CTMRWA001BaseMock_init(
+            address _admin,
             string memory name_, 
             string memory symbol_, 
             uint8 decimals_,
             address _ctmRwa001XChain
         ) internal onlyInitializing {
         __CTMRWA001_init_unchained(
+            _admin,
             name_,
             symbol_,
             decimals_,

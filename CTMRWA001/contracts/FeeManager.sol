@@ -5,17 +5,18 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./routerV2/GovernDapp.sol";
 import "./IFeeManager.sol";
+
+
 
 contract FeeManager is GovernDapp, IFeeManager {
     using Strings for *;
     using SafeERC20 for IERC20;
-    using SafeMath for uint256;
 
     address[] public feeTokenList;
     mapping(address => uint256) public feeTokenIndexMap;
+    address[] feetokens;
 
     mapping(address => FeeParams) public feeParams;
 
@@ -47,27 +48,23 @@ contract FeeManager is GovernDapp, IFeeManager {
     event AddFeeToken(address indexed _feeToken);
     event DelFeeToken(address indexed _feeToken);
 
-    //event SetLiqFee(address indexed _feeToken, uint256 _fee);
-
-    uint256 public constant FROM_CHAIN_PAY = 1;
-    uint256 public constant TO_CHAIN_PAY = 2;
-
-    mapping(string => mapping(address => uint256)) private _fromFeeConfigs; // key is fromChainIDStr, value key is tokenAddress
     mapping(string => mapping(address => uint256)) private _toFeeConfigs; // key is toChainIDStr, value key is tokenAddress
 
-    mapping(address => uint256) private _liqBaseFeeConfigs; // key is tokenAddress
-
-    function addFeeToken(address _feeToken) external onlyGov returns (bool) {
+    function addFeeToken(string memory feeTokenStr) external onlyGov returns (bool) {
+        require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
+        address feeToken = stringToAddress(_toLower(feeTokenStr));
         uint256 index = feeTokenList.length;
-        feeTokenList.push(_feeToken);
-        feeTokenIndexMap[_feeToken] = index + 1;
-        emit AddFeeToken(_feeToken);
+        feeTokenList.push(feeToken);
+        feeTokenIndexMap[feeToken] = index + 1;
+        emit AddFeeToken(feeToken);
         return true;
     }
 
-    function delFeeToken(address _feeToken) external onlyGov returns (bool) {
-        require(feeTokenIndexMap[_feeToken] > 0, "FM: token not exist");
-        uint256 index = feeTokenIndexMap[_feeToken];
+    function delFeeToken(string memory feeTokenStr) external onlyGov returns (bool) {
+        require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
+        address feeToken = stringToAddress(_toLower(feeTokenStr));
+        require(feeTokenIndexMap[feeToken] > 0, "FM: token not exist");
+        uint256 index = feeTokenIndexMap[feeToken];
         uint256 len = feeTokenList.length;
         if (index == len) {
             feeTokenList.pop();
@@ -76,9 +73,9 @@ contract FeeManager is GovernDapp, IFeeManager {
             feeTokenList.pop();
             feeTokenList[index - 1] = _token;
             feeTokenIndexMap[_token] = index;
-            feeTokenIndexMap[_feeToken] = 0;
+            feeTokenIndexMap[feeToken] = 0;
         }
-        emit DelFeeToken(_feeToken);
+        emit DelFeeToken(feeToken);
         return true;
     }
 
@@ -86,53 +83,52 @@ contract FeeManager is GovernDapp, IFeeManager {
         return feeTokenList;
     }
 
-    function getFeeTokenIndexMap(address feeToken) external view returns (uint256) {
+    function getFeeTokenIndexMap(string memory feeTokenStr) external view returns (uint256) {
+        require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
+        address feeToken = stringToAddress(_toLower(feeTokenStr));
         return(feeTokenIndexMap[feeToken]);
     }
 
-    function setFeeConfig(
-        string memory srcChainIDStr,
+    function addFeeToken(
         string memory dstChainIDStr,
-        uint256 payFrom, // 1:from 2:to 0:free
-        address[] memory feetokens,
+        string[] memory feeTokensStr,
         uint256[] memory fee // human readable * 100
     ) external onlyGov returns (bool) {
-        require(bytes(srcChainIDStr).length > 0 || bytes(dstChainIDStr).length > 0, "FM: ChainID empty");
-        require(
-            payFrom == FROM_CHAIN_PAY || payFrom == TO_CHAIN_PAY,
-            "FM: Invalid payFrom"
-        );
-        require(feetokens.length == fee.length, "FM: Invalid list size");
+        require(bytes(dstChainIDStr).length > 0, "FM: ChainID empty");
+        
+        require(feeTokensStr.length == fee.length, "FM: Invalid list size");
 
-        for (uint256 index = 0; index < feetokens.length; index++) {
+        dstChainIDStr = _toLower(dstChainIDStr);
+
+        for(uint256 i=0; i < feeTokensStr.length; i++) {
+            require(bytes(feeTokensStr[i]).length == 42, "FeeManager: Fee token has incorrect length");
+            feetokens.push(stringToAddress(_toLower(feeTokensStr[i])));
+        }
+
+        for (uint256 index = 0; index < feeTokensStr.length; index++) {
             require(
                 feeTokenIndexMap[feetokens[index]] > 0,
                 "FM: fee token does not exist"
             );
-            string memory thisChainIdStr = block.chainid.toString();
-            if (payFrom == FROM_CHAIN_PAY) {
-                _fromFeeConfigs[thisChainIdStr][feetokens[index]] = fee[index];
-            } else if (payFrom == TO_CHAIN_PAY) {
-                _toFeeConfigs[dstChainIDStr][feetokens[index]] = fee[index];
-            }
+            _toFeeConfigs[dstChainIDStr][feetokens[index]] = fee[index];
         }
         return true;
     }
 
     function getXChainFee(
-        string memory fromChainIDStr,
         string memory toChainIDStr,
-        address feeToken
+        string memory feeTokenStr
     ) public view returns (uint256) {
-        require(bytes(fromChainIDStr).length > 0 || bytes(toChainIDStr).length > 0, "FM: Invalid chainIDStr");
-        uint256 fee = getFromChainFee(fromChainIDStr, feeToken);
-        if (fee == 0) {
-            fee = getToChainFee(toChainIDStr, feeToken);
-        }
+        require(bytes(toChainIDStr).length > 0, "FM: Invalid chainIDStr");
+        require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has incorrect length");
+        uint256 fee = getToChainFee(toChainIDStr, _toLower(feeTokenStr));
+        
         return fee;
     }
 
-    function payFee(uint256 fee, address feeToken) external returns (uint256) {
+    function payFee(uint256 fee, string memory feeTokenStr) external returns (uint256) {
+        require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
+        address feeToken = stringToAddress(feeTokenStr);
         require(
             IERC20(feeToken).transferFrom(
                 msg.sender,
@@ -146,28 +142,31 @@ contract FeeManager is GovernDapp, IFeeManager {
 
     
     function withdrawFee(
-        address feeToken,
-        uint256 amount
+        string memory feeTokenStr,
+        uint256 amount,
+        string memory treasuryStr
     ) external onlyGov returns (bool) {
+        require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has an incorrect length");
+        address feeToken = stringToAddress(feeTokenStr);
+        require(bytes(treasuryStr).length == 42, "FeeManager: treasuryStr has an incorrect length");
+        address treasury = stringToAddress(treasuryStr);
+
         uint256 bal = IERC20(feeToken).balanceOf(address(this));
         if (bal < amount) {
             amount = bal;
         }
-        require(IERC20(feeToken).transfer(msg.sender, amount), "FM: transfer fail");
+        require(IERC20(feeToken).transfer(treasury, amount), "FM: transfer fail");
         return true;
-    }
-
-    function getFromChainFee(
-        string memory fromChainIDStr,
-        address feeToken
-    ) public view returns (uint256) {
-        return _fromFeeConfigs[fromChainIDStr][feeToken];
     }
 
     function getToChainFee(
         string memory toChainIDStr,
-        address feeToken
+        string memory feeTokenStr
     ) public view returns (uint256) {
+        require(bytes(toChainIDStr).length > 0, "FeeManager: toChainIDStr has zero length");
+        require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr incorrect length");
+        address feeToken = stringToAddress(feeTokenStr);
+        toChainIDStr = _toLower(toChainIDStr);
         return _toFeeConfigs[toChainIDStr][feeToken];
     }
 
@@ -180,10 +179,12 @@ contract FeeManager is GovernDapp, IFeeManager {
     }
 
     function setFeeTokenParams(
-        address _feeToken,
+        string memory feeTokenStr,
         FeeParams memory fee
     ) external onlyGov returns (bool) {
-        feeParams[_feeToken] = fee;
+        require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr incorrect length");
+        address feeToken = stringToAddress(feeTokenStr);
+        feeParams[feeToken] = fee;
         return true;
     }
 
@@ -222,4 +223,63 @@ contract FeeManager is GovernDapp, IFeeManager {
             }
         } else return (0); // only bother with Ethereum gas fees
     }
+
+    function stringsEqual(
+        string memory a,
+        string memory b
+    ) public pure returns (bool) {
+        bytes32 ka = keccak256(abi.encode(a));
+        bytes32 kb = keccak256(abi.encode(b));
+        return (ka == kb);
+    }
+
+    function stringToAddress(string memory str) public pure returns (address) {
+        bytes memory strBytes = bytes(str);
+        require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
+        bytes memory addrBytes = new bytes(20);
+
+        for (uint i = 0; i < 20; i++) {
+            addrBytes[i] = bytes1(
+                hexCharToByte(strBytes[2 + i * 2]) *
+                    16 +
+                    hexCharToByte(strBytes[3 + i * 2])
+            );
+        }
+
+        return address(uint160(bytes20(addrBytes)));
+    }
+
+    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
+        uint8 byteValue = uint8(char);
+        if (
+            byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))
+        ) {
+            return byteValue - uint8(bytes1("0"));
+        } else if (
+            byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))
+        ) {
+            return 10 + byteValue - uint8(bytes1("a"));
+        } else if (
+            byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))
+        ) {
+            return 10 + byteValue - uint8(bytes1("A"));
+        }
+        revert("Invalid hex character");
+    }
+
+    function _toLower(string memory str) internal pure returns (string memory) {
+        bytes memory bStr = bytes(str);
+        bytes memory bLower = new bytes(bStr.length);
+        for (uint i = 0; i < bStr.length; i++) {
+            // Uppercase character...
+            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
+                // So we add 32 to make it lowercase
+                bLower[i] = bytes1(uint8(bStr[i]) + 32);
+            } else {
+                bLower[i] = bStr[i];
+            }
+        }
+        return string(bLower);
+    }
+
 }

@@ -9,12 +9,14 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 
 contract CTMRWA001SlotEnumerableUpgradeable is Initializable, ContextUpgradeable, CTMRWA001Upgradeable, ICTMRWA001SlotEnumerableUpgradeable {
     function __CTMRWA001SlotEnumerable_init(
+        address _admin,
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
         address _ctmRwa001XChain
     ) internal onlyInitializing {
         __CTMRWA001_init_unchained(
+            _admin,
             name_,
             symbol_,
             decimals_,
@@ -23,6 +25,7 @@ contract CTMRWA001SlotEnumerableUpgradeable is Initializable, ContextUpgradeable
     }
 
     function __CTMRWA001SlotEnumerable_init_unchained(
+        address,
         string memory,
         string memory,
         uint8,

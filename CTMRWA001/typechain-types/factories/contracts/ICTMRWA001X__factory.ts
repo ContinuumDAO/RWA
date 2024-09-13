@@ -417,6 +417,31 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
+  {
+    inputs: [],
+    name: "tokenContract",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "string",
+            name: "chainIdStr",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "contractStr",
+            type: "string",
+          },
+        ],
+        internalType: "struct TokenContract[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ] as const;
 
 export class ICTMRWA001X__factory {

@@ -1,10 +1,11 @@
 {
-  "version": "1.0.0",
-  "description": "ERC-3525 ContinuumDAO cross-chain extension",
+  "name": "@solvprotocol/erc-3525",
+  "version": "1.5.0",
+  "description": "ERC-3525 Reference Implementation for Solidity",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ContinuumDAO/RWA/3252X.git"
+    "url": "git+https://github.com/solv-finance/erc-3525.git"
   },
   "engines": {
     "node": ">=12.10"
@@ -30,9 +31,7 @@
     "contracts",
     "erc-3525",
     "erc3525",
-    "solv",
-    "ContinuumDAO",
-    "C3Caller"
+    "solv"
   ],
   "author": "Solv Protocol",
   "bugs": {
@@ -69,7 +68,7 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.6",
+    "@openzeppelin/contracts": "^4.7.3",
     "@openzeppelin/contracts-upgradeable": "^4.7.3"
   }
 }

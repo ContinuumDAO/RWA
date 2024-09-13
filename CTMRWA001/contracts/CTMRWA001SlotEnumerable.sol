@@ -8,11 +8,13 @@ import "./extensions/ICTMRWA001SlotEnumerable.sol";
 
 contract CTMRWA001SlotEnumerable is Context, CTMRWA001, ICTMRWA001SlotEnumerable {
     constructor(
+        address _admin,
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
         address _ctmRwa001XChain
     ) CTMRWA001(
+        _admin,
         name_,
         symbol_,
         decimals_,

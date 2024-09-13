@@ -7,3 +7,6 @@
 [submodule "CTMRWA001/lib/openzeppelin-contracts"]
 	path = CTMRWA001/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "CTMRWA001/lib/openzeppelin-foundry-upgrades"]
+	path = CTMRWA001/lib/openzeppelin-foundry-upgrades
+	url = https://github.com/OpenZeppelin/openzeppelin-foundry-upgrades
