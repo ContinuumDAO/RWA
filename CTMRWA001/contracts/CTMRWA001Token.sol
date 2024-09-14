@@ -12,12 +12,14 @@ contract CTMRWA001Token is Context, CTMRWA001SlotApprovable {
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
+        string memory baseURI_,
         address _ctmRwa001XChain
     ) CTMRWA001SlotApprovable (
         _admin,
         name_,
         symbol_,
         decimals_,
+        baseURI_,
         _ctmRwa001XChain
     ) {}
 

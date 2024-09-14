@@ -4,9 +4,9 @@ pragma solidity ^0.8.20;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {CTMRWA001Deployer} from "../contracts/CTMRWA001Deployer.sol";
-import {FeeManager} from "../contracts/FeeManager.sol";
-import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
+import {CTMRWA001Deployer} from "contracts/CTMRWA001Deployer.sol";
+import {FeeManager} from "contracts/FeeManager.sol";
+import {CTMRWA001X} from "contracts/CTMRWA001X.sol";
 
 contract Deploy is Script {
     function run() external {

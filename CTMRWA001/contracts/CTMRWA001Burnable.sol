@@ -13,12 +13,14 @@ contract CTMRWA001Burnable is Context, CTMRWA001Mintable {
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
+        string memory baseURI_,
         address _ctmRwa001XChain
     ) CTMRWA001Mintable(
         _admin,
         name_,
         symbol_,
         decimals_,
+        baseURI_,
        _ctmRwa001XChain
     ) {}
 

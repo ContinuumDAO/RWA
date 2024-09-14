@@ -40,6 +40,7 @@ contract CTMRWA001Upgradeable is Initializable, ContextUpgradeable, ICTMRWA001Me
     string private _name_;
     string private _symbol_;
     uint8 private _decimals_;
+    string _baseURI_;
     address _ctmRwa001XChain_;
     uint256 private _tokenIdGenerator_;
 
@@ -61,6 +62,7 @@ contract CTMRWA001Upgradeable is Initializable, ContextUpgradeable, ICTMRWA001Me
         string memory _name, 
         string memory _symbol, 
         uint8 _decimals,
+        string memory baseURI_,
         address _ctmRwa001XChain
     ) internal onlyInitializing {
         __CTMRWA001_init_unchained(
@@ -68,6 +70,7 @@ contract CTMRWA001Upgradeable is Initializable, ContextUpgradeable, ICTMRWA001Me
             _name,
             _symbol,
             _decimals,
+            baseURI_,
             _ctmRwa001XChain
         );
     }
@@ -77,6 +80,7 @@ contract CTMRWA001Upgradeable is Initializable, ContextUpgradeable, ICTMRWA001Me
         string memory _name, 
         string memory _symbol, 
         uint8 _decimals,
+        string memory baseURI_,
         address _ctmRwa001XChain
     ) internal onlyInitializing {
         _tokenIdGenerator_ = 1;
@@ -84,6 +88,7 @@ contract CTMRWA001Upgradeable is Initializable, ContextUpgradeable, ICTMRWA001Me
         _name_ = _name;
         _symbol_ = _symbol;
         _decimals_ = _decimals;
+        _baseURI_ = baseURI_;
         _ctmRwa001XChain_ = _ctmRwa001XChain;
     }
 

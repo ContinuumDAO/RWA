@@ -14,6 +14,7 @@ contract CTMRWA001Deployer {
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,
+        string memory baseURI_,
         address gateway_
     ) external returns(address) {
         CTMRWA001Token ctmRwa001Token = new CTMRWA001Token{
@@ -23,6 +24,7 @@ contract CTMRWA001Deployer {
             tokenName_, 
             symbol_,
             decimals_,
+            baseURI_,
             gateway_
         );
 

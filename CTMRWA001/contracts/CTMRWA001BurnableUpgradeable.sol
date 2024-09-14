@@ -13,6 +13,7 @@ contract CTMRWA001BurnableUpgradeable is Initializable, ContextUpgradeable, CTMR
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
+        string memory baseURI_,
         address _ctmRwa001XChain
     ) internal onlyInitializing {
         __CTMRWA001_init_unchained(
@@ -20,6 +21,7 @@ contract CTMRWA001BurnableUpgradeable is Initializable, ContextUpgradeable, CTMR
             name_, 
             symbol_, 
             decimals_,
+            baseURI_,
             _ctmRwa001XChain
         );
         __CTMRWA001Mintable_init_unchained(
@@ -27,6 +29,7 @@ contract CTMRWA001BurnableUpgradeable is Initializable, ContextUpgradeable, CTMR
             name_, 
             symbol_, 
             decimals_,
+            baseURI_,
             _ctmRwa001XChain
         );
     }
@@ -36,6 +39,7 @@ contract CTMRWA001BurnableUpgradeable is Initializable, ContextUpgradeable, CTMR
         string memory,
         string memory,
         uint8,
+        string memory,
         address
     ) internal onlyInitializing {
     }

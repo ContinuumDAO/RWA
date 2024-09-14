@@ -12,6 +12,7 @@ contract CTMRWA001BaseMockUpgradeable is Initializable, ContextUpgradeable, CTMR
             string memory name_, 
             string memory symbol_, 
             uint8 decimals_,
+            string memory baseURI_,
             address _ctmRwa001XChain
         ) internal onlyInitializing {
         __CTMRWA001_init_unchained(
@@ -19,6 +20,7 @@ contract CTMRWA001BaseMockUpgradeable is Initializable, ContextUpgradeable, CTMR
             name_,
             symbol_,
             decimals_,
+            baseURI_,
             _ctmRwa001XChain
         );
     }

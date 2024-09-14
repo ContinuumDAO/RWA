@@ -17,6 +17,7 @@ contract CTMRWA001UpgradeableWithInit is CTMRWA001Upgradeable {
             string memory name_, 
             string memory symbol_, 
             uint8 decimals_,
+            string memory baseURI_,
             address _ctmRwa001XChain
         ) payable initializer {
         __CTMRWA001_init(
@@ -24,6 +25,7 @@ contract CTMRWA001UpgradeableWithInit is CTMRWA001Upgradeable {
             name_,
             symbol_,
             decimals_,
+            baseURI_,
             _ctmRwa001XChain
         );
     }
@@ -36,6 +38,7 @@ contract CTMRWA001BurnableUpgradeableWithInit is CTMRWA001BurnableUpgradeable {
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
+        string memory baseURI_,
         address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001Burnable_init(
@@ -43,6 +46,7 @@ contract CTMRWA001BurnableUpgradeableWithInit is CTMRWA001BurnableUpgradeable {
             name_,
             symbol_,
             decimals_,
+            baseURI_,
             _ctmRwa001XChain
         );
     }
@@ -55,6 +59,7 @@ contract CTMRWA001MintableUpgradeableWithInit is CTMRWA001MintableUpgradeable {
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
+        string memory baseURI_,
         address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001Mintable_init(
@@ -62,6 +67,7 @@ contract CTMRWA001MintableUpgradeableWithInit is CTMRWA001MintableUpgradeable {
             name_,
             symbol_,
             decimals_,
+            baseURI_,
             _ctmRwa001XChain
         );
     }
@@ -74,6 +80,7 @@ contract CTMRWA001SlotApprovableUpgradeableWithInit is CTMRWA001SlotApprovableUp
         string memory name_,
         string memory symbol_,
         uint8 decimals_,
+        string memory baseURI_,
         address _ctmRwa001XChain
     )
      payable initializer {
@@ -82,6 +89,7 @@ contract CTMRWA001SlotApprovableUpgradeableWithInit is CTMRWA001SlotApprovableUp
             name_,
             symbol_,
             decimals_,
+            baseURI_,
            _ctmRwa001XChain
         );
     }
@@ -94,6 +102,7 @@ contract CTMRWA001SlotEnumerableUpgradeableWithInit is CTMRWA001SlotEnumerableUp
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
+        string memory baseURI_,
         address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001SlotEnumerable_init(
@@ -101,6 +110,7 @@ contract CTMRWA001SlotEnumerableUpgradeableWithInit is CTMRWA001SlotEnumerableUp
             name_,
             symbol_,
             decimals_,
+            baseURI_,
             _ctmRwa001XChain
         );
     }
@@ -113,6 +123,7 @@ contract CTMRWA001AllRoundMockUpgradeableWithInit is CTMRWA001AllRoundMockUpgrad
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
+        string memory baseURI_,
         address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001AllRoundMock_init(
@@ -120,6 +131,7 @@ contract CTMRWA001AllRoundMockUpgradeableWithInit is CTMRWA001AllRoundMockUpgrad
             name_,
             symbol_,
             decimals_,
+            baseURI_,
             _ctmRwa001XChain
         );
     }
@@ -132,6 +144,7 @@ contract CTMRWA001BaseMockUpgradeableWithInit is CTMRWA001BaseMockUpgradeable {
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
+        string memory baseURI_,
         address _ctmRwa001XChain
     ) payable initializer {
         __CTMRWA001BaseMock_init(
@@ -139,6 +152,7 @@ contract CTMRWA001BaseMockUpgradeableWithInit is CTMRWA001BaseMockUpgradeable {
             name_,
             symbol_,
             decimals_,
+            baseURI_,
             _ctmRwa001XChain
         );
     }
