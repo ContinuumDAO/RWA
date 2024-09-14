@@ -34,4 +34,6 @@ interface ICTMRWA001Metadata is ICTMRWA001, IERC721Metadata {
      * @return The JSON formatted URI of `_slot`
      */
     function slotURI(uint256 _slot) external view returns (string memory);
+
+    function baseURI() external view returns (string memory);
 }

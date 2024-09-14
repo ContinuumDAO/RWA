@@ -27,6 +27,8 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     uint256 public ID;
     address public admin;
     address public ctmRwa001XChain;
+
+    string constant TYPE = "CTMRWA001/";
     
 
     event SetMetadataDescriptor(address indexed metadataDescriptor);
@@ -56,6 +58,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     string private _name;
     string private _symbol;
     uint8 private _decimals;
+    string public baseURI;
     uint256 private _tokenIdGenerator;
 
     // id => (approval => allowance)
@@ -77,6 +80,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,
+        string memory baseURI_,
         address _ctmRwa001XChain
     ) {
         admin = _admin;
@@ -84,6 +88,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         _name = tokenName_;
         _symbol = symbol_;
         _decimals = decimals_;
+        baseURI = baseURI_;
         ctmRwa001XChain = _ctmRwa001XChain;
         
 
@@ -235,27 +240,21 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         );
     }
 
-    function _baseURI() internal view virtual returns (string memory) {
-        return "";
-    }
-
     function contractURI() public view virtual override returns (string memory) {
-        string memory baseURI = _baseURI();
         return 
             address(metadataDescriptor) != address(0) ? 
                 metadataDescriptor.constructContractURI() :
                 bytes(baseURI).length > 0 ? 
-                    string(abi.encodePacked(baseURI, "contract/", Strings.toHexString(address(this)))) : 
+                    string(abi.encodePacked(baseURI, TYPE, "contract/", ID)) : 
                     "";
     }
 
     function slotURI(uint256 slot_) public view virtual override returns (string memory) {
-        string memory baseURI = _baseURI();
         return 
             address(metadataDescriptor) != address(0) ? 
                 metadataDescriptor.constructSlotURI(slot_) : 
                 bytes(baseURI).length > 0 ? 
-                    string(abi.encodePacked(baseURI, "slot/", slot_.toString())) : 
+                    string(abi.encodePacked(baseURI, TYPE, "slot/", slot_.toString())) : 
                     "";
     }
 
@@ -264,12 +263,11 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
      */
     function tokenURI(uint256 tokenId_) public view virtual override returns (string memory) {
         _requireMinted(tokenId_);
-        string memory baseURI = _baseURI();
         return 
             address(metadataDescriptor) != address(0) ? 
                 metadataDescriptor.constructTokenURI(tokenId_) : 
                 bytes(baseURI).length > 0 ? 
-                    string(abi.encodePacked(baseURI, tokenId_.toString())) : 
+                    string(abi.encodePacked(baseURI, TYPE, tokenId_.toString())) : 
                     "";
     }
 
