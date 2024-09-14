@@ -311,6 +311,11 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         return _addressData[owner_].ownedTokens.length;
     }
 
+    function balanceOfX(address owner_) external view returns (uint256 balance) {
+        require(owner_ != address(0), "CTMRWA001: balance query for the zero address");
+        return _addressData[owner_].ownedTokens.length;
+    }
+
     function transferFrom(
         address from_,
         address to_,
@@ -364,16 +369,16 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         return _addressData[owner_].approvals[operator_];
     }
 
-    function totalSupply() public view virtual override returns (uint256) {
+    function totalSupply() external view virtual override returns (uint256) {
         return _allTokens.length;
     }
 
     function tokenByIndex(uint256 index_) public view virtual override returns (uint256) {
-        require(index_ < CTMRWA001.totalSupply(), "CTMRWA001: global index out of bounds");
+        require(index_ < this.totalSupply(), "CTMRWA001: global index out of bounds");
         return _allTokens[index_].id;
     }
 
-    function tokenOfOwnerByIndex(address owner_, uint256 index_) public view virtual override returns (uint256) {
+    function tokenOfOwnerByIndex(address owner_, uint256 index_) external view virtual override returns (uint256) {
         require(index_ < CTMRWA001.balanceOf(owner_), "CTMRWA001: owner index out of bounds");
         return _addressData[owner_].ownedTokens[index_];
     }
@@ -417,6 +422,10 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
 
     function _requireMinted(uint256 tokenId_) internal view virtual {
         require(_exists(tokenId_), "CTMRWA001: invalid token ID");
+    }
+
+    function requireMinted(uint256 tokenId_) external view virtual returns(bool){
+        return(_exists(tokenId_));
     }
 
     function _mint(address to_, uint256 slot_, uint256 value_) internal virtual returns (uint256 tokenId) {
