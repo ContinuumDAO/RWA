@@ -11,8 +11,11 @@ interface ICTMRWA001X {
     function admin() external returns(address);
     function ID() external returns(uint256);
     function tokenContract() external returns(TokenContract[] memory);
+    function totalSupply() external view returns (uint256);
+    function balanceOfX(address owner_) external view returns (uint256 balance);
     function changeAdminX(address _admin) external returns(bool);
     function attachId(uint256 nextID, address _admin) external returns(bool);
+    function tokenOfOwnerByIndex(address owner_, uint256 index_) external view returns (uint256);
     function addXTokenInfo(
         address _admin,
         string[] memory _chainIdsStr,
@@ -33,6 +36,7 @@ interface ICTMRWA001X {
     function getTokenContract(string memory _chainIdStr) external view returns(string memory);
     function spendAllowance(address operator_, uint256 tokenId_, uint256 value_) external;
     function getTokenInfo(uint256 tokenId_) external view returns(uint256 id,uint256 bal,address owner,uint256 slot);
+    function requireMinted(uint256 tokenId_) external view returns(bool);
     function burnValueX(uint256 fromTokenId_, uint256 value_) external returns(bool);
     function mintValueX(uint256 toTokenId_, uint256 slot_, uint256 value_) external returns(bool);
     function mintFromX(address to_, uint256 slot_, uint256 value_) external returns (uint256 tokenId);

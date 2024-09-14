@@ -22,6 +22,11 @@ contract CTMRWA001X is  GovernDapp {
     address public ctmRwa001Deployer;
     string public chainIdStr;
 
+    // This is temporary until we have a MongoDB storing this information
+    mapping(address => address[]) public adminTokens;  // admin address => array of CTMRWA001 contracts
+    mapping(address => address[]) public ownedCtmRwa001;  // owner address => array of CTMRWA001 contracts
+    mapping(address => mapping(uint256 => mapping(uint256 => bool))) forgottonTokens; // CTMRWA001 address => tokenId =>  slot => bool. True = forget
+
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
     event CreateNewCTMRWA001(
@@ -216,6 +221,7 @@ contract CTMRWA001X is  GovernDapp {
         require(ok, "CTMRWA001X: Failed to set token ID");
 
         ICTMRWA001X(_ctmRwa001Token).changeAdminX(admin);
+        adminTokens[admin].push(_ctmRwa001Token);
 
         emit CreateNewCTMRWA001(_ctmRwa001Token, _ID, admin, cID().toString(), "");
 
@@ -349,20 +355,30 @@ contract CTMRWA001X is  GovernDapp {
         require(ok, "CTMRWA001X: Failed to set token ID");
 
         ICTMRWA001X(_ctmRwa001Token).changeAdminX(newAdmin);
+        adminTokens[newAdmin].push(_ctmRwa001Token);
 
         emit CreateNewCTMRWA001(_ctmRwa001Token, _ID, newAdmin, fromChainIdStr, _fromContractStr);
 
         return(true);
     }
 
-    // Change the admin address of a deployed CTMRWA001 instance
+    function changeAdmin(address _newAdmin, address _ctmRwa001Addr) external returns(bool) {
+        address currentAdmin = ICTMRWA001X(_ctmRwa001Addr).admin();
+        require(msg.sender == currentAdmin, "CTMRWA001X: Only admin can change the admin");
+        ICTMRWA001X(_ctmRwa001Addr).changeAdminX(_newAdmin);
+        adminTokens[_newAdmin].push(_ctmRwa001Addr);
+
+        return(true);
+    }
+
+    // Change the admin address of a deployed CTMRWA001 instance on another chain
     function changeAdminCrossChain(
         string memory _newAdminStr,
         string memory toChainIdStr_,
         string memory _ctmRwa001AddrStr,
         string memory feeTokenStr
     ) public payable virtual returns(bool) {
-        require(!stringsEqual(toChainIdStr_, cID().toString()), "CTMRWA001X: Not a cross-chain transfer");
+        require(!stringsEqual(toChainIdStr_, cID().toString()), "CTMRWA001X: Not a cross-chain admin change");
         address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
         address currentAdmin = ICTMRWA001X(ctmRwa001Addr).admin();
         require(msg.sender == currentAdmin, "CTMRWA001X: Only admin can change the admin");
@@ -407,6 +423,7 @@ contract CTMRWA001X is  GovernDapp {
         require(stringsEqual(storedContractStr, _fromContractStr), "CTMRWA001X: From an invalid CTMRWA001");
 
         ICTMRWA001X(ctmRwa001Addr).changeAdminX(newAdmin);
+        adminTokens[newAdmin].push(ctmRwa001Addr);
 
         emit ChangeAdminDest(_currentAdminStr, _newAdminStr, fromChainIdStr);
 
@@ -469,8 +486,42 @@ contract CTMRWA001X is  GovernDapp {
         return(true);
     }
 
+    function getAllTokensByAdminAddress(address _admin) public view returns(address[] memory) {
+        return(adminTokens[_admin]);
+    }
 
-    function checkAttached(address _ctmRwa001Addr) external view returns(bool, uint256) {
+    function getAllTokensByOwnerAddress(address _owner) public view returns(address[] memory) {
+        return(ownedCtmRwa001[_owner]);
+    }
+
+    function isOwnedToken(address _owner, address _ctmRwa001Addr) public view returns(bool) {
+        if(ICTMRWA001X(_ctmRwa001Addr).balanceOfX(_owner) > 0) return(true);
+        else return(false);
+    }
+
+    function isForgottonTokenSlot(uint256 _tokenId, uint256 _slot, address _ctmRwa001) public view returns(bool) {
+        return(forgottonTokens[_ctmRwa001][_tokenId][_slot]);
+    }
+
+    function forgetTokenSlot(uint256 _tokenId, uint256 _slot, address _ctmRwa001) external returns(bool) {
+        require(ICTMRWA001X(_ctmRwa001).requireMinted(_tokenId), "CTMRWA001X: TokenId does not exist");
+        (, uint256 balance, address owner, uint256 slot) = ICTMRWA001X(_ctmRwa001).getTokenInfo(_tokenId);
+        if(owner == msg.sender && _slot == slot && balance>0) {
+            forgottonTokens[_ctmRwa001][_tokenId][_slot] = true;
+            return(true);
+        } else return(false);
+    }
+
+    function rememberTokenSlot(uint256 _tokenId, uint256 _slot, address _ctmRwa001) external returns(bool) {
+        require(ICTMRWA001X(_ctmRwa001).requireMinted(_tokenId), "CTMRWA001X: TokenId does not exist");
+        (, uint256 balance, address owner, uint256 slot) = ICTMRWA001X(_ctmRwa001).getTokenInfo(_tokenId);
+        if(owner == msg.sender && _slot == slot && balance>0) {
+            forgottonTokens[_ctmRwa001][_tokenId][_slot] = false;
+            return(true);
+        } else return(false);
+    }
+
+    function getAttachedID(address _ctmRwa001Addr) external view returns(bool, uint256) {
         for(uint256 i=0; i<ctmRwa001Ids.length; i++) {
             if(stringsEqual(ctmRwa001Ids[i].contractStr, _toLower(_ctmRwa001Addr.toHexString()))) {
                 return(true, ctmRwa001Ids[i].ID);
@@ -479,9 +530,19 @@ contract CTMRWA001X is  GovernDapp {
         return(false, 0);
     }
 
+    function getAttachedTokenAddress(uint256 _ID) external view returns(bool, address) {
+        for(uint256 i=0; i<ctmRwa001Ids.length; i++) {
+            if(ctmRwa001Ids[i].ID == _ID) {
+                return(true, stringToAddress(ctmRwa001Ids[i].contractStr));
+            }
+        }
+            
+        return(false, address(0));
+    }
+
     // Keeps a record of token IDs in this gateway contract. Check offline to see if other contracts have it
     function _attachCTMRWA001ID(uint256 _ID, address _ctmRwa001Addr) internal returns(bool) {
-        (bool attached,) = this.checkAttached(_ctmRwa001Addr);
+        (bool attached,) = this.getAttachedID(_ctmRwa001Addr);
         if (!attached) {
             bool ok = ICTMRWA001X(_ctmRwa001Addr).attachId(_ID, msg.sender);
             if(ok) {
@@ -504,7 +565,7 @@ contract CTMRWA001X is  GovernDapp {
         require(msg.sender == currentAdmin, "CTMRWA001X: Only admin function");
         string memory currentAdminStr = currentAdmin.toHexString();
 
-        (bool ok, uint256 ID) = this.checkAttached(ctmRwa001Addr);
+        (bool ok, uint256 ID) = this.getAttachedID(ctmRwa001Addr);
         require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
 
         string memory _toContractStr = ICTMRWA001X(ctmRwa001Addr).getTokenContract(toChainIdStr_);
@@ -545,7 +606,7 @@ contract CTMRWA001X is  GovernDapp {
         address currentAdmin = ICTMRWA001X(ctmRwa001Addr).admin();
         require(admin == currentAdmin, "CTMRWA001X: No admin access to add chains/contracts");
 
-        (bool ok, uint256 ID) = this.checkAttached(ctmRwa001Addr);
+        (bool ok, uint256 ID) = this.getAttachedID(ctmRwa001Addr);
         require(ok && ID == _Id, "CTMRWA001X: Incorrect or unattached CTMRWA001 contract");
 
         bool success = ICTMRWA001X(ctmRwa001Addr).addXTokenInfo(
@@ -571,7 +632,7 @@ contract CTMRWA001X is  GovernDapp {
         address currentAdmin = ICTMRWA001X(_ctmRwa001Addr).admin();
         require(msg.sender == currentAdmin, "CTMRWA001X: Only admin function");
         
-        (bool ok, uint256 ID) = this.checkAttached(_ctmRwa001Addr);
+        (bool ok, uint256 ID) = this.getAttachedID(_ctmRwa001Addr);
         require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
 
         if(toTokenId_>0) {
@@ -587,6 +648,8 @@ contract CTMRWA001X is  GovernDapp {
             return(toTokenId_);
         } else {
             uint256 newTokenId = ICTMRWA001X(_ctmRwa001Addr).mintFromX(toAddress_, slot_, value_);
+            (,,address owner,) = ICTMRWA001X(_ctmRwa001Addr).getTokenInfo(newTokenId);
+            ownedCtmRwa001[owner].push(_ctmRwa001Addr);
 
             emit MintTokenValueNewId(
                 ID,
@@ -613,7 +676,7 @@ contract CTMRWA001X is  GovernDapp {
         require(msg.sender == currentAdmin, "CTMRWA001X: Only admin function");
         require(!stringsEqual(toChainIdStr_, cID().toString()), "CTMRWA001X: This function call is only for cross-chain minting");
 
-        (bool ok, uint256 ID) = this.checkAttached(ctmRwa001Addr);
+        (bool ok, uint256 ID) = this.getAttachedID(ctmRwa001Addr);
         require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
         require(bytes(feeTokenStr).length == 42, "CTMRWA001X: feeTokenStr has the wrong length");
 
@@ -662,7 +725,7 @@ contract CTMRWA001X is  GovernDapp {
         string memory targetStr = this.getChainContract(toChainIdStr_);
         require(bytes(targetStr).length>0, "CTMRWA001X: Target contract address not found");
 
-        (bool ok, uint256 ID) = this.checkAttached(ctmRwa001Addr);
+        (bool ok, uint256 ID) = this.getAttachedID(ctmRwa001Addr);
         require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
 
         uint256 xChainFee = FeeManager(feeManager).getXChainFee(toChainIdStr_, feeTokenStr);
@@ -721,7 +784,7 @@ contract CTMRWA001X is  GovernDapp {
         require(bytes(toAddressStr_).length>0, "CTMRWA001X: Destination address has zero length");
         string memory fromAddressStr = msg.sender.toHexString();
 
-        (bool ok, uint256 ID) = this.checkAttached(ctmRwa001Addr);
+        (bool ok, uint256 ID) = this.getAttachedID(ctmRwa001Addr);
         require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
 
         uint256 xChainFee = FeeManager(feeManager).getXChainFee(toChainIdStr_, feeTokenStr);
@@ -790,6 +853,8 @@ contract CTMRWA001X is  GovernDapp {
         require(stringsEqual(storedContractStr, _fromContractStr), "CTMRWA001X: From an invalid CTMRWA001");
 
         ICTMRWA001X(ctmRwa001Addr).mintValueX(toTokenId_, slot_, value_);
+        (,,address owner,) = ICTMRWA001X(ctmRwa001Addr).getTokenInfo(toTokenId_);
+        ownedCtmRwa001[owner].push(ctmRwa001Addr);
 
         emit TransferToDestX(
             _ID,
@@ -819,7 +884,7 @@ contract CTMRWA001X is  GovernDapp {
         require(ICTMRWA001X(ctmRwa001Addr).isApprovedOrOwner(msg.sender, fromTokenId_), "CTMRWA001X: transfer caller is not owner nor approved");
         string memory fromAddressStr = msg.sender.toHexString();
 
-        (bool ok, uint256 ID) = this.checkAttached(ctmRwa001Addr);
+        (bool ok, uint256 ID) = this.getAttachedID(ctmRwa001Addr);
         require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
 
         uint256 xChainFee = FeeManager(feeManager).getXChainFee(toChainIdStr_, feeTokenStr);

@@ -23,6 +23,8 @@ import {TestERC20} from "contracts/mocks/TestERC20.sol";
 import {FeeManager} from "contracts/FeeManager.sol";
 import {CTMRWA001Deployer} from "contracts/CTMRWA001Deployer.sol";
 import {CTMRWA001X} from "contracts/CTMRWA001X.sol";
+import {ICTMRWA001X} from "contracts/ICTMRWA001X.sol";
+
 
 
 contract SetUp is Test {
@@ -238,6 +240,50 @@ contract SetUp is Test {
         }
         return string(bLower);
     }
+
+    function CTMRWA001Deploy() public returns(bool, address) {
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+        string[] memory chainIdsStr;
+
+        uint256 ID = rwa001X.deployAllCTMRWA001X(
+            true,  // include local mint
+            "Semi Fungible Token XChain",
+            "SFTX",
+            18,
+            chainIdsStr,  // empty array - no cross-chain minting
+            tokenStr
+        );
+        return(rwa001X.getAttachedTokenAddress(ID));
+    }
+
+    function deployAFewTokensLocal(address _ctmRwaAddr) public returns(uint256,uint256,uint256) {
+
+        uint256 tokenId1 = rwa001X.mintNewTokenValueLocal(
+            user1,
+            0,
+            5,
+            2000,
+            _ctmRwaAddr
+        );
+
+        uint256 tokenId2 = rwa001X.mintNewTokenValueLocal(
+            user1,
+            0,
+            3,
+            4000,
+            _ctmRwaAddr
+        );
+
+        uint256 tokenId3 = rwa001X.mintNewTokenValueLocal(
+            user1,
+            0,
+            1,
+            6000,
+            _ctmRwaAddr
+        );
+
+        return(tokenId1, tokenId2, tokenId3);
+    }
 }
 
 contract TestBasicToken is SetUp {
@@ -299,7 +345,7 @@ contract TestBasicToken is SetUp {
         vm.stopPrank();
     }
 
-    function test_CTMRWA001XBasic() public {
+    function test_CTMRWA001XBasic() public view {
         string memory gatewayStr = rwa001X.getChainContract(cID().toString());
         //console.log(gatewayStr);
         address gateway = stringToAddress(gatewayStr);
@@ -308,14 +354,6 @@ contract TestBasicToken is SetUp {
     }
 
     function test_CTMRWA001Deploy() public {
-        // function deployAllCTMRWA001X(
-        // bool includeLocal,
-        // string memory tokenName_, 
-        // string memory symbol_, 
-        // uint8 decimals_,
-        // string[] memory toChainIdsStr_,
-        // string memory feeTokenStr
-
         string memory tokenStr = _toLower((address(usdc).toHexString()));
         string[] memory chainIdsStr;
 
@@ -329,5 +367,73 @@ contract TestBasicToken is SetUp {
         );
         console.log("ID");
         console.log(ID);
+        (bool ok, address ctmRwaAddr) = rwa001X.getAttachedTokenAddress(ID);
+        console.log("ctmRwaAddr");
+        console.log(ctmRwaAddr);
+        assertEq(ok, true);
+    }
+
+    function test_CTMRWA001Mint() public {
+        (, address ctmRwaAddr) = CTMRWA001Deploy();
+
+        // function mintNewTokenValueLocal(
+        // address toAddress_,
+        // uint256 toTokenId_,  // Set to 0 to create a newTokenId
+        // uint256 slot_,
+        // uint256 value_,
+        // address _ctmRwa001Addr
+        // ) public payable virtual returns(uint256) {
+
+        uint256 tokenId = rwa001X.mintNewTokenValueLocal(
+            user1,
+            0,
+            5,
+            2000,
+            ctmRwaAddr
+        );
+
+        assertEq(tokenId, 1);
+        (uint256 id, uint256 bal, address owner, uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId);
+        //console.log(id, bal, owner, slot);
+        assertEq(id,1);
+        assertEq(bal, 2000);
+        assertEq(owner, user1);
+        assertEq(slot, 5);
+    }
+
+    function test_getTokenList() public {
+        vm.startPrank(admin);
+        (, address ctmRwaAddr) = CTMRWA001Deploy();
+        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+        vm.stopPrank();
+
+        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
+        console.log(adminTokens[0]);
+        assertEq(adminTokens.length, 1);  // only one CTMRWA001 token deployed
+        assertEq(ctmRwaAddr, adminTokens[0]);
+
+        address[] memory nRWA001 = rwa001X.getAllTokensByOwnerAddress(user1);  // List of CTMRWA001 tokens that user1 has or still has tokens in
+        assertEq(nRWA001.length, 3);
+
+        uint256 tokenId;
+        uint256 id;
+        uint256 bal;
+        address owner;
+        uint256 slot;
+
+        for(uint256 i=0; i<nRWA001.length; i++) {
+            tokenId = ICTMRWA001X(nRWA001[i]).tokenOfOwnerByIndex(user1, i);
+            (id, bal, owner, slot) = ICTMRWA001X(nRWA001[i]).getTokenInfo(tokenId);
+            // console.log(tokenId);
+            // console.log(id);
+            // console.log(bal);
+            // console.log(owner);
+            // console.log(slot);
+            // console.log("************");
+            assertEq(owner, user1);
+            assertEq(tokenId, i);
+            assertEq(id, i);
+        }
+
     }
 }
