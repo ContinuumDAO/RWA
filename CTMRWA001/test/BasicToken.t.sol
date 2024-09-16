@@ -250,6 +250,7 @@ contract SetUp is Test {
             "Semi Fungible Token XChain",
             "SFTX",
             18,
+            "continuumdao/",
             chainIdsStr,  // empty array - no cross-chain minting
             tokenStr
         );
@@ -362,14 +363,15 @@ contract TestBasicToken is SetUp {
             "Semi Fungible Token XChain",
             "SFTX",
             18,
+            "continuumdao/",
             chainIdsStr,  // empty array - no cross-chain minting
             tokenStr
         );
-        console.log("ID");
-        console.log(ID);
+        // console.log("ID");
+        // console.log(ID);
         (bool ok, address ctmRwaAddr) = rwa001X.getAttachedTokenAddress(ID);
-        console.log("ctmRwaAddr");
-        console.log(ctmRwaAddr);
+        // console.log("ctmRwaAddr");
+        // console.log(ctmRwaAddr);
         assertEq(ok, true);
     }
 
@@ -430,10 +432,59 @@ contract TestBasicToken is SetUp {
             // console.log(owner);
             // console.log(slot);
             // console.log("************");
-            assertEq(owner, user1);
-            assertEq(tokenId, i);
-            assertEq(id, i);
-        }
 
+            /// @dev added 1 to the ID, as they are 1-indexed as opposed to this loop which is 0-indexed
+            uint256 currentId = i + 1;
+            assertEq(owner, user1);
+            assertEq(tokenId, currentId);
+            assertEq(id, currentId);
+        }
+    }
+
+    function test_transferToken() public {
+        vm.startPrank(admin);
+        (, address ctmRwaAddr) = CTMRWA001Deploy();
+        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+        vm.stopPrank();
+
+        /*token1
+            to: user1
+            to token: 0 (new token)
+            slot: 5
+            value: 2000
+            token addr: _ctmRwaAddr
+        */
+
+        /*token2
+            to: user1
+            to token: 0 (new token)
+            slot: 3
+            value: 4000
+            token addr: _ctmRwaAddr
+        */
+
+        /*token2
+            to: user1
+            to token: 0 (new token)
+            slot: 1
+            value: 6000
+            token addr: _ctmRwaAddr
+        */
+
+        // function transferFromX( // transfer from/to same tokenid without value
+        //     string memory toAddressStr_,
+        //     string memory toChainIdStr_,
+        //     uint256 fromTokenId_,
+        //     string memory _ctmRwa001AddrStr,
+        //     string memory feeTokenStr
+        // ) external;
+
+        string memory user2Str = user2.toHexString();
+        string memory toChainId = "1"; // ethereum
+        address[] memory feeTokenList = feeManager.getFeeTokenList();
+        string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
+        string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
+
+        rwa001X.transferFromX(user2Str, "1", tokenId1, ctmRwaAddrStr, feeTokenStr);
     }
 }

@@ -203,6 +203,7 @@ contract CTMRWA001X is  GovernDapp {
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,
+        string memory baseURI_,
         address admin
     ) internal returns(address) {
         bool ok = _isUniqueId(_ID);  // only checks local deployments!
@@ -214,6 +215,7 @@ contract CTMRWA001X is  GovernDapp {
             tokenName_,
             symbol_,
             decimals_,
+            baseURI_,
             address(this)
         );
 
@@ -233,6 +235,7 @@ contract CTMRWA001X is  GovernDapp {
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,
+        string memory baseURI_,
         string[] memory toChainIdsStr_,
         string memory feeTokenStr
     ) public payable returns(uint256) {
@@ -240,10 +243,10 @@ contract CTMRWA001X is  GovernDapp {
         require(bytes(feeTokenStr).length == 42, "CTMRWA001X: feeTokenStr has the wrong length");
 
         uint256 ID = uint256(keccak256(abi.encode(
-            tokenName_, 
-            symbol_, 
-            decimals_, 
-            block.timestamp, 
+            tokenName_,
+            symbol_,
+            decimals_,
+            block.timestamp,
             msg.sender
         )));
 
@@ -252,7 +255,7 @@ contract CTMRWA001X is  GovernDapp {
         address currentAdmin;
 
         if(includeLocal) {
-            ctmRwa001Addr = _deployCTMRWA001Local(ID, tokenName_, symbol_, decimals_, msg.sender);
+            ctmRwa001Addr = _deployCTMRWA001Local(ID, tokenName_, symbol_, decimals_, baseURI_, msg.sender);
             ICTMRWA001X(ctmRwa001Addr).changeAdminX(msg.sender);
             ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
             currentAdmin = msg.sender;
@@ -334,6 +337,7 @@ contract CTMRWA001X is  GovernDapp {
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,
+        string memory baseURI_,
         string memory _fromContractStr
     ) external onlyCaller returns(bool) {
 
@@ -348,6 +352,7 @@ contract CTMRWA001X is  GovernDapp {
             tokenName_,
             symbol_,
             decimals_,
+            baseURI_,
             address(this)
         );
 

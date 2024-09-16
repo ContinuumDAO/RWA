@@ -59,6 +59,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     string private _symbol;
     uint8 private _decimals;
     string public baseURI;
+    string public constant version = "1";
     uint256 private _tokenIdGenerator;
 
     // id => (approval => allowance)
@@ -238,6 +239,10 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
             _allTokens[_allTokensIndex[tokenId_]].owner,
             _allTokens[_allTokensIndex[tokenId_]].slot
         );
+    }
+
+    function setBaseURI(string memory _baseURI) public onlyAdmin {
+        baseURI = _baseURI;
     }
 
     function contractURI() public view virtual override returns (string memory) {

@@ -27,6 +27,7 @@ interface ICTMRWA001X {
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,
+        string memory baseURI_,
         address gateway
     ) external returns(address);
     function checkTokenCompatibility(
@@ -45,4 +46,30 @@ interface ICTMRWA001X {
     function approveFromX(address to_, uint256 tokenId_) external;
     function clearApprovedValues(uint256 tokenId_) external;
     function removeTokenFromOwnerEnumeration(address from_, uint256 tokenId_) external;
+
+    // transferFromX
+    function transferFromX( // transfer from/to same tokenid with value
+        uint256 fromTokenId_,
+        string memory toAddressStr_,
+        string memory toChainIdStr_,
+        uint256 value_,
+        string memory _ctmRwa001AddrStr,
+        string memory feeTokenStr
+    ) external payable;
+    function transferFromX( // transfer from/to same tokenid without value
+        string memory toAddressStr_,
+        string memory toChainIdStr_,
+        uint256 fromTokenId_,
+        string memory _ctmRwa001AddrStr,
+        string memory feeTokenStr
+    ) external;
+    function transferFromX( // transfer from tokenid to different tokenid with value
+        uint256 fromTokenId_,
+        string memory toAddressStr_,
+        uint256 toTokenId_,
+        string memory toChainIdStr_,
+        uint256 value_,
+        string memory _ctmRwa001AddrStr,
+        string memory feeTokenStr
+    ) external;
 }
