@@ -893,6 +893,17 @@ contract CTMRWA001X is  GovernDapp {
         require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
 
         uint256 xChainFee = FeeManager(feeManager).getXChainFee(toChainIdStr_, feeTokenStr);
+        address feeToken = stringToAddress(feeTokenStr);
+        /**
+            @notice adding some extra lines:
+                - transferFrom the fee from user to this contract
+                - approve feeManager to spend the fee sent here
+            As it is, the fee token isn't stored anywhere, could be useful to do so
+            @bug if the fee is zero, then the function carries on without paying
+            @bug add a check that the fee token provided is valid
+        */
+        IERC20(feeToken).transferFrom(msg.sender, address(this), xChainFee);
+        IERC20(feeToken).approve(feeManager, xChainFee);
         if(xChainFee>0) FeeManager(feeManager).payFee(xChainFee, feeTokenStr);
 
         string memory targetStr = this.getChainContract(toChainIdStr_);

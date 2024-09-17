@@ -95,6 +95,10 @@ contract SetUp is Test {
         uint256 usdcBal = 100000*10**usdc.decimals();
         usdc.mint(admin, usdcBal);
 
+        /// @dev adding CTM balance to user1 so they can pay the fee
+        uint256 ctmBal = 100000 ether;
+        ctm.mint(user1, ctmBal);
+
         //console.log("admin bal USDC = ", usdc.balanceOf(address(admin))/1e6);
         usdc.transfer(user1, usdcBal);
         
@@ -110,6 +114,9 @@ contract SetUp is Test {
         usdc.approve(address(feeManager), initialUserBal);
         vm.stopPrank();
 
+        /// @notice adding the approval for ctmRwa001X to spend arbitrary CTM fee
+        vm.prank(user1);
+        ctm.approve(address(rwa001X), ctmBal);
     }
 
     function deployCTMRWA001X() internal {
@@ -479,12 +486,13 @@ contract TestBasicToken is SetUp {
         //     string memory feeTokenStr
         // ) external;
 
-        string memory user2Str = user2.toHexString();
+        string memory user1Str = user1.toHexString();
         string memory toChainId = "1"; // ethereum
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
 
-        rwa001X.transferFromX(user2Str, "1", tokenId1, ctmRwaAddrStr, feeTokenStr);
+        vm.prank(user1);
+        rwa001X.transferFromX(user1Str, "1", tokenId1, ctmRwaAddrStr, feeTokenStr);
     }
 }
