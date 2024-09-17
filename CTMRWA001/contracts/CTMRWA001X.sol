@@ -139,6 +139,10 @@ contract CTMRWA001X is  GovernDapp {
         return(true);
     }
 
+    function addChainContract(uint256 _chainId, address contractAddr) external returns (bool) {
+        return _addChainContract(_chainId, contractAddr);
+    }
+
     function getChainContract(string memory _chainIdStr) external view returns(string memory) {
         for(uint256 i=0; i<chainContract.length; i++) {
             if(stringsEqual(chainContract[i].chainIdStr, _toLower(_chainIdStr))) {

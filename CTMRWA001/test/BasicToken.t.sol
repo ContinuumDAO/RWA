@@ -117,6 +117,15 @@ contract SetUp is Test {
         /// @notice adding the approval for ctmRwa001X to spend arbitrary CTM fee
         vm.prank(user1);
         ctm.approve(address(rwa001X), ctmBal);
+
+        string[] memory cIdList = new string[](1);
+        cIdList[0] = cID().toHexString();
+        string[] memory gatewayLocal = new string[](1);
+        gatewayLocal[0] = address(rwa001X).toHexString();
+        vm.prank(gov);
+        rwa001X.addXChainInfo("1", "ethereumGateway", cIdList, gatewayLocal);
+
+        rwa001X.addChainContract(1, address(1));
     }
 
     function deployCTMRWA001X() internal {
@@ -195,6 +204,7 @@ contract SetUp is Test {
         c3Gov = IC3GovClient(address(c3));
 
         c3Gov.addOperator(gov);
+        c3UUIDKeeper.addOperator(address(c3CallerLogic));
 
         vm.stopPrank();
 

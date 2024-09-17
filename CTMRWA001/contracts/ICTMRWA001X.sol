@@ -21,6 +21,13 @@ interface ICTMRWA001X {
         string[] memory _chainIdsStr,
         string[] memory _contractAddrsStr
     ) external returns(bool);
+    function addXChainInfo(
+        string memory _tochainIdStr,
+        string memory _toContractStr,
+        string[] memory _chainIdsStr,
+        string[] memory _contractAddrsStr
+    ) external payable;
+    function addChainContract(uint256 chainId, address contractAddress) external returns (bool);
     function deploy(
         uint256 _ID,
         address admin,
