@@ -123,9 +123,8 @@ contract SetUp is Test {
         string[] memory gatewayLocal = new string[](1);
         gatewayLocal[0] = address(rwa001X).toHexString();
         vm.prank(gov);
-        rwa001X.addXChainInfo("1", "ethereumGateway", cIdList, gatewayLocal);
 
-        rwa001X.addChainContract(1, address(1));
+        rwa001X.addChainContract("1", "ethereumGateway");
     }
 
     function deployCTMRWA001X() internal {
@@ -501,6 +500,9 @@ contract TestBasicToken is SetUp {
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
+
+        (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
+        console.log(chStr, contStr);
 
         vm.prank(user1);
         rwa001X.transferFromX(user1Str, "1", tokenId1, ctmRwaAddrStr, feeTokenStr);

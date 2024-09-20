@@ -139,8 +139,18 @@ contract CTMRWA001X is  GovernDapp {
         return(true);
     }
 
-    function addChainContract(uint256 _chainId, address contractAddr) external returns (bool) {
-        return _addChainContract(_chainId, contractAddr);
+    function addChainContract(string memory _newChainIdStr, string memory _contractAddrStr) external returns (bool) {
+        string memory newChainIdStr = _toLower(_newChainIdStr);
+        string memory contractAddrStr = _toLower(_contractAddrStr);
+
+        for(uint256 i=0; i<chainContract.length; i++) {
+            if(stringsEqual(chainContract[i].chainIdStr, newChainIdStr)) {
+                return(false); // Cannot change an entry
+            }
+        }
+
+        chainContract.push(ChainContract(newChainIdStr, contractAddrStr));
+        return(true);
     }
 
     function getChainContract(string memory _chainIdStr) external view returns(string memory) {
@@ -150,6 +160,10 @@ contract CTMRWA001X is  GovernDapp {
             }
         }
         return("");
+    }
+
+    function getChainContract(uint256 _pos) public view returns(string memory, string memory) {
+        return(chainContract[_pos].chainIdStr, chainContract[_pos].contractStr);
     }
 
 
