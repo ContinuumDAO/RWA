@@ -295,6 +295,9 @@ contract CTMRWA001X is  GovernDapp {
         }
         if(includeLocal) totalFee += xChainFee;
 
+        address feeToken = stringToAddress(feeTokenStr);
+        IERC20(feeToken).transferFrom(msg.sender, address(this), totalFee);
+        IERC20(feeToken).approve(feeManager, xChainFee);
         if(totalFee>0) FeeManager(feeManager).payFee(totalFee, feeTokenStr);
 
 
@@ -415,6 +418,9 @@ contract CTMRWA001X is  GovernDapp {
         require(bytes(targetStr).length>0, "CTMRWA001X: Target contract address not found");
 
         uint256 xChainFee = FeeManager(feeManager).getXChainFee(toChainIdStr_, feeTokenStr);
+        address feeToken = stringToAddress(feeTokenStr);
+        IERC20(feeToken).transferFrom(msg.sender, address(this), xChainFee);
+        IERC20(feeToken).approve(feeManager, xChainFee);
         if(xChainFee>0) FeeManager(feeManager).payFee(xChainFee, feeTokenStr);
 
         string memory funcCall = "adminX(string,string,string,string,string)";
@@ -481,6 +487,9 @@ contract CTMRWA001X is  GovernDapp {
             totalFee += xChainFee;
         }
 
+        address feeToken = stringToAddress(feeTokenStr);
+        IERC20(feeToken).transferFrom(msg.sender, address(this), totalFee);
+        IERC20(feeToken).approve(feeManager, xChainFee);
         if(totalFee>0) FeeManager(feeManager).payFee(totalFee, feeTokenStr);
 
         for(uint256 i=1; i<nChains; i++) {  // leave local chain to the end, so start at 1
@@ -713,6 +722,9 @@ contract CTMRWA001X is  GovernDapp {
         require(bytes(targetStr).length>0, "CTMRWA001X: Target contract address not found");
 
         uint256 xChainFee = FeeManager(feeManager).getXChainFee(toChainIdStr_, feeTokenStr);
+        address feeToken = stringToAddress(feeTokenStr);
+        IERC20(feeToken).transferFrom(msg.sender, address(this), xChainFee);
+        IERC20(feeToken).approve(feeManager, xChainFee);
         if(xChainFee>0) FeeManager(feeManager).payFee(xChainFee, feeTokenStr);
 
         string memory _toContractStr = ICTMRWA001X(ctmRwa001Addr).getTokenContract(toChainIdStr_);
@@ -757,6 +769,9 @@ contract CTMRWA001X is  GovernDapp {
         require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
 
         uint256 xChainFee = FeeManager(feeManager).getXChainFee(toChainIdStr_, feeTokenStr);
+        address feeToken = stringToAddress(feeTokenStr);
+        IERC20(feeToken).transferFrom(msg.sender, address(this), xChainFee);
+        IERC20(feeToken).approve(feeManager, xChainFee);
         if(xChainFee>0) FeeManager(feeManager).payFee(xChainFee, feeTokenStr);
 
         (,,,uint256 slot) = ICTMRWA001X(ctmRwa001Addr).getTokenInfo(fromTokenId_);
@@ -817,6 +832,9 @@ contract CTMRWA001X is  GovernDapp {
         require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
 
         uint256 xChainFee = FeeManager(feeManager).getXChainFee(toChainIdStr_, feeTokenStr);
+        address feeToken = stringToAddress(feeTokenStr);
+        IERC20(feeToken).transferFrom(msg.sender, address(this), xChainFee);
+        IERC20(feeToken).approve(feeManager, xChainFee);
         if(xChainFee>0) FeeManager(feeManager).payFee(xChainFee, feeTokenStr);
 
         string memory targetStr = this.getChainContract(toChainIdStr_);
@@ -919,11 +937,6 @@ contract CTMRWA001X is  GovernDapp {
 
         uint256 xChainFee = FeeManager(feeManager).getXChainFee(toChainIdStr_, feeTokenStr);
         address feeToken = stringToAddress(feeTokenStr);
-        /**
-            @notice adding some extra lines:
-                - transferFrom the fee from user to this contract
-                - approve feeManager to spend the fee sent here
-        */
         IERC20(feeToken).transferFrom(msg.sender, address(this), xChainFee);
         IERC20(feeToken).approve(feeManager, xChainFee);
         if(xChainFee>0) FeeManager(feeManager).payFee(xChainFee, feeTokenStr);
