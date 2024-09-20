@@ -21,6 +21,7 @@ import {C3GovClient} from "contracts/c3Caller/C3GovClient.sol";
 import {TestERC20} from "contracts/mocks/TestERC20.sol";
 
 import {FeeManager} from "contracts/FeeManager.sol";
+import {FeeType, IFeeManager} from "contracts/IFeeManager.sol";
 import {CTMRWA001Deployer} from "contracts/CTMRWA001Deployer.sol";
 import {CTMRWA001X} from "contracts/CTMRWA001X.sol";
 import {ICTMRWA001X} from "contracts/ICTMRWA001X.sol";
@@ -162,6 +163,12 @@ contract SetUp is Test {
         vm.startPrank(gov);
         feeManager.addFeeToken(address(ctm).toHexString());
         feeManager.addFeeToken(address(usdc).toHexString());
+
+        feeManager.setFeeMultiplier(FeeType.ADMIN, 5);
+        feeManager.setFeeMultiplier(FeeType.DEPLOY, 100);
+        feeManager.setFeeMultiplier(FeeType.MINT, 5);
+        feeManager.setFeeMultiplier(FeeType.BURN, 5);
+        feeManager.setFeeMultiplier(FeeType.TX, 1);
 
         string memory destChain = "1";
         string memory ctmAddrStr = _toLower(address(ctm).toHexString());
@@ -336,7 +343,7 @@ contract TestBasicToken is SetUp {
         assertEq(feeTokenList[1], address(usdc));
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
-        uint256 fee = feeManager.getXChainFee("1", tokenStr);
+        uint256 fee = feeManager.getXChainFee("1", FeeType.TX, tokenStr);
         assertEq(fee, 1000);
 
         fee = fee*10**usdc.decimals()/100;

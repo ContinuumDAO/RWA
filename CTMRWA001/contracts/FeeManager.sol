@@ -17,6 +17,7 @@ contract FeeManager is GovernDapp, IFeeManager {
     address[] public feeTokenList;
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
+    uint256[5] public feeMultiplier;
 
     mapping(address => FeeParams) public feeParams;
 
@@ -31,6 +32,8 @@ contract FeeManager is GovernDapp, IFeeManager {
         uint256 highGasFee;
         uint256 veryHighGasFee;
     }
+
+    
 
     constructor(
         address _gov,
@@ -125,13 +128,53 @@ contract FeeManager is GovernDapp, IFeeManager {
         return true;
     }
 
+    function setFeeMultiplier(FeeType _feeType, uint256 _multiplier) external onlyGov returns (bool) {
+        if(_feeType == FeeType.ADMIN) {
+            feeMultiplier[0] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.DEPLOY) {
+            feeMultiplier[1] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.TX) {
+            feeMultiplier[2] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.MINT) {
+            feeMultiplier[3] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.BURN) {
+            feeMultiplier[4] = _multiplier;
+            return(true);
+        } else {
+            return(false);
+        }
+    }
+
+    function getFeeMultiplier(FeeType _feeType) external view returns (uint256) {
+        if(_feeType == FeeType.ADMIN) {
+            return(feeMultiplier[0]);
+        } else if (_feeType == FeeType.DEPLOY) {
+            return(feeMultiplier[1]);
+        } else if (_feeType == FeeType.TX) {
+            return(feeMultiplier[2]);
+        } else if (_feeType == FeeType.MINT) {
+            return(feeMultiplier[3]);
+        } else if (_feeType == FeeType.BURN) {
+            return(feeMultiplier[4]);
+        } else {
+            revert("FeeManager: Bad FeeType");
+        }
+    }
+
     function getXChainFee(
         string memory toChainIDStr,
+        FeeType _feeType,
         string memory feeTokenStr
     ) public view returns (uint256) {
         require(bytes(toChainIDStr).length > 0, "FM: Invalid chainIDStr");
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has incorrect length");
-        uint256 fee = getToChainFee(toChainIDStr, _toLower(feeTokenStr));
+        uint256 baseFee = getToChainBaseFee(toChainIDStr, _toLower(feeTokenStr));
+
+        uint256 fee = baseFee*this.getFeeMultiplier(_feeType);
         
         return fee;
     }
@@ -169,7 +212,7 @@ contract FeeManager is GovernDapp, IFeeManager {
         return true;
     }
 
-    function getToChainFee(
+    function getToChainBaseFee(
         string memory toChainIDStr,
         string memory feeTokenStr
     ) public view returns (uint256) {
