@@ -8,5 +8,6 @@ interface IFeeManager {
     ) external returns (uint256);
 
     function getFeeTokenList() external returns(address[] memory);
+    function isValidFeeToken(string memory feeTokenStr) external view returns(bool);
     function getFeeTokenIndexMap(string memory) external view returns (uint256);
 }

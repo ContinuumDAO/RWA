@@ -83,6 +83,16 @@ contract FeeManager is GovernDapp, IFeeManager {
         return feeTokenList;
     }
 
+    function isValidFeeToken(string memory feeTokenStr) external view returns(bool) {
+        address feeToken = stringToAddress(_toLower(feeTokenStr));
+
+        for(uint256 i=0;i<feeTokenList.length; i++) {
+            if(feeTokenList[i] == feeToken) return(true);
+        }
+
+        return(false);
+    }
+
     function getFeeTokenIndexMap(string memory feeTokenStr) external view returns (uint256) {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
         address feeToken = stringToAddress(_toLower(feeTokenStr));

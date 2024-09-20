@@ -259,6 +259,7 @@ contract CTMRWA001X is  GovernDapp {
     ) public payable returns(uint256) {
         uint256 nChains = toChainIdsStr_.length;
         require(bytes(feeTokenStr).length == 42, "CTMRWA001X: feeTokenStr has the wrong length");
+        require(IFeeManager(feeManager).isValidFeeToken(feeTokenStr), "CTMRWA001X: Not a valid fee token");
 
         uint256 ID = uint256(keccak256(abi.encode(
             tokenName_,
@@ -405,6 +406,7 @@ contract CTMRWA001X is  GovernDapp {
         address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
         address currentAdmin = ICTMRWA001X(ctmRwa001Addr).admin();
         require(msg.sender == currentAdmin, "CTMRWA001X: Only admin can change the admin");
+        require(IFeeManager(feeManager).isValidFeeToken(feeTokenStr), "CTMRWA001X: Not a valid fee token");
 
         string memory currentAdminStr = currentAdmin.toHexString();
         string memory toContractStr = ICTMRWA001X(ctmRwa001Addr).getTokenContract(toChainIdStr_);
@@ -462,6 +464,7 @@ contract CTMRWA001X is  GovernDapp {
         require(msg.sender == currentAdmin, "CTMRWA001X: Only admin function");
         string memory currentAdminStr = currentAdmin.toHexString();
         require(bytes(feeTokenStr).length == 42, "CTMRWA001X: feeTokenStr has the wrong length");
+        require(IFeeManager(feeManager).isValidFeeToken(feeTokenStr), "CTMRWA001X: Not a valid fee token");
 
         TokenContract[] memory tokenContracts =  ICTMRWA001X(ctmRwa001Addr).tokenContract();
 
@@ -702,6 +705,7 @@ contract CTMRWA001X is  GovernDapp {
         (bool ok, uint256 ID) = this.getAttachedID(ctmRwa001Addr);
         require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
         require(bytes(feeTokenStr).length == 42, "CTMRWA001X: feeTokenStr has the wrong length");
+        require(IFeeManager(feeManager).isValidFeeToken(feeTokenStr), "CTMRWA001X: Not a valid fee token");
 
         string memory fromAddressStr = msg.sender.toHexString();
 
@@ -741,6 +745,7 @@ contract CTMRWA001X is  GovernDapp {
         require(!stringsEqual(toChainIdStr_, cID().toString()), "CTMRWA001X: Not a cross-chain transfer");
         address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
         ICTMRWA001X(ctmRwa001Addr).spendAllowance(msg.sender, fromTokenId_, value_);
+        require(IFeeManager(feeManager).isValidFeeToken(feeTokenStr), "CTMRWA001X: Not a valid fee token");
 
         require(bytes(toAddressStr_).length>0, "CTMRWA001X: Destination address has zero length");
         string memory fromAddressStr = msg.sender.toHexString();
@@ -802,7 +807,8 @@ contract CTMRWA001X is  GovernDapp {
         require(!stringsEqual(toChainIdStr_, cID().toString()), "CTMRWA001X: Not a cross-chain transfer");
         address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
         require(bytes(feeTokenStr).length == 42, "CTMRWA001X: feeTokenStr has the wrong length");
-        
+        require(IFeeManager(feeManager).isValidFeeToken(feeTokenStr), "CTMRWA001X: Not a valid fee token");
+
         ICTMRWA001X(ctmRwa001Addr).spendAllowance(msg.sender, fromTokenId_, value_);
         require(bytes(toAddressStr_).length>0, "CTMRWA001X: Destination address has zero length");
         string memory fromAddressStr = msg.sender.toHexString();
@@ -906,6 +912,7 @@ contract CTMRWA001X is  GovernDapp {
         require(bytes(feeTokenStr).length == 42, "CTMRWA001X: feeTokenStr has the wrong length");
         require(ICTMRWA001X(ctmRwa001Addr).isApprovedOrOwner(msg.sender, fromTokenId_), "CTMRWA001X: transfer caller is not owner nor approved");
         string memory fromAddressStr = msg.sender.toHexString();
+        require(IFeeManager(feeManager).isValidFeeToken(feeTokenStr), "CTMRWA001X: Not a valid fee token");
 
         (bool ok, uint256 ID) = this.getAttachedID(ctmRwa001Addr);
         require(ok, "CTMRWA001X: The CTMRWA001 contract has not yet been attached");
@@ -916,9 +923,6 @@ contract CTMRWA001X is  GovernDapp {
             @notice adding some extra lines:
                 - transferFrom the fee from user to this contract
                 - approve feeManager to spend the fee sent here
-            As it is, the fee token isn't stored anywhere, could be useful to do so
-            @bug if the fee is zero, then the function carries on without paying
-            @bug add a check that the fee token provided is valid
         */
         IERC20(feeToken).transferFrom(msg.sender, address(this), xChainFee);
         IERC20(feeToken).approve(feeManager, xChainFee);
