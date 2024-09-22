@@ -31,6 +31,17 @@ import {ICTMRWA001X} from "contracts/ICTMRWA001X.sol";
 contract SetUp is Test {
     using Strings for *;
 
+    /// @dev used for testing events
+    event LogC3Call(
+        uint256 indexed dappID,
+        bytes32 indexed uuid,
+        address caller,
+        string toChainID,
+        string to,
+        bytes data,
+        bytes extra
+    );
+
     address admin;
     address gov;
     address user1;
@@ -141,7 +152,7 @@ contract SetUp is Test {
             address(feeManager),
             address(deployer),
             gov,
-            address(c3Gov),
+            address(c3),
             admin,
             2
         );
@@ -507,11 +518,60 @@ contract TestBasicToken is SetUp {
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
+        string memory toChainIdStr = "1";
+        string memory sig = "mintX(string,uint256,string,string,uint256,uint256,uint256,string,string)";
 
         (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
         console.log(chStr, contStr);
 
+        /*
+            transferFromX(
+                string memory toAddressStr_,
+                string memory toChainIdStr_,
+                uint256 fromTokenId_,
+                string memory _ctmRwa001AddrStr,
+                string memory feeTokenStr
+            )
+        */
+        string memory targetStr = rwa001X.getChainContract("1");
+        string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdStr);
+        (,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId1);
+        (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
+        uint256 currentNonce = c3UUIDKeeper.currentNonce();
+
+        bytes memory callData = abi.encodeWithSignature(
+            sig,
+            ID,
+            address(this).toHexString(),
+            user1Str,
+            tokenId1,
+            slot,
+            value,
+            ctmRwaAddrStr,
+            toContractStr
+        );
+
+        // c3call(targetStr, toChainIdStr, callData) <- ctmRwa001X
+        // c3call(dappID, targetStr, toChainIdStr, callData, "") <- c3callerDapp
+        // c3call(dappID, msg.sender, targetStr, toChainIdStr, callData, "") <- c3callerProxy
+        // genUUID(dappID, targetStr, toChainIdStr, callData) <- c3caller
+
+        bytes32 testUUID = keccak256(abi.encode(
+            address(c3UUIDKeeper),
+            address(c3CallerProxy),
+            block.chainid,
+            2,
+            targetStr,
+            toChainIdStr,
+            currentNonce + 1,
+            callData
+        ));
+
+        // emit LogC3Call(_dappID, _uuid, _caller, _toChainID, _to, _data, _extra);
+        vm.expectEmit(true, true, false, true);
+        emit LogC3Call(2, testUUID, address(rwa001X), toChainIdStr, targetStr, callData, bytes(""));
+
         vm.prank(user1);
-        rwa001X.transferFromX(user1Str, "1", tokenId1, ctmRwaAddrStr, feeTokenStr);
+        rwa001X.transferFromX(user1Str, toChainIdStr, tokenId1, ctmRwaAddrStr, feeTokenStr);
     }
 }
