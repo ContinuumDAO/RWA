@@ -25,16 +25,17 @@ contract CTMRWA001SlotEnumerable is Context, CTMRWA001, ICTMRWA001SlotEnumerable
 
     struct SlotData {
         uint256 slot;
+        uint256 dividend;  // per unit of this slot
         uint256[] slotTokens;
     }
 
     // slot => tokenId => index
     mapping(uint256 => mapping(uint256 => uint256)) private _slotTokensIndex;
 
-    SlotData[] private _allSlots;
+    SlotData[] public _allSlots;
 
     // slot => index
-    mapping(uint256 => uint256) private _allSlotsIndex;
+    mapping(uint256 => uint256) public _allSlotsIndex;
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, CTMRWA001) returns (bool) {
         return
@@ -75,7 +76,8 @@ contract CTMRWA001SlotEnumerable is Context, CTMRWA001, ICTMRWA001SlotEnumerable
     function _createSlot(uint256 slot_) internal virtual {
         require(!_slotExists(slot_), "CTMRWA001SlotEnumerable: slot already exists");
         SlotData memory slotData = SlotData({
-            slot: slot_, 
+            slot: slot_,
+            dividend: 0,
             slotTokens: new uint256[](0)
         });
         _addSlotToAllSlotsEnumeration(slotData);
@@ -145,4 +147,7 @@ contract CTMRWA001SlotEnumerable is Context, CTMRWA001, ICTMRWA001SlotEnumerable
         delete _slotTokensIndex[slot_][tokenId_];
         slotData.slotTokens.pop();
     }
+
+    
+
 }

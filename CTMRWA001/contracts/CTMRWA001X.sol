@@ -729,13 +729,13 @@ contract CTMRWA001X is  GovernDapp {
 
         string memory _toContractStr = ICTMRWA001X(ctmRwa001Addr).getTokenContract(toChainIdStr_);
 
-        string memory funcCall = "mintNewValueX(string,uint256,string,string,uint256,uint256,uint256,string,string)";
+        string memory funcCall = "mintX(string,uint256,string,string,uint256,uint256,uint256,string,string)";
         bytes memory callData = abi.encodeWithSignature(
             funcCall,
             ID,
             fromAddressStr,
             toAddressStr_,
-            0,  // Not used, since we are not transferring value, but creating new value
+            0,  // Not used, since we are not transferring value from a tokenId, but creating new value
             slot_,
             value_,
             _ctmRwa001AddrStr,
@@ -744,6 +744,7 @@ contract CTMRWA001X is  GovernDapp {
 
         c3call(targetStr, toChainIdStr_, callData);
     }
+
     
     function transferFromX(
         uint256 fromTokenId_,

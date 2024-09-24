@@ -25,6 +25,8 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
 
     // The ID is a unique identifier linking contracts across chains - same ID on each chains
     uint256 public ID;
+    // regulator is the wallet address of the Regulator, if this is a Security, else zero length
+    string regulator;
     address public admin;
     address public ctmRwa001XChain;
 
@@ -45,6 +47,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         uint256 slot;
         uint256 balance;
         address owner;
+        uint256 dividend;
         address approved;
         address[] valueApprovals;
     }
@@ -220,6 +223,11 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         return _allTokens[_allTokensIndex[tokenId_]].balance;
     }
 
+    function dividendOf(uint256 tokenId_) public view virtual returns (uint256) {
+        _requireMinted(tokenId_);
+        return _allTokens[_allTokensIndex[tokenId_]].dividend;
+    }
+
     function ownerOf(uint256 tokenId_) public view virtual override returns (address owner_) {
         _requireMinted(tokenId_);
         owner_ = _allTokens[_allTokensIndex[tokenId_]].owner;
@@ -240,6 +248,20 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
             _allTokens[_allTokensIndex[tokenId_]].slot
         );
     }
+
+    function incrementDividend(uint256 _tokenId, uint256 _dividend) external onlyAdmin returns(uint256) {
+        _requireMinted(_tokenId);
+        _allTokens[_tokenId].dividend += _dividend;
+        return(_allTokens[_tokenId].dividend);
+    }
+
+    function decrementDividend(uint256 _tokenId, uint256 _dividend) external returns(uint256) {
+        _requireMinted(_tokenId);
+        require(_msgSender() == ownerOf(_tokenId), "CTMRWA001: Only owner of token can decrement dividend");
+        _allTokens[_tokenId].dividend -= _dividend;
+        return(_allTokens[_tokenId].dividend);
+    }
+
 
     function setBaseURI(string memory _baseURI) public onlyAdmin {
         baseURI = _baseURI;
@@ -476,6 +498,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
             slot: slot_,
             balance: 0,
             owner: to_,
+            dividend: 0,
             approved: address(0),
             valueApprovals: new address[](0)
         });
