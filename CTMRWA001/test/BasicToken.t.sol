@@ -542,7 +542,7 @@ contract TestBasicToken is SetUp {
         bytes memory callData = abi.encodeWithSignature(
             sig,
             ID,
-            address(this).toHexString(),
+            user1Str,
             user1Str,
             tokenId1,
             slot,
@@ -558,7 +558,7 @@ contract TestBasicToken is SetUp {
 
         bytes32 testUUID = keccak256(abi.encode(
             address(c3UUIDKeeper),
-            address(c3CallerProxy),
+            address(c3CallerLogic),
             block.chainid,
             2,
             targetStr,
