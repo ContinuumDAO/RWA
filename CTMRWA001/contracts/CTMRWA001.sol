@@ -47,7 +47,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         uint256 slot;
         uint256 balance;
         address owner;
-        uint256 dividend;
+        uint256 dividendUnclaimed;
         address approved;
         address[] valueApprovals;
     }
@@ -223,9 +223,9 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         return _allTokens[_allTokensIndex[tokenId_]].balance;
     }
 
-    function dividendOf(uint256 tokenId_) public view virtual returns (uint256) {
+    function dividendUnclaimedOf(uint256 tokenId_) public view virtual returns (uint256) {
         _requireMinted(tokenId_);
-        return _allTokens[_allTokensIndex[tokenId_]].dividend;
+        return _allTokens[_allTokensIndex[tokenId_]].dividendUnclaimed;
     }
 
     function ownerOf(uint256 tokenId_) public view virtual override returns (address owner_) {
@@ -249,17 +249,17 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         );
     }
 
-    function incrementDividend(uint256 _tokenId, uint256 _dividend) external onlyAdmin returns(uint256) {
+    function incrementDividend(uint256 _tokenId, uint256 _dividend) public onlyAdmin returns(uint256) {
         _requireMinted(_tokenId);
-        _allTokens[_tokenId].dividend += _dividend;
-        return(_allTokens[_tokenId].dividend);
+        _allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed += _dividend;
+        return(_allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed);
     }
 
-    function decrementDividend(uint256 _tokenId, uint256 _dividend) external returns(uint256) {
+    function decrementDividend(uint256 _tokenId, uint256 _dividend) public returns(uint256) {
         _requireMinted(_tokenId);
         require(_msgSender() == ownerOf(_tokenId), "CTMRWA001: Only owner of token can decrement dividend");
-        _allTokens[_tokenId].dividend -= _dividend;
-        return(_allTokens[_tokenId].dividend);
+        _allTokens[_tokenId].dividendUnclaimed -= _dividend;
+        return(_allTokens[_tokenId].dividendUnclaimed);
     }
 
 
@@ -498,7 +498,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
             slot: slot_,
             balance: 0,
             owner: to_,
-            dividend: 0,
+            dividendUnclaimed: 0,
             approved: address(0),
             valueApprovals: new address[](0)
         });

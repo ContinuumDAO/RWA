@@ -25,7 +25,7 @@ contract CTMRWA001SlotEnumerable is Context, CTMRWA001, ICTMRWA001SlotEnumerable
 
     struct SlotData {
         uint256 slot;
-        uint256 dividend;  // per unit of this slot
+        uint256 dividendRate;  // per unit of this slot
         uint256[] slotTokens;
     }
 
@@ -56,15 +56,29 @@ contract CTMRWA001SlotEnumerable is Context, CTMRWA001, ICTMRWA001SlotEnumerable
         return _allSlots.length != 0 && _allSlots[_allSlotsIndex[slot_]].slot == slot_;
     }
 
-    function tokenSupplyInSlot(uint256 slot_) public view virtual override returns (uint256) {
+    function tokenSupplyInSlot(uint256 slot_) external view virtual override returns (uint256) {
         if (!_slotExists(slot_)) {
             return 0;
         }
         return _allSlots[_allSlotsIndex[slot_]].slotTokens.length;
     }
 
+    function totalSupplyInSlot(uint256 _slot) external view returns (uint256) {
+        uint256 nTokens = this.tokenSupplyInSlot(_slot);
+
+        uint256 total;
+        uint256 tokenId;
+
+        for(uint256 i=0; i<nTokens; i++) {
+            tokenId = tokenInSlotByIndex(_slot, i);
+            total += balanceOf(tokenId);
+        }
+
+        return(total);
+    }
+
     function tokenInSlotByIndex(uint256 slot_, uint256 index_) public view virtual override returns (uint256) {
-        require(index_ < CTMRWA001SlotEnumerable.tokenSupplyInSlot(slot_), "CTMRWA001SlotEnumerable: slot token index out of bounds");
+        require(index_ < this.tokenSupplyInSlot(slot_), "CTMRWA001SlotEnumerable: slot token index out of bounds");
         return _allSlots[_allSlotsIndex[slot_]].slotTokens[index_];
     }
 
@@ -77,7 +91,7 @@ contract CTMRWA001SlotEnumerable is Context, CTMRWA001, ICTMRWA001SlotEnumerable
         require(!_slotExists(slot_), "CTMRWA001SlotEnumerable: slot already exists");
         SlotData memory slotData = SlotData({
             slot: slot_,
-            dividend: 0,
+            dividendRate: 0,
             slotTokens: new uint256[](0)
         });
         _addSlotToAllSlotsEnumeration(slotData);
