@@ -24,7 +24,9 @@ import {FeeManager} from "contracts/FeeManager.sol";
 import {FeeType, IFeeManager} from "contracts/IFeeManager.sol";
 import {CTMRWA001Deployer} from "contracts/CTMRWA001Deployer.sol";
 import {CTMRWA001X} from "contracts/CTMRWA001X.sol";
+import {ICTMRWA001} from "contracts/ICTMRWA001.sol";
 import {ICTMRWA001X} from "contracts/ICTMRWA001X.sol";
+import {ICTMRWA001Token} from "contracts/ICTMRWA001Token.sol";
 
 
 
@@ -112,7 +114,7 @@ contract SetUp is Test {
         ctm.mint(user1, ctmBal);
 
         //console.log("admin bal USDC = ", usdc.balanceOf(address(admin))/1e6);
-        usdc.transfer(user1, usdcBal);
+        usdc.transfer(user1, usdcBal/2);
         
         deployC3Caller();
         deployFeeManager();
@@ -256,6 +258,15 @@ contract SetUp is Test {
         revert("Invalid hex character");
     }
 
+    function stringsEqual(
+        string memory a,
+        string memory b
+    ) public pure returns (bool) {
+        bytes32 ka = keccak256(abi.encode(a));
+        bytes32 kb = keccak256(abi.encode(b));
+        return (ka == kb);
+    }
+
     function cID() view internal returns(uint256) {
         return block.chainid;
     }
@@ -278,7 +289,6 @@ contract SetUp is Test {
     function CTMRWA001Deploy() public returns(bool, address) {
         string memory tokenStr = _toLower((address(usdc).toHexString()));
         string[] memory chainIdsStr;
-
         uint256 ID = rwa001X.deployAllCTMRWA001X(
             true,  // include local mint
             "Semi Fungible Token XChain",
@@ -340,6 +350,7 @@ contract TestBasicToken is SetUp {
     function setUp() public override {
         super.setUp();
     }
+
 
     function test_c3Caller() public {
         bool govIsExecutor = c3.isExecutor(gov);
@@ -407,6 +418,12 @@ contract TestBasicToken is SetUp {
         // console.log("ctmRwaAddr");
         // console.log(ctmRwaAddr);
         assertEq(ok, true);
+
+        string memory tokenType = ICTMRWA001Token(ctmRwaAddr).getRWAType();
+        assertEq(stringsEqual(tokenType, "RWA001"), true);
+
+        string memory version = ICTMRWA001Token(ctmRwaAddr).getVersion();
+        assertEq(stringsEqual(version, "1"), true);
     }
 
     function test_CTMRWA001Mint() public {
@@ -465,6 +482,7 @@ contract TestBasicToken is SetUp {
             // console.log(bal);
             // console.log(owner);
             // console.log(slot);
+            // console.log(admin);
             // console.log("************");
 
             /// @dev added 1 to the ID, as they are 1-indexed as opposed to this loop which is 0-indexed
@@ -473,6 +491,55 @@ contract TestBasicToken is SetUp {
             assertEq(tokenId, currentId);
             assertEq(id, currentId);
         }
+    }
+
+    function test_dividends() public {
+        vm.startPrank(admin);
+        (, address ctmRwaAddr) = CTMRWA001Deploy();
+        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+        vm.stopPrank();
+
+        vm.prank(admin);
+        ICTMRWA001Token(ctmRwaAddr).setDividendToken(address(usdc));
+        address token = ICTMRWA001Token(ctmRwaAddr).dividendToken();
+        assertEq(token, address(usdc));
+
+        uint256 divRate = ICTMRWA001Token(ctmRwaAddr).getDividendRateBySlot(3);
+        assertEq(divRate, 0);
+
+        vm.prank(admin);
+        uint256 divRate3 = 2500;
+        ICTMRWA001Token(ctmRwaAddr).changeDividendRate(3, divRate3);
+        divRate = ICTMRWA001Token(ctmRwaAddr).getDividendRateBySlot(3);
+        assertEq(divRate, divRate3);
+
+        uint256 bal2 = ICTMRWA001(ctmRwaAddr).balanceOf(tokenId2);
+        uint256 dividend = ICTMRWA001Token(ctmRwaAddr).getDividendByToken(tokenId2);
+        assertEq(dividend, bal2*divRate3);
+
+        vm.prank(admin);
+        uint256 divRate1 = 8000;
+        ICTMRWA001Token(ctmRwaAddr).changeDividendRate(1, divRate1);
+
+        uint256 balSlot1 = ICTMRWA001Token(ctmRwaAddr).totalSupplyInSlot(1);
+        
+        dividend = ICTMRWA001Token(ctmRwaAddr).getTotalDividendBySlot(1);
+        assertEq(dividend, balSlot1*divRate1);
+
+        uint256 balSlot3 = ICTMRWA001Token(ctmRwaAddr).totalSupplyInSlot(3);
+         
+        uint256 balSlot5 = ICTMRWA001Token(ctmRwaAddr).totalSupplyInSlot(5);
+        
+        uint256 divRate5 = ICTMRWA001Token(ctmRwaAddr).getDividendRateBySlot(5);
+
+        uint256 dividendTotal = ICTMRWA001Token(ctmRwaAddr).getTotalDividend();
+        assertEq(dividendTotal, balSlot1*divRate1 + balSlot3*divRate3 + balSlot5*divRate5);
+
+        vm.startPrank(admin);
+        usdc.approve(ctmRwaAddr, dividend);
+        uint256 unclaimed = ICTMRWA001Token(ctmRwaAddr).fundDividend(dividend);
+        vm.stopPrank();
+        assertEq(unclaimed, dividendTotal);
     }
 
     function test_transferToken() public {
