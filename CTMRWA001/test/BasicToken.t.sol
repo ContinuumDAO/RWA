@@ -26,6 +26,7 @@ import {CTMRWA001Deployer} from "contracts/CTMRWA001Deployer.sol";
 import {CTMRWA001X} from "contracts/CTMRWA001X.sol";
 import {ICTMRWA001} from "contracts/ICTMRWA001.sol";
 import {ICTMRWA001X} from "contracts/ICTMRWA001X.sol";
+import {ICTMRWA001SlotEnumerable} from "contracts/extensions/ICTMRWA001SlotEnumerable.sol";
 import {ICTMRWA001Token} from "contracts/ICTMRWA001Token.sol";
 
 
@@ -540,6 +541,19 @@ contract TestBasicToken is SetUp {
         uint256 unclaimed = ICTMRWA001Token(ctmRwaAddr).fundDividend(dividend);
         vm.stopPrank();
         assertEq(unclaimed, dividendTotal);
+
+        uint256 tokenBal = ICTMRWA001SlotEnumerable(ctmRwaAddr).balanceOf(user1);
+        console.log(tokenBal);
+        uint256 tokenId = ICTMRWA001SlotEnumerable(ctmRwaAddr).tokenOfOwnerByIndex(user1, 0);
+        uint256 toClaim = ICTMRWA001Token(ctmRwaAddr).dividendUnclaimedOf(tokenId);
+        uint256 balBefore = usdc.balanceOf(user1);
+
+        vm.startPrank(user1);
+        bool ok = ICTMRWA001Token(ctmRwaAddr).claimDividend(1);
+        vm.stopPrank();
+        assertEq(ok, true);
+        uint balAfter = usdc.balanceOf(user1);
+        assertEq(balBefore, balAfter-toClaim);
     }
 
     function test_transferToken() public {
@@ -589,7 +603,7 @@ contract TestBasicToken is SetUp {
         string memory sig = "mintX(string,uint256,string,string,uint256,uint256,uint256,string,string)";
 
         (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
-        console.log(chStr, contStr);
+        //console.log(chStr, contStr);
 
         /*
             transferFromX(

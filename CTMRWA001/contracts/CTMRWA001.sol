@@ -223,7 +223,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         return _allTokens[_allTokensIndex[tokenId_]].balance;
     }
 
-    function dividendUnclaimedOf(uint256 tokenId_) public view virtual returns (uint256) {
+    function dividendUnclaimedOf(uint256 tokenId_) external view virtual returns (uint256) {
         _requireMinted(tokenId_);
         return _allTokens[_allTokensIndex[tokenId_]].dividendUnclaimed;
     }
@@ -249,15 +249,14 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         );
     }
 
-    function incrementDividend(uint256 _tokenId, uint256 _dividend) public onlyAdmin returns(uint256) {
+    function incrementDividend(uint256 _tokenId, uint256 _dividend) internal onlyAdmin returns(uint256) {
         _requireMinted(_tokenId);
         _allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed += _dividend;
         return(_allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed);
     }
 
-    function decrementDividend(uint256 _tokenId, uint256 _dividend) public returns(uint256) {
+    function decrementDividend(uint256 _tokenId, uint256 _dividend) internal returns(uint256) {
         _requireMinted(_tokenId);
-        require(_msgSender() == ownerOf(_tokenId), "CTMRWA001: Only owner of token can decrement dividend");
         _allTokens[_tokenId].dividendUnclaimed -= _dividend;
         return(_allTokens[_tokenId].dividendUnclaimed);
     }

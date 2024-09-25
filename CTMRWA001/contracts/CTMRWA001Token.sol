@@ -40,7 +40,7 @@ contract CTMRWA001Token is Context, CTMRWA001SlotApprovable {
 
     function setDividendToken(address _dividendToken) external onlyAdmin returns(bool) {
         for(uint256 i=1; i<=this.totalSupply(); i++) {
-            if(dividendUnclaimedOf(i) > 0) {
+            if(this.dividendUnclaimedOf(i) > 0) {
                 revert("CTMRWA001: Cannot change dividend token address whilst there is unclaimed dividend");
             }
         }
@@ -114,9 +114,9 @@ contract CTMRWA001Token is Context, CTMRWA001SlotApprovable {
     }
 
     function claimDividend(uint256 _tokenId) external returns(bool) {
-        require(ownerOf(_tokenId) == _msgSender(), "CTMRWA001: Cabnnot claim dividend, since not owner");
-        uint256 dividend = dividendUnclaimedOf(_tokenId);
-        this.decrementDividend(_tokenId, dividend);
+        require(ownerOf(_tokenId) == _msgSender(), "CTMRWA001: Cannot claim dividend, since not owner");
+        uint256 dividend = this.dividendUnclaimedOf(_tokenId);
+        decrementDividend(_tokenId, dividend);
         IERC20(dividendToken).transferFrom(address(this), _msgSender(), dividend);
 
         emit ClaimDividend(_tokenId, dividend, dividendToken);

@@ -53,6 +53,8 @@ interface ICTMRWA001 is IERC165, IERC721 {
      */
     function balanceOf(uint256 _tokenId) external view returns (uint256);
 
+    function dividendUnclaimedOf(uint256 tokenId_) external view returns (uint256);
+
     /**
      * @notice Get the slot of a token.
      * @param _tokenId The identifier for a token
