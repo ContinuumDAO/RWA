@@ -16,14 +16,15 @@ contract Deploy is Script {
         // env variables (changes based on deployment chain, edit in .env)
         address c3callerProxyAddr = vm.envAddress("C3_DEPLOY");
         address govAddr = deployer;
-        uint256 dappID = vm.envUint("DAPP_ID");
+        uint256 dappID1 = vm.envUint("DAPP_ID1");
+        uint256 dappID2 = vm.envUint("DAPP_ID2");
 
         address txSender = deployer;
 
         vm.startBroadcast(deployerPrivateKey);
 
         // deploy fee manager
-        FeeManager feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID);
+        FeeManager feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID1);
         address feeManagerAddr = address(feeManager);
 
         // deploy factory
@@ -37,7 +38,7 @@ contract Deploy is Script {
             govAddr,
             c3callerProxyAddr,
             txSender,
-            dappID
+            dappID2
         );
 
         vm.stopBroadcast();

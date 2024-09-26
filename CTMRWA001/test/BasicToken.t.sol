@@ -586,13 +586,7 @@ contract TestBasicToken is SetUp {
             token addr: _ctmRwaAddr
         */
 
-        // function transferFromX( // transfer from/to same tokenid without value
-        //     string memory toAddressStr_,
-        //     string memory toChainIdStr_,
-        //     uint256 fromTokenId_,
-        //     string memory _ctmRwa001AddrStr,
-        //     string memory feeTokenStr
-        // ) external;
+        
 
         string memory user1Str = user1.toHexString();
         string memory toChainId = "1"; // ethereum
@@ -605,15 +599,7 @@ contract TestBasicToken is SetUp {
         (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
         //console.log(chStr, contStr);
 
-        /*
-            transferFromX(
-                string memory toAddressStr_,
-                string memory toChainIdStr_,
-                uint256 fromTokenId_,
-                string memory _ctmRwa001AddrStr,
-                string memory feeTokenStr
-            )
-        */
+ 
         string memory targetStr = rwa001X.getChainContract("1");
         string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId1);
@@ -652,7 +638,175 @@ contract TestBasicToken is SetUp {
         vm.expectEmit(true, true, false, true);
         emit LogC3Call(2, testUUID, address(rwa001X), toChainIdStr, targetStr, callData, bytes(""));
 
+        // function transferFromX( // transfer from/to same tokenid without value
+        //     string memory toAddressStr_,
+        //     string memory toChainIdStr_,
+        //     uint256 fromTokenId_,
+        //     string memory _ctmRwa001AddrStr,
+        //     string memory feeTokenStr
+        // ) external;
+
         vm.prank(user1);
         rwa001X.transferFromX(user1Str, toChainIdStr, tokenId1, ctmRwaAddrStr, feeTokenStr);
     }
+
+
+    function test_valueTransferExistingTokens() public {
+
+        vm.startPrank(admin);
+        (, address ctmRwaAddr) = CTMRWA001Deploy();
+        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+        vm.stopPrank();
+
+        string memory user1Str = user1.toHexString();
+        string memory toChainId = "1"; // ethereum
+        address[] memory feeTokenList = feeManager.getFeeTokenList();
+        string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
+        string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
+        string memory toChainIdStr = "1";
+
+        string memory targetStr = rwa001X.getChainContract("1");
+        string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdStr);
+        (,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId1);
+        (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
+        uint256 currentNonce = c3UUIDKeeper.currentNonce();
+
+        string memory sig = "mintX(string,uint256,string,string,uint256,uint256,uint256,uint256,string,string)";
+
+        (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
+
+        uint256 xChainTokenId = 99;  // dummy value
+
+        //  bytes memory callData = abi.encodeWithSignature(
+        //     funcCall,
+        //     ID,
+        //     fromAddressStr,
+        //     toAddressStr_,
+        //     fromTokenId_,
+        //     toTokenId_,
+        //     slot,
+        //     value_,
+        //     _ctmRwa001AddrStr,
+        //     _toContractStr
+        // );
+
+        bytes memory callData = abi.encodeWithSignature(
+            sig,
+            ID,
+            user1Str,
+            user1Str,
+            tokenId1,
+            xChainTokenId,
+            slot,
+            value/2,  // send half the value to other chain
+            ctmRwaAddrStr,
+            toContractStr
+        );
+
+        bytes32 testUUID = keccak256(abi.encode(
+            address(c3UUIDKeeper),
+            address(c3CallerLogic),
+            block.chainid,
+            2,
+            targetStr,
+            toChainIdStr,
+            currentNonce + 1,
+            callData
+        ));
+
+        vm.expectEmit(true, true, false, true);
+        emit LogC3Call(2, testUUID, address(rwa001X), toChainIdStr, targetStr, callData, bytes(""));
+
+        //  function transferFromX(
+        //     uint256 fromTokenId_,
+        //     string memory toAddressStr_,
+        //     uint256 toTokenId_,
+        //     string memory toChainIdStr_,
+        //     uint256 value_,
+        //     string memory _ctmRwa001AddrStr,
+        //     string memory feeTokenStr
+        // ) public payable virtual {
+
+        vm.prank(user1);
+        rwa001X.transferFromX(tokenId1, user1Str, xChainTokenId, toChainIdStr, value/2, ctmRwaAddrStr, feeTokenStr);
+
+    }
+
+
+    function test_valueTransferNewTokenCreation() public {
+
+        vm.startPrank(admin);
+        (, address ctmRwaAddr) = CTMRWA001Deploy();
+        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+        vm.stopPrank();
+
+        string memory user1Str = user1.toHexString();
+        string memory toChainId = "1"; // ethereum
+        address[] memory feeTokenList = feeManager.getFeeTokenList();
+        string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
+        string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
+        string memory toChainIdStr = "1";
+
+        string memory targetStr = rwa001X.getChainContract("1");
+        string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdStr);
+        (,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId1);
+        (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
+        uint256 currentNonce = c3UUIDKeeper.currentNonce();
+
+        string memory sig = "mintX(string,uint256,string,string,uint256,uint256,uint256,string,string)";
+
+        (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
+
+    //    bytes memory callData = abi.encodeWithSignature(
+    //         funcCall,
+    //         ID,
+    //         fromAddressStr,
+    //         toAddressStr_,
+    //         fromTokenId_,
+    //         slot,
+    //         value_,
+    //         _ctmRwa001AddrStr,
+    //         _toContractStr
+    //     );
+
+        bytes memory callData = abi.encodeWithSignature(
+            sig,
+            ID,
+            user1Str,
+            user1Str,
+            tokenId1,
+            slot,
+            value/2,  // send half the value to other chain
+            ctmRwaAddrStr,
+            toContractStr
+        );
+
+        bytes32 testUUID = keccak256(abi.encode(
+            address(c3UUIDKeeper),
+            address(c3CallerLogic),
+            block.chainid,
+            2,
+            targetStr,
+            toChainIdStr,
+            currentNonce + 1,
+            callData
+        ));
+
+        vm.expectEmit(true, true, false, true);
+        emit LogC3Call(2, testUUID, address(rwa001X), toChainIdStr, targetStr, callData, bytes(""));
+
+        // function transferFromX(
+        //     uint256 fromTokenId_,
+        //     string memory toAddressStr_,
+        //     string memory toChainIdStr_,
+        //     uint256 value_,
+        //     string memory _ctmRwa001AddrStr,
+        //     string memory feeTokenStr
+        // ) public payable virtual {
+
+        vm.prank(user1);
+        rwa001X.transferFromX(tokenId1, user1Str, toChainIdStr, value/2, ctmRwaAddrStr, feeTokenStr);
+
+    }
+
 }
