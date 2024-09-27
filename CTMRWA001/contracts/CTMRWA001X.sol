@@ -417,11 +417,13 @@ contract CTMRWA001X is  GovernDapp {
     function changeAdminCrossChain(
         string memory _newAdminStr,
         string memory toChainIdStr_,
-        string memory _ctmRwa001AddrStr,
+        uint256 ID_,
         string memory feeTokenStr
     ) public payable virtual returns(bool) {
         require(!stringsEqual(toChainIdStr_, cID().toString()), "CTMRWA001X: Not a cross-chain tokenAdmin change");
-        address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
+        (bool ok, address ctmRwa001Addr) = this.getAttachedTokenAddress(ID_);
+        require(ok, "CTMRWA001X: The requested tokenID does not exist");
+        string memory ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
         address currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
         require(msg.sender == currentAdmin, "CTMRWA001X: Only tokenAdmin can change the tokenAdmin");
         require(IFeeManager(feeManager).isValidFeeToken(feeTokenStr), "CTMRWA001X: Not a valid fee token");
@@ -443,7 +445,7 @@ contract CTMRWA001X is  GovernDapp {
             funcCall,
             currentAdminStr,
             _newAdminStr,
-            _ctmRwa001AddrStr,
+            ctmRwa001AddrStr,
             toContractStr
         );
 

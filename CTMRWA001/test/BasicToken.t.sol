@@ -462,7 +462,7 @@ contract TestBasicToken is SetUp {
     function test_getTokenList() public {
         vm.startPrank(admin);
         (, address ctmRwaAddr) = CTMRWA001Deploy();
-        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+        deployAFewTokensLocal(ctmRwaAddr);
         vm.stopPrank();
 
         address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
@@ -500,7 +500,7 @@ contract TestBasicToken is SetUp {
     function test_dividends() public {
         vm.startPrank(admin);
         (, address ctmRwaAddr) = CTMRWA001Deploy();
-        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+        (, uint256 tokenId2,) = deployAFewTokensLocal(ctmRwaAddr);
         vm.stopPrank();
 
         vm.prank(admin);
@@ -545,7 +545,6 @@ contract TestBasicToken is SetUp {
         vm.stopPrank();
         assertEq(unclaimed, dividendTotal);
 
-        uint256 tokenBal = ICTMRWA001SlotEnumerable(ctmRwaAddr).balanceOf(user1);
         uint256 tokenId = ICTMRWA001SlotEnumerable(ctmRwaAddr).tokenOfOwnerByIndex(user1, 0);
         uint256 toClaim = ICTMRWA001Token(ctmRwaAddr).dividendUnclaimedOf(tokenId);
         uint256 balBefore = usdc.balanceOf(user1);
@@ -572,21 +571,16 @@ contract TestBasicToken is SetUp {
         address tokenAdmin = ICTMRWA001(ctmRwaAddr).tokenAdmin();
         assertEq(tokenAdmin, user1);
 
-        string memory user1Str = user1.toHexString();
-        string memory toChainId = "1"; // ethereum
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
         toChainIdsStr.push("1");
 
         string memory targetStr = rwa001X.getChainContract("1");
-        string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdsStr[0]);
         (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         string memory sig = "deployCTMRWA001(string,uint256,string,string,uint8,string,string)";
-
-        (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
 
         string memory tokenName = "Test Token";
         string memory symbol = "TST";
@@ -648,7 +642,7 @@ contract TestBasicToken is SetUp {
     function test_transferToken() public {
         vm.startPrank(admin);
         (, address ctmRwaAddr) = CTMRWA001Deploy();
-        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+        (uint256 tokenId1,,) = deployAFewTokensLocal(ctmRwaAddr);
         vm.stopPrank();
 
         /*token1
@@ -678,15 +672,11 @@ contract TestBasicToken is SetUp {
         
 
         string memory user1Str = user1.toHexString();
-        string memory toChainId = "1"; // ethereum
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
         string memory toChainIdStr = "1";
         string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
-
-        (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
-        //console.log(chStr, contStr);
 
  
         string memory targetStr = rwa001X.getChainContract("1");
@@ -744,11 +734,10 @@ contract TestBasicToken is SetUp {
 
         vm.startPrank(admin);
         (, address ctmRwaAddr) = CTMRWA001Deploy();
-        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+        (uint256 tokenId1,,) = deployAFewTokensLocal(ctmRwaAddr);
         vm.stopPrank();
 
         string memory user1Str = user1.toHexString();
-        string memory toChainId = "1"; // ethereum
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
@@ -761,8 +750,6 @@ contract TestBasicToken is SetUp {
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,uint256,string,string)";
-
-        (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
 
         uint256 xChainTokenId = 99;  // dummy value
 
@@ -826,11 +813,10 @@ contract TestBasicToken is SetUp {
 
         vm.startPrank(admin);
         (, address ctmRwaAddr) = CTMRWA001Deploy();
-        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+        (uint256 tokenId1,,) = deployAFewTokensLocal(ctmRwaAddr);
         vm.stopPrank();
 
         string memory user1Str = user1.toHexString();
-        string memory toChainId = "1"; // ethereum
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
@@ -843,8 +829,6 @@ contract TestBasicToken is SetUp {
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
-
-        (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
 
     //    bytes memory callData = abi.encodeWithSignature(
     //         funcCall,
