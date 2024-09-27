@@ -287,7 +287,7 @@ contract SetUp is Test {
         return string(bLower);
     }
 
-    function CTMRWA001Deploy() public returns(bool, address) {
+    function CTMRWA001Deploy() public returns(uint256, address) {
         string memory tokenStr = _toLower((address(usdc).toHexString()));
         string[] memory chainIdsStr;
         uint256 ID = rwa001X.deployAllCTMRWA001X(
@@ -300,17 +300,22 @@ contract SetUp is Test {
             chainIdsStr,  // empty array - no cross-chain minting
             tokenStr
         );
-        return(rwa001X.getAttachedTokenAddress(ID));
+        (bool ok, address tokenAddress) =  rwa001X.getAttachedTokenAddress(ID);
+        assertEq(ok, true);
+
+        return(ID, tokenAddress);
     }
 
     function deployAFewTokensLocal(address _ctmRwaAddr) public returns(uint256,uint256,uint256) {
+        (bool ok, uint256 ID) = rwa001X.getAttachedID(_ctmRwaAddr);
+        assertEq(ok, true);
 
         uint256 tokenId1 = rwa001X.mintNewTokenValueLocal(
             user1,
             0,
             5,
             2000,
-            _ctmRwaAddr
+            ID
         );
 
         uint256 tokenId2 = rwa001X.mintNewTokenValueLocal(
@@ -318,7 +323,7 @@ contract SetUp is Test {
             0,
             3,
             4000,
-            _ctmRwaAddr
+            ID
         );
 
         uint256 tokenId3 = rwa001X.mintNewTokenValueLocal(
@@ -326,7 +331,7 @@ contract SetUp is Test {
             0,
             1,
             6000,
-            _ctmRwaAddr
+            ID
         );
 
         return(tokenId1, tokenId2, tokenId3);
@@ -432,7 +437,7 @@ contract TestBasicToken is SetUp {
     }
 
     function test_CTMRWA001Mint() public {
-        (, address ctmRwaAddr) = CTMRWA001Deploy();
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
 
         // function mintNewTokenValueLocal(
         // address toAddress_,
@@ -447,7 +452,7 @@ contract TestBasicToken is SetUp {
             0,
             5,
             2000,
-            ctmRwaAddr
+            ID
         );
 
         assertEq(tokenId, 1);
@@ -641,7 +646,7 @@ contract TestBasicToken is SetUp {
 
     function test_transferToken() public {
         vm.startPrank(admin);
-        (, address ctmRwaAddr) = CTMRWA001Deploy();
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
         (uint256 tokenId1,,) = deployAFewTokensLocal(ctmRwaAddr);
         vm.stopPrank();
 
@@ -682,7 +687,6 @@ contract TestBasicToken is SetUp {
         string memory targetStr = rwa001X.getChainContract("1");
         string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId1);
-        (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         bytes memory callData = abi.encodeWithSignature(
@@ -726,14 +730,14 @@ contract TestBasicToken is SetUp {
         // ) external;
 
         vm.prank(user1);
-        rwa001X.transferFromX(user1Str, toChainIdStr, tokenId1, ctmRwaAddrStr, feeTokenStr);
+        rwa001X.transferFromX(user1Str, toChainIdStr, tokenId1, ID, feeTokenStr);
     }
 
 
     function test_valueTransferExistingTokens() public {
 
         vm.startPrank(admin);
-        (, address ctmRwaAddr) = CTMRWA001Deploy();
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
         (uint256 tokenId1,,) = deployAFewTokensLocal(ctmRwaAddr);
         vm.stopPrank();
 
@@ -746,7 +750,6 @@ contract TestBasicToken is SetUp {
         string memory targetStr = rwa001X.getChainContract("1");
         string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId1);
-        (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,uint256,string,string)";
@@ -804,7 +807,7 @@ contract TestBasicToken is SetUp {
         // ) public payable virtual {
 
         vm.prank(user1);
-        rwa001X.transferFromX(tokenId1, user1Str, xChainTokenId, toChainIdStr, value/2, ctmRwaAddrStr, feeTokenStr);
+        rwa001X.transferFromX(tokenId1, user1Str, xChainTokenId, toChainIdStr, value/2, ID, feeTokenStr);
 
     }
 
@@ -812,7 +815,7 @@ contract TestBasicToken is SetUp {
     function test_valueTransferNewTokenCreation() public {
 
         vm.startPrank(admin);
-        (, address ctmRwaAddr) = CTMRWA001Deploy();
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
         (uint256 tokenId1,,) = deployAFewTokensLocal(ctmRwaAddr);
         vm.stopPrank();
 
@@ -825,7 +828,6 @@ contract TestBasicToken is SetUp {
         string memory targetStr = rwa001X.getChainContract("1");
         string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId1);
-        (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
@@ -878,7 +880,7 @@ contract TestBasicToken is SetUp {
         // ) public payable virtual {
 
         vm.prank(user1);
-        rwa001X.transferFromX(tokenId1, user1Str, toChainIdStr, value/2, ctmRwaAddrStr, feeTokenStr);
+        rwa001X.transferFromX(tokenId1, user1Str, toChainIdStr, value/2, ID, feeTokenStr);
 
     }
 
