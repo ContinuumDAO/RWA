@@ -587,8 +587,8 @@ contract TestBasicToken is SetUp {
 
         string memory sig = "deployCTMRWA001(string,uint256,string,string,uint8,string,string)";
 
-        string memory tokenName = "Test Token";
-        string memory symbol = "TST";
+        string memory tokenName = "Semi Fungible Token XChain";
+        string memory symbol = "SFTX";
         uint8 decimals = 18;
 
         // string memory funcCall = "deployCTMRWA001(string,uint256,string,string,uint8,string,string)";
@@ -610,7 +610,7 @@ contract TestBasicToken is SetUp {
             tokenName,
             symbol,
             decimals,
-            "",
+            "continuumdao/",
             ctmRwaAddrStr
         );
 

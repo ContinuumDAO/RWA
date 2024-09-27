@@ -271,6 +271,10 @@ contract CTMRWA001X is  GovernDapp {
         address ctmRwa001Addr;
         address currentAdmin;
         uint256 ID;
+        string memory tokenName;
+        string memory symbol;
+        uint8 decimals;
+        string memory baseURI;
 
         if(includeLocal) {
             // generate a new ID
@@ -282,7 +286,12 @@ contract CTMRWA001X is  GovernDapp {
                 msg.sender
             )));
 
-            ctmRwa001Addr = _deployCTMRWA001Local(ID, tokenName_, symbol_, decimals_, baseURI_, msg.sender);
+            tokenName = tokenName_;
+            symbol = symbol_;
+            decimals = decimals_;
+            baseURI = baseURI_;
+
+            ctmRwa001Addr = _deployCTMRWA001Local(ID, tokenName_, symbol_, decimals_, baseURI, msg.sender);
             ICTMRWA001(ctmRwa001Addr).changeAdminX(msg.sender);
             
             currentAdmin = msg.sender;
@@ -293,6 +302,11 @@ contract CTMRWA001X is  GovernDapp {
             ctmRwa001Addr = rwa001Addr;
             currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
             require(msg.sender == currentAdmin, "CTMRWA001X: Only tokenAdmin can deploy");
+
+            tokenName = ICTMRWA001(ctmRwa001Addr).nameX();
+            symbol = ICTMRWA001(ctmRwa001Addr).symbolX();
+            decimals = ICTMRWA001(ctmRwa001Addr).valueDecimals();
+            baseURI = ICTMRWA001(ctmRwa001Addr).baseURI();
         }
 
         ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
@@ -314,10 +328,10 @@ contract CTMRWA001X is  GovernDapp {
 
         for(uint256 i=0; i<nChains; i++){
             _deployCTMRWA001X(
-                tokenName_, 
-                symbol_, 
-                decimals_, 
-                baseURI_,
+                tokenName, 
+                symbol,
+                decimals, 
+                baseURI,
                 toChainIdsStr_[i], 
                 ctmRwa001AddrStr
             );

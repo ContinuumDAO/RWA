@@ -14,6 +14,12 @@ interface ICTMRWA001 is IERC165, IERC721 {
 
     function tokenAdmin() external returns(address);
     function changeAdminX(address _admin) external returns(bool);
+    function nameX() external view returns (string memory);
+    function symbolX() external view returns (string memory);
+    function valueDecimals() external view returns (uint8);
+    function baseURI() external view returns(string memory);
+    function balanceOf(uint256 _tokenId) external view returns (uint256);
+    function dividendUnclaimedOf(uint256 tokenId_) external view returns (uint256);
 
     /**
      * @dev MUST emit when value of a token is transferred to another token with the same slot,
@@ -48,16 +54,12 @@ interface ICTMRWA001 is IERC165, IERC721 {
      *  `valueDecimals()` instead of `decimals()` to avoid conflict with ERC20 tokens.
      * @return The number of decimals for value
      */
-    function valueDecimals() external view returns (uint8);
 
     /**
      * @notice Get the value of a token.
      * @param _tokenId The token for which to query the balance
      * @return The value of `_tokenId`
      */
-    function balanceOf(uint256 _tokenId) external view returns (uint256);
-
-    function dividendUnclaimedOf(uint256 tokenId_) external view returns (uint256);
 
     /**
      * @notice Get the slot of a token.

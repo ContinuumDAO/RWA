@@ -137,6 +137,10 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         return _name;
     }
 
+    function nameX() external view returns (string memory) {
+        return _name;
+    }
+
     /**
      * @dev Returns the token collection symbol.
      */
@@ -144,10 +148,14 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         return _symbol;
     }
 
+    function symbolX() external view returns (string memory) {
+        return _symbol;
+    }
+
     /**
      * @dev Returns the number of decimals the token uses for value.
      */
-    function valueDecimals() public view virtual override returns (uint8) {
+    function valueDecimals() external view virtual returns (uint8) {
         return _decimals;
     }
 
