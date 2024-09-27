@@ -26,8 +26,8 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     // The ID is a unique identifier linking contracts across chains - same ID on each chains
     uint256 public ID;
     // regulator is the wallet address of the Regulator, if this is a Security, else zero length
-    string regulator;
-    address public admin;
+    string public regulator;
+    address public tokenAdmin;
     address public ctmRwa001XChain;
 
     string constant TYPE = "CTMRWA001/";
@@ -80,14 +80,14 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
 
 
     constructor(
-        address _admin,
+        address _tokenAdmin,
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,
         string memory baseURI_,
         address _ctmRwa001XChain
     ) {
-        admin = _admin;
+        tokenAdmin = _tokenAdmin;
         _tokenIdGenerator = 1;
         _name = tokenName_;
         _symbol = symbol_;
@@ -99,8 +99,8 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         _addTokenContract(cID().toString(), _toLower(address(this).toHexString()));
     }
     
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "CTMRWA001: This is an onlyAdmin function");
+    modifier onlyTokenAdmin() {
+        require(msg.sender == tokenAdmin, "CTMRWA001: This is an onlyTokenAdmin function");
         _;
     }
 
@@ -110,13 +110,13 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     }
     
 
-    function changeAdminX(address _admin) external onlyGateKeeper returns(bool) {
-        admin = _admin;
+    function changeAdminX(address _tokenAdmin) external onlyGateKeeper returns(bool) {
+        tokenAdmin = _tokenAdmin;
         return true;
     }
 
-    function changeAdmin(address _admin) external onlyAdmin returns(bool) {
-        admin = _admin;
+    function changeAdmin(address _tokenAdmin) external onlyTokenAdmin returns(bool) {
+        tokenAdmin = _tokenAdmin;
         return true;
     }
 
@@ -151,8 +151,8 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         return _decimals;
     }
 
-    function attachId(uint256 nextID, address _admin) external onlyGateKeeper returns(bool) {
-        require(_admin == admin, "CTMRWA001X: attachId is an AdminOnly function");
+    function attachId(uint256 nextID, address _tokenAdmin) external onlyGateKeeper returns(bool) {
+        require(_tokenAdmin == tokenAdmin, "CTMRWA001X: attachId is an AdminOnly function");
         if(ID == 0) { // not yet attached
             ID = nextID;
             return(true);
@@ -160,11 +160,11 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     }
 
     function addXTokenInfo(
-        address _admin,
+        address _tokenAdmin,
         string[] memory _chainIdsStr,
         string[] memory _contractAddrsStr
     ) external onlyGateKeeper returns(bool){
-        require(_admin == admin, "CTMRWA001X: AdminOnly function");
+        require(_tokenAdmin == tokenAdmin, "CTMRWA001X: AdminOnly function");
         require(_chainIdsStr.length == _contractAddrsStr.length, "CTMRWA001: Length mismatch chainIds and contractAddrs");
 
         for(uint256 i=0; i<_chainIdsStr.length; i++) {
@@ -249,7 +249,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         );
     }
 
-    function incrementDividend(uint256 _tokenId, uint256 _dividend) internal onlyAdmin returns(uint256) {
+    function incrementDividend(uint256 _tokenId, uint256 _dividend) internal onlyTokenAdmin returns(uint256) {
         _requireMinted(_tokenId);
         _allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed += _dividend;
         return(_allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed);
@@ -262,7 +262,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     }
 
 
-    function setBaseURI(string memory _baseURI) public onlyAdmin {
+    function setBaseURI(string memory _baseURI) public onlyTokenAdmin {
         baseURI = _baseURI;
     }
 

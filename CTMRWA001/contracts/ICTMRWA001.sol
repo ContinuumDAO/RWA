@@ -11,6 +11,10 @@ import "./IERC721.sol";
  * Note: the ERC-165 identifier for this interface is 0xd5358140.
  */
 interface ICTMRWA001 is IERC165, IERC721 {
+
+    function tokenAdmin() external returns(address);
+    function changeAdminX(address _admin) external returns(bool);
+
     /**
      * @dev MUST emit when value of a token is transferred to another token with the same slot,
      *  including zero value transfers (_value == 0) as well as transfers when tokens are created

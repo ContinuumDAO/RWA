@@ -15,6 +15,6 @@ interface ICTMRWA001Token {
     function totalSupplyInSlot(uint256 _slot) external view returns (uint256);
     function getTotalDividend() external view returns(uint256);
     function fundDividend(uint256 _dividendPayable) external payable returns(uint256);
-    function dividendUnclaimedOf(uint256 tokenId_) external view virtual returns (uint256);
+    function dividendUnclaimedOf(uint256 tokenId_) external view returns (uint256);
     function claimDividend(uint256 _tokenId) external returns(bool);
 }

@@ -292,6 +292,7 @@ contract SetUp is Test {
         string[] memory chainIdsStr;
         uint256 ID = rwa001X.deployAllCTMRWA001X(
             true,  // include local mint
+            0,
             "Semi Fungible Token XChain",
             "SFTX",
             18,
@@ -334,6 +335,8 @@ contract SetUp is Test {
 
 contract TestBasicToken is SetUp {
     using Strings for *;
+
+    string[] toChainIdsStr;
 
 
     modifier prankUser0() {
@@ -406,6 +409,7 @@ contract TestBasicToken is SetUp {
 
         uint256 ID = rwa001X.deployAllCTMRWA001X(
             true,  // include local mint
+            0,
             "Semi Fungible Token XChain",
             "SFTX",
             18,
@@ -462,7 +466,6 @@ contract TestBasicToken is SetUp {
         vm.stopPrank();
 
         address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log(adminTokens[0]);
         assertEq(adminTokens.length, 1);  // only one CTMRWA001 token deployed
         assertEq(ctmRwaAddr, adminTokens[0]);
 
@@ -543,7 +546,6 @@ contract TestBasicToken is SetUp {
         assertEq(unclaimed, dividendTotal);
 
         uint256 tokenBal = ICTMRWA001SlotEnumerable(ctmRwaAddr).balanceOf(user1);
-        console.log(tokenBal);
         uint256 tokenId = ICTMRWA001SlotEnumerable(ctmRwaAddr).tokenOfOwnerByIndex(user1, 0);
         uint256 toClaim = ICTMRWA001Token(ctmRwaAddr).dividendUnclaimedOf(tokenId);
         uint256 balBefore = usdc.balanceOf(user1);
@@ -554,6 +556,93 @@ contract TestBasicToken is SetUp {
         assertEq(ok, true);
         uint balAfter = usdc.balanceOf(user1);
         assertEq(balBefore, balAfter-toClaim);
+    }
+
+    function test_remoteDeploy() public {
+
+        vm.startPrank(user1);
+        (, address ctmRwaAddr) = CTMRWA001Deploy();
+        vm.stopPrank();
+        (bool ok, uint256 localID) = rwa001X.getAttachedID(ctmRwaAddr);
+        assertEq(ok, true);
+
+        // admin of the CTMRWA001 token
+        string memory currentAdminStr = _toLower(user1.toHexString());
+
+        address tokenAdmin = ICTMRWA001(ctmRwaAddr).tokenAdmin();
+        assertEq(tokenAdmin, user1);
+
+        string memory user1Str = user1.toHexString();
+        string memory toChainId = "1"; // ethereum
+        address[] memory feeTokenList = feeManager.getFeeTokenList();
+        string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
+        string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
+        toChainIdsStr.push("1");
+
+        string memory targetStr = rwa001X.getChainContract("1");
+        string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdsStr[0]);
+        (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
+        uint256 currentNonce = c3UUIDKeeper.currentNonce();
+
+        string memory sig = "deployCTMRWA001(string,uint256,string,string,uint8,string,string)";
+
+        (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
+
+        string memory tokenName = "Test Token";
+        string memory symbol = "TST";
+        uint8 decimals = 18;
+
+        // string memory funcCall = "deployCTMRWA001(string,uint256,string,string,uint8,string,string)";
+        // bytes memory callData = abi.encodeWithSignature(
+        //     funcCall,
+        //     currentAdminStr,
+        //     ID,
+        //     tokenName_,
+        //     symbol_,
+        //     decimals_,
+        //     baseURI_,
+        //     _ctmRwa001AddrStr
+        // );
+
+        bytes memory callData = abi.encodeWithSignature(
+            sig,
+            currentAdminStr,
+            ID,
+            tokenName,
+            symbol,
+            decimals,
+            "",
+            ctmRwaAddrStr
+        );
+
+        bytes32 testUUID = keccak256(abi.encode(
+            address(c3UUIDKeeper),
+            address(c3CallerLogic),
+            block.chainid,
+            2,
+            targetStr,
+            toChainIdsStr[0],
+            currentNonce + 1,
+            callData
+        ));
+
+        vm.expectEmit(true, true, false, true);
+        emit LogC3Call(2, testUUID, address(rwa001X), toChainIdsStr[0], targetStr, callData, bytes(""));
+
+        // function deployAllCTMRWA001X(
+        //     bool includeLocal,
+        //     uint256 existingID_,
+        //     string memory tokenName_, 
+        //     string memory symbol_, 
+        //     uint8 decimals_,
+        //     string memory baseURI_,
+        //     string[] memory toChainIdsStr_,
+        //     string memory feeTokenStr
+        // ) public payable returns(uint256) {
+
+        vm.prank(user1);
+        rwa001X.deployAllCTMRWA001X(false, localID, tokenName, symbol, decimals, "", toChainIdsStr, feeTokenStr);
+
     }
 
     function test_transferToken() public {
@@ -594,7 +683,7 @@ contract TestBasicToken is SetUp {
         string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
         string memory toChainIdStr = "1";
-        string memory sig = "mintX(string,uint256,string,string,uint256,uint256,uint256,string,string)";
+        string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
 
         (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
         //console.log(chStr, contStr);
@@ -671,7 +760,7 @@ contract TestBasicToken is SetUp {
         (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
-        string memory sig = "mintX(string,uint256,string,string,uint256,uint256,uint256,uint256,string,string)";
+        string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,uint256,string,string)";
 
         (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
 
@@ -753,7 +842,7 @@ contract TestBasicToken is SetUp {
         (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
-        string memory sig = "mintX(string,uint256,string,string,uint256,uint256,uint256,string,string)";
+        string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
 
         (string memory chStr, string memory contStr) = rwa001X.getChainContract(1);
 

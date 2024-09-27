@@ -15,14 +15,14 @@ contract CTMRWA001Token is Context, CTMRWA001SlotApprovable {
     event ClaimDividend(uint256 tokenId, uint256 dividend, address dividendToken);
 
     constructor(
-        address _admin,
+        address _tokenAdmin,
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
         string memory baseURI_,
         address _ctmRwa001XChain
     ) CTMRWA001SlotApprovable (
-        _admin,
+        _tokenAdmin,
         name_,
         symbol_,
         decimals_,
@@ -38,7 +38,7 @@ contract CTMRWA001Token is Context, CTMRWA001SlotApprovable {
         return(version);
     }
 
-    function setDividendToken(address _dividendToken) external onlyAdmin returns(bool) {
+    function setDividendToken(address _dividendToken) external onlyTokenAdmin returns(bool) {
         for(uint256 i=1; i<=this.totalSupply(); i++) {
             if(this.dividendUnclaimedOf(i) > 0) {
                 revert("CTMRWA001: Cannot change dividend token address whilst there is unclaimed dividend");
@@ -47,15 +47,15 @@ contract CTMRWA001Token is Context, CTMRWA001SlotApprovable {
 
         dividendToken = _dividendToken;
 
-        emit NewDividendToken(_dividendToken, admin);
+        emit NewDividendToken(_dividendToken, tokenAdmin);
         return(true);
     }
 
-    function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyAdmin returns(bool) {
+    function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyTokenAdmin returns(bool) {
         require(_slotExists(_slot), "CTMRWA001: in changeDividend, slot does not exist");
         _allSlots[_allSlotsIndex[_slot]].dividendRate = _dividend;
 
-        emit ChangeDividendRate(_slot, _dividend, admin);
+        emit ChangeDividendRate(_slot, _dividend, tokenAdmin);
         return(true);
     }
 
@@ -98,7 +98,7 @@ contract CTMRWA001Token is Context, CTMRWA001SlotApprovable {
         return(dividendPayable);
     }
 
-    function fundDividend(uint256 _dividendPayable) external payable onlyAdmin returns(uint256) {
+    function fundDividend(uint256 _dividendPayable) external payable onlyTokenAdmin returns(uint256) {
         require(IERC20(dividendToken).transferFrom(_msgSender(), address(this), _dividendPayable), "CTMRWA001: Did not fund the dividend");
         uint256 unclaimedDividend;
         uint256 tokenId;
