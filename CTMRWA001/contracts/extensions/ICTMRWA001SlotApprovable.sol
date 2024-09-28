@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.20;
 
-import "../ICTMRWA001.sol";
+// import "../ICTMRWA001.sol";
 
 /**
  * @title CTMRWA001 Semi-Fungible Token Standard, optional extension for approval of slot level
@@ -11,7 +11,7 @@ import "../ICTMRWA001.sol";
  *  See https://docs.continuumdao.org
  * Note: the ERC-165 identifier for this interface is 0xb688be58.
  */
-interface ICTMRWA001SlotApprovable is ICTMRWA001 {
+interface ICTMRWA001SlotApprovable {
     /**
      * @dev MUST emits when an operator is approved or disapproved to manage all of `_owner`'s
      *  tokens with the same slot.

@@ -2,10 +2,11 @@
 
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/Context.sol";
-import "./CTMRWA001SlotApprovable.sol";
+// import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+// import "./CTMRWA001SlotApprovable.sol";
+import {CTMRWA001} from "./CTMRWA001.sol";
 
-contract CTMRWA001Token is Context, CTMRWA001SlotApprovable {
+contract CTMRWA001Token is CTMRWA001 {
 
     address public dividendToken;
 
@@ -21,7 +22,7 @@ contract CTMRWA001Token is Context, CTMRWA001SlotApprovable {
         uint8 decimals_,
         string memory baseURI_,
         address _ctmRwa001XChain
-    ) CTMRWA001SlotApprovable (
+    ) CTMRWA001(
         _tokenAdmin,
         name_,
         symbol_,

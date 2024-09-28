@@ -5,14 +5,14 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "./interface/ICTMRWA001MetadataDescriptor.sol";
-import "../extensions/ICTMRWA001Metadata.sol";
+import "../ICTMRWA001.sol";
 
 contract CTMRWA001MetadataDescriptor is ICTMRWA001MetadataDescriptor {
 
     using Strings for uint256;
 
     function constructContractURI() external view override returns (string memory) {
-        ICTMRWA001Metadata CTMRWA001 = ICTMRWA001Metadata(msg.sender);
+        ICTMRWA001 CTMRWA001 = ICTMRWA001(msg.sender);
         return 
             string(
                 abi.encodePacked(
@@ -61,7 +61,7 @@ contract CTMRWA001MetadataDescriptor is ICTMRWA001MetadataDescriptor {
     }
 
     function constructTokenURI(uint256 tokenId_) external view override returns (string memory) {
-        ICTMRWA001Metadata CTMRWA001 = ICTMRWA001Metadata(msg.sender);
+        ICTMRWA001 CTMRWA001 = ICTMRWA001(msg.sender);
         return 
             string(
                 abi.encodePacked(
