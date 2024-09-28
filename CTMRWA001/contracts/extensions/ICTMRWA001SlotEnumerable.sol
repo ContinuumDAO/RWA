@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.20;
 
-import "../ICTMRWA001.sol";
-import "./IERC721Enumerable.sol";
+// import "../ICTMRWA001.sol";
+import {IERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 /**
  * @title CTMRWA001 Semi-Fungible Token Standard, optional extension for slot enumeration
  * @dev Interfaces for any contract that wants to support enumeration of slots as well as tokens 
@@ -11,7 +11,7 @@ import "./IERC721Enumerable.sol";
  *  See https://docs.continuumdao.org
  * Note: the ERC-165 identifier for this interface is 0x3b741b9e.
  */
-interface ICTMRWA001SlotEnumerable is ICTMRWA001, IERC721Enumerable {
+interface ICTMRWA001SlotEnumerable is IERC721Enumerable {
 
     /**
      * @notice Get the total amount of slots stored by the contract.

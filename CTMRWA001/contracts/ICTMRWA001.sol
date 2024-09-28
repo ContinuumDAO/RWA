@@ -2,15 +2,18 @@
 
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import "./IERC721.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {ICTMRWA001Metadata} from "./extensions/ICTMRWA001Metadata.sol";
+import {ICTMRWA001SlotEnumerable} from "./extensions/ICTMRWA001SlotEnumerable.sol";
+import {ICTMRWA001SlotApprovable} from "./extensions/ICTMRWA001SlotApprovable.sol";
 
 /**
  * @title CTMRWA001 Semi-Fungible Token Standard
  * @dev See https://docs.continuumdao.org
  * Note: the ERC-165 identifier for this interface is 0xd5358140.
  */
-interface ICTMRWA001 is IERC165, IERC721 {
+interface ICTMRWA001 is ICTMRWA001Metadata, ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
 
     function tokenAdmin() external returns(address);
     function changeAdminX(address _admin) external returns(bool);

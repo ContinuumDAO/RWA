@@ -30,5 +30,4 @@ contract CTMRWA001Deployer {
 
         return(address(ctmRwa001Token));
     }
-
 }

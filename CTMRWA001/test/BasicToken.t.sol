@@ -4,9 +4,6 @@ pragma solidity ^0.8.20;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
-// import {Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
-// import { Options } from "@openzeppelin/foundry-upgrades/Options.sol";
-
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 import {C3UUIDKeeper} from "contracts/c3Caller/C3UUIDKeeper.sol";

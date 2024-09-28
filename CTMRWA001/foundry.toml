@@ -11,7 +11,13 @@ ast = true
 build_info = true
 extra_output = ["storageLayout"]
 
-remappings = []
+remappings = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts",
+    "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+    "@openzeppelin/foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src",
+    "ds-test/=lib/forge-std/lib/ds-test/src/",
+    "forge-std/=lib/forge-std/src/"
+]
 
 [rpc_endpoints]
 arbSepolia = "${ARB_SEPOLIA_RPC_URL}"

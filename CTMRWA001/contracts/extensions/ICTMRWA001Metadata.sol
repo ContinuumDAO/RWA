@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.20;
 
-import "../ICTMRWA001.sol";
-import "./IERC721Metadata.sol";
+// import "../ICTMRWA001.sol";
+import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
 /**
  * @title CTMRWA001 Semi-Fungible Token Standard, optional extension for metadata
@@ -16,7 +16,7 @@ import "./IERC721Metadata.sol";
  *  See https://docs.continuumdao.org
  * Note: the ERC-165 identifier for this interface is 0xe1600902.
  */
-interface ICTMRWA001Metadata is ICTMRWA001, IERC721Metadata {
+interface ICTMRWA001Metadata is IERC721Metadata {
     /**
      * @notice Returns the Uniform Resource Identifier (URI) for the current CTMRWA001 contract.
      * @dev This function SHOULD return the URI for this contract in JSON format, starting with

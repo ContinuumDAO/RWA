@@ -3,9 +3,9 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/Context.sol";
-import "../CTMRWA001SlotApprovable.sol";
+import {CTMRWA001} from "../CTMRWA001.sol";
 
-contract CTMRWA001BasicToken is Context, CTMRWA001SlotApprovable {
+contract CTMRWA001BasicToken is Context, CTMRWA001 {
 
     constructor(
         address _admin,
@@ -14,7 +14,7 @@ contract CTMRWA001BasicToken is Context, CTMRWA001SlotApprovable {
         uint8 decimals_,
         string memory baseURI_,
         address _ctmRwa001XChain
-    ) CTMRWA001SlotApprovable (
+    ) CTMRWA001 (
         _admin,
         name_,
         symbol_,
@@ -53,7 +53,7 @@ contract CTMRWA001BasicToken is Context, CTMRWA001SlotApprovable {
         address from_,
         address to_,
         uint256 tokenId_
-    ) public payable virtual override(CTMRWA001, IERC721) {
+    ) public virtual override(CTMRWA001) {
         require(_isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
         _transferTokenId(from_, to_, tokenId_);
     }
@@ -63,7 +63,7 @@ contract CTMRWA001BasicToken is Context, CTMRWA001SlotApprovable {
         address to_,
         uint256 tokenId_,
         bytes memory data_
-    ) public payable virtual override(CTMRWA001, IERC721) {
+    ) public virtual override(CTMRWA001) {
         require(_isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
         _safeTransferTokenId(from_, to_, tokenId_, data_);
     }
@@ -72,7 +72,7 @@ contract CTMRWA001BasicToken is Context, CTMRWA001SlotApprovable {
         address from_,
         address to_,
         uint256 tokenId_
-    ) public payable virtual override(CTMRWA001, IERC721) {
+    ) public virtual override(CTMRWA001) {
         safeTransferFrom(from_, to_, tokenId_, "");
     }
 

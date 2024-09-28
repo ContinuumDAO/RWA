@@ -2,23 +2,23 @@
 
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "./IERC721.sol";
-import "./ICTMRWA001.sol";
-import "./IERC721Receiver.sol";
-import "./ICTMRWA001Receiver.sol";
-import "./extensions/IERC721Enumerable.sol";
-import "./extensions/IERC721Metadata.sol";
-import "./extensions/ICTMRWA001Metadata.sol";
-import "./periphery/interface/ICTMRWA001MetadataDescriptor.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {IERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {ICTMRWA001, ICTMRWA001SlotApprovable, ICTMRWA001SlotEnumerable} from "./ICTMRWA001.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {ICTMRWA001Receiver} from "./ICTMRWA001Receiver.sol";
+import {ICTMRWA001Metadata} from "./extensions/ICTMRWA001Metadata.sol";
+import {ICTMRWA001MetadataDescriptor} from "./periphery/interface/ICTMRWA001MetadataDescriptor.sol";
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-//import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+// import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
+contract CTMRWA001 is Context, ICTMRWA001 {
     using Strings for *;
     using SafeERC20 for IERC20;
     //using SafeMath for uint256;
@@ -68,6 +68,9 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
     // id => (approval => allowance)
     // @dev _approvedValues cannot be defined within TokenData, cause struct containing mappings cannot be constructed.
     mapping(uint256 => mapping(address => uint256)) private _approvedValues;
+
+    // @dev owner => slot => operator => approved
+    mapping(address => mapping(uint256 => mapping(address => bool))) private _slotApprovals;
 
     TokenData[] private _allTokens;
 
@@ -127,7 +130,9 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
             interfaceId == type(IERC721).interfaceId ||
             interfaceId == type(ICTMRWA001Metadata).interfaceId ||
             interfaceId == type(IERC721Enumerable).interfaceId || 
-            interfaceId == type(IERC721Metadata).interfaceId;
+            interfaceId == type(IERC721Metadata).interfaceId ||
+            interfaceId == type(ICTMRWA001SlotApprovable).interfaceId ||
+            interfaceId == type(ICTMRWA001SlotEnumerable).interfaceId;
     }
 
     /**
@@ -354,7 +359,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         address from_,
         address to_,
         uint256 tokenId_
-    ) public payable virtual override {
+    ) public virtual override {
         require(_isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
         _transferTokenId(from_, to_, tokenId_);
     }
@@ -364,7 +369,7 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         address to_,
         uint256 tokenId_,
         bytes memory data_
-    ) public payable virtual override {
+    ) public virtual override {
         require(_isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
         _safeTransferTokenId(from_, to_, tokenId_, data_);
     }
@@ -373,22 +378,22 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         address from_,
         address to_,
         uint256 tokenId_
-    ) public payable virtual override {
+    ) public virtual override {
         safeTransferFrom(from_, to_, tokenId_, "");
     }
 
 
-    function approve(address to_, uint256 tokenId_) public payable virtual override {
-        address owner = CTMRWA001.ownerOf(tokenId_);
-        require(to_ != owner, "CTMRWA001: approval to current owner");
+    // function approve(address to_, uint256 tokenId_) public virtual override {
+    //     address owner = CTMRWA001.ownerOf(tokenId_);
+    //     require(to_ != owner, "CTMRWA001: approval to current owner");
 
-        require(
-            _msgSender() == owner || CTMRWA001.isApprovedForAll(owner, _msgSender()),
-            "CTMRWA001: approve caller is not owner nor approved for all"
-        );
+    //     require(
+    //         _msgSender() == owner || CTMRWA001.isApprovedForAll(owner, _msgSender()),
+    //         "CTMRWA001: approve caller is not owner nor approved for all"
+    //     );
 
-        _approve(to_, tokenId_);
-    }
+    //     _approve(to_, tokenId_);
+    // }
 
     function getApproved(uint256 tokenId_) public view virtual override returns (address) {
         _requireMinted(tokenId_);
@@ -427,15 +432,6 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         _addressData[owner_].approvals[operator_] = approved_;
 
         emit ApprovalForAll(owner_, operator_, approved_);
-    }
-
-    function _isApprovedOrOwner(address operator_, uint256 tokenId_) internal view virtual returns (bool) {
-        address owner = CTMRWA001.ownerOf(tokenId_);
-        return (
-            operator_ == owner ||
-            CTMRWA001.isApprovedForAll(owner, operator_) ||
-            CTMRWA001.getApproved(tokenId_) == operator_
-        );
     }
 
     function isApprovedOrOwner(address operator_, uint256 tokenId_) external view onlyGateKeeper returns(bool) {
@@ -812,16 +808,6 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         }
     }
 
-    /* solhint-disable */
-    function _beforeValueTransfer(
-        address from_,
-        address to_,
-        uint256 fromTokenId_,
-        uint256 toTokenId_,
-        uint256 slot_,
-        uint256 value_
-    ) internal virtual {}
-
     function _beforeValueTransferX(
         string memory fromAddressStr_,
         string memory toAddressStr,
@@ -832,14 +818,6 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
         uint256 value_
     ) internal virtual {}
 
-    function _afterValueTransfer(
-        address from_,
-        address to_,
-        uint256 fromTokenId_,
-        uint256 toTokenId_,
-        uint256 slot_,
-        uint256 value_
-    ) internal virtual {}
     /* solhint-enable */
 
     function _setMetadataDescriptor(address metadataDescriptor_) internal virtual {
@@ -891,6 +869,202 @@ contract CTMRWA001 is Context, ICTMRWA001Metadata, IERC721Enumerable {
             }
         }
         return string(bLower);
+    }
+
+    // SLOT APPROVABLE
+
+    // function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165, CTMRWA001SlotEnumerable) returns (bool) {
+    //     return
+    //         interfaceId == type(ICTMRWA001SlotApprovable).interfaceId ||
+    //         super.supportsInterface(interfaceId);
+    // }
+
+    function setApprovalForSlot(
+        address owner_,
+        uint256 slot_,
+        address operator_,
+        bool approved_
+    ) public payable virtual override {
+        require(_msgSender() == owner_ || isApprovedForAll(owner_, _msgSender()), "CTMRWA001SlotApprovable: caller is not owner nor approved for all");
+        _setApprovalForSlot(owner_, slot_, operator_, approved_);
+    }
+
+    function isApprovedForSlot(
+        address owner_,
+        uint256 slot_,
+        address operator_
+    ) public view virtual override returns (bool) {
+        return _slotApprovals[owner_][slot_][operator_];
+    }
+
+    function approve(address to_, uint256 tokenId_) public virtual {
+        address owner = ownerOf(tokenId_);
+        uint256 slot = slotOf(tokenId_);
+        require(to_ != owner, "CTMRWA001: approval to current owner");
+
+        require(
+            _msgSender() == owner || 
+            isApprovedForAll(owner, _msgSender()) ||
+            isApprovedForSlot(owner, slot, _msgSender()),
+            "CTMRWA001: approve caller is not owner nor approved for all/slot"
+        );
+
+        _approve(to_, tokenId_);
+    }
+
+    function _setApprovalForSlot(
+        address owner_,
+        uint256 slot_,
+        address operator_,
+        bool approved_
+    ) internal virtual {
+        require(owner_ != operator_, "CTMRWA001SlotApprovable: approve to owner");
+        _slotApprovals[owner_][slot_][operator_] = approved_;
+        emit ApprovalForSlot(owner_, slot_, operator_, approved_);
+    }
+
+    function _isApprovedOrOwner(address operator_, uint256 tokenId_) internal view virtual returns (bool) {
+        _requireMinted(tokenId_);
+        address owner = CTMRWA001.ownerOf(tokenId_);
+        uint256 slot = CTMRWA001.slotOf(tokenId_);
+        return (
+            operator_ == owner ||
+            getApproved(tokenId_) == operator_ ||
+            CTMRWA001.isApprovedForAll(owner, operator_) ||
+            isApprovedForSlot(owner, slot, operator_)
+        );
+    }
+
+
+    // SLOT ENUMERABLE
+
+    struct SlotData {
+        uint256 slot;
+        uint256 dividendRate;  // per unit of this slot
+        uint256[] slotTokens;
+    }
+
+    // slot => tokenId => index
+    mapping(uint256 => mapping(uint256 => uint256)) private _slotTokensIndex;
+
+    SlotData[] public _allSlots;
+
+    // slot => index
+    mapping(uint256 => uint256) public _allSlotsIndex;
+
+    function slotCount() public view virtual override returns (uint256) {
+        return _allSlots.length;
+    }
+
+    function slotByIndex(uint256 index_) public view virtual override returns (uint256) {
+        require(index_ < slotCount(), "CTMRWA001SlotEnumerable: slot index out of bounds");
+        return _allSlots[index_].slot;
+    }
+
+    function _slotExists(uint256 slot_) internal view virtual returns (bool) {
+        return _allSlots.length != 0 && _allSlots[_allSlotsIndex[slot_]].slot == slot_;
+    }
+
+    function tokenSupplyInSlot(uint256 slot_) external view virtual override returns (uint256) {
+        if (!_slotExists(slot_)) {
+            return 0;
+        }
+        return _allSlots[_allSlotsIndex[slot_]].slotTokens.length;
+    }
+
+    function totalSupplyInSlot(uint256 _slot) external view returns (uint256) {
+        uint256 nTokens = this.tokenSupplyInSlot(_slot);
+
+        uint256 total;
+        uint256 tokenId;
+
+        for(uint256 i=0; i<nTokens; i++) {
+            tokenId = tokenInSlotByIndex(_slot, i);
+            total += balanceOf(tokenId);
+        }
+
+        return(total);
+    }
+
+    function tokenInSlotByIndex(uint256 slot_, uint256 index_) public view virtual override returns (uint256) {
+        require(index_ < this.tokenSupplyInSlot(slot_), "CTMRWA001SlotEnumerable: slot token index out of bounds");
+        return _allSlots[_allSlotsIndex[slot_]].slotTokens[index_];
+    }
+
+    function _tokenExistsInSlot(uint256 slot_, uint256 tokenId_) private view returns (bool) {
+        SlotData storage slotData = _allSlots[_allSlotsIndex[slot_]];
+        return slotData.slotTokens.length > 0 && slotData.slotTokens[_slotTokensIndex[slot_][tokenId_]] == tokenId_;
+    }
+
+    function _createSlot(uint256 slot_) internal virtual {
+        require(!_slotExists(slot_), "CTMRWA001SlotEnumerable: slot already exists");
+        SlotData memory slotData = SlotData({
+            slot: slot_,
+            dividendRate: 0,
+            slotTokens: new uint256[](0)
+        });
+        _addSlotToAllSlotsEnumeration(slotData);
+        emit SlotChanged(0, 0, slot_);
+    }
+
+    function _beforeValueTransfer(
+        address from_,
+        address to_,
+        uint256 fromTokenId_,
+        uint256 toTokenId_,
+        uint256 slot_,
+        uint256 value_
+    ) internal virtual {
+        if (from_ == address(0) && fromTokenId_ == 0 && !_slotExists(slot_)) {
+            _createSlot(slot_);
+        }
+
+        //Shh - currently unused
+        to_;
+        toTokenId_;
+        value_;
+    }
+
+    function _afterValueTransfer(
+        address from_,
+        address to_,
+        uint256 fromTokenId_,
+        uint256 toTokenId_,
+        uint256 slot_,
+        uint256 value_
+    ) internal virtual {
+        if (from_ == address(0) && fromTokenId_ == 0 && !_tokenExistsInSlot(slot_, toTokenId_)) {
+            _addTokenToSlotEnumeration(slot_, toTokenId_);
+        } else if (to_ == address(0) && toTokenId_ == 0 && _tokenExistsInSlot(slot_, fromTokenId_)) {
+            _removeTokenFromSlotEnumeration(slot_, fromTokenId_);
+        }
+
+        //Shh - currently unused
+        value_;
+    }
+
+    function _addSlotToAllSlotsEnumeration(SlotData memory slotData) private {
+        _allSlotsIndex[slotData.slot] = _allSlots.length;
+        _allSlots.push(slotData);
+    }
+
+    function _addTokenToSlotEnumeration(uint256 slot_, uint256 tokenId_) private {
+        SlotData storage slotData = _allSlots[_allSlotsIndex[slot_]];
+        _slotTokensIndex[slot_][tokenId_] = slotData.slotTokens.length;
+        slotData.slotTokens.push(tokenId_);
+    }
+
+    function _removeTokenFromSlotEnumeration(uint256 slot_, uint256 tokenId_) private {
+        SlotData storage slotData = _allSlots[_allSlotsIndex[slot_]];
+        uint256 lastTokenIndex = slotData.slotTokens.length - 1;
+        uint256 lastTokenId = slotData.slotTokens[lastTokenIndex];
+        uint256 tokenIndex = _slotTokensIndex[slot_][tokenId_];
+
+        slotData.slotTokens[tokenIndex] = lastTokenId;
+        _slotTokensIndex[slot_][lastTokenId] = tokenIndex;
+
+        delete _slotTokensIndex[slot_][tokenId_];
+        slotData.slotTokens.pop();
     }
 
 }
