@@ -3,8 +3,8 @@
 pragma solidity ^0.8.20;
 
 interface ICTMRWA001Token {
-    function getRWAType() external pure returns(string memory);
-    function getVersion() external pure returns(string memory);
+    function getRWAType() external pure returns(uint256);
+    function getVersion() external pure returns(uint256);
     function setDividendToken(address _dividendToken) external returns(bool);
     function dividendToken() external returns(address);
     function changeDividendRate(uint256 _slot, uint256 _dividend) external returns(bool);

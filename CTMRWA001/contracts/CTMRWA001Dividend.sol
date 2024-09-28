@@ -1,42 +1,10 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/Context.sol";
-import "./CTMRWA001SlotApprovable.sol";
+import {ICTMRWA001Dividend} from "./ICTMRWA001Dividend.sol";
 
-contract CTMRWA001Token is Context, CTMRWA001SlotApprovable {
-
-    address public dividendToken;
-
-    event NewDividendToken(address newToken, address currentAdmin);
-    event ChangeDividendRate(uint256 slot, uint256 newDividend, address currentAdmin);
-    event FundDividend(uint256 dividendPayable, uint256 unclaimedDividend, address dividendToken, address currentAdmin);
-    event ClaimDividend(uint256 tokenId, uint256 dividend, address dividendToken);
-
-    constructor(
-        address _tokenAdmin,
-        string memory name_, 
-        string memory symbol_, 
-        uint8 decimals_,
-        string memory baseURI_,
-        address _ctmRwa001XChain
-    ) CTMRWA001SlotApprovable (
-        _tokenAdmin,
-        name_,
-        symbol_,
-        decimals_,
-        baseURI_,
-        _ctmRwa001XChain
-    ) {}
-
-    function getRWAType() external pure returns(string memory) {
-        return("RWA001");
-    }
-
-    function getVersion() external pure returns(string memory) {
-        return(version);
-    }
+contract CTMRWA001Dividend {
 
     function setDividendToken(address _dividendToken) external onlyTokenAdmin returns(bool) {
         for(uint256 i=1; i<=this.totalSupply(); i++) {

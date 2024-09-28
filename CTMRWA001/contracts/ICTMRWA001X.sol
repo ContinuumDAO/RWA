@@ -10,6 +10,8 @@ struct TokenContract {
 interface ICTMRWA001X {
     
     function ID() external returns(uint256);
+    function getRWAType() external pure returns(uint256);
+    function getVersion() external pure returns(uint256);
     function tokenContract() external returns(TokenContract[] memory);
     function totalSupply() external view returns (uint256);
     function balanceOfX(address owner_) external view returns (uint256 balance);
@@ -29,13 +31,9 @@ interface ICTMRWA001X {
     ) external payable;
     function addChainContract(uint256 chainId, address contractAddress) external returns (bool);
     function deploy(
-        uint256 _ID,
-        address admin,
-        string memory tokenName_, 
-        string memory symbol_, 
-        uint8 decimals_,
-        string memory baseURI_,
-        address gateway
+        uint256 rwaType,
+        uint256 version,
+        bytes memory deployData
     ) external returns(address);
     function checkTokenCompatibility(
         string memory _otherChainIdStr,

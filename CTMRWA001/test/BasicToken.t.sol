@@ -9,25 +9,26 @@ import "forge-std/console.sol";
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import {C3UUIDKeeper} from "contracts/c3Caller/C3UUIDKeeper.sol";
-import {IUUIDKeeper} from "contracts/c3Caller/IUUIDKeeper.sol";
-import {C3CallerDapp} from "contracts/c3Caller/C3CallerDapp.sol";
-import {C3Caller} from "contracts/c3Caller/C3Caller.sol";
-import {IC3Caller, IC3CallerProxy, IC3GovClient} from "contracts/c3Caller/IC3Caller.sol";
-import {C3CallerProxy} from "contracts/c3Caller/C3CallerProxy.sol";
-import {C3CallerProxyERC1967} from "contracts/c3Caller/C3CallerProxyERC1967.sol";
-import {C3GovClient} from "contracts/c3Caller/C3GovClient.sol";
+import {C3UUIDKeeper} from "../contracts/c3Caller/C3UUIDKeeper.sol";
+import {IUUIDKeeper} from "../contracts/c3Caller/IUUIDKeeper.sol";
+import {C3CallerDapp} from "../contracts/c3Caller/C3CallerDapp.sol";
+import {C3Caller} from "../contracts/c3Caller/C3Caller.sol";
+import {IC3Caller, IC3CallerProxy, IC3GovClient} from "../contracts/c3Caller/IC3Caller.sol";
+import {C3CallerProxy} from "../contracts/c3Caller/C3CallerProxy.sol";
+import {C3CallerProxyERC1967} from "../contracts/c3Caller/C3CallerProxyERC1967.sol";
+import {C3GovClient} from "../contracts/c3Caller/C3GovClient.sol";
 
-import {TestERC20} from "contracts/mocks/TestERC20.sol";
+import {TestERC20} from "../contracts/mocks/TestERC20.sol";
 
-import {FeeManager} from "contracts/FeeManager.sol";
-import {FeeType, IFeeManager} from "contracts/IFeeManager.sol";
-import {CTMRWA001Deployer} from "contracts/CTMRWA001Deployer.sol";
-import {CTMRWA001X} from "contracts/CTMRWA001X.sol";
-import {ICTMRWA001} from "contracts/ICTMRWA001.sol";
-import {ICTMRWA001X} from "contracts/ICTMRWA001X.sol";
-import {ICTMRWA001SlotEnumerable} from "contracts/extensions/ICTMRWA001SlotEnumerable.sol";
-import {ICTMRWA001Token} from "contracts/ICTMRWA001Token.sol";
+import {FeeManager} from "../contracts/FeeManager.sol";
+import {FeeType, IFeeManager} from "../contracts/IFeeManager.sol";
+import {CTMRWA001Deployer} from "../contracts/CTMRWA001Deployer.sol";
+import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
+import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
+import {ICTMRWA001} from "../contracts/ICTMRWA001.sol";
+import {ICTMRWA001X} from "../contracts/ICTMRWA001X.sol";
+import {ICTMRWA001SlotEnumerable} from "../contracts/extensions/ICTMRWA001SlotEnumerable.sol";
+import {ICTMRWA001Token} from "../contracts/ICTMRWA001Token.sol";
 
 
 
@@ -47,6 +48,7 @@ contract SetUp is Test {
 
     address admin;
     address gov;
+
     address user1;
     address user2;
     address tokenAdmin;
@@ -81,6 +83,7 @@ contract SetUp is Test {
 
     FeeManager feeManager;
     CTMRWA001Deployer deployer;
+    CTMRWA001TokenFactory tokenFactory;
     CTMRWA001X rwa001X;
 
 
@@ -162,7 +165,8 @@ contract SetUp is Test {
     }
 
     function deployCTMRWA001Deployer() internal {
-        deployer = new CTMRWA001Deployer();
+        tokenFactory = new CTMRWA001TokenFactory();
+        deployer = new CTMRWA001Deployer(address(tokenFactory));
     }
 
     function deployFeeManager() internal {

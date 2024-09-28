@@ -4,9 +4,10 @@ pragma solidity ^0.8.20;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {CTMRWA001Deployer} from "contracts/CTMRWA001Deployer.sol";
-import {FeeManager} from "contracts/FeeManager.sol";
-import {CTMRWA001X} from "contracts/CTMRWA001X.sol";
+import {CTMRWA001Deployer} from "../contracts/CTMRWADeployer.sol";
+import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
+import {FeeManager} from "../contracts/FeeManager.sol";
+import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
 
 contract Deploy is Script {
     function run() external {
@@ -29,7 +30,8 @@ contract Deploy is Script {
         address feeManagerAddr = 0x87724b9402bd58Fb13963F5884845db8Ec860552;
 
         // deploy factory
-        CTMRWA001Deployer ctmRwa001Deployer = new CTMRWA001Deployer();
+        CTMRWA001TokenFactory tokenFactory = new CTMRWA001TokenFactory();
+        CTMRWA001Deployer ctmRwa001Deployer = new CTMRWA001Deployer(address(tokenFactory));
         address ctmRwa001DeployerAddr = address(ctmRwa001Deployer);
 
         // // deploy gateway
