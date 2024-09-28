@@ -24,22 +24,23 @@ contract Deploy is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // deploy fee manager
-        FeeManager feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID1);
-        address feeManagerAddr = address(feeManager);
+        // FeeManager feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID1);
+        // address feeManagerAddr = address(feeManager);
+        address feeManagerAddr = 0x87724b9402bd58Fb13963F5884845db8Ec860552;
 
         // deploy factory
         CTMRWA001Deployer ctmRwa001Deployer = new CTMRWA001Deployer();
         address ctmRwa001DeployerAddr = address(ctmRwa001Deployer);
 
-        // deploy gateway
-        CTMRWA001X ctmRwa001X = new CTMRWA001X(
-            feeManagerAddr,
-            ctmRwa001DeployerAddr,
-            govAddr,
-            c3callerProxyAddr,
-            txSender,
-            dappID2
-        );
+        // // deploy gateway
+        // CTMRWA001X ctmRwa001X = new CTMRWA001X(
+        //     feeManagerAddr,
+        //     ctmRwa001DeployerAddr,
+        //     govAddr,
+        //     c3callerProxyAddr,
+        //     txSender,
+        //     dappID2
+        // );
 
         vm.stopBroadcast();
     }
