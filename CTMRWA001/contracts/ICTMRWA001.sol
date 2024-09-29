@@ -17,12 +17,21 @@ interface ICTMRWA001 is ICTMRWA001Metadata, ICTMRWA001SlotEnumerable, ICTMRWA001
 
     function tokenAdmin() external returns(address);
     function changeAdminX(address _admin) external returns(bool);
-    function nameX() external view returns (string memory);
-    function symbolX() external view returns (string memory);
+    function name() external view returns (string memory);
+    function symbol() external view returns (string memory);
     function valueDecimals() external view returns (uint8);
+    function attachId(uint256 nextID, address _admin) external returns(bool);
     function baseURI() external view returns(string memory);
     function balanceOf(uint256 _tokenId) external view returns (uint256);
     function dividendUnclaimedOf(uint256 tokenId_) external view returns (uint256);
+    function tokenInSlotByIndex(uint256 slot_, uint256 index_) external view returns (uint256);
+    function slotExists(uint256 slot_) external view returns (bool);
+    function attachDividend(address _dividendAddr) external returns(bool);
+    function dividendAddr() external view returns(address);
+    function getDividendRateBySlot(uint256 _slot) external view returns(uint256);
+    function changeDividendRate(uint256 _slot, uint256 _dividend) external returns(bool);
+    function incrementDividend(uint256 _tokenId, uint256 _dividend) external returns(uint256);
+    function decrementDividend(uint256 _tokenId, uint256 _dividend) external returns(uint256);
 
     /**
      * @dev MUST emit when value of a token is transferred to another token with the same slot,

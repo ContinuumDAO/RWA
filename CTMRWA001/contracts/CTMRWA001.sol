@@ -14,13 +14,10 @@ import {ICTMRWA001Receiver} from "./ICTMRWA001Receiver.sol";
 import {ICTMRWA001Metadata} from "./extensions/ICTMRWA001Metadata.sol";
 import {ICTMRWA001MetadataDescriptor} from "./periphery/interface/ICTMRWA001MetadataDescriptor.sol";
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 // import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract CTMRWA001 is Context, ICTMRWA001 {
     using Strings for *;
-    using SafeERC20 for IERC20;
     //using SafeMath for uint256;
 
     // The ID is a unique identifier linking contracts across chains - same ID on each chains
@@ -29,6 +26,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     string public regulator;
     address public tokenAdmin;
     address public ctmRwa001XChain;
+    address public dividendAddr;
 
     string constant TYPE = "CTMRWA001/";
     
@@ -62,7 +60,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     string private _symbol;
     uint8 private _decimals;
     string public baseURI;
-    string public constant version = "1";
     uint256 private _tokenIdGenerator;
 
     // id => (approval => allowance)
@@ -103,12 +100,12 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
     
     modifier onlyTokenAdmin() {
-        require(msg.sender == tokenAdmin, "CTMRWA001: This is an onlyTokenAdmin function");
+        require(_msgSender() == tokenAdmin, "CTMRWA001: This is an onlyTokenAdmin function");
         _;
     }
 
     modifier onlyGateKeeper() {
-        require(msg.sender == ctmRwa001XChain, "CTMRWA001: This can only be called by CTMRWA001X");
+        require(_msgSender() == ctmRwa001XChain, "CTMRWA001: This can only be called by CTMRWA001X");
         _;
     }
     
@@ -142,18 +139,10 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _name;
     }
 
-    function nameX() external view returns (string memory) {
-        return _name;
-    }
-
     /**
      * @dev Returns the token collection symbol.
      */
     function symbol() public view virtual override returns (string memory) {
-        return _symbol;
-    }
-
-    function symbolX() external view returns (string memory) {
         return _symbol;
     }
 
@@ -170,6 +159,12 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             ID = nextID;
             return(true);
         } else return(false);
+    }
+
+    function attachDividend(address _dividendAddr) external onlyGateKeeper returns(bool) {
+        require(dividendAddr == address(0), "CTMRWA001: Cannot reset the dividend contract address");
+        dividendAddr = _dividendAddr;
+        return(true);
     }
 
     function addXTokenInfo(
@@ -262,22 +257,33 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         );
     }
 
-    function incrementDividend(uint256 _tokenId, uint256 _dividend) internal onlyTokenAdmin returns(uint256) {
+    function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyTokenAdmin returns(bool) {
+        require(slotExists(_slot), "CTMRWA001: in changeDividend, slot does not exist");
+        _allSlots[_allSlotsIndex[_slot]].dividendRate = _dividend;
+
+        return(true);
+    }
+
+    function getDividendRateBySlot(uint256 _slot) external view returns(uint256) {
+        require(slotExists(_slot), "CTMRWA001: in getDividendBySlot, slot does not exist");
+        return(_allSlots[_allSlotsIndex[_slot]].dividendRate);
+    }
+
+    function incrementDividend(uint256 _tokenId, uint256 _dividend) external onlyTokenAdmin returns(uint256) {
         _requireMinted(_tokenId);
         _allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed += _dividend;
         return(_allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed);
     }
 
-    function decrementDividend(uint256 _tokenId, uint256 _dividend) internal returns(uint256) {
+    function decrementDividend(uint256 _tokenId, uint256 _dividend) external onlyTokenAdmin returns(uint256) {
         _requireMinted(_tokenId);
         _allTokens[_tokenId].dividendUnclaimed -= _dividend;
         return(_allTokens[_tokenId].dividendUnclaimed);
     }
 
-
-    function setBaseURI(string memory _baseURI) public onlyTokenAdmin {
-        baseURI = _baseURI;
-    }
+    // function setBaseURI(string memory _baseURI) public onlyTokenAdmin {
+    //     baseURI = _baseURI;
+    // }
 
     function contractURI() public view virtual override returns (string memory) {
         return 
@@ -961,12 +967,12 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _allSlots[index_].slot;
     }
 
-    function _slotExists(uint256 slot_) internal view virtual returns (bool) {
+    function slotExists(uint256 slot_) public view virtual returns (bool) {
         return _allSlots.length != 0 && _allSlots[_allSlotsIndex[slot_]].slot == slot_;
     }
 
     function tokenSupplyInSlot(uint256 slot_) external view virtual override returns (uint256) {
-        if (!_slotExists(slot_)) {
+        if (!slotExists(slot_)) {
             return 0;
         }
         return _allSlots[_allSlotsIndex[slot_]].slotTokens.length;
@@ -997,7 +1003,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     function _createSlot(uint256 slot_) internal virtual {
-        require(!_slotExists(slot_), "CTMRWA001SlotEnumerable: slot already exists");
+        require(!slotExists(slot_), "CTMRWA001SlotEnumerable: slot already exists");
         SlotData memory slotData = SlotData({
             slot: slot_,
             dividendRate: 0,
@@ -1015,7 +1021,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         uint256 slot_,
         uint256 value_
     ) internal virtual {
-        if (from_ == address(0) && fromTokenId_ == 0 && !_slotExists(slot_)) {
+        if (from_ == address(0) && fromTokenId_ == 0 && !slotExists(slot_)) {
             _createSlot(slot_);
         }
 

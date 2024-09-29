@@ -4,12 +4,22 @@ pragma solidity ^0.8.20;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {CTMRWA001Deployer} from "../contracts/CTMRWADeployer.sol";
+import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
+import {CTMRWA001Deployer} from "../contracts/CTMRWA001Deployer.sol";
 import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
+import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
+
 import {FeeManager} from "../contracts/FeeManager.sol";
 import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
 
 contract Deploy is Script {
+
+    CTMRWADeployer ctmRwaDeployer;
+    CTMRWA001X ctmRwa001X;
+    CTMRWA001TokenFactory tokenFactory;
+    CTMRWA001DividendFactory dividendFactory;
+
+
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPrivateKey);
@@ -19,6 +29,8 @@ contract Deploy is Script {
         address govAddr = deployer;
         uint256 dappID1 = vm.envUint("DAPP_ID1");
         uint256 dappID2 = vm.envUint("DAPP_ID2");
+        uint256 dappID3 = vm.envUint("DAPP_ID3");
+        
 
         address txSender = deployer;
 
@@ -29,21 +41,52 @@ contract Deploy is Script {
         // address feeManagerAddr = address(feeManager);
         address feeManagerAddr = 0x87724b9402bd58Fb13963F5884845db8Ec860552;
 
-        // deploy factory
-        CTMRWA001TokenFactory tokenFactory = new CTMRWA001TokenFactory();
-        CTMRWA001Deployer ctmRwa001Deployer = new CTMRWA001Deployer(address(tokenFactory));
-        address ctmRwa001DeployerAddr = address(ctmRwa001Deployer);
 
-        // // deploy gateway
-        // CTMRWA001X ctmRwa001X = new CTMRWA001X(
-        //     feeManagerAddr,
-        //     ctmRwa001DeployerAddr,
-        //     govAddr,
-        //     c3callerProxyAddr,
-        //     txSender,
-        //     dappID2
-        // );
+        // deploy gateway
+        ctmRwa001X = new CTMRWA001X(
+            feeManagerAddr,
+            govAddr,
+            c3callerProxyAddr,
+            txSender,
+            dappID2
+        );
+
+        deployCTMRWA001Deployer(
+            1,
+            1,
+            govAddr,
+            address(ctmRwa001X),
+            c3callerProxyAddr,
+            txSender,
+            dappID3
+        );
 
         vm.stopBroadcast();
+    }
+
+    function deployCTMRWA001Deployer(
+        uint256 _rwaType,
+        uint256 _version,
+        address _gov,
+        address _gateway,
+        address _c3callerProxy,
+        address _txSender,
+        uint256 _dappID
+    ) internal {
+        ctmRwaDeployer = new CTMRWADeployer(
+            _gov,
+            _gateway,
+            _c3callerProxy,
+            _txSender,
+            _dappID
+        );
+
+        ctmRwa001X.setCtmRwaDeployer(address(ctmRwaDeployer));
+
+        tokenFactory = new CTMRWA001TokenFactory(address(ctmRwaDeployer));
+        ctmRwaDeployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
+        dividendFactory = new CTMRWA001DividendFactory(address(ctmRwaDeployer));
+        ctmRwaDeployer.setDividendFactory(_rwaType, _version, address(dividendFactory));
+
     }
 }

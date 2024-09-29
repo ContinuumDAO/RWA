@@ -16,7 +16,6 @@ interface ICTMRWA001X {
     function totalSupply() external view returns (uint256);
     function balanceOfX(address owner_) external view returns (uint256 balance);
     
-    function attachId(uint256 nextID, address _admin) external returns(bool);
     function tokenOfOwnerByIndex(address owner_, uint256 index_) external view returns (uint256);
     function addXTokenInfo(
         address _admin,
@@ -34,7 +33,7 @@ interface ICTMRWA001X {
         uint256 rwaType,
         uint256 version,
         bytes memory deployData
-    ) external returns(address);
+    ) external returns(address, address);
     function checkTokenCompatibility(
         string memory _otherChainIdStr,
         string memory _otherContractStr

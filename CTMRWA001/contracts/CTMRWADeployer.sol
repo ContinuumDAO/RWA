@@ -5,9 +5,15 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/utils/Strings.sol";
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
 
-import {ICTMRWATokenFactory} from "./ICTMRWAFactory.sol";
+import {ICTMRWAFactory} from "./ICTMRWAFactory.sol";
 
-contract CTMRWA001Deployer is GovernDapp {
+interface TokenType {
+    function getRWAType() external returns(uint256);
+    function getVersion() external returns(uint256);
+}
+
+
+contract CTMRWADeployer is GovernDapp {
     using Strings for *;
 
     address gateway;
@@ -36,18 +42,24 @@ contract CTMRWA001Deployer is GovernDapp {
         uint256 rwaType,
         uint256 version,
         bytes memory deployData
-    ) external onlyGateway returns(address) {
-       address tokenAddr = ICTMRWATokenFactory(tokenFactory[rwaType][version]).deploy(deployData);
-       return(tokenAddr);
+    ) external onlyGateway returns(address, address) {
+        address tokenAddr = ICTMRWAFactory(tokenFactory[rwaType][version]).deploy(deployData);
+
+        require(TokenType(tokenAddr).getRWAType() == rwaType, "CTMRWADeployer: Wrong RWA type");
+        require(TokenType(tokenAddr).getVersion() == version, "CTMRWADeployer: Wrong RWA version");
+        
+        address dividendAddr = deployDividend(rwaType, version, tokenAddr);
+
+        return(tokenAddr, dividendAddr);
     }
 
     function deployDividend(
         uint256 rwaType,
         uint256 version,
-        bytes memory deployData
-    ) external onlyGateway returns(address) {
-       address tokenAddr = ICTMRWATokenFactory(dividendFactory[rwaType][version]).deploy(deployData);
-       return(tokenAddr);
+        address tokenAddr
+    ) internal returns(address) {
+       address dividendAddr = ICTMRWAFactory(dividendFactory[rwaType][version]).deployDividend(tokenAddr);
+       return(dividendAddr);
     }
 
     function setTokenFactory(uint256 _rwaType, uint256 _version, address _tokenFactory) external onlyGov {

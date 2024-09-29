@@ -19,8 +19,13 @@ import {TestERC20} from "../contracts/mocks/TestERC20.sol";
 
 import {FeeManager} from "../contracts/FeeManager.sol";
 import {FeeType, IFeeManager} from "../contracts/IFeeManager.sol";
+
+import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
 import {CTMRWA001Deployer} from "../contracts/CTMRWA001Deployer.sol";
 import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
+import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
+
+
 import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
 import {ICTMRWA001} from "../contracts/ICTMRWA001.sol";
 import {ICTMRWA001X} from "../contracts/ICTMRWA001X.sol";
@@ -42,6 +47,9 @@ contract SetUp is Test {
         bytes data,
         bytes extra
     );
+
+    uint256 constant rwaType = 1;
+    uint256 constant version = 1;
 
     address admin;
     address gov;
@@ -79,9 +87,10 @@ contract SetUp is Test {
     C3GovClient c3GovClient;
 
     FeeManager feeManager;
-    CTMRWA001Deployer deployer;
+    CTMRWADeployer deployer;
     CTMRWA001TokenFactory tokenFactory;
     CTMRWA001X rwa001X;
+    CTMRWA001DividendFactory dividendFactory;
 
 
     function setUp() public virtual {
@@ -102,7 +111,7 @@ contract SetUp is Test {
         tokenAdmin2 = vm.addr(privKey5);
         treasury = vm.addr(privKey6);
 
-        vm.startPrank(admin);
+        vm.startPrank(admin);  // gov is admin for these tests
 
         ctm = new TestERC20("Continuum", "CTM", 18);
         usdc = new TestERC20("Circle USD", "USDC", 6);
@@ -119,8 +128,19 @@ contract SetUp is Test {
         
         deployC3Caller();
         deployFeeManager();
-        deployCTMRWA001Deployer();
+
+        
         deployCTMRWA001X();
+
+        deployCTMRWA001Deployer(
+            rwaType,
+            version,
+            gov,
+            address(rwa001X),
+            address(c3),
+            admin,
+            3
+        );
 
         vm.stopPrank();
 
@@ -129,7 +149,6 @@ contract SetUp is Test {
         usdc.approve(address(feeManager), initialUserBal);
         vm.stopPrank();
 
-        /// @notice adding the approval for ctmRwa001X to spend arbitrary CTM fee
         vm.prank(user1);
         ctm.approve(address(rwa001X), ctmBal);
 
@@ -144,26 +163,40 @@ contract SetUp is Test {
 
     function deployCTMRWA001X() internal {
 
-        // address _feeManager,
-        // address _ctmRwa001Deployer,
-        // address _gov,
-        // address _c3callerProxy,
-        // address _txSender,
-        // uint256 _dappID
-
         rwa001X = new CTMRWA001X(
             address(feeManager),
-            address(deployer),
-            gov,
+            address(c3Gov),
             address(c3),
             admin,
             2
         );
     }
 
-    function deployCTMRWA001Deployer() internal {
-        tokenFactory = new CTMRWA001TokenFactory();
-        deployer = new CTMRWA001Deployer(address(tokenFactory));
+
+    function deployCTMRWA001Deployer(
+        uint256 _rwaType,
+        uint256 _version,
+        address _gov,
+        address _gateway,
+        address _c3callerProxy,
+        address _txSender,
+        uint256 _dappID
+    ) internal {
+        deployer = new CTMRWADeployer(
+            _gov,
+            _gateway,
+            _c3callerProxy,
+            _txSender,
+            _dappID
+        );
+
+        rwa001X.setCtmRwaDeployer(address(deployer));
+
+        tokenFactory = new CTMRWA001TokenFactory(address(deployer));
+        deployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
+        dividendFactory = new CTMRWA001DividendFactory(address(deployer));
+        deployer.setDividendFactory(_rwaType, _version, address(dividendFactory));
+
     }
 
     function deployFeeManager() internal {
@@ -291,9 +324,12 @@ contract SetUp is Test {
     function CTMRWA001Deploy() public returns(uint256, address) {
         string memory tokenStr = _toLower((address(usdc).toHexString()));
         string[] memory chainIdsStr;
+
         uint256 ID = rwa001X.deployAllCTMRWA001X(
             true,  // include local mint
             0,
+            rwaType,
+            version,
             "Semi Fungible Token XChain",
             "SFTX",
             18,
@@ -413,9 +449,14 @@ contract TestBasicToken is SetUp {
         string memory tokenStr = _toLower((address(usdc).toHexString()));
         string[] memory chainIdsStr;
 
+        uint256 rwaType = 1;
+        uint256 version = 1;
+
         uint256 ID = rwa001X.deployAllCTMRWA001X(
             true,  // include local mint
             0,
+            rwaType,
+            version,
             "Semi Fungible Token XChain",
             "SFTX",
             18,
@@ -430,11 +471,11 @@ contract TestBasicToken is SetUp {
         // console.log(ctmRwaAddr);
         assertEq(ok, true);
 
-        string memory tokenType = ICTMRWA001Token(ctmRwaAddr).getRWAType();
-        assertEq(stringsEqual(tokenType, "RWA001"), true);
+        uint256 tokenType = ICTMRWA001Token(ctmRwaAddr).getRWAType();
+        assertEq(tokenType, rwaType);
 
-        string memory version = ICTMRWA001Token(ctmRwaAddr).getVersion();
-        assertEq(stringsEqual(version, "1"), true);
+        uint256 deployedVersion = ICTMRWA001Token(ctmRwaAddr).getVersion();
+        assertEq(deployedVersion, version);
     }
 
     function test_CTMRWA001Mint() public {
@@ -641,7 +682,7 @@ contract TestBasicToken is SetUp {
         // ) public payable returns(uint256) {
 
         vm.prank(user1);
-        rwa001X.deployAllCTMRWA001X(false, localID, tokenName, symbol, decimals, "", toChainIdsStr, feeTokenStr);
+        rwa001X.deployAllCTMRWA001X(false, localID, 1, 1, tokenName, symbol, decimals, "", toChainIdsStr, feeTokenStr);
 
     }
 

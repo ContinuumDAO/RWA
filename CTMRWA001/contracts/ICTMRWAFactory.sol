@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.20;
 
-interface ICTMRWATokenFactory {
+interface ICTMRWAFactory {
     function deploy(
         bytes memory deployData
     ) external returns(address);
 
     function deployDividend(
-        bytes memory deployData
+        address tokenAddr
     ) external returns(address);
 }

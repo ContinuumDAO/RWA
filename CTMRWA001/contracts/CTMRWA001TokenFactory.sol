@@ -21,12 +21,6 @@ contract CTMRWA001TokenFactory {
 
     function deploy(
         bytes memory _deployData
-        // address admin,
-        // string memory tokenName_, 
-        // string memory symbol_, 
-        // uint8 decimals_,
-        // string memory baseURI_,
-        // address gateway_
     ) external onlyDeployer returns(address) {
 
         (

@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-//import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import {ICTMRWA001X, TokenContract} from "./ICTMRWA001X.sol";
 import {ICTMRWA001} from "./ICTMRWA001.sol";
@@ -19,13 +18,11 @@ import "./FeeManager.sol";
 contract CTMRWA001X is  GovernDapp {
     using Strings for *;
     using SafeERC20 for IERC20;
-    //using SafeMath for uint256;
 
     address public feeManager;
-    address public ctmRwa001Deployer;
+    address public ctmRwaDeployer;
     string public chainIdStr;
 
-    // This is temporary until we have a MongoDB storing this information
     mapping(address => address[]) public adminTokens;  // tokenAdmin address => array of CTMRWA001 contracts
     mapping(address => address[]) public ownedCtmRwa001;  // owner address => array of CTMRWA001 contracts
     mapping(address => mapping(uint256 => mapping(uint256 => bool))) forgottonTokens; // CTMRWA001 address => tokenId =>  slot => bool. True = forget
@@ -106,15 +103,12 @@ contract CTMRWA001X is  GovernDapp {
 
     constructor(
         address _feeManager,
-        address _ctmRwa001Deployer,
         address _gov,
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID
     ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
         feeManager = _feeManager;
-        ctmRwa001Deployer = _ctmRwa001Deployer;
-        
         chainIdStr = cID().toString();
         _addChainContract(cID(), address(this));
         
@@ -124,10 +118,9 @@ contract CTMRWA001X is  GovernDapp {
         feeManager = _feeManager;
     }
 
-    function changeTokenDeployer(address _tokenDeployer) external onlyGov {
-        ctmRwa001Deployer = _tokenDeployer;
+    function setCtmRwaDeployer(address _deployer) external onlyGov {
+        ctmRwaDeployer = _deployer;
     }
-
 
     function _addChainContract(uint256 _chainId, address contractAddr) internal returns(bool) {
         string memory newChainIdStr = _chainId.toString();
@@ -235,21 +228,24 @@ contract CTMRWA001X is  GovernDapp {
 
         bytes memory deployData = abi.encode(_ID, tokenAdmin, tokenName_, symbol_, decimals_, baseURI_, address(this));
 
-        address _ctmRwa001Token = ICTMRWA001X(ctmRwa001Deployer).deploy(
+        (address ctmRwa001Token, address dividendAddr) = ICTMRWA001X(ctmRwaDeployer).deploy(
             _rwaType,
             _version,
             deployData
         );
 
-        ok = _attachCTMRWA001ID(_ID,_ctmRwa001Token);
+        ok = _attachCTMRWA001ID(_ID, ctmRwa001Token);
         require(ok, "CTMRWA001X: Failed to set token ID");
 
-        ICTMRWA001(_ctmRwa001Token).changeAdminX(tokenAdmin);
-        adminTokens[tokenAdmin].push(_ctmRwa001Token);
+        ok = ICTMRWA001(ctmRwa001Token).attachDividend(dividendAddr);
+        require(ok, "CTMRWA001X: Failed to set the dividend contract address");
 
-        emit CreateNewCTMRWA001(_ctmRwa001Token, _ID, tokenAdmin, cID().toString(), "");
+        ICTMRWA001(ctmRwa001Token).changeAdminX(tokenAdmin);
+        adminTokens[tokenAdmin].push(ctmRwa001Token);
 
-        return(_ctmRwa001Token);
+        emit CreateNewCTMRWA001(ctmRwa001Token, _ID, tokenAdmin, cID().toString(), "");
+
+        return(ctmRwa001Token);
     }
 
     function deployAllCTMRWA001X(
@@ -305,8 +301,8 @@ contract CTMRWA001X is  GovernDapp {
             currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
             require(msg.sender == currentAdmin, "CTMRWA001X: Only tokenAdmin can deploy");
 
-            tokenName = ICTMRWA001(ctmRwa001Addr).nameX();
-            symbol = ICTMRWA001(ctmRwa001Addr).symbolX();
+            tokenName = ICTMRWA001(ctmRwa001Addr).name();
+            symbol = ICTMRWA001(ctmRwa001Addr).symbol();
             decimals = ICTMRWA001(ctmRwa001Addr).valueDecimals();
             baseURI = ICTMRWA001(ctmRwa001Addr).baseURI();
         }
@@ -408,19 +404,22 @@ contract CTMRWA001X is  GovernDapp {
 
         bytes memory deployData = abi.encode(_ID, newAdmin, tokenName_, symbol_, decimals_, baseURI_, address(this));
 
-        address _ctmRwa001Token = ICTMRWA001X(ctmRwa001Deployer).deploy(
+        (address ctmRwa001Token, address dividendAddr) = ICTMRWA001X(ctmRwaDeployer).deploy(
             _rwaType,
             _version,
             deployData
         );
 
-        bool ok = _attachCTMRWA001ID(_ID,_ctmRwa001Token);
+        bool ok = _attachCTMRWA001ID(_ID, ctmRwa001Token);
         require(ok, "CTMRWA001X: Failed to set token ID");
 
-        ICTMRWA001(_ctmRwa001Token).changeAdminX(newAdmin);
-        adminTokens[newAdmin].push(_ctmRwa001Token);
+        ok = ICTMRWA001(ctmRwa001Token).attachDividend(dividendAddr);
+        require(ok, "CTMRWA001X: Failed to set the dividend contract address");
 
-        emit CreateNewCTMRWA001(_ctmRwa001Token, _ID, newAdmin, fromChainIdStr, _fromContractStr);
+        ICTMRWA001(ctmRwa001Token).changeAdminX(newAdmin);
+        adminTokens[newAdmin].push(ctmRwa001Token);
+
+        emit CreateNewCTMRWA001(ctmRwa001Token, _ID, newAdmin, fromChainIdStr, _fromContractStr);
 
         return(true);
     }
@@ -627,7 +626,7 @@ contract CTMRWA001X is  GovernDapp {
     function _attachCTMRWA001ID(uint256 _ID, address _ctmRwa001Addr) internal returns(bool) {
         (bool attached,) = this.getAttachedID(_ctmRwa001Addr);
         if (!attached) {
-            bool ok = ICTMRWA001X(_ctmRwa001Addr).attachId(_ID, msg.sender);
+            bool ok = ICTMRWA001(_ctmRwa001Addr).attachId(_ID, msg.sender);
             if(ok) {
                 CTMRWA001ID memory newAttach = CTMRWA001ID(_ID, _toLower(_ctmRwa001Addr.toHexString()));
                 ctmRwa001Ids.push(newAttach);

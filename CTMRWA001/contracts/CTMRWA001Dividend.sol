@@ -2,13 +2,35 @@
 
 pragma solidity ^0.8.20;
 
-import {ICTMRWA001Dividend} from "./ICTMRWA001Dividend.sol";
+import {ICTMRWA001} from "./ICTMRWA001.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract CTMRWA001Dividend {
+contract CTMRWA001Dividend is Context {
+    using SafeERC20 for IERC20;
+
+    address public dividendToken;
+    address public tokenAddr;
+    address public tokenAdmin;
+
+    event NewDividendToken(address newToken, address currentAdmin);
+    event ChangeDividendRate(uint256 slot, uint256 newDividend, address currentAdmin);
+    event FundDividend(uint256 dividendPayable, uint256 unclaimedDividend, address dividendToken, address currentAdmin);
+    event ClaimDividend(uint256 tokenId, uint256 dividend, address dividendToken);
+
+    modifier onlyTokenAdmin() {
+        require(_msgSender() == tokenAdmin, "CTMRWA001Dividend: onlyTokenAdmin function");
+        _;
+    }
+
+    constructor(address _tokenAddr) {
+        tokenAddr = _tokenAddr;
+        tokenAdmin = ICTMRWA001(tokenAddr).tokenAdmin();
+    }
 
     function setDividendToken(address _dividendToken) external onlyTokenAdmin returns(bool) {
-        for(uint256 i=1; i<=this.totalSupply(); i++) {
-            if(this.dividendUnclaimedOf(i) > 0) {
+        for(uint256 i=1; i<=ICTMRWA001(tokenAddr).totalSupply(); i++) {
+            if(ICTMRWA001(tokenAddr).dividendUnclaimedOf(i) > 0) {
                 revert("CTMRWA001: Cannot change dividend token address whilst there is unclaimed dividend");
             }
         }
@@ -20,46 +42,43 @@ contract CTMRWA001Dividend {
     }
 
     function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyTokenAdmin returns(bool) {
-        require(_slotExists(_slot), "CTMRWA001: in changeDividend, slot does not exist");
-        _allSlots[_allSlotsIndex[_slot]].dividendRate = _dividend;
+        ICTMRWA001(tokenAddr).changeDividendRate(_slot, _dividend);
 
         emit ChangeDividendRate(_slot, _dividend, tokenAdmin);
         return(true);
     }
 
     function getDividendRateBySlot(uint256 _slot) external view returns(uint256) {
-        require(_slotExists(_slot), "CTMRWA001: in getDividendBySlot, slot does not exist");
-        return(_allSlots[_allSlotsIndex[_slot]].dividendRate);
+        return(ICTMRWA001(tokenAddr).getDividendRateBySlot(_slot));
     }
 
     function getDividendByToken(uint256 _tokenId) external view returns(uint256) {
-        require(this.requireMinted(_tokenId), "CTMRWA001: TokenId does not exist");
-        uint256 slot = slotOf(_tokenId);
-        return(_allSlots[_allSlotsIndex[slot]].dividendRate * balanceOf(_tokenId));
+        uint256 slot = ICTMRWA001(tokenAddr).slotOf(_tokenId);
+        return(ICTMRWA001(tokenAddr).getDividendRateBySlot(slot) * ICTMRWA001(tokenAddr).balanceOf(_tokenId));
     }
 
     function getTotalDividendBySlot(uint256 _slot) external view returns(uint256) {
-        uint256 len = this.tokenSupplyInSlot(_slot);
+        uint256 len = ICTMRWA001(tokenAddr).tokenSupplyInSlot(_slot);
         uint256 dividendPayable;
         uint256 tokenId;
 
         uint256 slotRate = this.getDividendRateBySlot(_slot);
 
         for(uint256 i=0; i<len; i++) {
-            tokenId = tokenInSlotByIndex(_slot, i);
-            dividendPayable += balanceOf(tokenId)*slotRate;
+            tokenId = ICTMRWA001(tokenAddr).tokenInSlotByIndex(_slot, i);
+            dividendPayable += ICTMRWA001(tokenAddr).balanceOf(tokenId)*slotRate;
         }
 
         return(dividendPayable);
     }
 
     function getTotalDividend() external view returns(uint256) {
-        uint256 nSlots = slotCount();
+        uint256 nSlots = ICTMRWA001(tokenAddr).slotCount();
         uint256 dividendPayable;
         uint256 slot;
 
         for(uint256 i=0; i<nSlots; i++) {
-            slot = slotByIndex(i);
+            slot = ICTMRWA001(tokenAddr).slotByIndex(i);
             dividendPayable += this.getTotalDividendBySlot(slot);
         }
 
@@ -71,9 +90,9 @@ contract CTMRWA001Dividend {
         uint256 unclaimedDividend;
         uint256 tokenId;
 
-        for(uint256 i=0; i<this.totalSupply(); i++) {
-            tokenId = tokenByIndex(i);
-            unclaimedDividend += incrementDividend(tokenId, this.getDividendByToken(tokenId));
+        for(uint256 i=0; i<ICTMRWA001(tokenAddr).totalSupply(); i++) {
+            tokenId = ICTMRWA001(tokenAddr).tokenByIndex(i);
+            unclaimedDividend += ICTMRWA001(tokenAddr).incrementDividend(tokenId, this.getDividendByToken(tokenId));
         }
 
         emit FundDividend(_dividendPayable, unclaimedDividend, dividendToken, _msgSender());
@@ -82,14 +101,16 @@ contract CTMRWA001Dividend {
     }
 
     function claimDividend(uint256 _tokenId) external returns(bool) {
-        require(ownerOf(_tokenId) == _msgSender(), "CTMRWA001: Cannot claim dividend, since not owner");
-        uint256 dividend = this.dividendUnclaimedOf(_tokenId);
-        decrementDividend(_tokenId, dividend);
+        require(ICTMRWA001(tokenAddr).ownerOf(_tokenId) == _msgSender(), "CTMRWA001: Cannot claim dividend, since not owner");
+        uint256 dividend = ICTMRWA001(tokenAddr).dividendUnclaimedOf(_tokenId);
+        ICTMRWA001(tokenAddr).decrementDividend(_tokenId, dividend);
         IERC20(dividendToken).transferFrom(address(this), _msgSender(), dividend);
 
         emit ClaimDividend(_tokenId, dividend, dividendToken);
 
         return(true);
     }
+
+    
     
 }
