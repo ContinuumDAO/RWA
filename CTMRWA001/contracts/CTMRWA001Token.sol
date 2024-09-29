@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.20;
 
-// import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-// import "./CTMRWA001SlotApprovable.sol";
 import {CTMRWA001} from "./CTMRWA001.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";

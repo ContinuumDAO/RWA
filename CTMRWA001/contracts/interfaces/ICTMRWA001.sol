@@ -4,9 +4,9 @@ pragma solidity ^0.8.20;
 
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {ICTMRWA001Metadata} from "./extensions/ICTMRWA001Metadata.sol";
-import {ICTMRWA001SlotEnumerable} from "./extensions/ICTMRWA001SlotEnumerable.sol";
-import {ICTMRWA001SlotApprovable} from "./extensions/ICTMRWA001SlotApprovable.sol";
+import {ICTMRWA001Metadata} from "../extensions/ICTMRWA001Metadata.sol";
+import {ICTMRWA001SlotEnumerable} from "../extensions/ICTMRWA001SlotEnumerable.sol";
+import {ICTMRWA001SlotApprovable} from "../extensions/ICTMRWA001SlotApprovable.sol";
 
 /**
  * @title CTMRWA001 Semi-Fungible Token Standard
@@ -15,23 +15,45 @@ import {ICTMRWA001SlotApprovable} from "./extensions/ICTMRWA001SlotApprovable.so
  */
 interface ICTMRWA001 is ICTMRWA001Metadata, ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
 
+    function ID() external view returns(uint256);
     function tokenAdmin() external returns(address);
     function changeAdminX(address _admin) external returns(bool);
+    function addXTokenInfo(
+        address _admin,
+        string[] memory _chainIdsStr,
+        string[] memory _contractAddrsStr
+    ) external returns(bool);
+    function getTokenContract(string memory _chainIdStr) external view returns(string memory);
+    function getTokenInfo(uint256 tokenId_) external view returns(uint256 id,uint256 bal,address owner,uint256 slot);
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
     function valueDecimals() external view returns (uint8);
-    function attachId(uint256 nextID, address _admin) external returns(bool);
+    function attachId(uint256 ID, address _admin) external returns(bool);
     function baseURI() external view returns(string memory);
     function balanceOf(uint256 _tokenId) external view returns (uint256);
-    function dividendUnclaimedOf(uint256 tokenId_) external view returns (uint256);
-    function tokenInSlotByIndex(uint256 slot_, uint256 index_) external view returns (uint256);
+    function dividendUnclaimedOf(uint256 tokenId) external view returns (uint256);
+    function tokenOfOwnerByIndex(address owner, uint256 index_) external view returns (uint256);
+    function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);
+    function tokenSupplyInSlot(uint256 slot) external view returns(uint256);
+    function totalSupplyInSlot(uint256 slot) external view returns(uint256);
     function slotExists(uint256 slot_) external view returns (bool);
-    function attachDividend(address _dividendAddr) external returns(bool);
+
+    function burnValueX(uint256 fromTokenId, uint256 value_) external returns(bool);
+    function mintValueX(uint256 toTokenId, uint256 slot_, uint256 value_) external returns(bool);
+    function mintFromX(address to, uint256 slot_, uint256 value_) external returns (uint256 tokenId);
+    function mintFromX(address to, uint256 tokenId, uint256 slot, uint256 value) external;
+
+    function spendAllowance(address operator, uint256 tokenId, uint256 value_) external;
+    function requireMinted(uint256 tokenId) external view returns(bool);
+    function isApprovedOrOwner(address operator, uint256 tokenId) external view returns(bool);
+    
+
+    function attachDividend(address dividendAddr) external returns(bool);
     function dividendAddr() external view returns(address);
     function getDividendRateBySlot(uint256 _slot) external view returns(uint256);
-    function changeDividendRate(uint256 _slot, uint256 _dividend) external returns(bool);
-    function incrementDividend(uint256 _tokenId, uint256 _dividend) external returns(uint256);
-    function decrementDividend(uint256 _tokenId, uint256 _dividend) external returns(uint256);
+    function changeDividendRate(uint256 slot, uint256 dividend) external returns(bool);
+    function incrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
+    function decrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
 
     /**
      * @dev MUST emit when value of a token is transferred to another token with the same slot,

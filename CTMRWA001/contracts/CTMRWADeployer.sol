@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/utils/Strings.sol";
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
 
-import {ICTMRWAFactory} from "./ICTMRWAFactory.sol";
+import {ICTMRWAFactory} from "./interfaces/ICTMRWAFactory.sol";
 
 interface TokenType {
     function getRWAType() external returns(uint256);
@@ -18,8 +18,8 @@ contract CTMRWADeployer is GovernDapp {
 
     address gateway;
 
-    mapping(uint256 => address[]) public tokenFactory;
-    mapping(uint256 => address[]) public dividendFactory;
+    mapping(uint256 => address[1_000_000_000]) public tokenFactory;
+    mapping(uint256 => address[1_000_000_000]) public dividendFactory;
 
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 

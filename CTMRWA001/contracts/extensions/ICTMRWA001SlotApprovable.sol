@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.20;
 
-// import "../ICTMRWA001.sol";
 
 /**
  * @title CTMRWA001 Semi-Fungible Token Standard, optional extension for approval of slot level

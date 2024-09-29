@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.20;
 
-// import "../ICTMRWA001.sol";
 import {IERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 /**
  * @title CTMRWA001 Semi-Fungible Token Standard, optional extension for slot enumeration

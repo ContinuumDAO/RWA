@@ -3,7 +3,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import "../ICTMRWA001Receiver.sol";
+import "../interfaces/ICTMRWA001Receiver.sol";
 
 contract CTMRWA001ReceiverMock is IERC165, ICTMRWA001Receiver {
     enum Error {

@@ -8,9 +8,10 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {IERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {ICTMRWA001, ICTMRWA001SlotApprovable, ICTMRWA001SlotEnumerable} from "./ICTMRWA001.sol";
+
+import {ICTMRWA001, ICTMRWA001SlotApprovable, ICTMRWA001SlotEnumerable} from "./interfaces/ICTMRWA001.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import {ICTMRWA001Receiver} from "./ICTMRWA001Receiver.sol";
+import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
 import {ICTMRWA001Metadata} from "./extensions/ICTMRWA001Metadata.sol";
 import {ICTMRWA001MetadataDescriptor} from "./periphery/interface/ICTMRWA001MetadataDescriptor.sol";
 
@@ -106,6 +107,11 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     modifier onlyGateKeeper() {
         require(_msgSender() == ctmRwa001XChain, "CTMRWA001: This can only be called by CTMRWA001X");
+        _;
+    }
+
+    modifier onlyDividend() {
+        require(_msgSender() == dividendAddr, "CTMRWA001: This can only be called by Dividend contract");
         _;
     }
     
@@ -222,33 +228,33 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     function idOf(uint256 tokenId_) public view virtual returns(uint256) {
-        _requireMinted(tokenId_);
+        requireMinted(tokenId_);
         return _allTokens[_allTokensIndex[tokenId_]].id;
     }
    
     function balanceOf(uint256 tokenId_) public view virtual override returns (uint256) {
-        _requireMinted(tokenId_);
+        requireMinted(tokenId_);
         return _allTokens[_allTokensIndex[tokenId_]].balance;
     }
 
     function dividendUnclaimedOf(uint256 tokenId_) external view virtual returns (uint256) {
-        _requireMinted(tokenId_);
+       requireMinted(tokenId_);
         return _allTokens[_allTokensIndex[tokenId_]].dividendUnclaimed;
     }
 
     function ownerOf(uint256 tokenId_) public view virtual override returns (address owner_) {
-        _requireMinted(tokenId_);
+        requireMinted(tokenId_);
         owner_ = _allTokens[_allTokensIndex[tokenId_]].owner;
         require(owner_ != address(0), "CTMRWA001: invalid token ID");
     }
 
     function slotOf(uint256 tokenId_) public view virtual override returns (uint256) {
-        _requireMinted(tokenId_);
+        requireMinted(tokenId_);
         return _allTokens[_allTokensIndex[tokenId_]].slot;
     }
 
     function getTokenInfo(uint256 tokenId_) external view returns(uint256,uint256,address,uint256) {
-        _requireMinted(tokenId_);
+        requireMinted(tokenId_);
         return(
             _allTokens[_allTokensIndex[tokenId_]].id,
             _allTokens[_allTokensIndex[tokenId_]].balance,
@@ -257,7 +263,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         );
     }
 
-    function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyTokenAdmin returns(bool) {
+    function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyDividend returns(bool) {
         require(slotExists(_slot), "CTMRWA001: in changeDividend, slot does not exist");
         _allSlots[_allSlotsIndex[_slot]].dividendRate = _dividend;
 
@@ -269,14 +275,14 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return(_allSlots[_allSlotsIndex[_slot]].dividendRate);
     }
 
-    function incrementDividend(uint256 _tokenId, uint256 _dividend) external onlyTokenAdmin returns(uint256) {
-        _requireMinted(_tokenId);
+    function incrementDividend(uint256 _tokenId, uint256 _dividend) external onlyDividend returns(uint256) {
+        requireMinted(_tokenId);
         _allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed += _dividend;
         return(_allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed);
     }
 
-    function decrementDividend(uint256 _tokenId, uint256 _dividend) external onlyTokenAdmin returns(uint256) {
-        _requireMinted(_tokenId);
+    function decrementDividend(uint256 _tokenId, uint256 _dividend) external onlyDividend returns(uint256) {
+        requireMinted(_tokenId);
         _allTokens[_tokenId].dividendUnclaimed -= _dividend;
         return(_allTokens[_tokenId].dividendUnclaimed);
     }
@@ -307,7 +313,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
      */
     function tokenURI(uint256 tokenId_) public view virtual override returns (string memory) {
-        _requireMinted(tokenId_);
+        requireMinted(tokenId_);
         return 
             address(metadataDescriptor) != address(0) ? 
                 metadataDescriptor.constructTokenURI(tokenId_) : 
@@ -320,13 +326,13 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         address owner = CTMRWA001.ownerOf(tokenId_);
         require(to_ != owner, "CTMRWA001: approval to current owner");
 
-        require(_isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: approve caller is not owner nor approved");
+        require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: approve caller is not owner nor approved");
 
         _approveValue(tokenId_, to_, value_);
     }
 
     function allowance(uint256 tokenId_, address operator_) public view virtual override returns (uint256) {
-        _requireMinted(tokenId_);
+        requireMinted(tokenId_);
         return _approvedValues[tokenId_][operator_];
     }
 
@@ -335,7 +341,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         address to_,
         uint256 value_
     ) public payable virtual override returns (uint256 newTokenId) {
-        this.spendAllowance(_msgSender(), fromTokenId_, value_);
+        spendAllowance(_msgSender(), fromTokenId_, value_);
 
         newTokenId = _createDerivedTokenId(fromTokenId_);
         _mint(to_, newTokenId, CTMRWA001.slotOf(fromTokenId_), 0);
@@ -347,7 +353,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         uint256 toTokenId_,
         uint256 value_
     ) public payable virtual override {
-        this.spendAllowance(_msgSender(), fromTokenId_, value_);
+        spendAllowance(_msgSender(), fromTokenId_, value_);
         _transferValue(fromTokenId_, toTokenId_, value_);
     }
 
@@ -366,7 +372,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         address to_,
         uint256 tokenId_
     ) public virtual override {
-        require(_isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
+        require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
         _transferTokenId(from_, to_, tokenId_);
     }
 
@@ -376,7 +382,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         uint256 tokenId_,
         bytes memory data_
     ) public virtual override {
-        require(_isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
+        require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
         _safeTransferTokenId(from_, to_, tokenId_, data_);
     }
 
@@ -402,7 +408,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     // }
 
     function getApproved(uint256 tokenId_) public view virtual override returns (address) {
-        _requireMinted(tokenId_);
+        requireMinted(tokenId_);
         return _allTokens[_allTokensIndex[tokenId_]].approved;
     }
 
@@ -440,13 +446,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         emit ApprovalForAll(owner_, operator_, approved_);
     }
 
-    function isApprovedOrOwner(address operator_, uint256 tokenId_) external view onlyGateKeeper returns(bool) {
-        return(_isApprovedOrOwner(operator_, tokenId_));
-    }
-
-    function spendAllowance(address operator_, uint256 tokenId_, uint256 value_) external virtual {
+    function spendAllowance(address operator_, uint256 tokenId_, uint256 value_) public virtual {
         uint256 currentAllowance = CTMRWA001.allowance(tokenId_, operator_);
-        if (!_isApprovedOrOwner(operator_, tokenId_) && currentAllowance != type(uint256).max) {
+        if (!isApprovedOrOwner(operator_, tokenId_) && currentAllowance != type(uint256).max) {
             require(currentAllowance >= value_, "CTMRWA001: insufficient allowance");
             _approveValue(tokenId_, operator_, currentAllowance - value_);
         }
@@ -456,11 +458,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _allTokens.length != 0 && _allTokens[_allTokensIndex[tokenId_]].id == tokenId_;
     }
 
-    function _requireMinted(uint256 tokenId_) internal view virtual {
-        require(_exists(tokenId_), "CTMRWA001: invalid token ID");
-    }
-
-    function requireMinted(uint256 tokenId_) external view virtual returns(bool){
+    function requireMinted(uint256 tokenId_) public view virtual returns(bool){
         return(_exists(tokenId_));
     }
 
@@ -520,7 +518,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     function _burn(uint256 tokenId_) internal virtual {
-        _requireMinted(tokenId_);
+        requireMinted(tokenId_);
 
         TokenData storage tokenData = _allTokens[_allTokensIndex[tokenId_]];
         address owner = tokenData.owner;
@@ -541,7 +539,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     function _burnValue(uint256 tokenId_, uint256 burnValue_) internal virtual {
-        _requireMinted(tokenId_);
+        requireMinted(tokenId_);
 
         TokenData storage tokenData = _allTokens[_allTokensIndex[tokenId_]];
         address owner = tokenData.owner;
@@ -929,8 +927,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         emit ApprovalForSlot(owner_, slot_, operator_, approved_);
     }
 
-    function _isApprovedOrOwner(address operator_, uint256 tokenId_) internal view virtual returns (bool) {
-        _requireMinted(tokenId_);
+    function isApprovedOrOwner(address operator_, uint256 tokenId_) public view virtual returns (bool) {
+        requireMinted(tokenId_);
         address owner = CTMRWA001.ownerOf(tokenId_);
         uint256 slot = CTMRWA001.slotOf(tokenId_);
         return (

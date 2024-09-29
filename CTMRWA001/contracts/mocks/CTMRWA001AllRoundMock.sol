@@ -40,12 +40,12 @@ contract CTMRWA001AllRoundMock is Context, CTMRWA001 {
     }
 
     function burn(uint256 tokenId_) public virtual {
-        require(_isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: caller is not token owner nor approved");
+        require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: caller is not token owner nor approved");
         CTMRWA001._burn(tokenId_);
     }
 
     function burnValue(uint256 tokenId_, uint256 burnValue_) public virtual {
-        require(_isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: caller is not token owner nor approved");
+        require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: caller is not token owner nor approved");
         CTMRWA001._burnValue(tokenId_, burnValue_);
     }
 }

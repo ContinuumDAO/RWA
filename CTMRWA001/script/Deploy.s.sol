@@ -51,15 +51,15 @@ contract Deploy is Script {
             dappID2
         );
 
-        deployCTMRWA001Deployer(
-            1,
-            1,
-            govAddr,
-            address(ctmRwa001X),
-            c3callerProxyAddr,
-            txSender,
-            dappID3
-        );
+        // deployCTMRWA001Deployer(
+        //     1,
+        //     1,
+        //     govAddr,
+        //     address(ctmRwa001X),
+        //     c3callerProxyAddr,
+        //     txSender,
+        //     dappID3
+        // );
 
         vm.stopBroadcast();
     }

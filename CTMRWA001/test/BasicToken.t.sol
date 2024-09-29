@@ -18,7 +18,7 @@ import {C3GovClient} from "../contracts/c3Caller/C3GovClient.sol";
 import {TestERC20} from "../contracts/mocks/TestERC20.sol";
 
 import {FeeManager} from "../contracts/FeeManager.sol";
-import {FeeType, IFeeManager} from "../contracts/IFeeManager.sol";
+import {FeeType, IFeeManager} from "../contracts/interfaces/IFeeManager.sol";
 
 import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
 import {CTMRWA001Deployer} from "../contracts/CTMRWA001Deployer.sol";
@@ -27,10 +27,11 @@ import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.so
 
 
 import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
-import {ICTMRWA001} from "../contracts/ICTMRWA001.sol";
-import {ICTMRWA001X} from "../contracts/ICTMRWA001X.sol";
+import {ICTMRWA001} from "../contracts/interfaces/ICTMRWA001.sol";
+import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
 import {ICTMRWA001SlotEnumerable} from "../contracts/extensions/ICTMRWA001SlotEnumerable.sol";
-import {ICTMRWA001Token} from "../contracts/ICTMRWA001Token.sol";
+import {ICTMRWA001Token} from "../contracts/interfaces/ICTMRWA001Token.sol";
+import {ICTMRWA001Dividend} from "../contracts/interfaces/ICTMRWA001Dividend.sol";
 
 
 
@@ -59,6 +60,7 @@ contract SetUp is Test {
     address tokenAdmin;
     address tokenAdmin2;
     address treasury;
+    address ctmDividend;
 
     // address c3;
 
@@ -132,10 +134,14 @@ contract SetUp is Test {
         
         deployCTMRWA001X();
 
+        vm.stopPrank();
+
+        vm.startPrank(address(c3Gov));
+
         deployCTMRWA001Deployer(
             rwaType,
             version,
-            gov,
+            address(c3Gov),
             address(rwa001X),
             address(c3),
             admin,
@@ -195,6 +201,7 @@ contract SetUp is Test {
         tokenFactory = new CTMRWA001TokenFactory(address(deployer));
         deployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
         dividendFactory = new CTMRWA001DividendFactory(address(deployer));
+        ctmDividend = address(dividendFactory);
         deployer.setDividendFactory(_rwaType, _version, address(dividendFactory));
 
     }
@@ -498,7 +505,7 @@ contract TestBasicToken is SetUp {
         );
 
         assertEq(tokenId, 1);
-        (uint256 id, uint256 bal, address owner, uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId);
+        (uint256 id, uint256 bal, address owner, uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId);
         //console.log(id, bal, owner, slot);
         assertEq(id,1);
         assertEq(bal, 2000);
@@ -526,8 +533,8 @@ contract TestBasicToken is SetUp {
         uint256 slot;
 
         for(uint256 i=0; i<nRWA001.length; i++) {
-            tokenId = ICTMRWA001X(nRWA001[i]).tokenOfOwnerByIndex(user1, i);
-            (id, bal, owner, slot) = ICTMRWA001X(nRWA001[i]).getTokenInfo(tokenId);
+            tokenId = ICTMRWA001(nRWA001[i]).tokenOfOwnerByIndex(user1, i);
+            (id, bal, owner, slot) = ICTMRWA001(nRWA001[i]).getTokenInfo(tokenId);
             // console.log(tokenId);
             // console.log(id);
             // console.log(bal);
@@ -545,59 +552,58 @@ contract TestBasicToken is SetUp {
     }
 
     function test_dividends() public {
-        vm.startPrank(admin);
+        vm.startPrank(admin);  // this CTMRWA001 has an admin of admin
         (, address ctmRwaAddr) = CTMRWA001Deploy();
         (, uint256 tokenId2,) = deployAFewTokensLocal(ctmRwaAddr);
-        vm.stopPrank();
 
-        vm.prank(admin);
-        ICTMRWA001Token(ctmRwaAddr).setDividendToken(address(usdc));
-        address token = ICTMRWA001Token(ctmRwaAddr).dividendToken();
+        address ctmDividend = ICTMRWA001(ctmRwaAddr).dividendAddr();
+
+        ICTMRWA001Dividend(ctmDividend).setDividendToken(address(usdc));
+        address token = ICTMRWA001Dividend(ctmDividend).dividendToken();
         assertEq(token, address(usdc));
 
-        uint256 divRate = ICTMRWA001Token(ctmRwaAddr).getDividendRateBySlot(3);
+        uint256 divRate = ICTMRWA001Dividend(ctmDividend).getDividendRateBySlot(3);
         assertEq(divRate, 0);
 
-        vm.prank(admin);
         uint256 divRate3 = 2500;
-        ICTMRWA001Token(ctmRwaAddr).changeDividendRate(3, divRate3);
-        divRate = ICTMRWA001Token(ctmRwaAddr).getDividendRateBySlot(3);
+        ICTMRWA001Dividend(ctmDividend).changeDividendRate(3, divRate3);
+        divRate = ICTMRWA001Dividend(ctmDividend).getDividendRateBySlot(3);
         assertEq(divRate, divRate3);
 
         uint256 bal2 = ICTMRWA001(ctmRwaAddr).balanceOf(tokenId2);
-        uint256 dividend = ICTMRWA001Token(ctmRwaAddr).getDividendByToken(tokenId2);
+        uint256 dividend = ICTMRWA001Dividend(ctmDividend).getDividendByToken(tokenId2);
         assertEq(dividend, bal2*divRate3);
 
-        vm.prank(admin);
         uint256 divRate1 = 8000;
-        ICTMRWA001Token(ctmRwaAddr).changeDividendRate(1, divRate1);
+        ICTMRWA001Dividend(ctmDividend).changeDividendRate(1, divRate1);
 
-        uint256 balSlot1 = ICTMRWA001Token(ctmRwaAddr).totalSupplyInSlot(1);
+        uint256 balSlot1 = ICTMRWA001(ctmRwaAddr).totalSupplyInSlot(1);
         
-        dividend = ICTMRWA001Token(ctmRwaAddr).getTotalDividendBySlot(1);
+        dividend = ICTMRWA001Dividend(ctmDividend).getTotalDividendBySlot(1);
         assertEq(dividend, balSlot1*divRate1);
 
-        uint256 balSlot3 = ICTMRWA001Token(ctmRwaAddr).totalSupplyInSlot(3);
+        uint256 balSlot3 = ICTMRWA001(ctmRwaAddr).totalSupplyInSlot(3);
          
-        uint256 balSlot5 = ICTMRWA001Token(ctmRwaAddr).totalSupplyInSlot(5);
+        uint256 balSlot5 = ICTMRWA001(ctmRwaAddr).totalSupplyInSlot(5);
         
-        uint256 divRate5 = ICTMRWA001Token(ctmRwaAddr).getDividendRateBySlot(5);
+        uint256 divRate5 = ICTMRWA001Dividend(ctmDividend).getDividendRateBySlot(5);
 
-        uint256 dividendTotal = ICTMRWA001Token(ctmRwaAddr).getTotalDividend();
+        uint256 dividendTotal = ICTMRWA001Dividend(ctmDividend).getTotalDividend();
         assertEq(dividendTotal, balSlot1*divRate1 + balSlot3*divRate3 + balSlot5*divRate5);
 
-        vm.startPrank(admin);
-        usdc.approve(ctmRwaAddr, dividend);
-        uint256 unclaimed = ICTMRWA001Token(ctmRwaAddr).fundDividend(dividend);
+        usdc.approve(ctmDividend, dividend);
+        uint256 unclaimed = ICTMRWA001Dividend(ctmDividend).fundDividend(dividend);
         vm.stopPrank();
         assertEq(unclaimed, dividendTotal);
 
         uint256 tokenId = ICTMRWA001SlotEnumerable(ctmRwaAddr).tokenOfOwnerByIndex(user1, 0);
-        uint256 toClaim = ICTMRWA001Token(ctmRwaAddr).dividendUnclaimedOf(tokenId);
+        uint256 toClaim = ICTMRWA001(ctmRwaAddr).dividendUnclaimedOf(tokenId);
         uint256 balBefore = usdc.balanceOf(user1);
 
+        vm.stopPrank();  // end of prank admin
+
         vm.startPrank(user1);
-        bool ok = ICTMRWA001Token(ctmRwaAddr).claimDividend(1);
+        bool ok = ICTMRWA001Dividend(ctmDividend).claimDividend(1);
         vm.stopPrank();
         assertEq(ok, true);
         uint balAfter = usdc.balanceOf(user1);
@@ -627,17 +633,22 @@ contract TestBasicToken is SetUp {
         (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
-        string memory sig = "deployCTMRWA001(string,uint256,string,string,uint8,string,string)";
+        uint256 rwaType = ICTMRWA001Token(ctmRwaAddr).getRWAType();
+        uint256 version = ICTMRWA001Token(ctmRwaAddr).getVersion();
+
+        string memory sig = "deployCTMRWA001(string,uint256,uint256,uint256,string,string,uint8,string,string)";
 
         string memory tokenName = "Semi Fungible Token XChain";
         string memory symbol = "SFTX";
         uint8 decimals = 18;
 
-        // string memory funcCall = "deployCTMRWA001(string,uint256,string,string,uint8,string,string)";
+        // string memory funcCall = "deployCTMRWA001(string,uint256,uint256,uint256,string,string,uint8,string,string)";
         // bytes memory callData = abi.encodeWithSignature(
         //     funcCall,
         //     currentAdminStr,
         //     ID,
+        //     rwaType,
+        //     version,
         //     tokenName_,
         //     symbol_,
         //     decimals_,
@@ -649,6 +660,8 @@ contract TestBasicToken is SetUp {
             sig,
             currentAdminStr,
             ID,
+            rwaType,
+            version,
             tokenName,
             symbol,
             decimals,
@@ -682,7 +695,7 @@ contract TestBasicToken is SetUp {
         // ) public payable returns(uint256) {
 
         vm.prank(user1);
-        rwa001X.deployAllCTMRWA001X(false, localID, 1, 1, tokenName, symbol, decimals, "", toChainIdsStr, feeTokenStr);
+        rwa001X.deployAllCTMRWA001X(false, localID, rwaType, version, tokenName, symbol, decimals, "", toChainIdsStr, feeTokenStr);
 
     }
 
@@ -727,8 +740,8 @@ contract TestBasicToken is SetUp {
 
  
         string memory targetStr = rwa001X.getChainContract("1");
-        string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdStr);
-        (,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId1);
+        string memory toContractStr = ICTMRWA001(ctmRwaAddr).getTokenContract(toChainIdStr);
+        (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         bytes memory callData = abi.encodeWithSignature(
@@ -790,8 +803,8 @@ contract TestBasicToken is SetUp {
         string memory toChainIdStr = "1";
 
         string memory targetStr = rwa001X.getChainContract("1");
-        string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdStr);
-        (,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId1);
+        string memory toContractStr = ICTMRWA001(ctmRwaAddr).getTokenContract(toChainIdStr);
+        (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,uint256,string,string)";
@@ -868,8 +881,8 @@ contract TestBasicToken is SetUp {
         string memory toChainIdStr = "1";
 
         string memory targetStr = rwa001X.getChainContract("1");
-        string memory toContractStr = ICTMRWA001X(ctmRwaAddr).getTokenContract(toChainIdStr);
-        (,uint256 value,,uint256 slot) = ICTMRWA001X(ctmRwaAddr).getTokenInfo(tokenId1);
+        string memory toContractStr = ICTMRWA001(ctmRwaAddr).getTokenContract(toChainIdStr);
+        (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";

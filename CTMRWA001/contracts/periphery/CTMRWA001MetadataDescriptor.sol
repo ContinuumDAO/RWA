@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "./interface/ICTMRWA001MetadataDescriptor.sol";
-import "../ICTMRWA001.sol";
+import "../interfaces/ICTMRWA001.sol";
 
 contract CTMRWA001MetadataDescriptor is ICTMRWA001MetadataDescriptor {
 
