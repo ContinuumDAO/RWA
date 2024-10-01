@@ -15,11 +15,9 @@ import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
 import {ICTMRWA001Metadata} from "./extensions/ICTMRWA001Metadata.sol";
 import {ICTMRWA001MetadataDescriptor} from "./periphery/interface/ICTMRWA001MetadataDescriptor.sol";
 
-// import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract CTMRWA001 is Context, ICTMRWA001 {
     using Strings for *;
-    //using SafeMath for uint256;
 
     // The ID is a unique identifier linking contracts across chains - same ID on each chains
     uint256 public ID;
@@ -62,6 +60,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     uint8 private _decimals;
     string public baseURI;
     uint256 private _tokenIdGenerator;
+    string[] public tokenChainIdStrs;
 
     // id => (approval => allowance)
     // @dev _approvedValues cannot be defined within TokenData, cause struct containing mappings cannot be constructed.
@@ -200,6 +199,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         }
 
         tokenContract.push(TokenContract(_chainIdStr, _contractAddrStr));
+        tokenChainIdStrs.push(_chainIdStr);
         return(true);
     }
 
@@ -211,6 +211,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         }
         return("");
     }
+
 
     // Check that another CTMRWA001 token contract is part of the same set as this one
     function checkTokenCompatibility(

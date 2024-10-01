@@ -10,11 +10,13 @@ import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
 import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
 
 import {FeeManager} from "../contracts/FeeManager.sol";
+import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
 import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
 
 contract Deploy is Script {
 
     CTMRWADeployer ctmRwaDeployer;
+    CTMRWAGateway gateway;
     CTMRWA001X ctmRwa001X;
     CTMRWA001TokenFactory tokenFactory;
     CTMRWA001DividendFactory dividendFactory;
@@ -30,6 +32,7 @@ contract Deploy is Script {
         uint256 dappID1 = vm.envUint("DAPP_ID1");
         uint256 dappID2 = vm.envUint("DAPP_ID2");
         uint256 dappID3 = vm.envUint("DAPP_ID3");
+        uint256 dappID4 = vm.envUint("DAPP_ID4");
         
 
         address txSender = deployer;
@@ -37,13 +40,25 @@ contract Deploy is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // deploy fee manager
-        // FeeManager feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID1);
-        // address feeManagerAddr = address(feeManager);
-        address feeManagerAddr = 0x87724b9402bd58Fb13963F5884845db8Ec860552;
+        FeeManager feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID1);
+        address feeManagerAddr = address(feeManager);
 
 
         // deploy gateway
+        gateway = new CTMRWAGateway(
+            govAddr, 
+            c3callerProxyAddr, 
+            txSender,
+            dappID4
+        );
+
+        console.log("gateway address");
+        console.log(address(gateway));
+
+
+        // deploy RWA001X
         ctmRwa001X = new CTMRWA001X(
+            address(gateway),
             feeManagerAddr,
             govAddr,
             c3callerProxyAddr,
@@ -51,15 +66,18 @@ contract Deploy is Script {
             dappID2
         );
 
-        // deployCTMRWA001Deployer(
-        //     1,
-        //     1,
-        //     govAddr,
-        //     address(ctmRwa001X),
-        //     c3callerProxyAddr,
-        //     txSender,
-        //     dappID3
-        // );
+        console.log("ctmRwa001X address");
+        console.log(address(ctmRwa001X));
+
+        deployCTMRWA001Deployer(
+            1,
+            1,
+            govAddr,
+            address(ctmRwa001X),
+            c3callerProxyAddr,
+            txSender,
+            dappID3
+        );
 
         vm.stopBroadcast();
     }
@@ -68,14 +86,14 @@ contract Deploy is Script {
         uint256 _rwaType,
         uint256 _version,
         address _gov,
-        address _gateway,
+        address _rwa001X,
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID
     ) internal {
         ctmRwaDeployer = new CTMRWADeployer(
             _gov,
-            _gateway,
+            _rwa001X,
             _c3callerProxy,
             _txSender,
             _dappID

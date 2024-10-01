@@ -25,9 +25,11 @@ import {CTMRWA001Deployer} from "../contracts/CTMRWA001Deployer.sol";
 import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
 import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
 
-
+import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
 import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
+
 import {ICTMRWA001} from "../contracts/interfaces/ICTMRWA001.sol";
+import {ICTMRWAGateway} from "../contracts/interfaces/ICTMRWAGateway.sol";
 import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
 import {ICTMRWA001SlotEnumerable} from "../contracts/extensions/ICTMRWA001SlotEnumerable.sol";
 import {ICTMRWA001Token} from "../contracts/interfaces/ICTMRWA001Token.sol";
@@ -91,6 +93,7 @@ contract SetUp is Test {
     FeeManager feeManager;
     CTMRWADeployer deployer;
     CTMRWA001TokenFactory tokenFactory;
+    CTMRWAGateway gateway;
     CTMRWA001X rwa001X;
     CTMRWA001DividendFactory dividendFactory;
 
@@ -131,7 +134,8 @@ contract SetUp is Test {
         deployC3Caller();
         deployFeeManager();
 
-        
+        deployGateway();
+
         deployCTMRWA001X();
 
         vm.stopPrank();
@@ -164,12 +168,21 @@ contract SetUp is Test {
         gatewayLocal[0] = address(rwa001X).toHexString();
         vm.prank(gov);
 
-        rwa001X.addChainContract("1", "ethereumGateway");
+        gateway.addChainContract("1", "ethereumGateway");
+    }
+
+    function deployGateway() internal {
+        gateway = new CTMRWAGateway(
+            address(c3Gov),
+            address(c3),
+            admin,
+            4
+        );
     }
 
     function deployCTMRWA001X() internal {
-
         rwa001X = new CTMRWA001X(
+            address(gateway),
             address(feeManager),
             address(c3Gov),
             address(c3),
@@ -328,6 +341,12 @@ contract SetUp is Test {
         return string(bLower);
     }
 
+    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
+        string[] memory strArray = new string[](1);
+        strArray[0] = _string;
+        return(strArray);
+    }
+
     function CTMRWA001Deploy() public returns(uint256, address) {
         string memory tokenStr = _toLower((address(usdc).toHexString()));
         string[] memory chainIdsStr;
@@ -412,13 +431,27 @@ contract TestBasicToken is SetUp {
         assertEq(govIsOperator, true);
     }
 
+    // function getXChainFee(
+    //     string[] memory _toChainIDsStr,
+    //     bool _includeLocal,
+    //     FeeType _feeType,
+    //     string memory _feeTokenStr
+    // ) public view returns (uint256) {
+
     function test_feeManager() public {
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         assertEq(feeTokenList[0], address(ctm));
         assertEq(feeTokenList[1], address(usdc));
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
-        uint256 fee = feeManager.getXChainFee("1", FeeType.TX, tokenStr);
+
+        uint256 fee = feeManager.getXChainFee(
+            _stringToArray("1"),
+            false,
+            FeeType.TX,
+            tokenStr
+        );
+        
         assertEq(fee, 1000);
 
         fee = fee*10**usdc.decimals()/100;
@@ -445,11 +478,11 @@ contract TestBasicToken is SetUp {
     }
 
     function test_CTMRWA001XBasic() public view {
-        string memory gatewayStr = rwa001X.getChainContract(cID().toString());
+        string memory gatewayStr = gateway.getChainContract(cID().toString());
         //console.log(gatewayStr);
-        address gateway = stringToAddress(gatewayStr);
-        //console.log(gateway);
-        assertEq(gateway, address(rwa001X));
+        address gway = stringToAddress(gatewayStr);
+        //console.log(gway);
+        assertEq(gway, address(rwa001X));
     }
 
     function test_CTMRWA001Deploy() public {
@@ -629,7 +662,7 @@ contract TestBasicToken is SetUp {
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
         toChainIdsStr.push("1");
 
-        string memory targetStr = rwa001X.getChainContract("1");
+        string memory targetStr = gateway.getChainContract("1");
         (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
@@ -739,7 +772,7 @@ contract TestBasicToken is SetUp {
         string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
 
  
-        string memory targetStr = rwa001X.getChainContract("1");
+        string memory targetStr = gateway.getChainContract("1");
         string memory toContractStr = ICTMRWA001(ctmRwaAddr).getTokenContract(toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
@@ -802,7 +835,7 @@ contract TestBasicToken is SetUp {
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
         string memory toChainIdStr = "1";
 
-        string memory targetStr = rwa001X.getChainContract("1");
+        string memory targetStr = gateway.getChainContract("1");
         string memory toContractStr = ICTMRWA001(ctmRwaAddr).getTokenContract(toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
@@ -880,7 +913,7 @@ contract TestBasicToken is SetUp {
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
         string memory toChainIdStr = "1";
 
-        string memory targetStr = rwa001X.getChainContract("1");
+        string memory targetStr = gateway.getChainContract("1");
         string memory toContractStr = ICTMRWA001(ctmRwaAddr).getTokenContract(toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();

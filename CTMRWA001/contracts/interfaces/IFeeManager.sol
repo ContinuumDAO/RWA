@@ -11,10 +11,11 @@ enum FeeType {
 
 interface IFeeManager {
     function getXChainFee(
-        string memory toChainIDStr,
-        FeeType feeType,
-        string memory feeToken
-    ) external returns (uint256);
+        string[] memory _toChainIDsStr,
+        bool _includeLocal,
+        FeeType _feeType,
+        string memory _feeTokenStr
+    ) external view returns (uint256);
 
     function getFeeTokenList() external returns(address[] memory);
     function isValidFeeToken(string memory feeTokenStr) external view returns(bool);

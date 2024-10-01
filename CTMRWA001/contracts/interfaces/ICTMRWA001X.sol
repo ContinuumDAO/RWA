@@ -2,37 +2,57 @@
 
 pragma solidity ^0.8.20;
 
-struct TokenContract {
-    string chainIdStr;
-    string contractStr;
-}
 
 interface ICTMRWA001X {
     
-    function tokenContract() external returns(TokenContract[] memory);
+    function changeAdmin(address _newAdmin, uint256 _ID) external returns(bool);
+    function changeFeeManager(address _feeManager) external;
+    function setCtmRwaDeployer(address _deployer) external;
+
+    //function tokenContract() external returns(TokenContract[] memory);
     function totalSupply() external view returns (uint256);
     
-    function addXChainInfo(
-        string memory _tochainIdStr,
-        string memory _toContractStr,
-        string[] memory _chainIdsStr,
-        string[] memory _contractAddrsStr
-    ) external payable;
-    function addChainContract(uint256 chainId, address contractAddress) external returns (bool);
-    function deploy(
+    function deployCTMRWA001(
+        string memory newAdminStr,
+        uint256 ID,
         uint256 rwaType,
         uint256 version,
-        bytes memory deployData
-    ) external returns(address, address);
+        string memory tokenName, 
+        string memory symbol, 
+        uint8 decimals,
+        string memory baseURI,
+        string memory fromContractStr
+    ) external returns(bool);  // onlyCaller
+
+    function adminX(
+        string memory currentAdminStr,
+        string memory newAdminStr,
+        string memory fromContractStr,
+        string memory ctmRwa001AddrStr
+    ) external returns(bool);  // onlyCaller
+
+    function lockCTMRWA001(
+        uint256 _ID,
+        string memory feeTokenStr
+    ) external;
+
+    function getAttachedID(address ctmRwa001Addr) external view returns(bool, uint256);
+    function getAttachedTokenAddress(uint256 ID) external view returns(bool, address);
+
+    function addNewChainIdAndTokenX(
+        uint256 Id,
+        string memory adminStr,
+        string[] memory chainIdsStr,
+        string[] memory otherCtmRwa001AddrsStr,
+        string memory fromTokenStr,
+        string memory ctmRwa001AddrStr
+    ) external returns(bool);   //  onlyCaller
+
     function checkTokenCompatibility(
         string memory _otherChainIdStr,
         string memory _otherContractStr
     ) external view returns(bool);
     
-    function approveFromX(address to_, uint256 tokenId_) external;
-    function clearApprovedValues(uint256 tokenId_) external;
-    function removeTokenFromOwnerEnumeration(address from_, uint256 tokenId_) external;
-
     // transferFromX
     function transferFromX( // transfer from/to same tokenid with value
         uint256 fromTokenId_,
@@ -58,4 +78,29 @@ interface ICTMRWA001X {
         string memory _ctmRwa001AddrStr,
         string memory feeTokenStr
     ) external;
+
+    function mintX(
+        uint256 _ID,
+        string memory _fromAddressStr,
+        string memory _toAddressStr,
+        uint256 _fromTokenId,
+        uint256 _toTokenId,
+        uint256 _slot,
+        uint256 _value,
+        string memory _fromContractStr,
+        string memory _ctmRwa001AddrStr
+    ) external returns(bool);  // onlyCaller
+
+    function mintX(
+        uint256 _ID,
+        string memory _fromAddressStr,
+        string memory _toAddressStr,
+        uint256 _fromTokenId,
+        uint256 _slot,
+        uint256 _balance,
+        string memory _fromContractStr,
+        string memory _ctmRwa001AddrStr
+    ) external returns(bool); // onlyCaller
+
+
 }

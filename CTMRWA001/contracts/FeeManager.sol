@@ -86,7 +86,7 @@ contract FeeManager is GovernDapp, IFeeManager {
         return feeTokenList;
     }
 
-    function isValidFeeToken(string memory feeTokenStr) external view returns(bool) {
+    function isValidFeeToken(string memory feeTokenStr) public view returns(bool) {
         address feeToken = stringToAddress(_toLower(feeTokenStr));
 
         for(uint256 i=0;i<feeTokenList.length; i++) {
@@ -166,14 +166,25 @@ contract FeeManager is GovernDapp, IFeeManager {
     }
 
     function getXChainFee(
-        string memory toChainIDStr,
+        string[] memory _toChainIDsStr,
+        bool _includeLocal,
         FeeType _feeType,
-        string memory feeTokenStr
+        string memory _feeTokenStr
     ) public view returns (uint256) {
-        require(bytes(toChainIDStr).length > 0, "FM: Invalid chainIDStr");
-        require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has incorrect length");
-        uint256 baseFee = getToChainBaseFee(toChainIDStr, _toLower(feeTokenStr));
+        //
+        string memory feeTokenStr = _toLower(_feeTokenStr);
+        require(isValidFeeToken(_feeTokenStr), "FeeManager: Not a valid fee token");
+        uint256 baseFee;
 
+        for(uint256 i=0; i<_toChainIDsStr.length; i++) {
+            require(bytes(_toChainIDsStr[i]).length > 0, "FM: Invalid chainIDStr");
+            baseFee += getToChainBaseFee(_toChainIDsStr[i], _feeTokenStr);
+        }
+
+        if(_includeLocal) {
+            baseFee += getToChainBaseFee(block.chainid.toString(), _feeTokenStr);
+        }
+        
         uint256 fee = baseFee*this.getFeeMultiplier(_feeType);
         
         return fee;

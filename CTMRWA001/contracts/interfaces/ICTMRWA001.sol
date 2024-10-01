@@ -13,6 +13,17 @@ import {ICTMRWA001SlotApprovable} from "../extensions/ICTMRWA001SlotApprovable.s
  * @dev See https://docs.continuumdao.org
  * Note: the ERC-165 identifier for this interface is 0xd5358140.
  */
+
+struct TokenContract {
+    string chainIdStr;
+    string contractStr;
+}
+
+interface ITokenContract {
+    function tokenContract() external returns(TokenContract[] memory);
+    function tokenChainIdStrs() external returns(string[] memory);
+}
+
 interface ICTMRWA001 is ICTMRWA001Metadata, ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
 
     function ID() external view returns(uint256);
@@ -23,6 +34,7 @@ interface ICTMRWA001 is ICTMRWA001Metadata, ICTMRWA001SlotEnumerable, ICTMRWA001
         string[] memory _chainIdsStr,
         string[] memory _contractAddrsStr
     ) external returns(bool);
+    
     function getTokenContract(string memory _chainIdStr) external view returns(string memory);
     function getTokenInfo(uint256 tokenId_) external view returns(uint256 id,uint256 bal,address owner,uint256 slot);
     function name() external view returns (string memory);
@@ -37,6 +49,10 @@ interface ICTMRWA001 is ICTMRWA001Metadata, ICTMRWA001SlotEnumerable, ICTMRWA001
     function tokenSupplyInSlot(uint256 slot) external view returns(uint256);
     function totalSupplyInSlot(uint256 slot) external view returns(uint256);
     function slotExists(uint256 slot_) external view returns (bool);
+
+    function approveFromX(address to_, uint256 tokenId_) external;
+    function clearApprovedValues(uint256 tokenId_) external;
+    function removeTokenFromOwnerEnumeration(address from_, uint256 tokenId_) external;
 
     function burnValueX(uint256 fromTokenId, uint256 value_) external returns(bool);
     function mintValueX(uint256 toTokenId, uint256 slot_, uint256 value_) external returns(bool);
