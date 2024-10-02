@@ -172,7 +172,6 @@ contract FeeManager is GovernDapp, IFeeManager {
         string memory _feeTokenStr
     ) public view returns (uint256) {
         //
-        string memory feeTokenStr = _toLower(_feeTokenStr);
         require(isValidFeeToken(_feeTokenStr), "FeeManager: Not a valid fee token");
         uint256 baseFee;
 

@@ -25,6 +25,8 @@ contract Deploy is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerPrivateKey);
+        console.log("Wallet of deployer");
+        console.log(deployer);
 
         // env variables (changes based on deployment chain, edit in .env)
         address c3callerProxyAddr = vm.envAddress("C3_DEPLOY");
@@ -42,6 +44,9 @@ contract Deploy is Script {
         // deploy fee manager
         FeeManager feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID1);
         address feeManagerAddr = address(feeManager);
+
+        console.log("feeManager");
+        console.log(feeManagerAddr);
 
 
         // deploy gateway
@@ -69,7 +74,11 @@ contract Deploy is Script {
         console.log("ctmRwa001X address");
         console.log(address(ctmRwa001X));
 
-        deployCTMRWA001Deployer(
+        (
+            address CTMDeployer, 
+            address CTMDividend, 
+            address CTMRWA001Factory
+        ) = deployCTMRWA001Deployer(
             1,
             1,
             govAddr,
@@ -78,6 +87,13 @@ contract Deploy is Script {
             txSender,
             dappID3
         );
+
+        console.log("CTMRWADeployer");
+        console.log(CTMDeployer);
+        console.log("Dividend Factory");
+        console.log(CTMDividend);
+        console.log("CTMRWA001Factory");
+        console.log(CTMRWA001Factory);
 
         vm.stopBroadcast();
     }
@@ -90,7 +106,7 @@ contract Deploy is Script {
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID
-    ) internal {
+    ) internal returns(address, address, address) {
         ctmRwaDeployer = new CTMRWADeployer(
             _gov,
             _rwa001X,
@@ -106,5 +122,6 @@ contract Deploy is Script {
         dividendFactory = new CTMRWA001DividendFactory(address(ctmRwaDeployer));
         ctmRwaDeployer.setDividendFactory(_rwaType, _version, address(dividendFactory));
 
+        return(address(ctmRwaDeployer), address(dividendFactory), address(tokenFactory));
     }
 }

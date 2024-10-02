@@ -6,10 +6,6 @@ optimizer = true
 optimizer_runs = 20
 viaIR = true
 solc = "0.8.20"
-ffi = true
-ast = true
-build_info = true
-extra_output = ["storageLayout"]
 
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts",

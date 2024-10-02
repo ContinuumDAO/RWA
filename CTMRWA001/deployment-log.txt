@@ -1,0 +1,19 @@
+== Logs ==                                            Verified?
+  Wallet of deployer
+  0xe62Ab4D111f968660C6B2188046F9B9bA53C4Bae          
+  feeManager
+  0x01a9B0508CAdBEA2FD536C1B0E7EDE6E775894B6          Yes
+  gateway address
+  0x0174aBCc86b7b8a54cffF7Ad08F982BC894b914d          Yes
+  ctmRwa001X address
+  0x89c12835d55238DCB4BdC3688faB832f20aA44b1          No
+  CTMRWADeployer
+  0xb2c32e278C470f1970DB8416Fe6b794a4B911Bf5          Yes
+  Dividend Factory
+  0xd085318435B74E5F9757c5fc0E956078300cd5a8          Yes
+  CTMRWA001Factory
+  0x2Bc2B9FF06a357258B34Fa8E83478D020531fdFD          Yes
+
+## Setting up 1 EVM.
+
+==========================

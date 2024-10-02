@@ -310,8 +310,8 @@ contract CTMRWA001X is Context, GovernDapp {
 
     function changeAdmin(address _newAdmin, uint256 _ID) external returns(bool) {
 
-        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
+        (address ctmRwa001Addr,) = _getTokenAddr(_ID);
+        _checkTokenAdmin(ctmRwa001Addr);
 
         ICTMRWA001(ctmRwa001Addr).changeAdminX(_newAdmin);
         adminTokens[_newAdmin].push(ctmRwa001Addr);
@@ -382,13 +382,12 @@ contract CTMRWA001X is Context, GovernDapp {
     ) external {
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (address currentAdmin, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
+        (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
         
         TokenContract[] memory tokenContracts =  ITokenContract(ctmRwa001Addr).tokenContract();
 
         uint256 nChains = tokenContracts.length;
         string memory toChainIdStr;
-        string memory gatewayTargetStr;
         string memory ctmRwa001TokenStr;
 
         _payFee(FeeType.ADMIN, _feeTokenStr, ITokenContract(ctmRwa001Addr).tokenChainIdStrs(), false);
@@ -493,8 +492,8 @@ contract CTMRWA001X is Context, GovernDapp {
     ) public {
        
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (string memory fromAddressStr, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
-        (address currentAdmin, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
+        (, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
+        (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
 
         string memory funcCall = "addNewChainIdAndTokenX(uint256,string,string[],string[],string,string)";
         bytes memory callData = abi.encodeWithSignature(
@@ -553,8 +552,8 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _ID
     ) public returns(uint256) {
 
-        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (address currentAdmin, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
+        (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
+        _checkTokenAdmin(ctmRwa001Addr);
 
         if(toTokenId_>0) {
             ICTMRWA001(ctmRwa001Addr).mintValueX(toTokenId_, slot_, value_);
@@ -595,7 +594,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         (string memory fromAddressStr, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
-        (address currentAdmin, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
+        _checkTokenAdmin(ctmRwa001Addr);
 
         _payFee(FeeType.MINT, _feeTokenStr, _stringToArray(_toChainIdStr), false);
 
@@ -626,7 +625,7 @@ contract CTMRWA001X is Context, GovernDapp {
     ) public {
         require(bytes(_toAddressStr).length>0, "CTMRWA001X: Destination address has zero length");
 
-        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
+        (address ctmRwa001Addr,) = _getTokenAddr(_ID);
         (string memory fromAddressStr, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
         
         ICTMRWA001(ctmRwa001Addr).spendAllowance(msg.sender, _fromTokenId, _value);
