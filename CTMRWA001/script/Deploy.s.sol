@@ -7,6 +7,7 @@ import {Script} from "forge-std/Script.sol";
 // import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
 // import {CTMRWA001Deployer} from "../contracts/CTMRWA001Deployer.sol";
 // import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
+// import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback";
 // import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
 
 // import {FeeManager} from "../contracts/FeeManager.sol";
@@ -15,8 +16,9 @@ import {Script} from "forge-std/Script.sol";
 
 
 import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
-import {CTMRWA001Deployer} from "../flattened/CTMRWA001Deployer.sol";
+//import {CTMRWA001Deployer} from "../flattened/CTMRWA001Deployer.sol";
 import {CTMRWA001TokenFactory} from "../flattened/CTMRWA001TokenFactory.sol";
+import {CTMRWA001XFallback} from "../flattened/CTMRWA001XFallback.sol";
 import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
 
 import {FeeManager} from "../flattened/FeeManager.sol";
@@ -32,6 +34,7 @@ contract Deploy is Script {
     CTMRWAGateway gateway;
     CTMRWA001X ctmRwa001X;
     CTMRWA001TokenFactory tokenFactory;
+    CTMRWA001XFallback ctmRwaFallback;
     CTMRWA001DividendFactory dividendFactory;
 
 
@@ -86,6 +89,13 @@ contract Deploy is Script {
 
         console.log("ctmRwa001X address");
         console.log(address(ctmRwa001X));
+
+        ctmRwaFallback = new CTMRWA001XFallback(address(ctmRwa001X));
+
+        ctmRwa001X.setFallback(address(ctmRwaFallback));
+        console.log("ctmRwaFallback address");
+        console.log(address(ctmRwaFallback));
+
 
         (
             address CTMDeployer, 

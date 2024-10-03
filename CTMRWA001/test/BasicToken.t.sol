@@ -787,7 +787,7 @@ contract TestBasicToken is SetUp {
         string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
 
  
-        (bool ok, string memory toRwaXStr) = gateway.getAttachedRWAX("RWA001", toChainIdStr);
+        (, string memory toRwaXStr) = gateway.getAttachedRWAX("RWA001", toChainIdStr);
         string memory toTokenStr = ICTMRWA001(ctmRwaAddr).getTokenContract(toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
@@ -859,7 +859,7 @@ contract TestBasicToken is SetUp {
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
         string memory toChainIdStr = "1";
 
-        (bool ok, string memory toRwaXStr) = gateway.getAttachedRWAX("RWA001", toChainIdStr);
+        (, string memory toRwaXStr) = gateway.getAttachedRWAX("RWA001", toChainIdStr);
         string memory toTokenStr = ICTMRWA001(ctmRwaAddr).getTokenContract(toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();

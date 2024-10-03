@@ -8,6 +8,7 @@ interface ICTMRWA001X {
     function changeAdmin(address _newAdmin, uint256 _ID) external returns(bool);
     function changeFeeManager(address _feeManager) external;
     function setCtmRwaDeployer(address _deployer) external;
+    function fallbackAddr() external returns(address);
 
     //function tokenContract() external returns(TokenContract[] memory);
     function totalSupply() external view returns (uint256);
@@ -31,10 +32,10 @@ interface ICTMRWA001X {
         string memory ctmRwa001AddrStr
     ) external returns(bool);  // onlyCaller
 
-    function lockCTMRWA001(
-        uint256 _ID,
-        string memory feeTokenStr
-    ) external;
+    // function lockCTMRWA001(
+    //     uint256 _ID,
+    //     string memory feeTokenStr
+    // ) external;
 
     function getAttachedID(address ctmRwa001Addr) external view returns(bool, uint256);
     function getAttachedTokenAddress(uint256 ID) external view returns(bool, address);
