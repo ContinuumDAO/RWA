@@ -4,14 +4,27 @@ pragma solidity ^0.8.20;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
-import {CTMRWA001Deployer} from "../contracts/CTMRWA001Deployer.sol";
-import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
-import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
+// import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
+// import {CTMRWA001Deployer} from "../contracts/CTMRWA001Deployer.sol";
+// import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
+// import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
 
-import {FeeManager} from "../contracts/FeeManager.sol";
-import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
-import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
+// import {FeeManager} from "../contracts/FeeManager.sol";
+// import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
+// import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
+
+
+import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
+import {CTMRWA001Deployer} from "../flattened/CTMRWA001Deployer.sol";
+import {CTMRWA001TokenFactory} from "../flattened/CTMRWA001TokenFactory.sol";
+import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
+
+import {FeeManager} from "../flattened/FeeManager.sol";
+import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
+import {CTMRWA001X} from "../flattened/CTMRWA001X.sol";
+
+
+
 
 contract Deploy is Script {
 

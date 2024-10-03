@@ -20,4 +20,9 @@ interface IFeeManager {
     function getFeeTokenList() external returns(address[] memory);
     function isValidFeeToken(string memory feeTokenStr) external view returns(bool);
     function getFeeTokenIndexMap(string memory) external view returns (uint256);
+    function payFee(uint256 fee, string memory feeTokenStr) external returns (uint256);
+}
+
+interface IERC20Extended {
+    function decimals() external view returns (uint8);
 }

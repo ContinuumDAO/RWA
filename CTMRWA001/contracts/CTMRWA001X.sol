@@ -8,8 +8,7 @@ import {GovernDapp} from "./routerV2/GovernDapp.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "./FeeManager.sol";
-
+import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
 import {ICTMRWAGateway} from "./interfaces/ICTMRWAGateway.sol";
 import {ICTMRWA001, TokenContract, ITokenContract} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWADeployer} from "./interfaces/ICTMRWADeployer.sol";
@@ -198,7 +197,7 @@ contract CTMRWA001X is Context, GovernDapp {
             require(ok, "CTMRWA001X: ID does not exist on local chain");
             ctmRwa001Addr = rwa001Addr;
             currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
-            require(msg.sender == currentAdmin, "CTMRWA001X: Only tokenAdmin can deploy");
+            require(_msgSender() == currentAdmin, "CTMRWA001X: Only tokenAdmin can deploy");
 
             tokenName = ICTMRWA001(ctmRwa001Addr).name();
             symbol = ICTMRWA001(ctmRwa001Addr).symbol();
@@ -446,32 +445,17 @@ contract CTMRWA001X is Context, GovernDapp {
     }
 
     function getAttachedTokenAddress(uint256 _ID) external view returns(bool, address) {
-        // for(uint256 i=0; i<ctmRwa001Ids.length; i++) {
-        //     if(ctmRwa001Ids[i].ID == _ID) {
-        //         return(true, stringToAddress(ctmRwa001Ids[i].contractStr));
-        //     }
-        // }
-            
-        // return(false, address(0));
         
         string memory _contractStr = idToContract[_ID];
-        return bytes(_contractStr).length == 0 ? (true, stringToAddress(_contractStr)) : (false, address(0));
+       
+        return bytes(_contractStr).length != 0 ? (true, stringToAddress(_contractStr)) : (false, address(0));
     }
 
     // Keeps a record of token IDs in this contract. Check offline to see if other contracts have it
     function _attachCTMRWA001ID(uint256 _ID, address _ctmRwa001Addr) internal returns(bool) {
-        // (bool attached,) = this.getAttachedID(_ctmRwa001Addr);
-        // if (!attached) {
-        //     bool ok = ICTMRWA001(_ctmRwa001Addr).attachId(_ID, msg.sender);
-        //     if(ok) {
-        //         CTMRWA001ID memory newAttach = CTMRWA001ID(_ID, _toLower(_ctmRwa001Addr.toHexString()));
-        //         ctmRwa001Ids.push(newAttach);
-        //         return(true);
-        //     } else return(false);
-        // } else return(false);
 
         if (bytes(idToContract[_ID]).length == 0) {
-            bool ok = ICTMRWA001(_ctmRwa001Addr).attachId(_ID, msg.sender);
+            bool ok = ICTMRWA001(_ctmRwa001Addr).attachId(_ID, _msgSender());
             if (ok) {
                 string memory ctmRwa001Addr = _toLower(_ctmRwa001Addr.toHexString());
                 idToContract[_ID] = ctmRwa001Addr;
@@ -628,7 +612,7 @@ contract CTMRWA001X is Context, GovernDapp {
         (address ctmRwa001Addr,) = _getTokenAddr(_ID);
         (string memory fromAddressStr, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
         
-        ICTMRWA001(ctmRwa001Addr).spendAllowance(msg.sender, _fromTokenId, _value);
+        ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
 
         _payFee(FeeType.TX, _feeTokenStr, _stringToArray(_toChainIdStr), false);
 
@@ -678,7 +662,7 @@ contract CTMRWA001X is Context, GovernDapp {
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         (string memory fromAddressStr, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
         
-        ICTMRWA001(ctmRwa001Addr).spendAllowance(msg.sender, _fromTokenId, _value);
+        ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
         require(bytes(_toAddressStr).length>0, "CTMRWA001X: Destination address has zero length");
 
         _payFee(FeeType.TX, _feeTokenStr, _stringToArray(_toChainIdStr), false);
@@ -885,12 +869,13 @@ contract CTMRWA001X is Context, GovernDapp {
         string[] memory _toChainIdsStr,
         bool _includeLocal
     ) internal returns(bool) {
-        uint256 fee = FeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, _feeType, _feeTokenStr);
+        uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, _feeType, _feeTokenStr);
         if(fee>0) {
             address feeToken = stringToAddress(_feeTokenStr);
-            IERC20(feeToken).transferFrom(_msgSender(), address(this), fee);
-            IERC20(feeToken).approve(feeManager, fee);
-            FeeManager(feeManager).payFee(fee, _feeTokenStr);
+            uint256 feeWei = fee*10**(IERC20Extended(feeToken).decimals()-2);
+            IERC20(feeToken).transferFrom(_msgSender(), address(this), feeWei);
+            IERC20(feeToken).approve(feeManager, feeWei);
+            IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);
         }
         return(true);
     }
