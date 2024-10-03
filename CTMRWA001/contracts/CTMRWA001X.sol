@@ -12,6 +12,7 @@ import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol
 import {ICTMRWAGateway} from "./interfaces/ICTMRWAGateway.sol";
 import {ICTMRWA001, TokenContract, ITokenContract} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWADeployer} from "./interfaces/ICTMRWADeployer.sol";
+import {ICTMRWA001XFallback} from "./interfaces/ICTMRWA001XFallback.sol";
 import {ICTMRWA001Token} from "./interfaces/ICTMRWA001Token.sol";
 
 //import "forge-std/console.sol";
@@ -24,13 +25,14 @@ contract CTMRWA001X is Context, GovernDapp {
     address gateway;
     address public feeManager;
     address public ctmRwaDeployer;
+    address public fallbackAddr;
     string public cIdStr;
 
 
     mapping(address => address[]) public adminTokens;  // tokenAdmin address => array of CTMRWA001 contracts
     mapping(address => address[]) public ownedCtmRwa001;  // owner address => array of CTMRWA001 contracts
 
-    event LogFallback(bytes4 selector, bytes data, bytes reason);
+    //event LogFallback(bytes4 selector, bytes data, bytes reason);
 
     event CreateNewCTMRWA001(
         address ctmRwa001Token, 
@@ -108,6 +110,10 @@ contract CTMRWA001X is Context, GovernDapp {
 
     function setCtmRwaDeployer(address _deployer) external onlyGov {
         ctmRwaDeployer = _deployer;
+    }
+
+    function setFallback(address _fallbackAddr) external onlyGov {
+        fallbackAddr = _fallbackAddr;
     }
 
     
@@ -375,48 +381,6 @@ contract CTMRWA001X is Context, GovernDapp {
         return(true);
     }
 
-    function lockCTMRWA001(
-        uint256 _ID,
-        string memory _feeTokenStr
-    ) external {
-
-        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
-        
-        TokenContract[] memory tokenContracts =  ITokenContract(ctmRwa001Addr).tokenContract();
-
-        uint256 nChains = tokenContracts.length;
-        string memory toChainIdStr;
-        string memory ctmRwa001TokenStr;
-
-        _payFee(FeeType.ADMIN, _feeTokenStr, ITokenContract(ctmRwa001Addr).tokenChainIdStrs(), false);
-
-
-        for(uint256 i=1; i<nChains; i++) {  // leave local chain to the end, so start at 1
-            toChainIdStr = tokenContracts[i].chainIdStr;
-            ctmRwa001TokenStr = tokenContracts[i].contractStr;
-
-            (, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(toChainIdStr, ctmRwa001Addr);
-
-            string memory funcCall = "adminX(string,string,string,string)";
-            bytes memory callData = abi.encodeWithSignature(
-                funcCall,
-                currentAdminStr,
-                "0",
-                ctmRwa001AddrStr,
-                toTokenStr
-            );
-
-            c3call(toRwaXStr, toChainIdStr, callData);
-
-        }
-
-        ICTMRWA001(ctmRwa001Addr).changeAdminX(stringToAddress("0"));
-
-        // emit LockToken(_ID, ctmRwa001Addr, nChains);
-
-    }
-
     function getAllTokensByAdminAddress(address _admin) public view returns(address[] memory) {
         return(adminTokens[_admin]);
     }
@@ -432,12 +396,6 @@ contract CTMRWA001X is Context, GovernDapp {
 
 
     function getAttachedID(address _ctmRwa001Addr) external view returns(bool, uint256) {
-        // for(uint256 i=0; i<ctmRwa001Ids.length; i++) {
-        //     if(stringsEqual(ctmRwa001Ids[i].contractStr, _toLower(_ctmRwa001Addr.toHexString()))) {
-        //         return(true, ctmRwa001Ids[i].ID);
-        //     }
-        // }
-        // return(false, 0);
 
         string memory ctmRwa001Addr = _toLower(_ctmRwa001Addr.toHexString());
         uint256 id = contractToId[ctmRwa001Addr];
@@ -971,13 +929,20 @@ contract CTMRWA001X is Context, GovernDapp {
         return string(bLower);
     }
 
-    function _c3Fallback(bytes4 _selector,
+    function _c3Fallback(
+        bytes4 _selector,
         bytes calldata _data,
-        bytes calldata _reason) internal override returns (bool) {
+        bytes calldata _reason
+    ) internal override returns (bool) {
 
+        bool ok = ICTMRWA001XFallback(fallbackAddr).rwa001XC3Fallback(
+            _selector,
+            _data,
+            _reason
+        );
 
-        emit LogFallback(_selector, _data, _reason);
-        return true;
+        //emit LogFallback(_selector, _data, _reason);
+        return ok;
     }
 
 }

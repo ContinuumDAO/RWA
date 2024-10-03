@@ -22,6 +22,7 @@ import {FeeType, IFeeManager} from "../contracts/interfaces/IFeeManager.sol";
 
 import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
 import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
+import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
 import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
 
 import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
@@ -32,6 +33,7 @@ import {ICTMRWAGateway} from "../contracts/interfaces/ICTMRWAGateway.sol";
 import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
 import {ICTMRWA001SlotEnumerable} from "../contracts/extensions/ICTMRWA001SlotEnumerable.sol";
 import {ICTMRWA001Token} from "../contracts/interfaces/ICTMRWA001Token.sol";
+import {ICTMRWA001XFallback} from "../contracts/interfaces/ICTMRWA001XFallback.sol";
 import {ICTMRWA001Dividend} from "../contracts/interfaces/ICTMRWA001Dividend.sol";
 
 
@@ -94,6 +96,7 @@ contract SetUp is Test {
     CTMRWA001TokenFactory tokenFactory;
     CTMRWAGateway gateway;
     CTMRWA001X rwa001X;
+    CTMRWA001XFallback rwa001XFallback;
     CTMRWA001DividendFactory dividendFactory;
 
 
@@ -136,10 +139,11 @@ contract SetUp is Test {
         deployGateway();
 
         deployCTMRWA001X();
-
         vm.stopPrank();
 
         vm.startPrank(address(c3Gov));
+
+        deployRwa001XFallback(address(rwa001X));
 
         bool ok = gateway.attachRWAX(
             "RWA001",
@@ -195,6 +199,11 @@ contract SetUp is Test {
             admin,
             2
         );
+    }
+
+    function deployRwa001XFallback(address _rwa001X) internal {
+        rwa001XFallback = new CTMRWA001XFallback(_rwa001X);
+        rwa001X.setFallback(address(rwa001XFallback));
     }
 
 
