@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import "@openzeppelin/contracts/utils/Context.sol";
 import "../CTMRWA001.sol";
@@ -9,6 +9,7 @@ contract CTMRWA001BaseMock is Context, CTMRWA001 {
     
     constructor(
         address _admin,
+        address _deployer,
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
@@ -16,6 +17,7 @@ contract CTMRWA001BaseMock is Context, CTMRWA001 {
         address _ctmRwa001XChain
     ) CTMRWA001(
         _admin,
+        _deployer,
         name_,
         symbol_,
         decimals_,

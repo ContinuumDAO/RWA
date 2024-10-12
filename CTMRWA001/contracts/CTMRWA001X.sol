@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.20;
+// import "forge-std/console.sol";
+
+pragma solidity ^0.8.23;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -12,19 +14,22 @@ import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol
 import {ICTMRWAGateway} from "./interfaces/ICTMRWAGateway.sol";
 import {ICTMRWA001, TokenContract, ITokenContract} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWADeployer} from "./interfaces/ICTMRWADeployer.sol";
+import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
+import {URICategory, URIType, ICTMRWA001Storage} from "./interfaces/ICTMRWA001Storage.sol";
 import {ICTMRWA001XFallback} from "./interfaces/ICTMRWA001XFallback.sol";
 import {ICTMRWA001Token} from "./interfaces/ICTMRWA001Token.sol";
-
-//import "forge-std/console.sol";
 
 
 contract CTMRWA001X is Context, GovernDapp {
     using Strings for *;
     using SafeERC20 for IERC20;
 
-    address gateway;
+    address public gateway;
+    uint256 rwaType;
+    uint256 version;
     address public feeManager;
     address public ctmRwaDeployer;
+    address public ctmRwa001Map;
     address public fallbackAddr;
     string public cIdStr;
 
@@ -42,22 +47,9 @@ contract CTMRWA001X is Context, GovernDapp {
         string fromContractStr
     );
 
-    // event ChangeAdmin(uint256 ID, string currentAdminStr, string newAdminStr, string toChainIdStr);
     event ChangeAdminDest(string currentAdminStr, string newAdminStr, string fromChainIdStr);
     event AddNewChainAndToken(string fromChainIdStr, string fromContractStr, string[] chainIdsStr, string[] ctmRwa001AddrsStr);
-    // event LockToken(uint256 ID, address ctmRwa001Addr, uint256 nChains);
-
-    // event TransferFromSourceX(
-    //     uint256 ID,
-    //     string fromAddressStr,
-    //     string toAddressStr,
-    //     uint256 fromtokenId,
-    //     uint256 toTokenId,
-    //     uint256 slot,
-    //     uint256 value,
-    //     string fromCtmRwa001AddrStr,
-    //     string toCtmRwa001AddrStr
-    // );
+   
 
     event TransferToDestX(
         uint256 ID,
@@ -67,7 +59,8 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 toTokenId,
         uint256 slot,
         uint256 value,
-        string fromContractStr,
+        string fromChainIdStr,
+        string fromTokenStr,
         string ctmRwa001AddrStr
     );
 
@@ -88,9 +81,6 @@ contract CTMRWA001X is Context, GovernDapp {
     // );
 
 
-    mapping(uint256 => string) public idToContract;
-    mapping(string => uint256) public contractToId;
-
     constructor(
         address _gateway,
         address _feeManager,
@@ -100,12 +90,19 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _dappID
     ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
         gateway = _gateway;
+        rwaType = 1;
+        version = 1;
         feeManager = _feeManager;
         cIdStr = cID().toString();
     }
 
     function changeFeeManager(address _feeManager) external onlyGov {
         feeManager = _feeManager;
+    }
+
+
+    function setCtmRwaMap(address _map) external onlyGov {
+        ctmRwa001Map = _map;
     }
 
     function setCtmRwaDeployer(address _deployer) external onlyGov {
@@ -115,43 +112,6 @@ contract CTMRWA001X is Context, GovernDapp {
     function setFallback(address _fallbackAddr) external onlyGov {
         fallbackAddr = _fallbackAddr;
     }
-
-    
-    function _deployCTMRWA001Local(
-        uint256 _ID,
-        uint256 _rwaType,
-        uint256 _version,
-        string memory tokenName_, 
-        string memory symbol_, 
-        uint8 decimals_,
-        string memory baseURI_,
-        address tokenAdmin
-    ) internal returns(address) {
-        bool ok = bytes(idToContract[_ID]).length == 0; // only checks local deployments!
-        require(ok, "CTMRWA001X: A local contract with this ID already exists");
-
-        bytes memory deployData = abi.encode(_ID, tokenAdmin, tokenName_, symbol_, decimals_, baseURI_, address(this));
-
-        (address ctmRwa001Token, address dividendAddr) = ICTMRWADeployer(ctmRwaDeployer).deploy(
-            _rwaType,
-            _version,
-            deployData
-        );
-
-        ok = _attachCTMRWA001ID(_ID, ctmRwa001Token);
-        require(ok, "CTMRWA001X: Failed to set token ID");
-
-        ok = ICTMRWA001(ctmRwa001Token).attachDividend(dividendAddr);
-        require(ok, "CTMRWA001X: Failed to set the dividend contract address");
-
-        ICTMRWA001(ctmRwa001Token).changeAdminX(tokenAdmin);
-        adminTokens[tokenAdmin].push(ctmRwa001Token);
-
-        emit CreateNewCTMRWA001(ctmRwa001Token, _ID, tokenAdmin, cID().toString(), "");
-
-        return(ctmRwa001Token);
-    }
-
    
 
     function deployAllCTMRWA001X(
@@ -193,17 +153,17 @@ contract CTMRWA001X is Context, GovernDapp {
             decimals = _decimals;
             baseURI = _baseURI;
 
-            ctmRwa001Addr = _deployCTMRWA001Local(ID, _rwaType, _version, _tokenName, _symbol, _decimals, baseURI, _msgSender());
-            ICTMRWA001(ctmRwa001Addr).changeAdminX(_msgSender());
-            
             currentAdmin = _msgSender();
+            ctmRwa001Addr = _deployCTMRWA001Local(ID, _rwaType, _version, _tokenName, _symbol, _decimals, baseURI, currentAdmin);
+
+            emit CreateNewCTMRWA001(ctmRwa001Addr, ID, currentAdmin, cIdStr, "");
         } else {  // a CTMRWA001 token must be deployed already, so use the existing ID
             ID = _existingID;
-            (bool ok, address rwa001Addr) = this.getAttachedTokenAddress(ID);
+            (bool ok, address rwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(ID, _rwaType, _version);
             require(ok, "CTMRWA001X: ID does not exist on local chain");
             ctmRwa001Addr = rwa001Addr;
-            currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
-            require(_msgSender() == currentAdmin, "CTMRWA001X: Only tokenAdmin can deploy");
+
+            _checkTokenAdmin(ctmRwa001Addr);
 
             tokenName = ICTMRWA001(ctmRwa001Addr).name();
             symbol = ICTMRWA001(ctmRwa001Addr).symbol();
@@ -230,6 +190,40 @@ contract CTMRWA001X is Context, GovernDapp {
 
     }
 
+        
+    function _deployCTMRWA001Local(
+        uint256 _ID,
+        uint256 _rwaType,
+        uint256 _version,
+        string memory _tokenName, 
+        string memory _symbol, 
+        uint8 _decimals,
+        string memory _baseURI,
+        address _tokenAdmin
+    ) internal returns(address) {
+        (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, _rwaType, _version);
+        require(!ok, "CTMRWA001X: A local contract with this ID already exists");
+
+        bytes memory deployData = abi.encode(_ID, _tokenAdmin, _tokenName, _symbol, _decimals, _baseURI, address(this));
+
+        address ctmRwa001Token = ICTMRWADeployer(ctmRwaDeployer).deploy(
+            _ID,
+            _rwaType,
+            _version,
+            deployData
+        );
+
+        ICTMRWA001(ctmRwa001Token).changeAdmin(_tokenAdmin);
+
+        ok = ICTMRWA001(ctmRwa001Token).attachId(_ID, _tokenAdmin);
+        require(ok, "CTMRWA001X: Could not attachId to new token");
+
+        adminTokens[_tokenAdmin].push(ctmRwa001Token);
+
+        return(ctmRwa001Token);
+    }
+
+
     // Deploys a new CTMRWA001 instance on a destination chain, 
     // recovering the ID from a required local instance of CTMRWA001, owned by tokenAdmin
     function _deployCTMRWA001X(
@@ -246,11 +240,10 @@ contract CTMRWA001X is Context, GovernDapp {
         (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
 
         uint256 ID = ICTMRWA001(ctmRwa001Addr).ID();
-        uint256 rwaType = ICTMRWA001Token(ctmRwa001Addr).getRWAType();
-        uint256 version = ICTMRWA001Token(ctmRwa001Addr).getVersion();
-        
-        string memory gatewayStr = ICTMRWAGateway(gateway).getChainContract(_toChainIdStr);
-        require(bytes(gatewayStr).length>0, "CTMRWA001X: Target contract address not found");
+
+        string memory toChainIdStr = _toLower(_toChainIdStr);
+
+        (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
 
         string memory funcCall = "deployCTMRWA001(string,uint256,uint256,uint256,string,string,uint8,string,string)";
         bytes memory callData = abi.encodeWithSignature(
@@ -266,7 +259,7 @@ contract CTMRWA001X is Context, GovernDapp {
             _ctmRwa001AddrStr
         );
 
-        c3call(gatewayStr, _toChainIdStr, callData);
+        c3call(toRwaXStr, toChainIdStr, callData);
 
         return(true);
         
@@ -286,39 +279,28 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory _fromContractStr
     ) external onlyCaller returns(bool) {
 
+        (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, _rwaType, _version);
+        require(!ok, "CTMRWA001X: A local contract with this ID already exists");
+
         address newAdmin = stringToAddress(_newAdminStr);
 
         (, string memory fromChainIdStr,) = context();
         fromChainIdStr = _toLower(fromChainIdStr);
 
-        bytes memory deployData = abi.encode(_ID, newAdmin, _tokenName, _symbol, _decimals, _baseURI, address(this));
-
-        (address ctmRwa001Token, address dividendAddr) = ICTMRWADeployer(ctmRwaDeployer).deploy(
-            _rwaType,
-            _version,
-            deployData
-        );
-
-        bool ok = _attachCTMRWA001ID(_ID, ctmRwa001Token);
-        require(ok, "CTMRWA001X: Failed to set token ID");
-
-        ok = ICTMRWA001(ctmRwa001Token).attachDividend(dividendAddr);
-        require(ok, "CTMRWA001X: Failed to set the dividend contract address");
-
-        ICTMRWA001(ctmRwa001Token).changeAdminX(newAdmin);
-        adminTokens[newAdmin].push(ctmRwa001Token);
+        address ctmRwa001Token = _deployCTMRWA001Local(_ID, _rwaType, _version, _tokenName, _symbol, _decimals, _baseURI, newAdmin);
 
         emit CreateNewCTMRWA001(ctmRwa001Token, _ID, newAdmin, fromChainIdStr, _fromContractStr);
 
         return(true);
     }
 
+
     function changeAdmin(address _newAdmin, uint256 _ID) external returns(bool) {
 
         (address ctmRwa001Addr,) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa001Addr);
 
-        ICTMRWA001(ctmRwa001Addr).changeAdminX(_newAdmin);
+        ICTMRWA001(ctmRwa001Addr).changeAdmin(_newAdmin);
         adminTokens[_newAdmin].push(ctmRwa001Addr);
 
         // emit ChangeAdmin(_ID, currentAdminStr, _newAdmin.toHexString(), "");
@@ -334,23 +316,24 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _ID,
         string memory _feeTokenStr
     ) public returns(bool) {
+
+        string memory toChainIdStr = _toLower(_toChainIdStr);
         
-        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
+        (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
+        (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
         (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
 
-        _payFee(FeeType.ADMIN, _feeTokenStr, _stringToArray(_toChainIdStr), false);
+        _payFee(FeeType.ADMIN, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
-        string memory funcCall = "adminX(string,string,string,string)";
+        string memory funcCall = "adminX(uint256,string,string)";
         bytes memory callData = abi.encodeWithSignature(
             funcCall,
+            _ID,
             currentAdminStr,
-            _newAdminStr,
-            ctmRwa001AddrStr,
-            toTokenStr
+            _newAdminStr
         );
 
-        c3call(toRwaXStr, _toChainIdStr, callData);
+        c3call(toRwaXStr, toChainIdStr, callData);
 
         // emit ChangeAdmin(_ID, currentAdminStr, _newAdminStr, _toChainIdStr);
 
@@ -359,132 +342,31 @@ contract CTMRWA001X is Context, GovernDapp {
 
 
     function adminX(
-        string memory _currentAdminStr,
-        string memory _newAdminStr,
-        string memory _fromContractStr,
-        string memory _ctmRwa001AddrStr
+        uint256 _ID,
+        string memory _oldAdminStr,
+        string memory _newAdminStr
     ) external onlyCaller returns(bool) {
-        address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
+        
+        (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+        require(ok, "CTMRWA001X: Destination token contract with this ID does not exist");
+
         address newAdmin = stringToAddress(_newAdminStr);
 
         (, string memory fromChainIdStr,) = context();
         fromChainIdStr = _toLower(fromChainIdStr);
 
-        string memory storedContractStr = ICTMRWA001(ctmRwa001Addr).getTokenContract(fromChainIdStr);
-        require(stringsEqual(storedContractStr, _fromContractStr), "CTMRWA001X: From an invalid CTMRWA001");
+        address currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
+        address oldAdmin = stringToAddress(_oldAdminStr);
+        require(currentAdmin == oldAdmin, "CTMRWA001X: Not admin. Cannot change admin address");
 
-        ICTMRWA001(ctmRwa001Addr).changeAdminX(newAdmin);
+        ICTMRWA001(ctmRwa001Addr).changeAdmin(newAdmin);
         adminTokens[newAdmin].push(ctmRwa001Addr);
 
-        emit ChangeAdminDest(_currentAdminStr, _newAdminStr, fromChainIdStr);
+        emit ChangeAdminDest(_oldAdminStr, _newAdminStr, fromChainIdStr);
 
         return(true);
     }
 
-    function getAllTokensByAdminAddress(address _admin) public view returns(address[] memory) {
-        return(adminTokens[_admin]);
-    }
-
-    function getAllTokensByOwnerAddress(address _owner) public view returns(address[] memory) {
-        return(ownedCtmRwa001[_owner]);
-    }
-
-    function isOwnedToken(address _owner, address _ctmRwa001Addr) public view returns(bool) {
-        if(ICTMRWA001(_ctmRwa001Addr).balanceOf(_owner) > 0) return(true);
-        else return(false);
-    }
-
-
-    function getAttachedID(address _ctmRwa001Addr) external view returns(bool, uint256) {
-
-        string memory ctmRwa001Addr = _toLower(_ctmRwa001Addr.toHexString());
-        uint256 id = contractToId[ctmRwa001Addr];
-        return (id != 0, id);
-    }
-
-    function getAttachedTokenAddress(uint256 _ID) external view returns(bool, address) {
-        
-        string memory _contractStr = idToContract[_ID];
-       
-        return bytes(_contractStr).length != 0 ? (true, stringToAddress(_contractStr)) : (false, address(0));
-    }
-
-    // Keeps a record of token IDs in this contract. Check offline to see if other contracts have it
-    function _attachCTMRWA001ID(uint256 _ID, address _ctmRwa001Addr) internal returns(bool) {
-
-        if (bytes(idToContract[_ID]).length == 0) {
-            bool ok = ICTMRWA001(_ctmRwa001Addr).attachId(_ID, _msgSender());
-            if (ok) {
-                string memory ctmRwa001Addr = _toLower(_ctmRwa001Addr.toHexString());
-                idToContract[_ID] = ctmRwa001Addr;
-                contractToId[ctmRwa001Addr] = _ID;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    // Add an array of new chainId/ctmRwa001Addr pairs corresponding to other chain deployments
-    function addNewChainIdAndToken(
-        string memory _toChainIdStr,
-        string[] memory _chainIdsStr,
-        string[] memory _otherCtmRwa001AddrsStr,
-        uint256 _ID
-    ) public {
-       
-        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
-        (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
-
-        string memory funcCall = "addNewChainIdAndTokenX(uint256,string,string[],string[],string,string)";
-        bytes memory callData = abi.encodeWithSignature(
-            funcCall,
-            _ID,
-            currentAdminStr,
-            _chainIdsStr,
-            _otherCtmRwa001AddrsStr,
-            ctmRwa001AddrStr,
-            toTokenStr
-        );
-
-        c3call(toRwaXStr, _toChainIdStr, callData);
-
-    }
-
-    function addNewChainIdAndTokenX(
-        uint256 _Id,
-        string memory _adminStr,
-        string[] memory _chainIdsStr,
-        string[] memory _otherCtmRwa001AddrsStr,
-        string memory _fromTokenStr,
-        string memory _ctmRwa001AddrStr
-    ) external onlyCaller returns(bool) {
-
-        (, string memory fromChainIdStr,) = context();
-        fromChainIdStr = _toLower(fromChainIdStr);
-
-        address tokenAdmin = stringToAddress(_adminStr);
-        address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
-
-        address currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
-        require(tokenAdmin == currentAdmin, "CTMRWA001X: No tokenAdmin access to add chains/contracts");
-
-        (bool ok, uint256 ID) = this.getAttachedID(ctmRwa001Addr);
-        require(ok && ID == _Id, "CTMRWA001X: Incorrect or unattached CTMRWA001 contract");
-
-        bool success = ICTMRWA001(ctmRwa001Addr).addXTokenInfo(
-            tokenAdmin, 
-            _chainIdsStr, 
-            _otherCtmRwa001AddrsStr
-        );
-
-        if(!success) revert("CTMRWA001X: addNewChainIdAndToken failed");
-
-        emit AddNewChainAndToken(fromChainIdStr, _fromTokenStr, _chainIdsStr, _otherCtmRwa001AddrsStr);
-
-        return(true);
-    }
 
     function mintNewTokenValueLocal(
         address toAddress_,
@@ -533,14 +415,15 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _ID,
         string memory _feeTokenStr
     ) public {
+        string memory toChainIdStr = _toLower(_toChainIdStr);
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (string memory fromAddressStr, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
+        (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
         _checkTokenAdmin(ctmRwa001Addr);
 
-        _payFee(FeeType.MINT, _feeTokenStr, _stringToArray(_toChainIdStr), false);
+        _payFee(FeeType.MINT, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
-        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
+        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
         bytes memory callData = abi.encodeWithSignature(
             funcCall,
             _ID,
@@ -549,11 +432,10 @@ contract CTMRWA001X is Context, GovernDapp {
             0,  // Not used, since we are not transferring value from a tokenId, but creating new value
             _slot,
             _value,
-            ctmRwa001AddrStr,
-            toTokenStr
+            ctmRwa001AddrStr
         );
 
-        c3call(toRwaXStr, _toChainIdStr, callData);
+        c3call(toRwaXStr, toChainIdStr, callData);
     }
 
     
@@ -567,18 +449,20 @@ contract CTMRWA001X is Context, GovernDapp {
     ) public {
         require(bytes(_toAddressStr).length>0, "CTMRWA001X: Destination address has zero length");
 
+        string memory toChainIdStr = _toLower(_toChainIdStr);
+
         (address ctmRwa001Addr,) = _getTokenAddr(_ID);
-        (string memory fromAddressStr, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
+        (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
         
         ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
 
-        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(_toChainIdStr), false);
+        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
         uint256 slot = ICTMRWA001(ctmRwa001Addr).slotOf(_fromTokenId);
 
         ICTMRWA001(ctmRwa001Addr).burnValueX(_fromTokenId, _value);
 
-        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
+        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
         
         bytes memory callData = abi.encodeWithSignature(
             funcCall,
@@ -588,23 +472,11 @@ contract CTMRWA001X is Context, GovernDapp {
             _fromTokenId,
             slot,
             _value,
-            ctmRwa001Addr,
-            toTokenStr
+            ctmRwa001Addr
         );
         
-        c3call(toRwaXStr, _toChainIdStr, callData);
+        c3call(toRwaXStr, toChainIdStr, callData);
 
-        // emit TransferFromSourceX(
-        //     _ID,
-        //     fromAddressStr,
-        //     _toAddressStr,
-        //     _fromTokenId,
-        //     0,
-        //     slot,
-        //     _value,
-        //     ctmRwa001AddrStr,
-        //     toTokenStr
-        // );
     }
 
     function transferFromX(
@@ -616,20 +488,21 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _ID,
         string memory _feeTokenStr
     ) public {
-        
+        string memory toChainIdStr = _toLower(_toChainIdStr);
+
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (string memory fromAddressStr, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
+        (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
         
         ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
         require(bytes(_toAddressStr).length>0, "CTMRWA001X: Destination address has zero length");
 
-        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(_toChainIdStr), false);
+        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
         uint256 slot = ICTMRWA001(ctmRwa001Addr).slotOf(_fromTokenId);
 
         ICTMRWA001(ctmRwa001Addr).burnValueX(_fromTokenId, _value);
 
-        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,uint256,string,string)";
+        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,uint256,string)";
         
         bytes memory callData = abi.encodeWithSignature(
             funcCall,
@@ -640,23 +513,11 @@ contract CTMRWA001X is Context, GovernDapp {
             _toTokenId,
             slot,
             _value,
-            ctmRwa001AddrStr,
-            toTokenStr
+            ctmRwa001AddrStr
         );
         
-        c3call(toRwaXStr, _toChainIdStr, callData);
+        c3call(toRwaXStr, toChainIdStr, callData);
 
-        // emit TransferFromSourceX(
-        //     _ID,
-        //     fromAddressStr,
-        //     _toAddressStr,
-        //     _fromTokenId,
-        //     _toTokenId,
-        //     slot,
-        //     _value,
-        //     ctmRwa001AddrStr,
-        //     toRwaXStr
-        // );
     }
 
     function mintX(
@@ -667,19 +528,15 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _toTokenId,
         uint256 _slot,
         uint256 _value,
-        string memory _fromContractStr,
-        string memory _ctmRwa001AddrStr
+        string memory _fromTokenStr
     ) external onlyCaller returns(bool){
 
-        address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
-
         (, string memory fromChainIdStr,) = context();
-        fromChainIdStr = _toLower(fromChainIdStr);
 
-        require(ICTMRWA001(ctmRwa001Addr).ID() == _ID, "CTMRWA001X: Destination CTMRWA001 ID is incorrect");
+        (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+        require(ok, "CTMRWA001X: Destination token contract with this ID does not exist");
 
-        string memory storedContractStr = ICTMRWA001(ctmRwa001Addr).getTokenContract(fromChainIdStr);
-        require(stringsEqual(storedContractStr, _fromContractStr), "CTMRWA001X: From an invalid CTMRWA001");
+        string memory ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
 
         ICTMRWA001(ctmRwa001Addr).mintValueX(_toTokenId, _slot, _value);
         (,,address owner,) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_toTokenId);
@@ -693,8 +550,9 @@ contract CTMRWA001X is Context, GovernDapp {
             _toTokenId,
             _slot,
             _value,
-            _fromContractStr,
-            _ctmRwa001AddrStr
+            fromChainIdStr,
+            _fromTokenStr,
+            ctmRwa001AddrStr
         );
 
         return(true);
@@ -707,13 +565,14 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _ID,
         string memory _feeTokenStr
     ) public {
+        string memory toChainIdStr = _toLower(_toChainIdStr);
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (string memory fromAddressStr, string memory toRwaXStr, string memory toTokenStr) = _getRWAXAndToken(_toChainIdStr, ctmRwa001Addr);
+        (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
         
         require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "CTMRWA001X: transfer caller is not owner nor approved");
 
-        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(_toChainIdStr), false);
+        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
         (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_fromTokenId);
 
@@ -722,7 +581,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         ICTMRWA001(ctmRwa001Addr).removeTokenFromOwnerEnumeration(_msgSender(), _fromTokenId);
 
-        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
+        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
         bytes memory callData = abi.encodeWithSignature(
             funcCall,
             _ID,
@@ -731,23 +590,11 @@ contract CTMRWA001X is Context, GovernDapp {
             _fromTokenId,
             slot,
             value,
-            ctmRwa001AddrStr,
-            toTokenStr
+            ctmRwa001AddrStr
         );
 
-        c3call(toRwaXStr, _toChainIdStr, callData);
+        c3call(toRwaXStr, toChainIdStr, callData);
 
-        // emit TransferFromSourceX(
-        //     _ID,
-        //     fromAddressStr,
-        //     _toAddressStr,
-        //     _fromTokenId,
-        //     0,
-        //     slot,
-        //     value,
-        //     ctmRwa001AddrStr,
-        //     toTokenStr
-        // );
     }
 
     function mintX(
@@ -757,20 +604,17 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _fromTokenId,
         uint256 _slot,
         uint256 _balance,
-        string memory _fromContractStr,
-        string memory _ctmRwa001AddrStr
+        string memory _fromTokenStr
     ) external onlyCaller returns(bool){
 
         (, string memory fromChainIdStr,) = context();
-        fromChainIdStr = _toLower(fromChainIdStr);
 
-        address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
         address toAddr = stringToAddress(_toAddressStr);
 
-        require(ICTMRWA001(ctmRwa001Addr).ID() == _ID, "CTMRWA001X: Destination CTMRWA001 ID is incorrect");
+        (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+        require(ok, "CTMRWA001X: Destination token contract with this ID does not exist"); 
 
-        string memory storedContractStr = ICTMRWA001(ctmRwa001Addr).getTokenContract(fromChainIdStr);
-        require(stringsEqual(storedContractStr, _fromContractStr), "CTMRWA001X: From an invalid CTMRWA001");
+        string memory ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
 
         uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(toAddr, _slot, _balance);
 
@@ -782,9 +626,68 @@ contract CTMRWA001X is Context, GovernDapp {
             newTokenId,
             _slot,
             _balance,
-            _fromContractStr,
-            _ctmRwa001AddrStr
+            fromChainIdStr,
+            _fromTokenStr,
+            ctmRwa001AddrStr
         );
+
+        return(true);
+    }
+
+    function _addURI(
+        uint256 _ID,
+        URICategory _uriCategory,
+        URIType _uriType,
+        uint256 _slot,   
+        bytes32 _uriDataHash,
+        string[] memory _chainIdsStr
+    ) external {
+
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
+        require(ok, "CTMRWA001X: Could not find _ID or its storage address");
+
+        (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
+        _checkTokenAdmin(ctmRwa001Addr);
+
+        for(uint256 i=0; i<_chainIdsStr.length; i++) {
+            string memory chainIdStr = _toLower(_chainIdsStr[i]);
+
+            if(stringsEqual(chainIdStr, cID().toString())) {
+                ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _uriDataHash);
+            } else {
+                (, string memory toRwaXStr) = _getRWAX(chainIdStr);
+
+                string memory funcCall = "addURIX(uint256,URICategory,URIType,uint256,bytes32)";
+                bytes memory callData = abi.encodeWithSignature(
+                    funcCall,
+                    _ID,
+                    _uriCategory,
+                    _uriType,
+                    _slot,
+                    _uriDataHash
+                );
+
+                c3call(toRwaXStr, chainIdStr, callData);
+            }
+        }
+    }
+
+
+    function addURIX(
+        uint256 _ID,
+        URICategory _uriCategory,
+        URIType _uriType,
+        uint256 _slot,   
+        bytes32 _uriDataHash
+    ) external onlyCaller returns(bool) {
+
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
+        require(ok, "CTMRWA001X: Could not find _ID or its storage address");
+
+        (, string memory fromChainIdStr,) = context();
+        fromChainIdStr = _toLower(fromChainIdStr);
+
+        ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _uriDataHash);
 
         return(true);
     }
@@ -792,35 +695,51 @@ contract CTMRWA001X is Context, GovernDapp {
 
     // End of cross chain transfers
 
-    function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
-        (bool ok, address ctmRwa001Addr) = this.getAttachedTokenAddress(_ID);
-        require(ok, "CTMRWA001X: The requested tokenID does not exist");
-        string memory ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
 
-        return(ctmRwa001Addr, ctmRwa001AddrStr);
+    function getAllTokensByAdminAddress(address _admin) public view returns(address[] memory) {
+        return(adminTokens[_admin]);
     }
 
-    function _getRWAXAndToken(string memory _toChainIdStr, address _tokenAddr) internal view returns(string memory, string memory, string memory) {
-        require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA001X: Not a cross-chain tokenAdmin change");
-        
-        string memory fromAddressStr = _msgSender().toHexString();
-        string memory toTokenStr = ICTMRWA001(_tokenAddr).getTokenContract(_toChainIdStr);
+    function getAllTokensByOwnerAddress(address _owner) public view returns(address[] memory) {
+        return(ownedCtmRwa001[_owner]);
+    }
 
-        (bool ok, string memory toRwaXStr) = ICTMRWAGateway(gateway).getAttachedRWAX("RWA001", _toChainIdStr);
+    function isOwnedToken(address _owner, address _ctmRwa001Addr) public view returns(bool) {
+        if(ICTMRWA001(_ctmRwa001Addr).balanceOf(_owner) > 0) return(true);
+        else return(false);
+    }
+
+
+
+    function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+        require(ok, "CTMRWA001X: The requested tokenID does not exist");
+        string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
+
+        return(tokenAddr, tokenAddrStr);
+    }
+
+    function _getRWAX(string memory _toChainIdStr) internal view returns(string memory, string memory) {
+        require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA001X: Not a cross-chain tokenAdmin change");
+
+        string memory fromAddressStr = _toLower(_msgSender().toHexString());
+
+        (bool ok, string memory toRwaXStr) = ICTMRWAGateway(gateway).getAttachedRWAX(rwaType, version, _toChainIdStr);
         require(ok, "CTMRWA001X: Target contract address not found");
 
-        return(fromAddressStr, toRwaXStr, toTokenStr);
+        return(fromAddressStr, toRwaXStr);
     }
 
     function _checkTokenAdmin(address _tokenAddr) internal returns(address, string memory) {
         address currentAdmin = ICTMRWA001(_tokenAddr).tokenAdmin();
-        string memory currentAdminStr = currentAdmin.toHexString();
+        string memory currentAdminStr = _toLower(currentAdmin.toHexString());
 
         require(_msgSender() == currentAdmin, "CTMRWA001X: Only tokenAdmin can change the tokenAdmin");
 
         return(currentAdmin, currentAdminStr);
     }
 
+    
     function _payFee(
         FeeType _feeType, 
         string memory _feeTokenStr, 
@@ -843,8 +762,6 @@ contract CTMRWA001X is Context, GovernDapp {
         strArray[0] = _string;
         return(strArray);
     }
-
-
 
     function cID() internal view returns (uint256) {
         return block.chainid;

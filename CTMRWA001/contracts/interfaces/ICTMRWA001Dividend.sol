@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 interface ICTMRWA001Dividend {
+    function ID() external view returns(uint256);
     function setDividendToken(address _dividendToken) external returns(bool);
     function dividendToken() external returns(address);
     function changeDividendRate(uint256 _slot, uint256 _dividend) external returns(bool);

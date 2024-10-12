@@ -3,9 +3,9 @@ src = "contracts"
 out = "out"
 libs = ["lib"]
 optimizer = true
-optimizer_runs = 20
-viaIR = true
-solc = "0.8.20"
+optimizer_runs = 100
+via_ir = true
+solc = "0.8.23"
 
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts",

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
+
+// import "forge-std/console.sol";
 
 import "./CTMRWA001Dividend.sol";
 
@@ -12,7 +14,7 @@ contract CTMRWA001DividendFactory {
     address public deployer;
 
     modifier onlyDeployer {
-        require(msg.sender == deployer, "CTMRWA001TokenFactory: onlyDeployer function");
+        require(msg.sender == deployer, "CTMRWA001DividendFactory: onlyDeployer function");
         _;
     }
 
@@ -23,15 +25,16 @@ contract CTMRWA001DividendFactory {
     }
 
     function deployDividend(
-        address tokenAddr
+        uint256 _ID,
+        address _tokenAddr,
+        uint256 _rwaType,
+        uint256 _version,
+        address _map
     ) external onlyDeployer returns(address) {
-        uint256 ID = TokenID(tokenAddr).ID();
 
         CTMRWA001Dividend ctmRwa001Dividend = new CTMRWA001Dividend{
-            salt: bytes32(ID) 
-        }(
-            tokenAddr
-        );
+            salt: bytes32(_ID) 
+        }(_ID,_tokenAddr, _rwaType, _version, _map);
 
         return(address(ctmRwa001Dividend));
     }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
@@ -12,8 +12,8 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ICTMRWA001, ICTMRWA001SlotApprovable, ICTMRWA001SlotEnumerable} from "./interfaces/ICTMRWA001.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
-import {ICTMRWA001Metadata} from "./extensions/ICTMRWA001Metadata.sol";
-import {ICTMRWA001MetadataDescriptor} from "./periphery/interface/ICTMRWA001MetadataDescriptor.sol";
+
+import {ICTMRWAAttachment} from "./interfaces/ICTMRWAMap.sol";
 
 
 contract CTMRWA001 is Context, ICTMRWA001 {
@@ -21,23 +21,18 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     // The ID is a unique identifier linking contracts across chains - same ID on each chains
     uint256 public ID;
+
+    uint256 public constant version = 1;
+    uint256 public constant rwaType = 1;
+
     // regulator is the wallet address of the Regulator, if this is a Security, else zero length
     string public regulator;
     address public tokenAdmin;
-    address public ctmRwa001XChain;
+    address ctmRwaMap;
+    address public ctmRwa001X;
     address public dividendAddr;
+    address public storageAddr;
 
-    string constant TYPE = "CTMRWA001/";
-    
-
-    event SetMetadataDescriptor(address indexed metadataDescriptor);
-
-    struct TokenContract {
-        string chainIdStr;
-        string contractStr;
-    }
-
-    TokenContract[] public tokenContract;
 
     struct TokenData {
         uint256 id;
@@ -60,7 +55,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     uint8 private _decimals;
     string public baseURI;
     uint256 private _tokenIdGenerator;
-    string[] public tokenChainIdStrs;
+   
 
     // id => (approval => allowance)
     // @dev _approvedValues cannot be defined within TokenData, cause struct containing mappings cannot be constructed.
@@ -76,36 +71,41 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     mapping(address => AddressData) private _addressData;
 
-    ICTMRWA001MetadataDescriptor public metadataDescriptor;
-
 
     constructor(
         address _tokenAdmin,
+        address _map,
         string memory tokenName_, 
         string memory symbol_, 
         uint8 decimals_,
         string memory baseURI_,
-        address _ctmRwa001XChain
+        address _ctmRwa001X
     ) {
         tokenAdmin = _tokenAdmin;
+        ctmRwaMap = _map;
         _tokenIdGenerator = 1;
         _name = tokenName_;
         _symbol = symbol_;
         _decimals = decimals_;
         baseURI = baseURI_;
-        ctmRwa001XChain = _ctmRwa001XChain;
+        ctmRwa001X = _ctmRwa001X;
         
 
-        _addTokenContract(cID().toString(), _toLower(address(this).toHexString()));
+        //addTokenContract(cID().toString(), _toLower(address(this).toHexString()));
     }
     
     modifier onlyTokenAdmin() {
-        require(_msgSender() == tokenAdmin, "CTMRWA001: This is an onlyTokenAdmin function");
+        require(_msgSender() == tokenAdmin||_msgSender() == ctmRwa001X, "CTMRWA001: This is an onlyTokenAdmin function");
         _;
     }
 
-    modifier onlyGateKeeper() {
-        require(_msgSender() == ctmRwa001XChain, "CTMRWA001: This can only be called by CTMRWA001X");
+    modifier onlyCtmMap() {
+        require(msg.sender == ctmRwaMap, "CTMRWA001: This can only be called by CTMRWAMap");
+        _;
+    }
+
+    modifier onlyRwa001X() {
+        require(_msgSender() == ctmRwa001X, "CTMRWA001: This can only be called by CTMRWA001X");
         _;
     }
 
@@ -114,13 +114,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _;
     }
     
-
-    function changeAdminX(address _tokenAdmin) external onlyGateKeeper returns(bool) {
-        tokenAdmin = _tokenAdmin;
-        return true;
-    }
-
-    function changeAdmin(address _tokenAdmin) external onlyTokenAdmin returns(bool) {
+    function changeAdmin(address _tokenAdmin) public onlyTokenAdmin returns(bool) {
         tokenAdmin = _tokenAdmin;
         return true;
     }
@@ -130,7 +124,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             interfaceId == type(IERC165).interfaceId ||
             interfaceId == type(ICTMRWA001).interfaceId ||
             interfaceId == type(IERC721).interfaceId ||
-            interfaceId == type(ICTMRWA001Metadata).interfaceId ||
             interfaceId == type(IERC721Enumerable).interfaceId || 
             interfaceId == type(IERC721Metadata).interfaceId ||
             interfaceId == type(ICTMRWA001SlotApprovable).interfaceId ||
@@ -158,7 +151,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _decimals;
     }
 
-    function attachId(uint256 nextID, address _tokenAdmin) external onlyGateKeeper returns(bool) {
+    function attachId(uint256 nextID, address _tokenAdmin) external onlyRwa001X returns(bool) {
         require(_tokenAdmin == tokenAdmin, "CTMRWA001X: attachId is an AdminOnly function");
         if(ID == 0) { // not yet attached
             ID = nextID;
@@ -166,66 +159,16 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         } else return(false);
     }
 
-    function attachDividend(address _dividendAddr) external onlyGateKeeper returns(bool) {
+    function attachDividend(address _dividendAddr) external onlyCtmMap returns(bool) {
         require(dividendAddr == address(0), "CTMRWA001: Cannot reset the dividend contract address");
         dividendAddr = _dividendAddr;
         return(true);
     }
 
-    function addXTokenInfo(
-        address _tokenAdmin,
-        string[] memory _chainIdsStr,
-        string[] memory _contractAddrsStr
-    ) external onlyGateKeeper returns(bool){
-        require(_tokenAdmin == tokenAdmin, "CTMRWA001X: AdminOnly function");
-        require(_chainIdsStr.length == _contractAddrsStr.length, "CTMRWA001: Length mismatch chainIds and contractAddrs");
-
-        for(uint256 i=0; i<_chainIdsStr.length; i++) {
-            if(!stringsEqual(_chainIdsStr[i], cID().toString())) {
-                bool success = _addTokenContract(_chainIdsStr[i], _contractAddrsStr[i]);
-                if(!success) return(false);
-            }
-        }
-
+    function attachStorage(address _storageAddr) external onlyCtmMap returns(bool) {
+        require(storageAddr == address(0), "CTMRWA001: Cannot reset the storage contract address");
+        storageAddr = _storageAddr;
         return(true);
-    }
-
-    function _addTokenContract(string memory _chainIdStr, string memory _contractAddrStr) internal returns(bool) {
-
-        for(uint256 i=0; i<tokenContract.length; i++) {
-            if(stringsEqual(tokenContract[i].chainIdStr, _chainIdStr)) {
-                return(false); // Cannot change an entry
-            }
-        }
-
-        tokenContract.push(TokenContract(_chainIdStr, _contractAddrStr));
-        tokenChainIdStrs.push(_chainIdStr);
-        return(true);
-    }
-
-    function getTokenContract(string memory _chainIdStr) external view returns(string memory) {
-        for(uint256 i=0; i<tokenContract.length; i++) {
-            if(stringsEqual(tokenContract[i].chainIdStr, _toLower(_chainIdStr))) {
-                return(tokenContract[i].contractStr);
-            }
-        }
-        return("");
-    }
-
-
-    // Check that another CTMRWA001 token contract is part of the same set as this one
-    function checkTokenCompatibility(
-        string memory _otherChainIdStr,
-        string memory _otherContractStr
-    ) external view returns(bool) {
-        string memory otherChainIdStr = _toLower(_otherChainIdStr);
-        string memory otherContractStr = _toLower(_otherContractStr);
-
-        for(uint256 i=0; i<tokenContract.length; i++) {
-            if(stringsEqual(otherChainIdStr, tokenContract[i].chainIdStr)
-            && stringsEqual(otherContractStr, tokenContract[i].contractStr)) return(true);
-        }
-        return(false);
     }
 
     function idOf(uint256 tokenId_) public view virtual returns(uint256) {
@@ -288,41 +231,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return(_allTokens[_tokenId].dividendUnclaimed);
     }
 
-    // function setBaseURI(string memory _baseURI) public onlyTokenAdmin {
-    //     baseURI = _baseURI;
-    // }
 
-    function contractURI() public view virtual override returns (string memory) {
-        return 
-            address(metadataDescriptor) != address(0) ? 
-                metadataDescriptor.constructContractURI() :
-                bytes(baseURI).length > 0 ? 
-                    string(abi.encodePacked(baseURI, TYPE, "contract/", ID)) : 
-                    "";
-    }
-
-    function slotURI(uint256 slot_) public view virtual override returns (string memory) {
-        return 
-            address(metadataDescriptor) != address(0) ? 
-                metadataDescriptor.constructSlotURI(slot_) : 
-                bytes(baseURI).length > 0 ? 
-                    string(abi.encodePacked(baseURI, TYPE, "slot/", slot_.toString())) : 
-                    "";
-    }
-
-    /**
-     * @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
-     */
-    function tokenURI(uint256 tokenId_) public view virtual override returns (string memory) {
-        requireMinted(tokenId_);
-        return 
-            address(metadataDescriptor) != address(0) ? 
-                metadataDescriptor.constructTokenURI(tokenId_) : 
-                bytes(baseURI).length > 0 ? 
-                    string(abi.encodePacked(baseURI, TYPE, tokenId_.toString())) : 
-                    "";
-    }
-
+   
     function approve(uint256 tokenId_, address to_, uint256 value_) public payable virtual override {
         address owner = CTMRWA001.ownerOf(tokenId_);
         require(to_ != owner, "CTMRWA001: approval to current owner");
@@ -468,7 +378,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _mint(to_, tokenId, slot_, value_);  
     }
 
-    function mintFromX(address to_, uint256 slot_, uint256 value_) external onlyGateKeeper returns (uint256 tokenId) {
+    function mintFromX(address to_, uint256 slot_, uint256 value_) external onlyRwa001X returns (uint256 tokenId) {
         return(_mint(to_, slot_, value_));
     }
 
@@ -483,7 +393,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _afterValueTransfer(address(0), to_, 0, tokenId_, slot_, value_);
     }
 
-    function mintFromX(address to_, uint256 tokenId_, uint256 slot_, uint256 value_) external onlyGateKeeper {
+    function mintFromX(address to_, uint256 tokenId_, uint256 slot_, uint256 value_) external onlyRwa001X {
         _mint(to_, tokenId_, slot_, value_);
     }
 
@@ -579,7 +489,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         ownerData.ownedTokens.pop();
     }
 
-    function removeTokenFromOwnerEnumeration(address from_, uint256 tokenId_) external onlyGateKeeper {
+    function removeTokenFromOwnerEnumeration(address from_, uint256 tokenId_) external onlyRwa001X {
         _removeTokenFromOwnerEnumeration(from_, tokenId_);
     }
 
@@ -613,7 +523,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         emit Approval(CTMRWA001.ownerOf(tokenId_), to_, tokenId_);
     }
 
-    function approveFromX(address to_, uint256 tokenId_) external onlyGateKeeper {
+    function approveFromX(address to_, uint256 tokenId_) external onlyRwa001X {
         _approve(to_, tokenId_);
     }
 
@@ -641,7 +551,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         delete tokenData.valueApprovals;
     }
 
-    function clearApprovedValues(uint256 tokenId_) external onlyGateKeeper {
+    function clearApprovedValues(uint256 tokenId_) external onlyRwa001X {
         _clearApprovedValues(tokenId_);
     }
 
@@ -698,7 +608,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         );
     }
 
-    function burnValueX(uint256 fromTokenId_, uint256 value_) external onlyGateKeeper returns(bool) {
+    function burnValueX(uint256 fromTokenId_, uint256 value_) external onlyRwa001X returns(bool) {
         require(_exists(fromTokenId_), "CTMRWA001: transfer from invalid token ID");
 
         TokenData storage fromTokenData = _allTokens[_allTokensIndex[fromTokenId_]];
@@ -708,7 +618,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return(true);
     }
 
-    function mintValueX(uint256 toTokenId_, uint256 slot_, uint256 value_) external onlyGateKeeper returns(bool) {
+    function mintValueX(uint256 toTokenId_, uint256 slot_, uint256 value_) external onlyRwa001X returns(bool) {
         require(_exists(toTokenId_), "CTMRWA001: transfer to invalid token ID");
 
         TokenData storage toTokenData = _allTokens[_allTokensIndex[toTokenId_]];
@@ -825,10 +735,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     /* solhint-enable */
 
-    function _setMetadataDescriptor(address metadataDescriptor_) internal virtual {
-        metadataDescriptor = ICTMRWA001MetadataDescriptor(metadataDescriptor_);
-        emit SetMetadataDescriptor(metadataDescriptor_);
-    }
+    
 
     function _createOriginalTokenId() internal virtual returns (uint256) {
         return _tokenIdGenerator++;

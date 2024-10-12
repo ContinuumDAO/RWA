@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import "./IUUIDKeeper.sol";
 import "./C3GovClient.sol";

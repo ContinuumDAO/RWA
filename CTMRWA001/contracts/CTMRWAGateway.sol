@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -13,7 +13,7 @@ contract CTMRWAGateway is Context, GovernDapp {
 
     string public cIdStr;
 
-    mapping(string => ChainContract[]) rwaX;
+    mapping(uint256 => mapping(uint256 => ChainContract[])) rwaX; // rwaType => version => ChainContract
 
     event SetChainContract(string[] chainIdsStr, string[] contractAddrsStr, string fromContractStr, string fromChainIdStr);
     event LogFallback(bytes4 selector, bytes data, bytes reason);
@@ -127,34 +127,41 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     function getAttachedRWAX(
-        string memory _rwaTypeStr, 
+        uint256 _rwaType,
+        uint256 _version,
         string memory _chainIdStr
     ) public view returns(bool, string memory) {
-        for(uint256 i=0; i<rwaX[_rwaTypeStr].length; i++) {
-            if(stringsEqual(rwaX[_rwaTypeStr][i].chainIdStr, _chainIdStr)) {
-                return(true, rwaX[_rwaTypeStr][i].contractStr);
+
+        for(uint256 i=0; i<rwaX[_rwaType][_version].length; i++) {
+            if(stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, _chainIdStr)) {
+                return(true, rwaX[_rwaType][_version][i].contractStr);
             }
         }
+
         return(false, "0");
     }
 
-    // Keeps a record of RWA contracts on this chain for other chains.
+    // Keeps a record of RWA contracts on this chain on other chains.
     function attachRWAX (
-        string memory _rwaTypeStr, 
+        uint256 _rwaType,
+        uint256 _version,
         string memory _chainIdStr, 
         string memory _rwaXAddrStr
     ) external onlyGov returns(bool) {
         if(bytes(_rwaXAddrStr).length != 42) return(false);
         string memory rwaXAddrStr = _toLower(_rwaXAddrStr);
+        string memory chainIdStr = _toLower(_chainIdStr);
 
-        for(uint256 i=0; i<rwaX[_rwaTypeStr].length; i++) {
-            if(stringsEqual(rwaX[_rwaTypeStr][i].chainIdStr, _chainIdStr)) {
-                rwaX[_rwaTypeStr][i].contractStr = rwaXAddrStr;
+
+        for(uint256 i=0; i<rwaX[_rwaType][_version].length; i++) {
+            if(stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, chainIdStr)) {
+                rwaX[_rwaType][_version][i].contractStr = rwaXAddrStr;
                 return(true);
             }
         }
-        ChainContract memory newAttach = ChainContract(_chainIdStr, rwaXAddrStr);
-        rwaX[_rwaTypeStr].push(newAttach);
+
+        ChainContract memory newAttach = ChainContract(chainIdStr, rwaXAddrStr);
+        rwaX[_rwaType][_version].push(newAttach);
         return(true);
     }
 

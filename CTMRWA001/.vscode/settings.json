@@ -1,9 +1,9 @@
 {
-    "solidity.compileUsingRemoteVersion": "v0.8.20",
+    "solidity.compileUsingRemoteVersion": "v0.8.23",
     "solidity.packageDefaultDependenciesContractsDirectory": "contracts",
     "solidity.packageDefaultDependenciesDirectory": "lib",
     "solidity.remappings": [
-        "@openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/",
+        "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
         "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
         "@openzeppelin/foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src",
         "ds-test/=lib/forge-std/lib/ds-test/src/",

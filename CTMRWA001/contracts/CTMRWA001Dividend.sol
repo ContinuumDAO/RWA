@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
+
+// import "forge-std/console.sol";
 
 import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
+import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {ICTMRWA001Dividend} from "./interfaces/ICTMRWA001Dividend.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -13,6 +16,10 @@ contract CTMRWA001Dividend is Context {
     address public dividendToken;
     address public tokenAddr;
     address public tokenAdmin;
+    address ctmRwa001Map;
+    uint256 public ID;
+    uint256 rwaType;
+    uint256 version;
 
     event NewDividendToken(address newToken, address currentAdmin);
     event ChangeDividendRate(uint256 slot, uint256 newDividend, address currentAdmin);
@@ -24,10 +31,21 @@ contract CTMRWA001Dividend is Context {
         _;
     }
 
-    constructor(address _tokenAddr) {
+    constructor(
+        uint256 _ID,
+        address _tokenAddr,
+        uint256 _rwaType,
+        uint256 _version,
+        address _map
+    ) {
         tokenAddr = _tokenAddr;
         tokenAdmin = ICTMRWA001(tokenAddr).tokenAdmin();
+        ctmRwa001Map = _map;
+        ID = _ID;
+        rwaType = _rwaType;
+        version = _version;
     }
+
 
     function setDividendToken(address _dividendToken) external onlyTokenAdmin returns(bool) {
         for(uint256 i=1; i<=ICTMRWA001(tokenAddr).totalSupply(); i++) {

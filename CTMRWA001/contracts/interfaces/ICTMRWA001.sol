@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {ICTMRWA001Metadata} from "../extensions/ICTMRWA001Metadata.sol";
+// import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+// import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+//import {ICTMRWA001Metadata} from "../extensions/ICTMRWA001Metadata.sol";
 import {ICTMRWA001SlotEnumerable} from "../extensions/ICTMRWA001SlotEnumerable.sol";
 import {ICTMRWA001SlotApprovable} from "../extensions/ICTMRWA001SlotApprovable.sol";
 
@@ -24,23 +24,19 @@ interface ITokenContract {
     function tokenChainIdStrs() external returns(string[] memory);
 }
 
-interface ICTMRWA001 is ICTMRWA001Metadata, ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
+interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
 
     function ID() external view returns(uint256);
     function tokenAdmin() external returns(address);
-    function changeAdminX(address _admin) external returns(bool);
-    function addXTokenInfo(
-        address _admin,
-        string[] memory _chainIdsStr,
-        string[] memory _contractAddrsStr
-    ) external returns(bool);
+    function ctmRwa001X() external returns(address);
+    function changeAdmin(address _admin) external returns(bool);
+    function attachId(uint256 nextID, address tokenAdmin) external returns(bool);
     
-    function getTokenContract(string memory _chainIdStr) external view returns(string memory);
     function getTokenInfo(uint256 tokenId_) external view returns(uint256 id,uint256 bal,address owner,uint256 slot);
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
     function valueDecimals() external view returns (uint8);
-    function attachId(uint256 ID, address _admin) external returns(bool);
+   
     function baseURI() external view returns(string memory);
     function balanceOf(uint256 _tokenId) external view returns (uint256);
     function dividendUnclaimedOf(uint256 tokenId) external view returns (uint256);
@@ -64,8 +60,9 @@ interface ICTMRWA001 is ICTMRWA001Metadata, ICTMRWA001SlotEnumerable, ICTMRWA001
     function isApprovedOrOwner(address operator, uint256 tokenId) external view returns(bool);
     
 
-    function attachDividend(address dividendAddr) external returns(bool);
+   
     function dividendAddr() external view returns(address);
+    function storageAddr() external view returns(address);
     function getDividendRateBySlot(uint256 _slot) external view returns(uint256);
     function changeDividendRate(uint256 slot, uint256 dividend) external returns(bool);
     function incrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);

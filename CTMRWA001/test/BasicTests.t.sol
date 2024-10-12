@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
@@ -21,15 +21,20 @@ import {FeeManager} from "../contracts/FeeManager.sol";
 import {FeeType, IFeeManager} from "../contracts/interfaces/IFeeManager.sol";
 
 import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
+import {CTMRWAMap} from "../contracts/CTMRWAMap.sol";
 import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
 import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
 import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
+import {CTMRWA001StorageManager} from "../contracts/CTMRWA001StorageManager.sol";
 
 import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
 import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
 
 import {ICTMRWA001} from "../contracts/interfaces/ICTMRWA001.sol";
 import {ICTMRWAGateway} from "../contracts/interfaces/ICTMRWAGateway.sol";
+import {ICTMRWADeployer} from "../contracts/interfaces/ICTMRWADeployer.sol";
+import {ICTMRWAFactory} from "../contracts/interfaces/ICTMRWAFactory.sol";
+import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
 import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
 import {ICTMRWA001SlotEnumerable} from "../contracts/extensions/ICTMRWA001SlotEnumerable.sol";
 import {ICTMRWA001Token} from "../contracts/interfaces/ICTMRWA001Token.sol";
@@ -64,6 +69,9 @@ contract SetUp is Test {
     address tokenAdmin2;
     address treasury;
     address ctmDividend;
+    address ctmRwaDeployer;
+
+    string  cIdStr;
 
     // address c3;
 
@@ -93,11 +101,13 @@ contract SetUp is Test {
 
     FeeManager feeManager;
     CTMRWADeployer deployer;
+    CTMRWAMap map;
     CTMRWA001TokenFactory tokenFactory;
     CTMRWAGateway gateway;
     CTMRWA001X rwa001X;
     CTMRWA001XFallback rwa001XFallback;
     CTMRWA001DividendFactory dividendFactory;
+    CTMRWA001StorageManager storageManager;
 
 
     function setUp() public virtual {
@@ -109,6 +119,8 @@ contract SetUp is Test {
         uint256 privKey4 = vm.deriveKey(mnemonic, 4);
         uint256 privKey5 = vm.deriveKey(mnemonic, 5);
         uint256 privKey6 = vm.deriveKey(mnemonic, 6);
+
+        cIdStr = block.chainid.toHexString();
 
         admin = vm.addr(privKey0);
         gov = vm.addr(privKey1);
@@ -141,26 +153,39 @@ contract SetUp is Test {
         deployCTMRWA001X();
         vm.stopPrank();
 
+
         vm.startPrank(address(c3Gov));
 
         deployRwa001XFallback(address(rwa001X));
 
         bool ok = gateway.attachRWAX(
-            "RWA001",
+            1,
+            1,
             "1",
             address(rwa001X).toHexString()
         );
         assertEq(ok, true);
+
+        deployMap();
+
+        rwa001X.setCtmRwaMap(address(map));
 
         deployCTMRWA001Deployer(
             rwaType,
             version,
             address(c3Gov),
             address(rwa001X),
+            address(map),
             address(c3),
             admin,
-            3
+            3,
+            88
         );
+
+        ctmRwaDeployer = address(deployer);
+
+        rwa001X.setCtmRwaDeployer(ctmRwaDeployer);
+        map.setCtmRwaDeployer(ctmRwaDeployer);
 
         vm.stopPrank();
 
@@ -206,31 +231,52 @@ contract SetUp is Test {
         rwa001X.setFallback(address(rwa001XFallback));
     }
 
+    function deployMap() internal {
+        map = new CTMRWAMap(
+            address(c3Gov),
+            address(gateway),
+            address(rwa001X)
+        );
+    }
+
 
     function deployCTMRWA001Deployer(
         uint256 _rwaType,
         uint256 _version,
         address _gov,
-        address _gateway,
+        address _rwa001X,
+        address _map,
         address _c3callerProxy,
         address _txSender,
-        uint256 _dappID
+        uint256 _dappIDDeployer,
+        uint256 _dappIDStorageManager
     ) internal {
         deployer = new CTMRWADeployer(
             _gov,
-            _gateway,
+            _rwa001X,
+            _map,
             _c3callerProxy,
             _txSender,
-            _dappID
+            _dappIDDeployer
         );
 
-        rwa001X.setCtmRwaDeployer(address(deployer));
 
-        tokenFactory = new CTMRWA001TokenFactory(address(deployer));
+        tokenFactory = new CTMRWA001TokenFactory(_map, address(deployer));
         deployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
         dividendFactory = new CTMRWA001DividendFactory(address(deployer));
         ctmDividend = address(dividendFactory);
         deployer.setDividendFactory(_rwaType, _version, address(dividendFactory));
+        storageManager = new CTMRWA001StorageManager(
+            _gov,
+            _rwaType,
+            _version,
+            _c3callerProxy,
+            _txSender,
+            _dappIDStorageManager,
+            _map
+        );
+        ICTMRWAFactory(address(storageManager)).setCtmRwaDeployer(address(deployer));
+        deployer.setStorageFactory(_rwaType, _version, address(storageManager));
 
     }
 
@@ -378,14 +424,15 @@ contract SetUp is Test {
             chainIdsStr,  // empty array - no cross-chain minting
             tokenStr
         );
-        (bool ok, address tokenAddress) =  rwa001X.getAttachedTokenAddress(ID);
+        (bool ok, address tokenAddress) =  map.getTokenContract(ID, rwaType, version);
         assertEq(ok, true);
 
         return(ID, tokenAddress);
     }
 
     function deployAFewTokensLocal(address _ctmRwaAddr) public returns(uint256,uint256,uint256) {
-        (bool ok, uint256 ID) = rwa001X.getAttachedID(_ctmRwaAddr);
+        string memory ctmRwaAddrStr = _toLower(_ctmRwaAddr.toHexString());
+        (bool ok, uint256 ID) = map.getTokenId(ctmRwaAddrStr, rwaType, version);
         assertEq(ok, true);
 
         uint256 tokenId1 = rwa001X.mintNewTokenValueLocal(
@@ -519,11 +566,13 @@ contract TestBasicToken is SetUp {
             chainIdsStr,  // empty array - no cross-chain minting
             tokenStr
         );
-        // console.log("ID");
-        // console.log(ID);
-        (bool ok, address ctmRwaAddr) = rwa001X.getAttachedTokenAddress(ID);
-        // console.log("ctmRwaAddr");
-        // console.log(ctmRwaAddr);
+
+        console.log("finished deploy, ID = ");
+        console.log(ID);
+
+        (bool ok, address ctmRwaAddr) = map.getTokenContract(ID, rwaType, version);
+        console.log("ctmRwaAddr");
+        console.log(ctmRwaAddr);
         assertEq(ok, true);
 
         uint256 tokenType = ICTMRWA001Token(ctmRwaAddr).getRWAType();
@@ -663,7 +712,7 @@ contract TestBasicToken is SetUp {
         vm.startPrank(user1);
         (, address ctmRwaAddr) = CTMRWA001Deploy();
         vm.stopPrank();
-        (bool ok, uint256 localID) = rwa001X.getAttachedID(ctmRwaAddr);
+        (bool ok, uint256 ID) = map.getTokenId(ctmRwaAddr.toHexString(), rwaType, version);
         assertEq(ok, true);
 
         // admin of the CTMRWA001 token
@@ -678,7 +727,6 @@ contract TestBasicToken is SetUp {
         toChainIdsStr.push("1");
 
         string memory targetStr = gateway.getChainContract("1");
-        (,uint256 ID) = rwa001X.getAttachedID(ctmRwaAddr);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         uint256 rwaType = ICTMRWA001Token(ctmRwaAddr).getRWAType();
@@ -743,7 +791,7 @@ contract TestBasicToken is SetUp {
         // ) public payable returns(uint256) {
 
         vm.prank(user1);
-        rwa001X.deployAllCTMRWA001X(false, localID, rwaType, version, tokenName, symbol, decimals, "", toChainIdsStr, feeTokenStr);
+        rwa001X.deployAllCTMRWA001X(false, ID, rwaType, version, tokenName, symbol, decimals, "", toChainIdsStr, feeTokenStr);
 
     }
 
@@ -784,15 +832,15 @@ contract TestBasicToken is SetUp {
         string memory ctmRwaAddrStr = ctmRwaAddr.toHexString();
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
         string memory toChainIdStr = "1";
-        string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
+        string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
 
  
-        (, string memory toRwaXStr) = gateway.getAttachedRWAX("RWA001", toChainIdStr);
-        string memory toTokenStr = ICTMRWA001(ctmRwaAddr).getTokenContract(toChainIdStr);
+        (, string memory toRwaXStr) = gateway.getAttachedRWAX(rwaType, version, toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
-        // string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
+
+        // string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
         // bytes memory callData = abi.encodeWithSignature(
         //     funcCall,
         //     _ID,
@@ -801,8 +849,7 @@ contract TestBasicToken is SetUp {
         //     _fromTokenId,
         //     slot,
         //     value,
-        //     ctmRwa001AddrStr,
-        //     toTokenStr
+        //     ctmRwa001AddrStr
         // );
 
         bytes memory callData = abi.encodeWithSignature(
@@ -813,8 +860,7 @@ contract TestBasicToken is SetUp {
             tokenId1,
             slot,
             value,
-            ctmRwaAddrStr,
-            toTokenStr
+            ctmRwaAddrStr
         );
 
 
@@ -829,17 +875,16 @@ contract TestBasicToken is SetUp {
             callData
         ));
 
-        // emit LogC3Call(_dappID, _uuid, _caller, _toChainID, _to, _data, _extra);
         vm.expectEmit(true, true, false, true);
         emit LogC3Call(2, testUUID, address(rwa001X), toChainIdStr, toRwaXStr, callData, bytes(""));
 
-        // function transferFromX( // transfer from/to same tokenid without value
-        //     string memory toAddressStr_,
-        //     string memory toChainIdStr_,
-        //     uint256 fromTokenId_,
-        //     string memory _ctmRwa001AddrStr,
-        //     string memory feeTokenStr
-        // ) external;
+        // function transferFromX(
+        //     string memory _toAddressStr,
+        //     string memory _toChainIdStr,
+        //     uint256 _fromTokenId,
+        //     uint256 _ID,
+        //     string memory _feeTokenStr
+        // ) public {
 
         vm.prank(user1);
         rwa001X.transferFromX(user1Str, toChainIdStr, tokenId1, ID, feeTokenStr);
@@ -859,26 +904,25 @@ contract TestBasicToken is SetUp {
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
         string memory toChainIdStr = "1";
 
-        (, string memory toRwaXStr) = gateway.getAttachedRWAX("RWA001", toChainIdStr);
-        string memory toTokenStr = ICTMRWA001(ctmRwaAddr).getTokenContract(toChainIdStr);
+        (, string memory toRwaXStr) = gateway.getAttachedRWAX(rwaType, version, toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
-        string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,uint256,string,string)";
+        string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,uint256,string)";
 
         uint256 xChainTokenId = 99;  // dummy value
 
-        //  bytes memory callData = abi.encodeWithSignature(
+        // string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,uint256,string)";
+        // bytes memory callData = abi.encodeWithSignature(
         //     funcCall,
-        //     ID,
+        //     _ID,
         //     fromAddressStr,
-        //     toAddressStr_,
-        //     fromTokenId_,
-        //     toTokenId_,
+        //     _toAddressStr,
+        //     _fromTokenId,
+        //     _toTokenId,
         //     slot,
-        //     value_,
-        //     _ctmRwa001AddrStr,
-        //     _toTokenStr
+        //     _value,
+        //     ctmRwa001AddrStr
         // );
 
         bytes memory callData = abi.encodeWithSignature(
@@ -890,8 +934,7 @@ contract TestBasicToken is SetUp {
             xChainTokenId,
             slot,
             value/2,  // send half the value to other chain
-            ctmRwaAddrStr,
-            toTokenStr
+            ctmRwaAddrStr
         );
 
         bytes32 testUUID = keccak256(abi.encode(
@@ -908,19 +951,18 @@ contract TestBasicToken is SetUp {
         vm.expectEmit(true, true, false, true);
         emit LogC3Call(2, testUUID, address(rwa001X), toChainIdStr, toRwaXStr, callData, bytes(""));
 
-        //  function transferFromX(
-        //     uint256 fromTokenId_,
-        //     string memory toAddressStr_,
-        //     uint256 toTokenId_,
-        //     string memory toChainIdStr_,
-        //     uint256 value_,
-        //     string memory _ctmRwa001AddrStr,
-        //     string memory feeTokenStr
-        // ) public payable virtual {
+        // function transferFromX(
+        //     uint256 _fromTokenId,
+        //     string memory _toAddressStr,
+        //     uint256 _toTokenId,
+        //     string memory _toChainIdStr,
+        //     uint256 _value,
+        //     uint256 _ID,
+        //     string memory _feeTokenStr
+        // ) public {
 
         vm.prank(user1);
         rwa001X.transferFromX(tokenId1, user1Str, xChainTokenId, toChainIdStr, value/2, ID, feeTokenStr);
-
     }
 
 
@@ -937,15 +979,14 @@ contract TestBasicToken is SetUp {
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
         string memory toChainIdStr = "1";
 
-        (bool ok, string memory toRwaXStr) = gateway.getAttachedRWAX("RWA001", toChainIdStr);
+        (bool ok, string memory toRwaXStr) = gateway.getAttachedRWAX(rwaType, version, toChainIdStr);
         require(ok, "CTMRWA001X: Target contract address not found");
-        string memory toTokenStr = ICTMRWA001(ctmRwaAddr).getTokenContract(toChainIdStr);
         (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
-        string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
+        string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
 
-        // string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string,string)";
+        // string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
         // bytes memory callData = abi.encodeWithSignature(
         //     funcCall,
         //     _ID,
@@ -954,8 +995,7 @@ contract TestBasicToken is SetUp {
         //     _fromTokenId,
         //     slot,
         //     _value,
-        //     ctmRwa001Addr,
-        //     toTokenStr
+        //     ctmRwa001Addr
         // );
 
         bytes memory callData = abi.encodeWithSignature(
@@ -966,8 +1006,7 @@ contract TestBasicToken is SetUp {
             tokenId1,
             slot,
             value/2,  // send half the value to other chain
-            ctmRwaAddrStr,
-            toTokenStr
+            ctmRwaAddrStr
         );
 
 

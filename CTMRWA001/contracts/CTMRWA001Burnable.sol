@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 import "@openzeppelin/contracts/utils/Context.sol";
 import "./CTMRWA001Mintable.sol";
@@ -10,6 +10,7 @@ contract CTMRWA001Burnable is Context, CTMRWA001Mintable {
 
     constructor(
         address _admin,
+        address _deployer,
         string memory name_, 
         string memory symbol_, 
         uint8 decimals_,
@@ -17,6 +18,7 @@ contract CTMRWA001Burnable is Context, CTMRWA001Mintable {
         address _ctmRwa001XChain
     ) CTMRWA001Mintable(
         _admin,
+        _deployer,
         name_,
         symbol_,
         decimals_,

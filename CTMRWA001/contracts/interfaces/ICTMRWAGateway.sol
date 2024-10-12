@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 interface ICTMRWAGateway {
     function addXChainInfo(
@@ -17,11 +17,13 @@ interface ICTMRWAGateway {
         string memory fromContractStr
     ) external returns(bool);  // onlyCaller
     function getAttachedRWAX(
-        string memory _rwaTypeStr, 
+        uint256 rwaType,
+        uint256 version,
         string memory _chainIdStr
     ) external view returns(bool, string memory);
     function attachRWAX (
-        string memory _rwaTypeStr, 
+        uint256 rwaType,
+        uint256 version,
         string memory _chainIdStr, 
         string memory _rwaXAddrStr
     ) external returns(bool);   // onlyGov

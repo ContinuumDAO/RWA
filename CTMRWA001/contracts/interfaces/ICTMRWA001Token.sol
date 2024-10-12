@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 interface ICTMRWA001Token {
     function getRWAType() external pure returns(uint256);

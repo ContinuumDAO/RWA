@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.23;
 
 interface ICTMRWAFactory {
     function deploy(
@@ -8,6 +8,19 @@ interface ICTMRWAFactory {
     ) external returns(address);
 
     function deployDividend(
-        address tokenAddr
+        uint256 ID,
+        address tokenAddr,
+        uint256 rwaType,
+        uint256 version,
+        address ctmRwaMap
     ) external returns(address);
+
+    function deployStorage(
+        uint256 ID,
+        uint256 rwaType,
+        uint256 version,
+        address ctmRwaMap
+    ) external returns(address);
+
+    function setCtmRwaDeployer(address deployer) external;
 }
