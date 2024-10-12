@@ -62,7 +62,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         require(TokenType(tokenAddr).getVersion() == _version, "CTMRWADeployer: Wrong RWA version");
         
         address dividendAddr = deployDividend(_ID, tokenAddr, _rwaType, _version);
-        address storageAddr = deployStorage(_ID, _rwaType, _version);
+        address storageAddr = deployStorage(_ID, tokenAddr, _rwaType, _version);
 
         ICTMRWAMap(ctmRwaMap).attachContracts(_ID, _rwaType, _version, tokenAddr, dividendAddr, storageAddr);
 
@@ -90,12 +90,14 @@ contract CTMRWADeployer is Context, GovernDapp {
 
     function deployStorage(
         uint256 _ID,
+        address _tokenAddr,
         uint256 _rwaType,
         uint256 _version
     ) internal returns(address) {
         if(storageFactory[_rwaType][_version] != address(0)){
             address storageAddr = ICTMRWAFactory(storageFactory[_rwaType][_version]).deployStorage(
                 _ID,
+                _tokenAddr,
                 _rwaType, 
                 _version, 
                 ctmRwaMap

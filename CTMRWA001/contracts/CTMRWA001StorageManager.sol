@@ -60,6 +60,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
     function deployStorage(
         uint256 _ID,
+        address _tokenAddr,
         uint256 _rwaType,
         uint256 _version,
         address _map
@@ -69,6 +70,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
             salt: bytes32(_ID) 
         }(
             _ID,
+            _tokenAddr,
             _rwaType,
             _version,
             _map

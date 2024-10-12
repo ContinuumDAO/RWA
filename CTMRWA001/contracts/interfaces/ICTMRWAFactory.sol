@@ -17,6 +17,7 @@ interface ICTMRWAFactory {
 
     function deployStorage(
         uint256 ID,
+        address tokenAddr,
         uint256 rwaType,
         uint256 version,
         address ctmRwaMap

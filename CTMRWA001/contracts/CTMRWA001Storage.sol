@@ -49,17 +49,14 @@ contract CTMRWA001Storage is Context {
    
     constructor(
         uint256 _ID,
+        address _tokenAddr,
         uint256 _rwaType,
         uint256 _version,
         address _map
     ) {
-        ID = _ID;
         rwaType = _rwaType;
         version = _version;
         ctmRwa001Map = _map;
-
-        (bool ok, address _tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(ID, rwaType, version);
-        require(ok, "CTMRWA001Storage: could not find the ID");
 
         tokenAddr = _tokenAddr;
 

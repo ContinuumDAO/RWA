@@ -160,6 +160,8 @@ contract Deploy is Script {
             _dappIDDeployer
         );
 
+        ctmRwa001X.setCtmRwaDeployer(address(ctmRwaDeployer));
+
         tokenFactory = new CTMRWA001TokenFactory(_map, address(ctmRwaDeployer));
 
         ctmRwaDeployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
