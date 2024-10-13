@@ -102,12 +102,12 @@ contract Deploy is Script {
         console.log(address(ctmRwaFallback));
 
 
-        address ctmMap = deployMap(govAddr);
+        address ctmRwa001Map = deployMap(govAddr);
 
         console.log("CTMRWAMap");
-        console.log(ctmMap);
+        console.log(ctmRwa001Map);
 
-        ctmRwa001X.setCtmRwaMap(ctmMap);
+        ctmRwa001X.setCtmRwaMap(ctmRwa001Map);
         
 
         (
@@ -120,7 +120,7 @@ contract Deploy is Script {
             1,
             govAddr,
             address(ctmRwa001X),
-            ctmMap,
+            ctmRwa001Map,
             c3callerProxyAddr,
             txSender,
             dappID3,
@@ -146,7 +146,7 @@ contract Deploy is Script {
         uint256 _version,
         address _gov,
         address _rwa001X,
-        address _map,
+        address _ctmRwa001Map,
         address _c3callerProxy,
         address _txSender,
         uint256 _dappIDDeployer,
@@ -155,7 +155,7 @@ contract Deploy is Script {
         ctmRwaDeployer = new CTMRWADeployer(
             _gov,
             _rwa001X,
-            _map,
+            _ctmRwa001Map,
             _c3callerProxy,
             _txSender,
             _dappIDDeployer
@@ -163,7 +163,7 @@ contract Deploy is Script {
 
         ctmRwa001X.setCtmRwaDeployer(address(ctmRwaDeployer));
 
-        tokenFactory = new CTMRWA001TokenFactory(_map, address(ctmRwaDeployer));
+        tokenFactory = new CTMRWA001TokenFactory(_ctmRwa001Map, address(ctmRwaDeployer));
 
         ctmRwaDeployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
 
@@ -179,7 +179,7 @@ contract Deploy is Script {
 
         dividendFactory = new CTMRWA001DividendFactory(address(ctmRwaDeployer));
         storageManager.setCtmRwaDeployer(address(ctmRwaDeployer));
-
+        storageManager.setCtmRwaMap(_ctmRwa001Map);
 
         ctmRwaDeployer.setStorageFactory(_rwaType, _version, address(storageManager));
         ctmRwaDeployer.setDividendFactory(_rwaType, _version, address(dividendFactory));

@@ -54,6 +54,7 @@ contract CTMRWA001Storage is Context {
         uint256 _version,
         address _map
     ) {
+        ID = _ID;
         rwaType = _rwaType;
         version = _version;
         ctmRwa001Map = _map;

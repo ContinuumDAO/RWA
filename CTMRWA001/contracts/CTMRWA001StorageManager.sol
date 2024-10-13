@@ -51,9 +51,9 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID,
-        address _map
+        address _ctmRwaDeployer
     ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
-        ctmRwa001Map = _map;
+        ctmRwaDeployer = _ctmRwaDeployer;
         rwaType = _rwaType;
         version = _version;
     }
@@ -81,6 +81,10 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
     function setCtmRwaDeployer(address _deployer) external onlyGov {
         ctmRwaDeployer = _deployer;
+    }
+
+    function setCtmRwaMap(address _map) external onlyGov {
+        ctmRwa001Map = _map;
     }
 
 
