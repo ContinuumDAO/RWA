@@ -47,6 +47,14 @@ interface ICTMRWA001X {
     function getAllTokensByAdminAddress(address admin) external view returns(address[] memory);
     function getAllTokensByOwnerAddress(address owner) external view returns(address[] memory);
 
+    function mintNewTokenValueLocal(
+        address toAddress,
+        uint256 toTokenId,  // Set to 0 to create a newTokenId
+        uint256 slot,
+        uint256 value,
+        uint256 ID
+    ) external returns(uint256);
+
     function mintNewTokenValueX(
         string memory toAddressStr,
         string memory toChainIdStr,

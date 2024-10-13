@@ -137,7 +137,7 @@ contract C3Caller is IC3Caller, C3GovClient, Pausable {
     ) external override onlyOperator whenNotPaused {
         require(_message.data.length > 0, "C3Caller: empty calldata");
         require(
-            IC3Dapp(_message.to).isValidSender(_txSender),
+            IC3Dapp(_message.to).isVaildSender(_txSender),
             "C3Caller: txSender invalid"
         );
         // check dappID
@@ -201,7 +201,7 @@ contract C3Caller is IC3Caller, C3GovClient, Pausable {
             "C3Caller: already completed"
         );
         require(
-            IC3Dapp(_message.to).isValidSender(_txSender),
+            IC3Dapp(_message.to).isVaildSender(_txSender),
             "C3Caller: txSender invalid"
         );
 

@@ -80,7 +80,7 @@ interface IC3Dapp {
 
     function dappID() external returns (uint256);
 
-    function isValidSender(address txSender) external returns (bool);
+    function isVaildSender(address txSender) external returns (bool);
 }
 
 interface IC3Caller {

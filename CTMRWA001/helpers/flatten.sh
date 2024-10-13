@@ -5,6 +5,7 @@ forge flatten contracts/CTMRWA001TokenFactory.sol --output flattened/CTMRWA001To
 forge flatten contracts/CTMRWADeployer.sol --output flattened/CTMRWADeployer.sol
 forge flatten contracts/CTMRWAGateway.sol --output flattened/CTMRWAGateway.sol
 forge flatten contracts/FeeManager.sol --output flattened/FeeManager.sol
+forge flatten contracts/CTMRWAMap.sol --output flattened/CTMRWAMap.sol
 forge flatten contracts/CTMRWA001TokenFactory.sol --output flattened/CTMRWA001TokenFactory.sol
 forge flatten contracts/CTMRWA001XFallback.sol --output flattened/CTMRWA001XFallback.sol
 forge flatten contracts/CTMRWA001StorageManager.sol --output flattened/CTMRWA001StorageManager.sol

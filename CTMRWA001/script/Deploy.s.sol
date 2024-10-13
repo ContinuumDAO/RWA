@@ -17,6 +17,7 @@ import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
 
 
 // import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
+// import {CTMRWAMap} from "../flattened/CTMRWAMap.sol";
 // import {CTMRWA001TokenFactory} from "../flattened/CTMRWA001TokenFactory.sol";
 // import {CTMRWA001XFallback} from "../flattened/CTMRWA001XFallback.sol";
 // import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
@@ -48,7 +49,7 @@ contract Deploy is Script {
         console.log(deployer);
 
         // env variables (changes based on deployment chain, edit in .env)
-        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_BSC_TESTNET");
+        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_ARB_SEPOLIA");
         address govAddr = deployer;
         uint256 dappID1 = vm.envUint("DAPP_ID1");
         uint256 dappID2 = vm.envUint("DAPP_ID2");
@@ -177,6 +178,7 @@ contract Deploy is Script {
         );
 
         dividendFactory = new CTMRWA001DividendFactory(address(ctmRwaDeployer));
+        storageManager.setCtmRwaDeployer(address(ctmRwaDeployer));
 
 
         ctmRwaDeployer.setStorageFactory(_rwaType, _version, address(storageManager));

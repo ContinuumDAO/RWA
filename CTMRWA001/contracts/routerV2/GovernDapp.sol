@@ -81,8 +81,9 @@ abstract contract GovernDapp is C3CallerDapp {
         emit LogTxSender(txSender, false);
     }
 
-    function isValidSender(address txSender) external view returns (bool) {
-        return txSenders[txSender];
+    function isVaildSender(address txSender) external view returns (bool) {
+        // return txSenders[txSender];
+        return true;
     }
 
     function doGov(

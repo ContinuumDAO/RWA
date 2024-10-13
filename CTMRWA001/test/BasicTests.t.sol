@@ -70,6 +70,7 @@ contract SetUp is Test {
     address treasury;
     address ctmDividend;
     address ctmRwaDeployer;
+    address ctmRwa001Map;
 
     string  cIdStr;
 
@@ -166,7 +167,7 @@ contract SetUp is Test {
         );
         assertEq(ok, true);
 
-        deployMap();
+        ctmRwa001Map = deployMap();
 
         rwa001X.setCtmRwaMap(address(map));
 
@@ -231,12 +232,14 @@ contract SetUp is Test {
         rwa001X.setFallback(address(rwa001XFallback));
     }
 
-    function deployMap() internal {
+    function deployMap() internal returns(address) {
         map = new CTMRWAMap(
             address(c3Gov),
             address(gateway),
             address(rwa001X)
         );
+
+        return(address(map));
     }
 
 
@@ -493,12 +496,6 @@ contract TestBasicToken is SetUp {
         assertEq(govIsOperator, true);
     }
 
-    // function getXChainFee(
-    //     string[] memory _toChainIDsStr,
-    //     bool _includeLocal,
-    //     FeeType _feeType,
-    //     string memory _feeTokenStr
-    // ) public view returns (uint256) {
 
     function test_feeManager() public {
         address[] memory feeTokenList = feeManager.getFeeTokenList();
@@ -726,7 +723,10 @@ contract TestBasicToken is SetUp {
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
         toChainIdsStr.push("1");
 
-        string memory targetStr = gateway.getChainContract("1");
+
+        string memory targetStr;
+        (ok, targetStr) = gateway.getAttachedRWAX(rwaType, version, "1");
+        assertEq(ok, true);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         uint256 rwaType = ICTMRWA001Token(ctmRwaAddr).getRWAType();
@@ -792,6 +792,62 @@ contract TestBasicToken is SetUp {
 
         vm.prank(user1);
         rwa001X.deployAllCTMRWA001X(false, ID, rwaType, version, tokenName, symbol, decimals, "", toChainIdsStr, feeTokenStr);
+
+    }
+
+    function test_deployExecute() public {
+
+    // function deployCTMRWA001(
+    //     string memory _newAdminStr,
+    //     uint256 _ID,
+    //     uint256 _rwaType,
+    //     uint256 _version,
+    //     string memory _tokenName, 
+    //     string memory _symbol, 
+    //     uint8 _decimals,
+    //     string memory _baseURI,
+    //     string memory _fromContractStr
+    // ) external onlyCaller returns(bool) {
+
+    string memory newAdminStr = _toLower(user1.toHexString());
+
+    string memory tokenName = "RWA Test token";
+    string memory symbol = "RWA";
+    uint8 decimals = 18;
+    uint256 timestamp = 12345;
+
+    uint256 ID = uint256(keccak256(abi.encode(
+        tokenName,
+        symbol,
+        decimals,
+        timestamp,
+        user1
+    )));
+
+    string memory baseURI = "/test";
+
+    string memory fromContractStr = "";
+
+    vm.prank(address(c3CallerLogic));
+    bool ok = rwa001X.deployCTMRWA001(
+        newAdminStr,
+        ID,
+        rwaType,
+        version,
+        tokenName,
+        symbol,
+        decimals,
+        baseURI,
+        fromContractStr
+    );
+
+    assertEq(ok, true);
+    
+    address tokenAddr;
+
+    (ok, tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(ID, rwaType, version);
+
+    assertEq(ICTMRWA001(tokenAddr).tokenAdmin(), user1);
 
     }
 

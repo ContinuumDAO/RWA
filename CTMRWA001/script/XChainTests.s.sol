@@ -12,6 +12,7 @@ import {IUUIDKeeper} from "../contracts/c3Caller/IUUIDKeeper.sol";
 import {ICTMRWA001} from "../contracts/interfaces/ICTMRWA001.sol";
 import {ICTMRWAGateway} from "../contracts/interfaces/ICTMRWAGateway.sol";
 import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
+import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
 import {ICTMRWADeployer} from "../contracts/interfaces/ICTMRWADeployer.sol";
 import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
 import {ICTMRWA001Token} from "../contracts/interfaces/ICTMRWA001Token.sol";
@@ -27,7 +28,7 @@ contract XChainTests is Script {
 
     address admin = 0xe62Ab4D111f968660C6B2188046F9B9bA53C4Bae;
     address gov = admin;
-    address feeToken = 0x2A2a5e1e2475Bf35D8F3f85D8C736f376BDb1C02;
+    address feeToken = 0x1eE4bA474da815f728dF08F0147DeFac07F0BAb3;
     string feeTokenStr = feeToken.toHexString();
     
     string[] toChainIdsStr;
@@ -35,10 +36,14 @@ contract XChainTests is Script {
     address c3 = 0x770c70D44C0c7b5B7D805077B66daADC00480FbC;  // on Arb Sepolia
     address c3UUIDKeeper = 0x034a2688912A880271544dAE915a9038d9D20229;
 
-    address gatewayAddr = 0x699DE1Ff83FaD8c40Aea628975e1B3Ee71Dcfb56;  // Arb Sepolia
-    address rwa001XAddr = 0xB37C81d6f90A16bbD778886AF49abeBfD1AD02C7;
-    address ctmFallbackAddr = 0xF663c3De2d18920ffd7392242459275d0Dd249e4;
-    address dividendAddr = 0xa3325B2fA099c81a06d9b7532317d4a4Da7F2aB7;
+    address gatewayAddr = 0xD586Ea1FcE09384F71B69e80F643135FC0641def;  // Arb Sepolia
+    address rwa001XAddr = 0xA450Ae39bf325c23a45B126eD2735F02d36b9A2d;
+    address ctmFallbackAddr = 0x6dCA47661F57B6b5804a2bF6d3eC296bd991Df71;
+    address ctmRwa001Map = 0x7AA3417dD6664b43C42AECB3E5816d9c1Cb31662;
+    address ctmRwaDeployer = 0xeA4B6Aed334Bc39342486C85126838C9D4e293a9;
+    address ctmRwaFactory = 0x892095Ba8E4020928288693F28B20a8465f5826A;
+    address dividendAddr = 0x854BCf67C4B4bbF44623f8F0C86D954F02Be6D67;
+    address storageManagerAddr = 0x952c91e42cD9eCdc5F9cD98d8F24EAa769fDCd02;
 
     ICTMRWAGateway gateway = ICTMRWAGateway(gatewayAddr);
     ICTMRWA001X rwa001X = ICTMRWA001X(rwa001XAddr);
@@ -47,62 +52,81 @@ contract XChainTests is Script {
 
     function run() external {
 
-        // bytes32 uuid = 0xc38cb2630185f377010c4955e6705726ce8347ba69bf5987eada14da45e48756;
-
+        // bytes32 uuid = 0x2d91e8c9105c329e9619683df2904341c0c3f94f29e264f0bada0e15fd3045d2;
         // checkC3Call(uuid);
 
-        checkDeployData();
+        // checkDeployData();
+
+        // this.deployLocal();
+
+        this.deployRemote();
     }
 
-    // function deployRemote() external {
+    function deployLocal() external {
+        uint256 senderPrivateKey = vm.envUint("PRIVATE_KEY");
+        address senderAccount = vm.addr(senderPrivateKey);
 
-    //     uint256 senderPrivateKey = vm.envUint("PRIVATE_KEY");
-    //     address senderAccount = vm.addr(senderPrivateKey);
+        address ctmRwaDeployer = rwa001X.ctmRwaDeployer();
 
-    //     address ctmRwaDeployer = rwa001X.ctmRwaDeployer();
+        vm.startBroadcast(senderPrivateKey);
 
-    //     vm.startBroadcast(senderPrivateKey);
+        string[] memory chainIdsStr;
 
-    //     address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-    //     console.log("First admin token address");
-    //     console.log(adminTokens[0]);
+        uint256 IdBack = rwa001X.deployAllCTMRWA001X(true, 0, 1, 1, "Selqui SQ1", "SQ1", 18, "/Selqui", chainIdsStr, feeTokenStr);
+    }
 
-    //     (, uint256 ID) = ICTMRWADeployer(ctmRwaDeployer).getAttachedID(adminTokens[0]);
-    //     console.log("ID");
-    //     console.log(ID);
+    function deployRemote() external {
 
-    //     address[] memory nRWA001 = rwa001X.getAllTokensByOwnerAddress(admin);
-    //     uint256 tokenId = ICTMRWA001(adminTokens[0]).tokenOfOwnerByIndex(admin, 0);
-    //     console.log("tokenId");
-    //     console.log(tokenId);
+        uint256 senderPrivateKey = vm.envUint("PRIVATE_KEY");
+        address senderAccount = vm.addr(senderPrivateKey);
 
-    //     string memory tokenName = ICTMRWA001(adminTokens[0]).name();
-    //     string memory symbol = ICTMRWA001(adminTokens[0]).symbol();
-    //     uint8 decimals = ICTMRWA001(adminTokens[0]).valueDecimals();
-    //     string memory baseURI = ICTMRWA001(adminTokens[0]).baseURI();
+        address ctmRwaDeployer = rwa001X.ctmRwaDeployer();
 
-    //     toChainIdsStr.push("97");
+        vm.startBroadcast(senderPrivateKey);
 
-    //     // function deployAllCTMRWA001X(
-    //     //     bool _includeLocal,
-    //     //     uint256 _existingID,
-    //     //     uint256 _rwaType,
-    //     //     uint256 _version,
-    //     //     string memory _tokenName, 
-    //     //     string memory _symbol, 
-    //     //     uint8 _decimals,
-    //     //     string memory _baseURI,
-    //     //     string[] memory _toChainIdsStr,
-    //     //     string memory _feeTokenStr
-    //     // ) public returns(uint256) {
+        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
+        console.log("First admin token address");
+        console.log(adminTokens[0]);
 
-    //     uint256 IdBack = rwa001X.deployAllCTMRWA001X(false, ID, 1, 1, tokenName, symbol, decimals, baseURI, toChainIdsStr, feeTokenStr);
+        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(adminTokens[0].toHexString(), 1, 1);
+        console.log("ID");
+        console.log(ID);
 
-    //     console.log("IdBack");
-    //     console.log(IdBack);
+        address[] memory nRWA001 = rwa001X.getAllTokensByOwnerAddress(admin);
 
-    //     vm.stopBroadcast();
-    // }
+        uint256 newTokenId = rwa001X.mintNewTokenValueLocal(senderAccount, 0, 0, 1450, ID);
+
+        uint256 tokenId = ICTMRWA001(adminTokens[0]).tokenOfOwnerByIndex(admin, 0);
+        console.log("tokenId");
+        console.log(tokenId);
+
+        string memory tokenName = ICTMRWA001(adminTokens[0]).name();
+        string memory symbol = ICTMRWA001(adminTokens[0]).symbol();
+        uint8 decimals = ICTMRWA001(adminTokens[0]).valueDecimals();
+        string memory baseURI = ICTMRWA001(adminTokens[0]).baseURI();
+
+        toChainIdsStr.push("97");
+
+        // function deployAllCTMRWA001X(
+        //     bool _includeLocal,
+        //     uint256 _existingID,
+        //     uint256 _rwaType,
+        //     uint256 _version,
+        //     string memory _tokenName, 
+        //     string memory _symbol, 
+        //     uint8 _decimals,
+        //     string memory _baseURI,
+        //     string[] memory _toChainIdsStr,
+        //     string memory _feeTokenStr
+        // ) public returns(uint256) {
+
+        uint256 IdBack = rwa001X.deployAllCTMRWA001X(false, ID, 1, 1, tokenName, symbol, decimals, baseURI, toChainIdsStr, feeTokenStr);
+
+        console.log("IdBack");
+        console.log(IdBack);
+
+        vm.stopBroadcast();
+    }
 
     function checkC3Call(bytes32 uuid) public {
 
@@ -139,6 +163,40 @@ contract XChainTests is Script {
     
         // console.log("token name");
         // console.log(_tokenName);
+    }
+
+    function stringToAddress(string memory str) internal pure returns (address) {
+        bytes memory strBytes = bytes(str);
+        require(strBytes.length == 42, "CTMRWAMap: Invalid address length");
+        bytes memory addrBytes = new bytes(20);
+
+        for (uint i = 0; i < 20; i++) {
+            addrBytes[i] = bytes1(
+                hexCharToByte(strBytes[2 + i * 2]) *
+                    16 +
+                    hexCharToByte(strBytes[3 + i * 2])
+            );
+        }
+
+        return address(uint160(bytes20(addrBytes)));
+    }
+
+    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
+        uint8 byteValue = uint8(char);
+        if (
+            byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))
+        ) {
+            return byteValue - uint8(bytes1("0"));
+        } else if (
+            byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))
+        ) {
+            return 10 + byteValue - uint8(bytes1("a"));
+        } else if (
+            byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))
+        ) {
+            return 10 + byteValue - uint8(bytes1("A"));
+        }
+        revert("Invalid hex character");
     }
 
 }
