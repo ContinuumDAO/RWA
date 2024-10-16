@@ -39,6 +39,7 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
    
     function baseURI() external view returns(string memory);
     function balanceOf(uint256 _tokenId) external view returns (uint256);
+    function balanceOf(address user) external view returns (uint256);
     function dividendUnclaimedOf(uint256 tokenId) external view returns (uint256);
     function tokenOfOwnerByIndex(address owner, uint256 index_) external view returns (uint256);
     function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);

@@ -8,12 +8,15 @@ interface ICTMRWA001X {
     
     function changeAdmin(address _newAdmin, uint256 _ID) external returns(bool);
     function changeFeeManager(address _feeManager) external;
+    function setFallback(address _fallbackAddr) external;
     function setCtmRwaMap(address ctmRwaMap) external;
     function setCtmRwaDeployer(address _deployer) external;
     function fallbackAddr() external returns(address);
     function gateway() external returns(address);
     function feeManager() external returns(address);
     function ctmRwaDeployer() external returns(address);
+
+    
 
     
     function deployAllCTMRWA001X(

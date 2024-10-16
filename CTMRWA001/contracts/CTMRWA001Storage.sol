@@ -99,7 +99,6 @@ contract CTMRWA001Storage is Context {
                 "";
     }
 
-    
     function addURILocal(
         uint256 _ID,
         URICategory _uriCategory,

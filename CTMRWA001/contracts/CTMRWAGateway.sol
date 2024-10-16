@@ -77,6 +77,10 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(chainContract[_pos].chainIdStr, chainContract[_pos].contractStr);
     }
 
+    function getChainCount() public view returns(uint256) {
+        return(chainContract.length);
+    }
+
     // Synchronise the CTMRWA001X GateKeeper contract address across other chains. Governance controlled
     function addXChainInfo(
         string memory _tochainIdStr,

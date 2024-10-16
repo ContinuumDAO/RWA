@@ -64,22 +64,6 @@ contract CTMRWA001X is Context, GovernDapp {
         string ctmRwa001AddrStr
     );
 
-    // event MintIncrementalTokenValue(
-    //     uint256 ID,
-    //     address minter,
-    //     uint256 toTokenId,
-    //     uint256 slot,
-    //     uint256 value
-    // );
-
-    // event MintTokenValueNewId(
-    //             uint256 ID,
-    //             address minter,
-    //             uint256 newTokenId,
-    //             uint256 slot,
-    //             uint256 value
-    // );
-
 
     constructor(
         address _gateway,
@@ -111,6 +95,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
     function setFallback(address _fallbackAddr) external onlyGov {
         fallbackAddr = _fallbackAddr;
+
     }
    
 
@@ -300,12 +285,14 @@ contract CTMRWA001X is Context, GovernDapp {
         (address ctmRwa001Addr,) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa001Addr);
 
-        ICTMRWA001(ctmRwa001Addr).changeAdmin(_newAdmin);
-        adminTokens[_newAdmin].push(ctmRwa001Addr);
+        bool ok = _replaceAdmin(_newAdmin, _msgSender(), ctmRwa001Addr);
+        if(ok) {
+            ICTMRWA001(ctmRwa001Addr).changeAdmin(_newAdmin);
+            return(true);
+        } else revert("CTMRWA001X: Could not replace admin address");
 
         // emit ChangeAdmin(_ID, currentAdminStr, _newAdmin.toHexString(), "");
 
-        return(true);
     }
 
     
@@ -335,8 +322,6 @@ contract CTMRWA001X is Context, GovernDapp {
 
         c3call(toRwaXStr, toChainIdStr, callData);
 
-        // emit ChangeAdmin(_ID, currentAdminStr, _newAdminStr, _toChainIdStr);
-
         return(true);
     }
 
@@ -359,12 +344,12 @@ contract CTMRWA001X is Context, GovernDapp {
         address oldAdmin = stringToAddress(_oldAdminStr);
         require(currentAdmin == oldAdmin, "CTMRWA001X: Not admin. Cannot change admin address");
 
-        ICTMRWA001(ctmRwa001Addr).changeAdmin(newAdmin);
-        adminTokens[newAdmin].push(ctmRwa001Addr);
-
-        emit ChangeAdminDest(_oldAdminStr, _newAdminStr, fromChainIdStr);
-
-        return(true);
+        ok = _replaceAdmin(newAdmin, oldAdmin, ctmRwa001Addr);
+        if(ok) {
+            ICTMRWA001(ctmRwa001Addr).changeAdmin(newAdmin);
+            return(true);
+        } else revert("CTMRWA001X: Could not replace admin address");
+    
     }
 
 
@@ -395,13 +380,6 @@ contract CTMRWA001X is Context, GovernDapp {
             (,,address owner,) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(newTokenId);
             ownedCtmRwa001[owner].push(ctmRwa001Addr);
 
-            // emit MintTokenValueNewId(
-            //     _ID,
-            //     _msgSender(),
-            //     newTokenId,
-            //     slot_,
-            //     value_
-            // );
             return(newTokenId);
         }
 
@@ -478,6 +456,7 @@ contract CTMRWA001X is Context, GovernDapp {
         c3call(toRwaXStr, toChainIdStr, callData);
 
     }
+    
 
     function transferFromX(
         uint256 _fromTokenId,
@@ -597,6 +576,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
     }
 
+
     function mintX(
         uint256 _ID,
         string memory _fromAddressStr,
@@ -617,6 +597,8 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
 
         uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(toAddr, _slot, _balance);
+
+        ownedCtmRwa001[toAddr].push(ctmRwa001Addr);
 
         emit TransferToDestX(
             _ID,
@@ -657,7 +639,8 @@ contract CTMRWA001X is Context, GovernDapp {
             } else {
                 (, string memory toRwaXStr) = _getRWAX(chainIdStr);
 
-                string memory funcCall = "addURIX(uint256,URICategory,URIType,uint256,bytes32)";
+                //string memory funcCall = "addURIX(uint256,URICategory,URIType,uint256,bytes32)";
+                string memory funcCall = "addURIX(uint256,uint8,uint8,uint256,bytes32)";
                 bytes memory callData = abi.encodeWithSignature(
                     funcCall,
                     _ID,
@@ -709,8 +692,6 @@ contract CTMRWA001X is Context, GovernDapp {
         else return(false);
     }
 
-
-
     function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA001X: The requested tokenID does not exist");
@@ -739,7 +720,20 @@ contract CTMRWA001X is Context, GovernDapp {
         return(currentAdmin, currentAdminStr);
     }
 
-    
+    function _replaceAdmin(address _newAdmin, address _oldAdmin, address _tokenId) internal returns(bool) {
+        uint256 found;
+        for(uint256 i=0; i<adminTokens[_oldAdmin].length; i++) {
+            if(adminTokens[_oldAdmin][i] == _tokenId) {
+                found = i;
+            }
+        }
+        if(found>0) {
+            adminTokens[_newAdmin].push(_tokenId);
+            delete adminTokens[_oldAdmin][found];
+            return(true);
+        } else return(false);
+    }
+
     function _payFee(
         FeeType _feeType, 
         string memory _feeTokenStr, 
@@ -747,10 +741,13 @@ contract CTMRWA001X is Context, GovernDapp {
         bool _includeLocal
     ) internal returns(bool) {
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, _feeType, _feeTokenStr);
+        
         if(fee>0) {
             address feeToken = stringToAddress(_feeTokenStr);
             uint256 feeWei = fee*10**(IERC20Extended(feeToken).decimals()-2);
+
             IERC20(feeToken).transferFrom(_msgSender(), address(this), feeWei);
+            
             IERC20(feeToken).approve(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);
         }

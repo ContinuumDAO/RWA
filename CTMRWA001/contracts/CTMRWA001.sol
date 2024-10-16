@@ -114,7 +114,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _;
     }
     
-    function changeAdmin(address _tokenAdmin) public onlyTokenAdmin returns(bool) {
+    function changeAdmin(address _tokenAdmin) public onlyRwa001X returns(bool) {
         tokenAdmin = _tokenAdmin;
         return true;
     }
@@ -269,11 +269,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     function balanceOf(address owner_) public view virtual override returns (uint256 balance) {
-        require(owner_ != address(0), "CTMRWA001: balance query for the zero address");
-        return _addressData[owner_].ownedTokens.length;
-    }
-
-    function balanceOfX(address owner_) external view returns (uint256 balance) {
         require(owner_ != address(0), "CTMRWA001: balance query for the zero address");
         return _addressData[owner_].ownedTokens.length;
     }
@@ -918,7 +913,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _addSlotToAllSlotsEnumeration(slotData);
         emit SlotChanged(0, 0, slot_);
     }
-
+   
     function _beforeValueTransfer(
         address from_,
         address to_,

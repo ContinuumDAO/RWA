@@ -3,6 +3,7 @@
 pragma solidity ^0.8.23;
 
 interface ICTMRWAGateway {
+    function getChainCount() external view returns(uint256);
     function addXChainInfo(
         string memory tochainIdStr,
         string memory toContractStr,

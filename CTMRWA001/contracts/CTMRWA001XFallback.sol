@@ -9,6 +9,10 @@ contract CTMRWA001XFallback is Context {
 
     address public rwa001X;
 
+    bytes4 public lastSelector;
+    bytes public lastData;
+    bytes public lastReason;
+
     modifier onlyRwa001X {
         require(_msgSender() == rwa001X, "CTMRWA001XFallback: onlyRwa001X function");
         _;
@@ -22,15 +26,19 @@ contract CTMRWA001XFallback is Context {
         rwa001X = _rwa001X;
     }
 
-    function setRwa001X(address _rwa001X) external onlyRwa001X returns(bool) {
-
+    function getLastReason() public view returns(string memory) {
+        return(string(lastReason));
     }
 
     function rwa001XC3Fallback(
         bytes4 _selector,
         bytes calldata _data,
         bytes calldata _reason
-    ) external returns(bool) {
+    ) external onlyRwa001X returns(bool) {
+
+        lastSelector = _selector;
+        lastData = _data;
+        lastReason = _reason;
 
         emit LogFallback(_selector, _data, _reason);
 
