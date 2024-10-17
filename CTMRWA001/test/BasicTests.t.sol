@@ -77,6 +77,7 @@ contract SetUp is Test {
 
     string  cIdStr;
 
+
     // address c3;
 
     // Options opt;
@@ -923,6 +924,7 @@ contract TestBasicToken is SetUp {
         //     }
         // }
 
+        
         C3CallerStructLib.C3EvmMessage memory c3message = C3CallerStructLib.C3EvmMessage(
             0x0dd256c5649d5658f91dc4fe936c407ab6dd42183a795d5a256f4508631d0ccb,
             address(rwa001X),

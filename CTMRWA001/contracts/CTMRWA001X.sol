@@ -366,14 +366,6 @@ contract CTMRWA001X is Context, GovernDapp {
 
         if(toTokenId_>0) {
             ICTMRWA001(ctmRwa001Addr).mintValueX(toTokenId_, slot_, value_);
-
-            // emit MintIncrementalTokenValue(
-            //     _ID,
-            //     _msgSender(),
-            //     toTokenId_,
-            //     slot_,
-            //     value_
-            // );
             return(toTokenId_);
         } else {
             uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(toAddress_, slot_, value_);
@@ -429,7 +421,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         string memory toChainIdStr = _toLower(_toChainIdStr);
 
-        (address ctmRwa001Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
         
         ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
@@ -450,7 +442,7 @@ contract CTMRWA001X is Context, GovernDapp {
             _fromTokenId,
             slot,
             _value,
-            ctmRwa001Addr
+            ctmRwa001AddrStr
         );
         
         c3call(toRwaXStr, toChainIdStr, callData);

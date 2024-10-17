@@ -38,14 +38,15 @@ contract XChainTests is Script {
     address c3 = 0x770c70D44C0c7b5B7D805077B66daADC00480FbC;  // on Arb Sepolia
     address c3UUIDKeeper = 0x034a2688912A880271544dAE915a9038d9D20229;
 
-    address gatewayAddr =  0x95574b1a28865A81D2df36683d027A9D7603aFC7;  // Arb Sepolia
-    address rwa001XAddr = 0x22D305a430b57a12D569f1e578B9F2f7613f92F8;
-    address ctmFallbackAddr = 0xEcabB66a84340E7E6D020EAD0dAb1364767f3f70;
-    address ctmRwa001Map = 0xeFbd6990A5C4ABFA30b91409aA3d9A0e7C8Bb77b;
-    address ctmRwaDeployer = 0x7AEECCcafb96e53460B5b633Fc668adf14ed8419;
-    address ctmRwaFactory = 0xA33cfD901896C775c5a6d62e94081b4Fdd1B09BC;
-    address dividendAddr = 0x969035b34B913c507b87FD805Fff608FB1fE13f0;
-    address storageManagerAddr = 0x41543A4C6423E2546FC58AC63117B5692D68c323;
+    address feeManager = 0xb07C3788549cd48aD1d4Cb9B7336f7C9Dd53D67F;  // Arb Sepolia
+    address gatewayAddr =  0x69D461E1314af5E3bcab39f0ebA3872c5de2c1e5;
+    address rwa001XAddr = 0xD2499F70542D598fE7679cD439A4cbA16e5b2BF9;
+    address ctmFallbackAddr = 0x038a39974a702ada213a318c855792244884EDCC;
+    address ctmRwa001Map = 0x957EBEeCcA9E712e335f99dE34D0F46317283696;
+    address ctmRwaDeployer = 0x6187ee058bB5b7Db140cfd470a27EBe1f16D92B1;
+    address ctmRwaFactory = 0x351a9223BDBfc1BF7113a9e24533c6cc6B11DE1A;
+    address dividendAddr = 0x0a3272bC10d8BD7f6ab8FC732a30dB3F6e9b1597;
+    address storageManagerAddr = 0x6b01f0b9c0C0B9f5b20E6E40937d5E7aADC2c95A;
 
     ICTMRWAGateway gateway = ICTMRWAGateway(gatewayAddr);
     ICTMRWA001X rwa001X = ICTMRWA001X(rwa001XAddr);
@@ -67,9 +68,9 @@ contract XChainTests is Script {
 
         // this.deployRemote();
 
-        this.transferValueTokenToAddress();
+        // this.transferValueTokenToAddress();
 
-        // this.addURI();
+        this.addURI();
 
         // this.transferValueTokenToToken();
 
@@ -128,7 +129,7 @@ contract XChainTests is Script {
         console.log("ID");
         console.log(ID);
 
-        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 2);
+        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 0);
         console.log("tokenId");
         console.log(tokenId);
         console.log("with slot =");
@@ -311,8 +312,8 @@ contract XChainTests is Script {
         console.log("ID");
         console.log(ID);
 
-        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 1);
-        console.log("second tokenId");
+        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 0);
+        console.log("first tokenId");
         console.log(tokenId);
 
         uint256 slot = ICTMRWA001(firstTokenAddr).slotOf(tokenId);
