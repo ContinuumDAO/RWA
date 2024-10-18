@@ -50,6 +50,14 @@ contract CTMRWADeployer is Context, GovernDapp {
         ctmRwaMap = _map;
     }
 
+    function setRwa001X(address _rwaX) external onlyGov {
+        rwaX = _rwaX;
+    }
+
+    function setMap(address _map) external onlyGov {
+        ctmRwaMap = _map;
+    }
+
     function deploy(
         uint256 _ID,
         uint256 _rwaType,

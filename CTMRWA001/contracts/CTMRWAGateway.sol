@@ -18,7 +18,6 @@ contract CTMRWAGateway is Context, GovernDapp {
     event SetChainContract(string[] chainIdsStr, string[] contractAddrsStr, string fromContractStr, string fromChainIdStr);
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
-    //  This holds the chainID and GateKeeper contract address of a single chain
     struct ChainContract {
         string chainIdStr;
         string contractStr;
@@ -36,32 +35,26 @@ contract CTMRWAGateway is Context, GovernDapp {
         _addChainContract(cID(), address(this));
     }
 
-    function _addChainContract(uint256 _chainId, address contractAddr) internal returns(bool) {
+    function _addChainContract(uint256 _chainId, address _contractAddr) internal  {
         string memory newChainIdStr = _chainId.toString();
-        string memory contractStr = _toLower(contractAddr.toHexString());
-
-        for(uint256 i=0; i<chainContract.length; i++) {
-            if(stringsEqual(chainContract[i].chainIdStr, newChainIdStr)) {
-                return(false); // Cannot change an entry
-            }
-        }
+        string memory contractStr = _toLower(_contractAddr.toHexString());
 
         chainContract.push(ChainContract(newChainIdStr, contractStr));
-        return(true);
     }
 
-    function addChainContract(string memory _newChainIdStr, string memory _contractAddrStr) external returns (bool) {
+    function addChainContract(string memory _newChainIdStr, string memory _contractAddrStr) external onlyGov returns (bool) {
         string memory newChainIdStr = _toLower(_newChainIdStr);
         string memory contractAddrStr = _toLower(_contractAddrStr);
 
         for(uint256 i=0; i<chainContract.length; i++) {
             if(stringsEqual(chainContract[i].chainIdStr, newChainIdStr)) {
-                return(false); // Cannot change an entry
+                chainContract[i].contractStr = contractAddrStr;
+                return(true); // existed = true
             }
         }
 
         chainContract.push(ChainContract(newChainIdStr, contractAddrStr));
-        return(true);
+        return(false);
     }
 
     function getChainContract(string memory _chainIdStr) external view returns(string memory) {
@@ -81,54 +74,6 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(chainContract.length);
     }
 
-    // Synchronise the CTMRWA001X GateKeeper contract address across other chains. Governance controlled
-    function addXChainInfo(
-        string memory _tochainIdStr,
-        string memory _toContractStr,
-        string[] memory _chainIdsStr,
-        string[] memory _contractAddrsStr
-    ) external onlyGov {
-        require(_chainIdsStr.length>0, "CTMRWA001X: Zero length _chainIdsStr");
-        require(_chainIdsStr.length == _contractAddrsStr.length, "CTMRWA001X: Length mismatch chainIds and contractAddrs");
-        string memory fromContractStr = address(this).toHexString();
-
-        string memory funcCall = "addXChainInfoX(string[],string[],string)";
-        bytes memory callData = abi.encodeWithSignature(
-            funcCall,
-            _chainIdsStr,
-            _contractAddrsStr,
-            fromContractStr
-        );
-
-        c3call(_toContractStr, _tochainIdStr, callData);
-
-    }
-
-    function addXChainInfoX(
-        string[] memory _chainIdsStr,
-        string[] memory _contractAddrsStr,
-        string memory _fromContractStr
-    ) external onlyCaller returns(bool){
-        uint256 chainId;
-        bool ok;
-
-        (, string memory fromChainIdStr,) = context();
-        fromChainIdStr = _toLower(fromChainIdStr);
-
-        for(uint256 i=0; i<_chainIdsStr.length; i++) {
-            (chainId, ok) = strToUint(_chainIdsStr[i]);
-            require(ok && chainId!=0,"CTMRWA001X: Illegal chainId");
-            address contractAddr = stringToAddress(_contractAddrsStr[i]);
-            if(chainId != cID()) {
-                bool success = _addChainContract(chainId, contractAddr);
-                if(!success) revert("CTMRWA001X: _addXChainInfoX failed");
-            }
-        }
-
-        emit SetChainContract(_chainIdsStr, _contractAddrsStr, _fromContractStr, fromChainIdStr);
-
-        return(true);
-    }
 
     function getAttachedRWAX(
         uint256 _rwaType,
@@ -152,7 +97,7 @@ contract CTMRWAGateway is Context, GovernDapp {
         string memory _chainIdStr, 
         string memory _rwaXAddrStr
     ) external onlyGov returns(bool) {
-        if(bytes(_rwaXAddrStr).length != 42) return(false);
+        require(bytes(_rwaXAddrStr).length == 42, "CTMRWAGateway: Incorrect address length");
         string memory rwaXAddrStr = _toLower(_rwaXAddrStr);
         string memory chainIdStr = _toLower(_chainIdStr);
 
@@ -160,13 +105,13 @@ contract CTMRWAGateway is Context, GovernDapp {
         for(uint256 i=0; i<rwaX[_rwaType][_version].length; i++) {
             if(stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, chainIdStr)) {
                 rwaX[_rwaType][_version][i].contractStr = rwaXAddrStr;
-                return(true);
+                return(true); // existed = true
             }
         }
 
         ChainContract memory newAttach = ChainContract(chainIdStr, rwaXAddrStr);
         rwaX[_rwaType][_version].push(newAttach);
-        return(true);
+        return(false);
     }
 
 

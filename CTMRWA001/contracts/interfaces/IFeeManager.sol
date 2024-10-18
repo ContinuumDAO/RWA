@@ -17,6 +17,15 @@ interface IFeeManager {
         string memory _feeTokenStr
     ) external view returns (uint256);
 
+    
+    function addFeeToken(
+        string memory dstChainIDStr,
+        string[] memory feeTokensStr,
+        uint256[] memory fee // human readable * 100
+    ) external returns (bool);
+    function addFeeToken(string memory feeTokenStr) external returns (bool);
+    function delFeeToken(string memory feeTokenStr) external returns (bool);
+
     function getFeeTokenList() external returns(address[] memory);
     function isValidFeeToken(string memory feeTokenStr) external view returns(bool);
     function getFeeTokenIndexMap(string memory) external view returns (uint256);

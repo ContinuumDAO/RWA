@@ -79,6 +79,14 @@ contract CTMRWAMap is Context {
         ctmRwaDeployer = _deployer;
     }
 
+    function setGateway(address _gateway) external onlyGov {
+        gateway = _gateway;
+    }
+
+    function setRwa001X(address _ctmRwa001X) external onlyGov {
+        ctmRwa001X = _ctmRwa001X;
+    }
+
     function getTokenId(string memory _tokenAddrStr, uint256 _rwaType, uint256 _version) public view returns(bool, uint256) {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 

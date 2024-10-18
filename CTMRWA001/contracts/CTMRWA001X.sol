@@ -84,6 +84,10 @@ contract CTMRWA001X is Context, GovernDapp {
         feeManager = _feeManager;
     }
 
+    function setGateway(address _gateway) external onlyGov {
+        gateway = _gateway;
+    }
+
 
     function setCtmRwaMap(address _map) external onlyGov {
         ctmRwa001Map = _map;

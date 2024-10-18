@@ -13,8 +13,6 @@ import {ICTMRWA001, ICTMRWA001SlotApprovable, ICTMRWA001SlotEnumerable} from "./
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
 
-import {ICTMRWAAttachment} from "./interfaces/ICTMRWAMap.sol";
-
 
 contract CTMRWA001 is Context, ICTMRWA001 {
     using Strings for *;

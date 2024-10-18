@@ -21,6 +21,10 @@ sepolia = "${SEPOLIA_RPC_URL}"
 baseSepolia = "${BASE_SEPOLIA_RPC_URL}"
 optSepolia = "${OPT_SEPOLIA_RPC_URL}"
 bscTestnet = "${BSC_TESTNET_RPC_URL}"
+seiAtlantic = "${SEI_ATLANTIC_RPC_URL}"
+bitlayerTestnet = "{BITLAYER_TESTNET_RPC_URL}"
+avaxFuji = "{AVAX_FUJI_RPC_URL}"
+polygonAmoy = "{POLYGON_AMOY_RPC_URL}"
 
 [etherscan]
 arbSepoliaKey = { url = "https://api-sepolia.arbiscan.io/api", chain = 421614, key = "${ARBISCAN_API_KEY}" }
@@ -28,6 +32,10 @@ sepoliaKey = { url = "https://api-sepolia.etherscan.io/api", chain = 11155111, k
 baseSepoliaKey = { url = "https://api.basescan.org/api", chain = 84532, key = "${BASE_API_KEY}" }
 optSepoliaKey = { url = "https://api-optimistic.etherscan.io/api", chain = 11155420, key = "${OPT_API_KEY}" }
 bscTestnetKey = { url = "https://api-testnet.bscscan.com/api", chain = 97, key = "${BSC_API_KEY}" }
+seiAtlanticKey = { url = "https://seitrace.com/atlantic-2/api", chain = 1328, key = "${SEI_API_KEY}"}
+bitlayerTestnetKey = { url = "", chain =  200810, key = "${BITLAYER_API_KEY}"}
+avaxFujiKey = { url = "", chain = 43113, key = "${AVAX_API_KEY}"}
+polygonAmoyKey = { url = "https://api-amoy.polygonscan.com/api", chain = 80002, key = "{POLYGON_API_KEY}"}
 
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

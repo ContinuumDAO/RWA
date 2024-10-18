@@ -38,15 +38,15 @@ contract XChainTests is Script {
     address c3 = 0x770c70D44C0c7b5B7D805077B66daADC00480FbC;  // on Arb Sepolia
     address c3UUIDKeeper = 0x034a2688912A880271544dAE915a9038d9D20229;
 
-    address feeManager = 0xb07C3788549cd48aD1d4Cb9B7336f7C9Dd53D67F;  // Arb Sepolia
-    address gatewayAddr =  0x69D461E1314af5E3bcab39f0ebA3872c5de2c1e5;
-    address rwa001XAddr = 0xD2499F70542D598fE7679cD439A4cbA16e5b2BF9;
-    address ctmFallbackAddr = 0x038a39974a702ada213a318c855792244884EDCC;
-    address ctmRwa001Map = 0x957EBEeCcA9E712e335f99dE34D0F46317283696;
-    address ctmRwaDeployer = 0x6187ee058bB5b7Db140cfd470a27EBe1f16D92B1;
-    address ctmRwaFactory = 0x351a9223BDBfc1BF7113a9e24533c6cc6B11DE1A;
-    address dividendAddr = 0x0a3272bC10d8BD7f6ab8FC732a30dB3F6e9b1597;
-    address storageManagerAddr = 0x6b01f0b9c0C0B9f5b20E6E40937d5E7aADC2c95A;
+    address feeManager = 0xCA89ae89EFa4D49150237038D63562247d17Ca1C;  // Arb Sepolia
+    address gatewayAddr =  0x8Ea9B4616e5653CF21B87e60c8D72d8384685ec6;
+    address rwa001XAddr = 0x5330db730fAb0Bf0bB9db2FCefe7b1876c09a242;
+    address ctmFallbackAddr = 0xd49BcC86916d744B965F1B8C2517F8dbCAcb3887;
+    address ctmRwa001Map = 0x3B63cD222C5080cDeA921B8D3cF4A692b8DfEE4D;
+    address ctmRwaDeployer = 0xa7441037961E31D4b64Aca57417d7673FEdC8fEC;
+    address ctmRwaFactory = 0x93637D7068CEebC6cCDCB230E3AE65436666fe15;
+    address dividendAddr = 0x797AA64f83e4d17c2C6C80321f22445AAB153630;
+    address storageManagerAddr = 0x1249d751e6a0b7b11b9e55CBF8bC7d397AC3c083;
 
     ICTMRWAGateway gateway = ICTMRWAGateway(gatewayAddr);
     ICTMRWA001X rwa001X = ICTMRWA001X(rwa001XAddr);
@@ -70,13 +70,13 @@ contract XChainTests is Script {
 
         // this.transferValueTokenToAddress();
 
-        this.addURI();
+        // this.addURI();
 
         // this.transferValueTokenToToken();
 
         // this.transferValueWholeTokenToAddress();
 
-        // this.mintNewTokenValueX();
+        this.mintNewTokenValueX();
     }
 
     function mintNewTokenValueX() external {
@@ -106,7 +106,7 @@ contract XChainTests is Script {
 
         rwa001X.mintNewTokenValueX(
             admin.toHexString(),
-            "97",
+            "200810",
             4,
             1234,
             ID,
@@ -275,7 +275,7 @@ contract XChainTests is Script {
         uint8 decimals = ICTMRWA001(adminTokens[0]).valueDecimals();
         string memory baseURI = ICTMRWA001(adminTokens[0]).baseURI();
 
-        toChainIdsStr.push("97");
+        toChainIdsStr.push("200810");
 
         // function deployAllCTMRWA001X(
         //     bool _includeLocal,

@@ -10,7 +10,7 @@ interface ICTMRWAGateway {
         string[] memory chainIdsStr,
         string[] memory contractAddrsStr
     ) external;
-    function addChainContract(uint256 chainId, address contractAddress) external returns (bool);
+    function addChainContract(string memory chainIdStr, string memory contractAddressStr) external returns (bool);
     function getChainContract(string memory chainIdStr) external view returns(string memory);
     function addXChainInfoX(
         string[] memory chainIdsStr,

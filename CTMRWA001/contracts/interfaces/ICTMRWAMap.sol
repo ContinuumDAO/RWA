@@ -7,12 +7,9 @@ interface ICTMRWAMap {
     function rwaX() external returns(address);
     function ctmRwaDeployer() external returns(address);
 
+    function setGateway(address _gateway) external;
+    function setRwa001X(address _ctmRwa001X) external;
     function setCtmRwaDeployer(address deployer) external;
-
-    // function getTokenId(address tokenAddr, uint256 rwaType, uint256 version, string memory chainIdStr) external view returns(bool, uint256);
-    // function getTokenContract(uint256 ID, uint256 rwaType, uint256 version, string memory chainIdStr) external view returns(bool, address);
-    // function getAttachedDividendAddress(uint256 ID, uint256 rwaType, uint256 version, string memory toChainIdStr) external view returns(bool, address);
-    // function getAttachedStorageAddress(uint256 ID, uint256 rwaType, uint256 version, string memory toChainIdStr) external view returns(bool, address);
 
     function attachContracts(
         uint256 ID, 

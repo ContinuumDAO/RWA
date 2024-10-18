@@ -934,10 +934,10 @@ contract TestBasicToken is SetUp {
             inputData
         );
 
-        console.log("transfering value of 10 from tokenId 2, slot 3 from user1 to user2");
+        // console.log("transfering value of 10 from tokenId 2, slot 3 from user1 to user2");
 
-        console.log("BEFORE user1");
-        listAllTokensByAddress(ctmRwaAddr, user1);
+        // console.log("BEFORE user1");
+        // listAllTokensByAddress(ctmRwaAddr, user1);
 
         vm.prank(address(rwa001X));
         ICTMRWA001(ctmRwaAddr).burnValueX(tokenId2, 10);
@@ -945,10 +945,10 @@ contract TestBasicToken is SetUp {
         vm.prank(address(gov)); // blank onlyOperator require in C3Gov to test
         c3.execute(dapp, c3message);
 
-        console.log("AFTER user1");
-        listAllTokensByAddress(ctmRwaAddr, user1);
-        console.log("AFTER user2");
-        listAllTokensByAddress(ctmRwaAddr, user2);
+        // console.log("AFTER user1");
+        // listAllTokensByAddress(ctmRwaAddr, user1);
+        // console.log("AFTER user2");
+        // listAllTokensByAddress(ctmRwaAddr, user2);
     }
 
     function test_transferTokenIdToAddressExecute() public {
