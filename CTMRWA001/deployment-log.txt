@@ -112,3 +112,30 @@ BASE SEPOLIA
 
 ================================================
 
+# FANTOM SONIC
+
+== Logs ==
+  Wallet of deployer
+  0xe62Ab4D111f968660C6B2188046F9B9bA53C4Bae
+  feeManager
+  0x6EE5C158882857c7F52b37FCe37B1CF39944f22E
+  gateway address
+  0x005c5Fd1585A73817107bFd3929f7e559750ceEd
+  ctmRwa001X address
+  0xDef5D31e4b2E0BF38Af3E8092a5ABF51Db484Eec
+  ctmRwaFallback address
+  0xb76428eBE853F2f6a5D74C4361B72999f55EE637
+  CTMRWAMap
+  0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3
+  ctmRWADeployer
+  0x7dAbce18C66b5c857355A815b6c1e926C701C23F
+  CTM Storage
+  0xcAcF2003d4bC2e19C865e65Ebb9D57C440217f0F
+  Dividend Factory
+  0xc55A8332086781225EF371DEf7ED4F05C9F03B9e
+  CTMRWA001Factory
+  0xaD2E580C931861360C998db3F0B090A5391DA58e
+
+## Setting up 1 EVM.
+
+===========================================================

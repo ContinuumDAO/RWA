@@ -49,7 +49,7 @@ contract Deploy is Script {
         console.log(deployer);
 
         // env variables (changes based on deployment chain, edit in .env)
-        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_AVAX_FUJI");
+        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_CONFLUX_ESPACE");
         address govAddr = deployer;
         uint256 dappID1 = vm.envUint("DAPP_ID1");
         uint256 dappID2 = vm.envUint("DAPP_ID2");
