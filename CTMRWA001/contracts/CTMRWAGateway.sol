@@ -14,6 +14,7 @@ contract CTMRWAGateway is Context, GovernDapp {
     string public cIdStr;
 
     mapping(uint256 => mapping(uint256 => ChainContract[])) rwaX; // rwaType => version => ChainContract
+    mapping(uint256 => mapping(uint256 => ChainContract[])) storageManager;
 
     event SetChainContract(string[] chainIdsStr, string[] contractAddrsStr, string fromContractStr, string fromChainIdStr);
     event LogFallback(bytes4 selector, bytes data, bytes reason);
@@ -74,6 +75,24 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(chainContract.length);
     }
 
+    function getAttachedRWAX(
+        uint256 _rwaType,
+        uint256 _version,
+        uint256 _indx
+    ) public view returns(string memory, string memory) {
+        return(
+            rwaX[_rwaType][_version][_indx].chainIdStr,
+            rwaX[_rwaType][_version][_indx].contractStr
+        );
+    }
+
+    function getRWAXCount(
+        uint256 _rwaType,
+        uint256 _version
+    ) public view returns(uint256) {
+        return(rwaX[_rwaType][_version].length);
+    }
+        
 
     function getAttachedRWAX(
         uint256 _rwaType,
@@ -84,6 +103,39 @@ contract CTMRWAGateway is Context, GovernDapp {
         for(uint256 i=0; i<rwaX[_rwaType][_version].length; i++) {
             if(stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, _chainIdStr)) {
                 return(true, rwaX[_rwaType][_version][i].contractStr);
+            }
+        }
+
+        return(false, "0");
+    }
+
+    function getAttachedStorageManager(
+        uint256 _rwaType,
+        uint256 _version,
+        uint256 _indx
+    ) public view returns(string memory, string memory) {
+        return(
+            storageManager[_rwaType][_version][_indx].chainIdStr,
+            storageManager[_rwaType][_version][_indx].contractStr
+        );
+    }
+
+    function getStorageManagerCount(
+        uint256 _rwaType,
+        uint256 _version
+    ) public view returns(uint256) {
+        return(storageManager[_rwaType][_version].length);
+    }
+
+    function getAttachedStorageManager(
+        uint256 _rwaType,
+        uint256 _version,
+        string memory _chainIdStr
+    ) public view returns(bool, string memory) {
+
+        for(uint256 i=0; i<storageManager[_rwaType][_version].length; i++) {
+            if(stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, _chainIdStr)) {
+                return(true, storageManager[_rwaType][_version][i].contractStr);
             }
         }
 
@@ -111,6 +163,29 @@ contract CTMRWAGateway is Context, GovernDapp {
 
         ChainContract memory newAttach = ChainContract(chainIdStr, rwaXAddrStr);
         rwaX[_rwaType][_version].push(newAttach);
+        return(false);
+    }
+
+    function attachStorageManager (
+        uint256 _rwaType,
+        uint256 _version,
+        string memory _chainIdStr, 
+        string memory _storageManagerAddrStr
+    ) external onlyGov returns(bool) {
+        require(bytes(_storageManagerAddrStr).length == 42, "CTMRWAGateway: Incorrect address length");
+        string memory storageManagerAddrStr = _toLower(_storageManagerAddrStr);
+        string memory chainIdStr = _toLower(_chainIdStr);
+
+
+        for(uint256 i=0; i<storageManager[_rwaType][_version].length; i++) {
+            if(stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, chainIdStr)) {
+                storageManager[_rwaType][_version][i].contractStr = storageManagerAddrStr;
+                return(true); // existed = true
+            }
+        }
+
+        ChainContract memory newAttach = ChainContract(chainIdStr, storageManagerAddrStr);
+        storageManager[_rwaType][_version].push(newAttach);
         return(false);
     }
 

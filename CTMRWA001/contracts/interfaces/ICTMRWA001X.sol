@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.23;
 
-import {URICategory, URIType} from "./ICTMRWA001Storage.sol";
+
 
 interface ICTMRWA001X {
     
@@ -117,15 +117,5 @@ interface ICTMRWA001X {
         uint256 balance,
         string memory fromTokenStr
     ) external returns(bool); // onlyCaller
-
-    function _addURI(
-        uint256 ID,
-        URICategory uriCategory,
-        URIType uriType,
-        uint256 slot,   
-        bytes32 uriDataHash,
-        string[] memory chainIdsStr
-    ) external;
-
 
 }

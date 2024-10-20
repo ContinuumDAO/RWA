@@ -13,6 +13,7 @@ import {IUUIDKeeper} from "../contracts/c3Caller/IUUIDKeeper.sol";
 import {ICTMRWA001} from "../contracts/interfaces/ICTMRWA001.sol";
 import {ICTMRWAGateway} from "../contracts/interfaces/ICTMRWAGateway.sol";
 import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
+import {ICTMRWA001StorageManager} from "../contracts/interfaces/ICTMRWA001StorageManager.sol";
 import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
 import {ICTMRWADeployer} from "../contracts/interfaces/ICTMRWADeployer.sol";
 import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
@@ -50,6 +51,7 @@ contract XChainTests is Script {
 
     ICTMRWAGateway gateway = ICTMRWAGateway(gatewayAddr);
     ICTMRWA001X rwa001X = ICTMRWA001X(rwa001XAddr);
+    ICTMRWA001StorageManager storageManager = ICTMRWA001StorageManager(storageManagerAddr);
     ICTMRWA001XFallback ctmFallback = ICTMRWA001XFallback(ctmFallbackAddr);
     ICTMRWA001Dividend dividend = ICTMRWA001Dividend(dividendAddr);
 
@@ -239,7 +241,7 @@ contract XChainTests is Script {
 
     function deployLocal() external {
        
-        address ctmRwaDeployer = rwa001X.ctmRwaDeployer();
+        //address ctmRwaDeployer = rwa001X.ctmRwaDeployer();
 
         vm.startBroadcast(senderPrivateKey);
 
@@ -250,7 +252,7 @@ contract XChainTests is Script {
 
     function deployRemote() external {
 
-        address ctmRwaDeployer = rwa001X.ctmRwaDeployer();
+        // address ctmRwaDeployer = rwa001X.ctmRwaDeployer();
 
         vm.startBroadcast(senderPrivateKey);
 
@@ -340,7 +342,7 @@ contract XChainTests is Script {
         //     string[] memory _chainIdsStr
         // ) external {
 
-        rwa001X._addURI(
+        storageManager._addURI(
             ID,
             URICategory.PROVENANCE,
             URIType.SLOT,

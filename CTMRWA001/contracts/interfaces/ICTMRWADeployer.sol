@@ -4,8 +4,12 @@ pragma solidity ^0.8.23;
 
 interface ICTMRWADeployer {
 
-    function setRwa001X(address _rwaX) external;
+    function setGateway(address gateway) external;
+    function setFeeManager(address _feeManager) external;
+    function setRwaX(address rwaX) external;
     function setMap(address _map) external;
+
+
 
     function deploy(
         uint256 ID,

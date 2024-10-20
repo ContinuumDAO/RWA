@@ -612,65 +612,6 @@ contract CTMRWA001X is Context, GovernDapp {
         return(true);
     }
 
-    function _addURI(
-        uint256 _ID,
-        URICategory _uriCategory,
-        URIType _uriType,
-        uint256 _slot,   
-        bytes32 _uriDataHash,
-        string[] memory _chainIdsStr
-    ) external {
-
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001X: Could not find _ID or its storage address");
-
-        (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
-        _checkTokenAdmin(ctmRwa001Addr);
-
-        for(uint256 i=0; i<_chainIdsStr.length; i++) {
-            string memory chainIdStr = _toLower(_chainIdsStr[i]);
-
-            if(stringsEqual(chainIdStr, cID().toString())) {
-                ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _uriDataHash);
-            } else {
-                (, string memory toRwaXStr) = _getRWAX(chainIdStr);
-
-                //string memory funcCall = "addURIX(uint256,URICategory,URIType,uint256,bytes32)";
-                string memory funcCall = "addURIX(uint256,uint8,uint8,uint256,bytes32)";
-                bytes memory callData = abi.encodeWithSignature(
-                    funcCall,
-                    _ID,
-                    _uriCategory,
-                    _uriType,
-                    _slot,
-                    _uriDataHash
-                );
-
-                c3call(toRwaXStr, chainIdStr, callData);
-            }
-        }
-    }
-
-
-    function addURIX(
-        uint256 _ID,
-        URICategory _uriCategory,
-        URIType _uriType,
-        uint256 _slot,   
-        bytes32 _uriDataHash
-    ) external onlyCaller returns(bool) {
-
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001X: Could not find _ID or its storage address");
-
-        (, string memory fromChainIdStr,) = context();
-        fromChainIdStr = _toLower(fromChainIdStr);
-
-        ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _uriDataHash);
-
-        return(true);
-    }
-
 
     // End of cross chain transfers
 

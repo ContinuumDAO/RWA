@@ -149,7 +149,7 @@ contract SetUp is Test {
         /// @dev adding CTM balance to user1 so they can pay the fee
         ctm.mint(user1, ctmBal);
 
-        //console.log("admin bal USDC = ", usdc.balanceOf(address(admin))/1e6);
+        // console.log("admin bal USDC = ", usdc.balanceOf(address(admin))/1e6);
         usdc.transfer(user1, usdcBal/2);
         
         deployC3Caller();
@@ -159,7 +159,6 @@ contract SetUp is Test {
 
         deployCTMRWA001X();
         vm.stopPrank();
-
 
         vm.startPrank(address(c3Gov));
 
@@ -171,7 +170,7 @@ contract SetUp is Test {
             "1",
             address(rwa001X).toHexString()
         );
-        assertEq(ok, true);
+        assertEq(ok, false); // was not already attached
 
         ctmRwa001Map = deployMap();
 
@@ -189,12 +188,24 @@ contract SetUp is Test {
             88
         );
 
+        ok = gateway.attachStorageManager(
+            rwaType, 
+            version, 
+            "1", 
+            address(storageManager).toHexString()
+        );
+
+        assertEq(ok, false); // was not already set
+
         ctmRwaDeployer = address(deployer);
 
         rwa001X.setCtmRwaDeployer(ctmRwaDeployer);
         map.setCtmRwaDeployer(ctmRwaDeployer);
 
+        gateway.addChainContract("1", "ethereumGateway");
+
         vm.stopPrank();
+
 
         vm.startPrank(user1);
         uint256 initialUserBal = usdc.balanceOf(address(user1));
@@ -209,13 +220,11 @@ contract SetUp is Test {
         vm.prank(user1);
         ctm.approve(address(rwa001X), ctmBal);
 
-        string[] memory cIdList = new string[](1);
-        cIdList[0] = cID().toHexString();
-        string[] memory gatewayLocal = new string[](1);
-        gatewayLocal[0] = address(rwa001X).toHexString();
-        vm.prank(gov);
-
-        gateway.addChainContract("1", "ethereumGateway");
+        // string[] memory cIdList = new string[](1);
+        // cIdList[0] = cID().toHexString();
+        // string[] memory gatewayLocal = new string[](1);
+        // gatewayLocal[0] = address(rwa001X).toHexString();
+        
     }
 
     function deployGateway() internal {
@@ -267,6 +276,8 @@ contract SetUp is Test {
     ) internal {
         deployer = new CTMRWADeployer(
             _gov,
+            address(gateway),
+            address(feeManager),
             _rwa001X,
             _map,
             _c3callerProxy,
@@ -287,7 +298,9 @@ contract SetUp is Test {
             _c3callerProxy,
             _txSender,
             _dappIDStorageManager,
-            _map
+            _map,
+            address(gateway),
+            address(feeManager)
         );
         ICTMRWAFactory(address(storageManager)).setCtmRwaDeployer(address(deployer));
         deployer.setStorageFactory(_rwaType, _version, address(storageManager));

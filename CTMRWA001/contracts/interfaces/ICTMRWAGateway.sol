@@ -22,10 +22,33 @@ interface ICTMRWAGateway {
         uint256 version,
         string memory _chainIdStr
     ) external view returns(bool, string memory);
+    function getAttachedRWAX(
+        uint256 _rwaType,
+        uint256 _version,
+        uint256 _indx
+    ) external view returns(string memory, string memory);
+    function getRWAXCount(
+        uint256 _rwaType,
+        uint256 _version
+    ) external view returns(uint256);
     function attachRWAX (
         uint256 rwaType,
         uint256 version,
         string memory _chainIdStr, 
         string memory _rwaXAddrStr
     ) external returns(bool);   // onlyGov
+    function getAttachedStorageManager(
+        uint256 _rwaType,
+        uint256 _version,
+        uint256 _indx
+    ) external view returns(string memory, string memory);
+    function getAttachedStorageManager(
+        uint256 _rwaType,
+        uint256 _version,
+        string memory _chainIdStr
+    ) external view returns(bool, string memory);
+    function getStorageManagerCount(
+        uint256 _rwaType,
+        uint256 _version
+    ) external view returns(uint256);
 }

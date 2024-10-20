@@ -2,15 +2,13 @@
 
 pragma solidity ^0.8.23;
 
-// import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-// import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-// import {ICTMRWA001Metadata} from "../extensions/ICTMRWA001Metadata.sol";
-
 enum URICategory {
     PROVENANCE,
     VALUATION,
     RATING,
-    LICENSE
+    LICENSE,
+    NOTICE,
+    DIVIDEND
 }
 
 enum URIType {

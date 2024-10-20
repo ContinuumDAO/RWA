@@ -35,11 +35,14 @@ contract Deploy is Script {
     CTMRWADeployer ctmRwaDeployer;
     CTMRWAMap ctmRwaMap;
     CTMRWAGateway gateway;
+    FeeManager feeManager;
     CTMRWA001X ctmRwa001X;
     CTMRWA001TokenFactory tokenFactory;
     CTMRWA001XFallback ctmRwaFallback;
     CTMRWA001StorageManager storageManager;
     CTMRWA001DividendFactory dividendFactory;
+
+    address feeManagerAddr;
 
 
     function run() external {
@@ -63,8 +66,8 @@ contract Deploy is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // deploy fee manager
-        FeeManager feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID1);
-        address feeManagerAddr = address(feeManager);
+        feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID1);
+        feeManagerAddr = address(feeManager);
 
         console.log("feeManager");
         console.log(feeManagerAddr);
@@ -154,6 +157,8 @@ contract Deploy is Script {
     ) internal returns(address, address, address, address) {
         ctmRwaDeployer = new CTMRWADeployer(
             _gov,
+            address(gateway),
+            feeManagerAddr,
             _rwa001X,
             _ctmRwa001Map,
             _c3callerProxy,
@@ -174,7 +179,9 @@ contract Deploy is Script {
             _c3callerProxy,
             _txSender,
             _dappIDStorageManager,
-            address(ctmRwaDeployer)
+            address(ctmRwaDeployer),
+            address(gateway),
+            feeManagerAddr
         );
 
         dividendFactory = new CTMRWA001DividendFactory(address(ctmRwaDeployer));

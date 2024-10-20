@@ -1,5 +1,5 @@
 [profile.default]
-src = "contracts"
+src = "flattened"
 out = "out"
 libs = ["lib"]
 optimizer = true
@@ -21,11 +21,20 @@ sepolia = "${SEPOLIA_RPC_URL}"
 baseSepolia = "${BASE_SEPOLIA_RPC_URL}"
 optSepolia = "${OPT_SEPOLIA_RPC_URL}"
 bscTestnet = "${BSC_TESTNET_RPC_URL}"
+opBNBTestnet = "${OPBNB_TESTNET_RPC_URL}"
 seiAtlantic = "${SEI_ATLANTIC_RPC_URL}"
 bitlayerTestnet = "{BITLAYER_TESTNET_RPC_URL}"
 avaxFuji = "{AVAX_FUJI_RPC_URL}"
 polygonAmoy = "{POLYGON_AMOY_RPC_URL}"
 confluxEspace = "{CONFLUX_ESPACE_RPC_URL}"
+lineaSepolia = "{LINEA_SEPOLIA_RPC_URL}"
+coreTestnet = "{CORE_TESTNET_RPC_URL}"
+morphHolesky = "{MORPH_HOLESKY_RPC_URL}"
+scrollSepolia = "{SCROLL_SEPOLIA_RPC_URL}"
+soneiumMinato = "{SONEIUM_MINATO_RPC_URL}"
+luksoTestnet = "{LUKSO_TESTNET_RPC_URL}"
+cronosTestnet = "{CRONOS_TESTNET_RPC_URL}"
+
 
 [etherscan]
 arbSepoliaKey = { url = "https://api-sepolia.arbiscan.io/api", chain = 421614, key = "${ARBISCAN_API_KEY}" }
@@ -33,12 +42,15 @@ sepoliaKey = { url = "https://api-sepolia.etherscan.io/api", chain = 11155111, k
 baseSepoliaKey = { url = "https://api.basescan.org/api", chain = 84532, key = "${BASE_API_KEY}" }
 optSepoliaKey = { url = "https://api-optimistic.etherscan.io/api", chain = 11155420, key = "${OPT_API_KEY}" }
 bscTestnetKey = { url = "https://api-testnet.bscscan.com/api", chain = 97, key = "${BSC_API_KEY}" }
+opBnbTestnetKey = { url = "https://opbnb-testnet.nodereal.io/v1/", chain = 5611, key = "${OPBNB_API_KEY}" }
 seiAtlanticKey = { url = "https://seitrace.com/atlantic-2/api", chain = 1328, key = "${SEI_API_KEY}"}
 bitlayerTestnetKey = { url = "", chain =  200810, key = "${BITLAYER_API_KEY}"}
 avaxFujiKey = { url = "", chain = 43113, key = "${AVAX_API_KEY}"}
 polygonAmoyKey = { url = "https://api-amoy.polygonscan.com/api", chain = 80002, key = "{POLYGON_API_KEY}"}
 sonicTestnetKey = { url = "", chain = 64165, key = "{}"}
 confluxEspaceKey = { url = "https://evmapi-testnet.confluxscan.io/api", chain = 71, key = "{CONFLUX_API_KEY}"}
+lineaSepoliaKey = { url = "https://api-sepolia.lineascan.build/api", chain =  59141, key = "{LINEA_API_KEY}"}
+soneiumMinatoKey = { url = "https://eth-sepolia.blockscout.com/api", chain = 1946, key = "{OPTIMISM_API_KEY}"}
 
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

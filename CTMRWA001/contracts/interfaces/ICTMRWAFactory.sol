@@ -20,7 +20,9 @@ interface ICTMRWAFactory {
         address tokenAddr,
         uint256 rwaType,
         uint256 version,
-        address ctmRwaMap
+        address ctmRwaMap,
+        address gateway,
+        address feeManager
     ) external returns(address);
 
     function setCtmRwaDeployer(address deployer) external;

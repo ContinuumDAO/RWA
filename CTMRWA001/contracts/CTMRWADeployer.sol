@@ -23,6 +23,8 @@ interface TokenType {
 contract CTMRWADeployer is Context, GovernDapp {
     using Strings for *;
 
+    address gateway;
+    address feeManager;
     address public rwaX;
     address public ctmRwaMap;
 
@@ -40,17 +42,29 @@ contract CTMRWADeployer is Context, GovernDapp {
 
     constructor(
         address _gov,
+        address _gateway,
+        address _feeManager,
         address _rwaX,
         address _map,
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID
     ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+        gateway = _gateway;
+        feeManager = _feeManager;
         rwaX = _rwaX;
         ctmRwaMap = _map;
     }
 
-    function setRwa001X(address _rwaX) external onlyGov {
+    function setGateway(address _gateway) external onlyGov {
+        gateway = _gateway;
+    }
+
+    function setFeeManager(address _feeManager) external onlyGov {
+        feeManager = _feeManager;
+    }
+
+    function setRwaX(address _rwaX) external onlyGov {
         rwaX = _rwaX;
     }
 
@@ -108,7 +122,9 @@ contract CTMRWADeployer is Context, GovernDapp {
                 _tokenAddr,
                 _rwaType, 
                 _version, 
-                ctmRwaMap
+                ctmRwaMap,
+                gateway,
+                feeManager
             );
             return(storageAddr);
         }
