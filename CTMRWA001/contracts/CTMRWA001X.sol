@@ -292,6 +292,8 @@ contract CTMRWA001X is Context, GovernDapp {
         bool ok = _replaceAdmin(_newAdmin, _msgSender(), ctmRwa001Addr);
         if(ok) {
             ICTMRWA001(ctmRwa001Addr).changeAdmin(_newAdmin);
+            (, address ctmRwa001StorageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
+            ICTMRWA001Storage(ctmRwa001StorageAddr).setTokenAdmin(_newAdmin);
             return(true);
         } else revert("CTMRWA001X: Could not replace admin address");
 
@@ -351,6 +353,8 @@ contract CTMRWA001X is Context, GovernDapp {
         ok = _replaceAdmin(newAdmin, oldAdmin, ctmRwa001Addr);
         if(ok) {
             ICTMRWA001(ctmRwa001Addr).changeAdmin(newAdmin);
+            (, address ctmRwa001StorageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
+            ICTMRWA001Storage(ctmRwa001StorageAddr).setTokenAdmin(newAdmin);
             return(true);
         } else revert("CTMRWA001X: Could not replace admin address");
     

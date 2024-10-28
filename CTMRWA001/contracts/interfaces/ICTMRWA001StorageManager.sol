@@ -15,7 +15,8 @@ interface ICTMRWA001StorageManager {
         uint256 ID,
         URICategory uriCategory,
         URIType uriType,
-        uint256 slot,   
+        uint256 slot,
+        bytes memory link,  
         bytes32 uriDataHash,
         string[] memory chainIdsStr
     ) external;
@@ -24,7 +25,8 @@ interface ICTMRWA001StorageManager {
         uint256 ID,
         URICategory uriCategory,
         URIType uriType,
-        uint256 slot,   
+        uint256 slot,
+        bytes memory link,
         bytes32 uriDataHash
     ) external returns(bool);
 

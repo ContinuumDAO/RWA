@@ -111,11 +111,12 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
    
     
-    function _addURI(
+    function addURI(
         uint256 _ID,
         URICategory _uriCategory,
         URIType _uriType,
-        uint256 _slot,   
+        uint256 _slot,
+        bytes memory _objectName,
         bytes32 _uriDataHash,
         string[] memory _chainIdsStr
     ) external {
@@ -130,17 +131,18 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
             if(stringsEqual(chainIdStr, cIdStr)) {
-                ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _uriDataHash);
+                ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _objectName, _uriDataHash);
             } else {
                 (, string memory toRwaXStr) = _getSM(chainIdStr);
 
-                string memory funcCall = "addURIX(uint256,uint8,uint8,uint256,bytes32)";
+                string memory funcCall = "addURIX(uint256,uint8,uint8,uint256,string,bytes32)";
                 bytes memory callData = abi.encodeWithSignature(
                     funcCall,
                     _ID,
                     _uriCategory,
                     _uriType,
                     _slot,
+                    _objectName,
                     _uriDataHash
                 );
 
@@ -154,7 +156,8 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         uint256 _ID,
         URICategory _uriCategory,
         URIType _uriType,
-        uint256 _slot,   
+        uint256 _slot,
+        bytes memory _objectName,
         bytes32 _uriDataHash
     ) external onlyCaller returns(bool) {
 
@@ -164,7 +167,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         (, string memory fromChainIdStr,) = context();
         fromChainIdStr = _toLower(fromChainIdStr);
 
-        ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _uriDataHash);
+        ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _objectName, _uriDataHash);
 
         return(true);
     }

@@ -10,7 +10,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {ICTMRWA001, ITokenContract} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {URIType, URICategory} from "./interfaces/ICTMRWA001Storage.sol";
+import {URIData, URIType, URICategory} from "./interfaces/ICTMRWA001Storage.sol";
 
 
 contract CTMRWA001Storage is Context {
@@ -26,15 +26,10 @@ contract CTMRWA001Storage is Context {
     address public ctmRwa001Map;
     string baseURI;
 
-    string constant TYPE = "/ContinuumDAO/RWA001/";
+    string idStr;
+    uint256 public nonce;
 
-    
-    struct URIData {
-        URICategory uriCategory;
-        URIType uriType;
-        uint256 slot;
-        bytes32 uriHash;
-    }
+    string constant TYPE = "ctm-rwa001.";
 
     URIData[] uriData;
 
@@ -55,6 +50,7 @@ contract CTMRWA001Storage is Context {
         address _map
     ) {
         ID = _ID;
+        idStr = _toLower(((ID<<192)>>192).toHexString());  // shortens string to 16 characters
         rwaType = _rwaType;
         version = _version;
         ctmRwa001Map = _map;
@@ -74,57 +70,58 @@ contract CTMRWA001Storage is Context {
         return(true);
     }
 
-    function contractURI() public view virtual returns (string memory) {
-        return 
-            bytes(baseURI).length > 0 ? 
-                string(abi.encodePacked(baseURI, TYPE, ID.toString(), "/contract/")) : 
-                "";
+    function contractURI() public view returns (string memory) {
+        return
+            stringsEqual(baseURI, "GFLD") || stringsEqual(baseURI, "IPFS")
+                ? string.concat(TYPE, idStr, ".c.", nonce.toString())
+                : "";
     }
 
-    function slotURI(uint256 slot_) public view virtual returns (string memory) {
+    function slotURI(uint256 slot_) public view returns (string memory) {
         return 
-            bytes(baseURI).length > 0 ? 
-                string(abi.encodePacked(baseURI, TYPE, ID.toString(), "/slot/", slot_.toString())) : 
-                "";
+            stringsEqual(baseURI, "GFLD") || stringsEqual(baseURI, "IPFS") 
+                ? string.concat(TYPE, idStr, ".s.", slot_.toString(), ".", nonce.toString())
+                : "";
     }
 
     /**
      * @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
      */
-    function tokenURI(uint256 tokenId_) public view virtual returns (string memory) {
+    function tokenURI(uint256 tokenId_) public view returns (string memory) {
         ICTMRWA001(tokenAddr).requireMinted(tokenId_);
         return 
-            bytes(baseURI).length > 0 ? 
-                string(abi.encodePacked(baseURI, TYPE, ID.toString(), "/", tokenId_.toString())) : 
-                "";
+            stringsEqual(baseURI, "GFLD") || stringsEqual(baseURI, "IPFS")
+                ? string.concat(TYPE, idStr, ".t.", tokenId_.toString(), ".", nonce.toString())
+                : "";
     }
 
     function addURILocal(
         uint256 _ID,
         URICategory _uriCategory,
         URIType _uriType,
-        uint256 _slot,   
+        uint256 _slot,
+        bytes memory _objectName,
         bytes32 _uriDataHash
     ) external onlyTokenAdmin {
         require(_ID == ID, "CTMRWA001Storage: Attempt to add URI to an incorrect ID");
         require(!existURIHash(_uriDataHash), "CTMRWA001Storage: Hash already exists");
 
-        uriData.push(URIData(_uriCategory, _uriType, _slot, _uriDataHash));
+        uriData.push(URIData(_uriCategory, _uriType, _slot, _objectName, _uriDataHash));
+        nonce++;
     }
 
-    function getURIHashByIndex(URICategory uriCat, URIType uriTyp, uint256 index) public view returns(bytes32) {
-
+    function getURIHashByIndex(URICategory uriCat, URIType uriTyp, uint256 index) public view returns(bytes32, bytes memory) {
         uint256 currentIndx;
 
         for(uint256 i=0; i<uriData.length; i++) {
             if(uriData[i].uriType == uriTyp && uriData[i].uriCategory == uriCat) {
                 if(index == currentIndx) {
-                    return(uriData[i].uriHash);
+                    return(uriData[i].uriHash, uriData[i].objectName);
                 } else currentIndx++;
             }
         }
 
-        return(bytes32(0));
+        return(bytes32(0), "");
     }
 
     function getURIHashCount(URICategory uriCat, URIType uriTyp) public view returns(uint256) {
@@ -137,6 +134,15 @@ contract CTMRWA001Storage is Context {
         return(count);
     }
 
+    function getURIHash(bytes32 _hash) public view returns(URIData memory) {
+        for(uint256 i=0; i<uriData.length; i++) {
+            if(uriData[i].uriHash == _hash) {
+                return(uriData[i]);
+            }
+        }
+        return(URIData(URICategory.EMPTY,URIType.EMPTY,0,bytes(""),0));
+    }
+
     function existURIHash(bytes32 uriHash) public view returns(bool) {
         for(uint256 i=0; i<uriData.length; i++) {
             if(uriData[i].uriHash == uriHash) return(true);
@@ -144,10 +150,32 @@ contract CTMRWA001Storage is Context {
         return(false);
     }
 
+    function _toLower(string memory str) internal pure returns (string memory) {
+        bytes memory bStr = bytes(str);
+        bytes memory bLower = new bytes(bStr.length);
+        for (uint i = 0; i < bStr.length; i++) {
+            // Uppercase character...
+            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
+                // So we add 32 to make it lowercase
+                bLower[i] = bytes1(uint8(bStr[i]) + 32);
+            } else {
+                bLower[i] = bStr[i];
+            }
+        }
+        return string(bLower);
+    }
 
     function cID() internal view returns (uint256) {
         return block.chainid;
     }
 
+    function stringsEqual(
+        string memory a,
+        string memory b
+    ) internal pure returns (bool) {
+        bytes32 ka = keccak256(abi.encode(a));
+        bytes32 kb = keccak256(abi.encode(b));
+        return (ka == kb);
+    }
     
 }

@@ -34,6 +34,7 @@ scrollSepolia = "{SCROLL_SEPOLIA_RPC_URL}"
 soneiumMinato = "{SONEIUM_MINATO_RPC_URL}"
 luksoTestnet = "{LUKSO_TESTNET_RPC_URL}"
 cronosTestnet = "{CRONOS_TESTNET_RPC_URL}"
+lumiaTestnet = "{LUMIA_TESTNET_RPC_URL}"
 
 
 [etherscan]

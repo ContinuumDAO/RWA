@@ -864,7 +864,7 @@ contract TestBasicToken is SetUp {
         user1
     )));
 
-    string memory baseURI = "/test";
+    string memory baseURI = "GFLD";
 
     string memory fromContractStr = "";
 
