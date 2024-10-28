@@ -8,6 +8,8 @@ pragma solidity ^0.8.23;
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
+import "./lib/RWALib.sol";
+
 import {ICTMRWA001, ITokenContract} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {URIData, URIType, URICategory} from "./interfaces/ICTMRWA001Storage.sol";
@@ -50,7 +52,7 @@ contract CTMRWA001Storage is Context {
         address _map
     ) {
         ID = _ID;
-        idStr = _toLower(((ID<<192)>>192).toHexString());  // shortens string to 16 characters
+        idStr = RWALib._toLower(((ID<<192)>>192).toHexString());  // shortens string to 16 characters
         rwaType = _rwaType;
         version = _version;
         ctmRwa001Map = _map;
@@ -72,14 +74,14 @@ contract CTMRWA001Storage is Context {
 
     function contractURI() public view returns (string memory) {
         return
-            stringsEqual(baseURI, "GFLD") || stringsEqual(baseURI, "IPFS")
+            RWALib.stringsEqual(baseURI, "GFLD") || RWALib.stringsEqual(baseURI, "IPFS")
                 ? string.concat(TYPE, idStr, ".c.", nonce.toString())
                 : "";
     }
 
     function slotURI(uint256 slot_) public view returns (string memory) {
         return 
-            stringsEqual(baseURI, "GFLD") || stringsEqual(baseURI, "IPFS") 
+            RWALib.stringsEqual(baseURI, "GFLD") || RWALib.stringsEqual(baseURI, "IPFS") 
                 ? string.concat(TYPE, idStr, ".s.", slot_.toString(), ".", nonce.toString())
                 : "";
     }
@@ -90,7 +92,7 @@ contract CTMRWA001Storage is Context {
     function tokenURI(uint256 tokenId_) public view returns (string memory) {
         ICTMRWA001(tokenAddr).requireMinted(tokenId_);
         return 
-            stringsEqual(baseURI, "GFLD") || stringsEqual(baseURI, "IPFS")
+            RWALib.stringsEqual(baseURI, "GFLD") || RWALib.stringsEqual(baseURI, "IPFS")
                 ? string.concat(TYPE, idStr, ".t.", tokenId_.toString(), ".", nonce.toString())
                 : "";
     }
@@ -148,34 +150,6 @@ contract CTMRWA001Storage is Context {
             if(uriData[i].uriHash == uriHash) return(true);
         }
         return(false);
-    }
-
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
-    }
-
-    function cID() internal view returns (uint256) {
-        return block.chainid;
-    }
-
-    function stringsEqual(
-        string memory a,
-        string memory b
-    ) internal pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
     }
     
 }

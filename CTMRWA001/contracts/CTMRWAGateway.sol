@@ -4,6 +4,9 @@ pragma solidity ^0.8.23;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+
+import "./lib/RWALib.sol";
+
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
 
 
@@ -32,23 +35,23 @@ contract CTMRWAGateway is Context, GovernDapp {
         address _txSender,
         uint256 _dappID
     ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
-        cIdStr = cID().toString();
-        _addChainContract(cID(), address(this));
+        cIdStr = RWALib.cID().toString();
+        _addChainContract(RWALib.cID(), address(this));
     }
 
     function _addChainContract(uint256 _chainId, address _contractAddr) internal  {
         string memory newChainIdStr = _chainId.toString();
-        string memory contractStr = _toLower(_contractAddr.toHexString());
+        string memory contractStr = RWALib._toLower(_contractAddr.toHexString());
 
         chainContract.push(ChainContract(newChainIdStr, contractStr));
     }
 
     function addChainContract(string memory _newChainIdStr, string memory _contractAddrStr) external onlyGov returns (bool) {
-        string memory newChainIdStr = _toLower(_newChainIdStr);
-        string memory contractAddrStr = _toLower(_contractAddrStr);
+        string memory newChainIdStr = RWALib._toLower(_newChainIdStr);
+        string memory contractAddrStr = RWALib._toLower(_contractAddrStr);
 
         for(uint256 i=0; i<chainContract.length; i++) {
-            if(stringsEqual(chainContract[i].chainIdStr, newChainIdStr)) {
+            if(RWALib.stringsEqual(chainContract[i].chainIdStr, newChainIdStr)) {
                 chainContract[i].contractStr = contractAddrStr;
                 return(true); // existed = true
             }
@@ -60,7 +63,7 @@ contract CTMRWAGateway is Context, GovernDapp {
 
     function getChainContract(string memory _chainIdStr) external view returns(string memory) {
         for(uint256 i=0; i<chainContract.length; i++) {
-            if(stringsEqual(chainContract[i].chainIdStr, _toLower(_chainIdStr))) {
+            if(RWALib.stringsEqual(chainContract[i].chainIdStr, RWALib._toLower(_chainIdStr))) {
                 return(chainContract[i].contractStr);
             }
         }
@@ -101,7 +104,7 @@ contract CTMRWAGateway is Context, GovernDapp {
     ) public view returns(bool, string memory) {
 
         for(uint256 i=0; i<rwaX[_rwaType][_version].length; i++) {
-            if(stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, _chainIdStr)) {
+            if(RWALib.stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, _chainIdStr)) {
                 return(true, rwaX[_rwaType][_version][i].contractStr);
             }
         }
@@ -134,7 +137,7 @@ contract CTMRWAGateway is Context, GovernDapp {
     ) public view returns(bool, string memory) {
 
         for(uint256 i=0; i<storageManager[_rwaType][_version].length; i++) {
-            if(stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, _chainIdStr)) {
+            if(RWALib.stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, _chainIdStr)) {
                 return(true, storageManager[_rwaType][_version][i].contractStr);
             }
         }
@@ -150,12 +153,12 @@ contract CTMRWAGateway is Context, GovernDapp {
         string memory _rwaXAddrStr
     ) external onlyGov returns(bool) {
         require(bytes(_rwaXAddrStr).length == 42, "CTMRWAGateway: Incorrect address length");
-        string memory rwaXAddrStr = _toLower(_rwaXAddrStr);
-        string memory chainIdStr = _toLower(_chainIdStr);
+        string memory rwaXAddrStr = RWALib._toLower(_rwaXAddrStr);
+        string memory chainIdStr = RWALib._toLower(_chainIdStr);
 
 
         for(uint256 i=0; i<rwaX[_rwaType][_version].length; i++) {
-            if(stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, chainIdStr)) {
+            if(RWALib.stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, chainIdStr)) {
                 rwaX[_rwaType][_version][i].contractStr = rwaXAddrStr;
                 return(true); // existed = true
             }
@@ -173,12 +176,12 @@ contract CTMRWAGateway is Context, GovernDapp {
         string memory _storageManagerAddrStr
     ) external onlyGov returns(bool) {
         require(bytes(_storageManagerAddrStr).length == 42, "CTMRWAGateway: Incorrect address length");
-        string memory storageManagerAddrStr = _toLower(_storageManagerAddrStr);
-        string memory chainIdStr = _toLower(_chainIdStr);
+        string memory storageManagerAddrStr = RWALib._toLower(_storageManagerAddrStr);
+        string memory chainIdStr = RWALib._toLower(_chainIdStr);
 
 
         for(uint256 i=0; i<storageManager[_rwaType][_version].length; i++) {
-            if(stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, chainIdStr)) {
+            if(RWALib.stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, chainIdStr)) {
                 storageManager[_rwaType][_version][i].contractStr = storageManagerAddrStr;
                 return(true); // existed = true
             }
@@ -189,90 +192,6 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(false);
     }
 
-
-
-    function cID() internal view returns (uint256) {
-        return block.chainid;
-    }
-
-    function strToUint(
-        string memory _str
-    ) public pure returns (uint256 res, bool err) {
-        if (bytes(_str).length == 0) {
-            return (0, true);
-        }
-        for (uint256 i = 0; i < bytes(_str).length; i++) {
-            if (
-                (uint8(bytes(_str)[i]) - 48) < 0 ||
-                (uint8(bytes(_str)[i]) - 48) > 9
-            ) {
-                return (0, false);
-            }
-            res +=
-                (uint8(bytes(_str)[i]) - 48) *
-                10 ** (bytes(_str).length - i - 1);
-        }
-
-        return (res, true);
-    }
-
-    function stringToAddress(string memory str) public pure returns (address) {
-        bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
-        bytes memory addrBytes = new bytes(20);
-
-        for (uint i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(
-                hexCharToByte(strBytes[2 + i * 2]) *
-                    16 +
-                    hexCharToByte(strBytes[3 + i * 2])
-            );
-        }
-
-        return address(uint160(bytes20(addrBytes)));
-    }
-
-    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
-        uint8 byteValue = uint8(char);
-        if (
-            byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))
-        ) {
-            return byteValue - uint8(bytes1("0"));
-        } else if (
-            byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))
-        ) {
-            return 10 + byteValue - uint8(bytes1("a"));
-        } else if (
-            byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))
-        ) {
-            return 10 + byteValue - uint8(bytes1("A"));
-        }
-        revert("Invalid hex character");
-    }
-
-    function stringsEqual(
-        string memory a,
-        string memory b
-    ) public pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
-    }
-
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
-    }
 
 
     function _c3Fallback(bytes4 _selector,

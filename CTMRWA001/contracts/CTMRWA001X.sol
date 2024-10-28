@@ -10,6 +10,8 @@ import {GovernDapp} from "./routerV2/GovernDapp.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import "./lib/RWALib.sol";
+
 import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
 import {ICTMRWAGateway} from "./interfaces/ICTMRWAGateway.sol";
 import {ICTMRWA001, TokenContract, ITokenContract} from "./interfaces/ICTMRWA001.sol";
@@ -31,7 +33,7 @@ contract CTMRWA001X is Context, GovernDapp {
     address public ctmRwaDeployer;
     address public ctmRwa001Map;
     address public fallbackAddr;
-    string public cIdStr;
+    string public cIDStr;
 
 
     mapping(address => address[]) public adminTokens;  // tokenAdmin address => array of CTMRWA001 contracts
@@ -77,7 +79,7 @@ contract CTMRWA001X is Context, GovernDapp {
         rwaType = 1;
         version = 1;
         feeManager = _feeManager;
-        cIdStr = cID().toString();
+        cIDStr = RWALib.cID().toString();
     }
 
     function changeFeeManager(address _feeManager) external onlyGov {
@@ -145,7 +147,7 @@ contract CTMRWA001X is Context, GovernDapp {
             currentAdmin = _msgSender();
             ctmRwa001Addr = _deployCTMRWA001Local(ID, _rwaType, _version, _tokenName, _symbol, _decimals, baseURI, currentAdmin);
 
-            emit CreateNewCTMRWA001(ctmRwa001Addr, ID, currentAdmin, cIdStr, "");
+            emit CreateNewCTMRWA001(ctmRwa001Addr, ID, currentAdmin, cIDStr, "");
         } else {  // a CTMRWA001 token must be deployed already, so use the existing ID
             ID = _existingID;
             (bool ok, address rwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(ID, _rwaType, _version);
@@ -160,7 +162,7 @@ contract CTMRWA001X is Context, GovernDapp {
             baseURI = ICTMRWA001(ctmRwa001Addr).baseURI();
         }
 
-        ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
+        ctmRwa001AddrStr = RWALib._toLower(ctmRwa001Addr.toHexString());
 
         _payFee(FeeType.DEPLOY, _feeTokenStr, _toChainIdsStr, _includeLocal);
 
@@ -223,14 +225,14 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory _toChainIdStr,
         string memory _ctmRwa001AddrStr
     ) internal returns (bool) {
-        require(!stringsEqual(_toChainIdStr, cID().toString()), "CTMRWA001X: Not a cross-chain transfer");
-        address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
+        require(!RWALib.stringsEqual(_toChainIdStr, RWALib.cID().toString()), "CTMRWA001X: Not a cross-chain transfer");
+        address ctmRwa001Addr = RWALib.stringToAddress(_ctmRwa001AddrStr);
 
         (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
 
         uint256 ID = ICTMRWA001(ctmRwa001Addr).ID();
 
-        string memory toChainIdStr = _toLower(_toChainIdStr);
+        string memory toChainIdStr = RWALib._toLower(_toChainIdStr);
 
         (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
 
@@ -271,10 +273,10 @@ contract CTMRWA001X is Context, GovernDapp {
         (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, _rwaType, _version);
         require(!ok, "CTMRWA001X: A local contract with this ID already exists");
 
-        address newAdmin = stringToAddress(_newAdminStr);
+        address newAdmin = RWALib.stringToAddress(_newAdminStr);
 
         (, string memory fromChainIdStr,) = context();
-        fromChainIdStr = _toLower(fromChainIdStr);
+        fromChainIdStr = RWALib._toLower(fromChainIdStr);
 
         address ctmRwa001Token = _deployCTMRWA001Local(_ID, _rwaType, _version, _tokenName, _symbol, _decimals, _baseURI, newAdmin);
 
@@ -310,13 +312,13 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory _feeTokenStr
     ) public returns(bool) {
 
-        string memory toChainIdStr = _toLower(_toChainIdStr);
+        string memory toChainIdStr = RWALib._toLower(_toChainIdStr);
         
         (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
         (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
         (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
 
-        _payFee(FeeType.ADMIN, _feeTokenStr, _stringToArray(toChainIdStr), false);
+        _payFee(FeeType.ADMIN, _feeTokenStr, RWALib._stringToArray(toChainIdStr), false);
 
         string memory funcCall = "adminX(uint256,string,string)";
         bytes memory callData = abi.encodeWithSignature(
@@ -341,13 +343,13 @@ contract CTMRWA001X is Context, GovernDapp {
         (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA001X: Destination token contract with this ID does not exist");
 
-        address newAdmin = stringToAddress(_newAdminStr);
+        address newAdmin = RWALib.stringToAddress(_newAdminStr);
 
         (, string memory fromChainIdStr,) = context();
-        fromChainIdStr = _toLower(fromChainIdStr);
+        fromChainIdStr = RWALib._toLower(fromChainIdStr);
 
         address currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
-        address oldAdmin = stringToAddress(_oldAdminStr);
+        address oldAdmin = RWALib.stringToAddress(_oldAdminStr);
         require(currentAdmin == oldAdmin, "CTMRWA001X: Not admin. Cannot change admin address");
 
         ok = _replaceAdmin(newAdmin, oldAdmin, ctmRwa001Addr);
@@ -393,13 +395,13 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _ID,
         string memory _feeTokenStr
     ) public {
-        string memory toChainIdStr = _toLower(_toChainIdStr);
+        string memory toChainIdStr = RWALib._toLower(_toChainIdStr);
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
         _checkTokenAdmin(ctmRwa001Addr);
 
-        _payFee(FeeType.MINT, _feeTokenStr, _stringToArray(toChainIdStr), false);
+        _payFee(FeeType.MINT, _feeTokenStr, RWALib._stringToArray(toChainIdStr), false);
 
         string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
         bytes memory callData = abi.encodeWithSignature(
@@ -427,14 +429,14 @@ contract CTMRWA001X is Context, GovernDapp {
     ) public {
         require(bytes(_toAddressStr).length>0, "CTMRWA001X: Destination address has zero length");
 
-        string memory toChainIdStr = _toLower(_toChainIdStr);
+        string memory toChainIdStr = RWALib._toLower(_toChainIdStr);
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
         
         ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
 
-        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
+        _payFee(FeeType.TX, _feeTokenStr, RWALib._stringToArray(toChainIdStr), false);
 
         uint256 slot = ICTMRWA001(ctmRwa001Addr).slotOf(_fromTokenId);
 
@@ -467,7 +469,7 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _ID,
         string memory _feeTokenStr
     ) public {
-        string memory toChainIdStr = _toLower(_toChainIdStr);
+        string memory toChainIdStr = RWALib._toLower(_toChainIdStr);
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
@@ -475,7 +477,7 @@ contract CTMRWA001X is Context, GovernDapp {
         ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
         require(bytes(_toAddressStr).length>0, "CTMRWA001X: Destination address has zero length");
 
-        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
+        _payFee(FeeType.TX, _feeTokenStr, RWALib._stringToArray(toChainIdStr), false);
 
         uint256 slot = ICTMRWA001(ctmRwa001Addr).slotOf(_fromTokenId);
 
@@ -515,7 +517,7 @@ contract CTMRWA001X is Context, GovernDapp {
         (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA001X: Destination token contract with this ID does not exist");
 
-        string memory ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
+        string memory ctmRwa001AddrStr = RWALib._toLower(ctmRwa001Addr.toHexString());
 
         ICTMRWA001(ctmRwa001Addr).mintValueX(_toTokenId, _slot, _value);
         (,,address owner,) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_toTokenId);
@@ -544,14 +546,14 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _ID,
         string memory _feeTokenStr
     ) public {
-        string memory toChainIdStr = _toLower(_toChainIdStr);
+        string memory toChainIdStr = RWALib._toLower(_toChainIdStr);
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
         
         require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "CTMRWA001X: transfer caller is not owner nor approved");
 
-        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
+        _payFee(FeeType.TX, _feeTokenStr, RWALib._stringToArray(toChainIdStr), false);
 
         (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_fromTokenId);
 
@@ -589,12 +591,12 @@ contract CTMRWA001X is Context, GovernDapp {
 
         (, string memory fromChainIdStr,) = context();
 
-        address toAddr = stringToAddress(_toAddressStr);
+        address toAddr = RWALib.stringToAddress(_toAddressStr);
 
         (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA001X: Destination token contract with this ID does not exist"); 
 
-        string memory ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
+        string memory ctmRwa001AddrStr = RWALib._toLower(ctmRwa001Addr.toHexString());
 
         uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(toAddr, _slot, _balance);
 
@@ -636,15 +638,15 @@ contract CTMRWA001X is Context, GovernDapp {
     function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA001X: The requested tokenID does not exist");
-        string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
+        string memory tokenAddrStr = RWALib._toLower(tokenAddr.toHexString());
 
         return(tokenAddr, tokenAddrStr);
     }
 
     function _getRWAX(string memory _toChainIdStr) internal view returns(string memory, string memory) {
-        require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA001X: Not a cross-chain tokenAdmin change");
+        require(!RWALib.stringsEqual(_toChainIdStr, cIDStr), "CTMRWA001X: Not a cross-chain tokenAdmin change");
 
-        string memory fromAddressStr = _toLower(_msgSender().toHexString());
+        string memory fromAddressStr = RWALib._toLower(_msgSender().toHexString());
 
         (bool ok, string memory toRwaXStr) = ICTMRWAGateway(gateway).getAttachedRWAX(rwaType, version, _toChainIdStr);
         require(ok, "CTMRWA001X: Target contract address not found");
@@ -654,7 +656,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
     function _checkTokenAdmin(address _tokenAddr) internal returns(address, string memory) {
         address currentAdmin = ICTMRWA001(_tokenAddr).tokenAdmin();
-        string memory currentAdminStr = _toLower(currentAdmin.toHexString());
+        string memory currentAdminStr = RWALib._toLower(currentAdmin.toHexString());
 
         require(_msgSender() == currentAdmin, "CTMRWA001X: Only tokenAdmin can change the tokenAdmin");
 
@@ -684,7 +686,7 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, _feeType, _feeTokenStr);
         
         if(fee>0) {
-            address feeToken = stringToAddress(_feeTokenStr);
+            address feeToken = RWALib.stringToAddress(_feeTokenStr);
             uint256 feeWei = fee*10**(IERC20Extended(feeToken).decimals()-2);
 
             IERC20(feeToken).transferFrom(_msgSender(), address(this), feeWei);
@@ -695,94 +697,7 @@ contract CTMRWA001X is Context, GovernDapp {
         return(true);
     }
 
-    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return(strArray);
-    }
-
-    function cID() internal view returns (uint256) {
-        return block.chainid;
-    }
-
-    function strToUint(
-        string memory _str
-    ) public pure returns (uint256 res, bool err) {
-        if (bytes(_str).length == 0) {
-            return (0, true);
-        }
-        for (uint256 i = 0; i < bytes(_str).length; i++) {
-            if (
-                (uint8(bytes(_str)[i]) - 48) < 0 ||
-                (uint8(bytes(_str)[i]) - 48) > 9
-            ) {
-                return (0, false);
-            }
-            res +=
-                (uint8(bytes(_str)[i]) - 48) *
-                10 ** (bytes(_str).length - i - 1);
-        }
-
-        return (res, true);
-    }
-
-    function stringToAddress(string memory str) public pure returns (address) {
-        bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
-        bytes memory addrBytes = new bytes(20);
-
-        for (uint i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(
-                hexCharToByte(strBytes[2 + i * 2]) *
-                    16 +
-                    hexCharToByte(strBytes[3 + i * 2])
-            );
-        }
-
-        return address(uint160(bytes20(addrBytes)));
-    }
-
-    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
-        uint8 byteValue = uint8(char);
-        if (
-            byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))
-        ) {
-            return byteValue - uint8(bytes1("0"));
-        } else if (
-            byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))
-        ) {
-            return 10 + byteValue - uint8(bytes1("a"));
-        } else if (
-            byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))
-        ) {
-            return 10 + byteValue - uint8(bytes1("A"));
-        }
-        revert("Invalid hex character");
-    }
-
-    function stringsEqual(
-        string memory a,
-        string memory b
-    ) public pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
-    }
-
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
-    }
+   
 
     function _c3Fallback(
         bytes4 _selector,
