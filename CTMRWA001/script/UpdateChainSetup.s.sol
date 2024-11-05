@@ -16,7 +16,9 @@ contract UpdateChainSetup is Script {
     string[] feeTokensStr;
     uint256[] fees;
     
-   
+    string[] chainIdsStr;
+    string[] gwaysStr;
+    string[] rwa001XsStr;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -35,9 +37,14 @@ contract UpdateChainSetup is Script {
         address feeManager = 0x6EE5C158882857c7F52b37FCe37B1CF39944f22E;
 
         console.log("For Arb Sepolia");
+        chainIdsStr.push(chainIdStr);
+        gwaysStr.push(gatewayDestAddrStr);
+        rwa001XsStr.push(rwa001XAddrStr);
         address gateway = 0x8Ea9B4616e5653CF21B87e60c8D72d8384685ec6;
-        ICTMRWAGateway(gateway).addChainContract(chainIdStr, gatewayDestAddrStr);
-        ICTMRWAGateway(gateway).attachRWAX(rwaType, version, chainIdStr, rwa001XAddrStr);
+        ICTMRWAGateway(gateway).addChainContract(chainIdsStr, gwaysStr);
+        gwaysStr.pop();
+        ICTMRWAGateway(gateway).attachRWAX(rwaType, version, chainIdsStr, rwa001XsStr);
+        chainIdsStr.pop();
 
         vm.stopBroadcast();
     }

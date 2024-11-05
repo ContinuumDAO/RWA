@@ -10,7 +10,8 @@ interface ICTMRWAGateway {
         string[] memory chainIdsStr,
         string[] memory contractAddrsStr
     ) external;
-    function addChainContract(string memory chainIdStr, string memory contractAddressStr) external returns (bool);
+    function addChainContract(string[] memory chainIdsStr, string[] memory contractsAddressStr) external returns (bool);
+    function getChainContract(uint256 pos) external view returns(string memory, string memory);
     function getChainContract(string memory chainIdStr) external view returns(string memory);
     function addXChainInfoX(
         string[] memory chainIdsStr,
@@ -34,8 +35,8 @@ interface ICTMRWAGateway {
     function attachRWAX (
         uint256 rwaType,
         uint256 version,
-        string memory _chainIdStr, 
-        string memory _rwaXAddrStr
+        string[] memory _chainIdStr, 
+        string[] memory _rwaXAddrStr
     ) external returns(bool);   // onlyGov
     function getAttachedStorageManager(
         uint256 _rwaType,
@@ -51,4 +52,10 @@ interface ICTMRWAGateway {
         uint256 _rwaType,
         uint256 _version
     ) external view returns(uint256);
+    function attachStorageManager (
+        uint256 rwaType,
+        uint256 version,
+        string[] memory chainIdStr, 
+        string[] memory storageManagerStr
+    ) external returns(bool);   // onlyGov
 }

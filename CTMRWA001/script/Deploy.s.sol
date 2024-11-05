@@ -4,28 +4,28 @@ pragma solidity ^0.8.23;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
-import {CTMRWAMap} from "../contracts/CTMRWAMap.sol";
-import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
-import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
-import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
-import {CTMRWA001StorageManager} from "../contracts/CTMRWA001StorageManager.sol";
+// import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
+// import {CTMRWAMap} from "../contracts/CTMRWAMap.sol";
+// import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
+// import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
+// import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
+// import {CTMRWA001StorageManager} from "../contracts/CTMRWA001StorageManager.sol";
 
-import {FeeManager} from "../contracts/FeeManager.sol";
-import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
-import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
+// import {FeeManager} from "../contracts/FeeManager.sol";
+// import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
+// import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
 
 
-// import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
-// import {CTMRWAMap} from "../flattened/CTMRWAMap.sol";
-// import {CTMRWA001TokenFactory} from "../flattened/CTMRWA001TokenFactory.sol";
-// import {CTMRWA001XFallback} from "../flattened/CTMRWA001XFallback.sol";
-// import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
-// import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
+import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
+import {CTMRWAMap} from "../flattened/CTMRWAMap.sol";
+import {CTMRWA001TokenFactory} from "../flattened/CTMRWA001TokenFactory.sol";
+import {CTMRWA001XFallback} from "../flattened/CTMRWA001XFallback.sol";
+import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
+import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
 
-// import {FeeManager} from "../flattened/FeeManager.sol";
-// import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
-// import {CTMRWA001X} from "../flattened/CTMRWA001X.sol";
+import {FeeManager} from "../flattened/FeeManager.sol";
+import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
+import {CTMRWA001X} from "../flattened/CTMRWA001X.sol";
 
 
 
@@ -52,7 +52,7 @@ contract Deploy is Script {
         console.log(deployer);
 
         // env variables (changes based on deployment chain, edit in .env)
-        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_CONFLUX_ESPACE");
+        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_BSC_TESTNET");
         address govAddr = deployer;
         uint256 dappID1 = vm.envUint("DAPP_ID1");
         uint256 dappID2 = vm.envUint("DAPP_ID2");
@@ -132,7 +132,7 @@ contract Deploy is Script {
 
         console.log("ctmRWADeployer");
         console.log(ctmDeployer);
-        console.log("CTM Storage");
+        console.log("CTM Storage Manager");
         console.log(ctmStorage);
         console.log("Dividend Factory");
         console.log(ctmDividend);

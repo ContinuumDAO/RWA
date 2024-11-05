@@ -77,6 +77,11 @@ contract SetUp is Test {
 
     string  cIdStr;
 
+    string[] chainIdsStr;
+    string[] gwaysStr;
+    string[] rwaXsStr;
+    string[] storageAddrsStr;
+
 
     // address c3;
 
@@ -164,13 +169,20 @@ contract SetUp is Test {
 
         deployRwa001XFallback(address(rwa001X));
 
+        chainIdsStr.push("1");
+        rwaXsStr.push(address(rwa001X).toHexString());
+
         bool ok = gateway.attachRWAX(
             1,
             1,
-            "1",
-            address(rwa001X).toHexString()
+            chainIdsStr,
+            rwaXsStr
         );
-        assertEq(ok, false); // was not already attached
+        assertEq(ok, true);
+        assertEq(chainIdsStr.length, 1);
+        chainIdsStr.pop();
+        //assertEq(chainIdsStr.length, 0);
+        rwaXsStr.pop();
 
         ctmRwa001Map = deployMap();
 
@@ -188,21 +200,29 @@ contract SetUp is Test {
             88
         );
 
+        chainIdsStr.push("1");
+        storageAddrsStr.push(address(storageManager).toHexString());
+        assertEq(chainIdsStr.length, storageAddrsStr.length);
         ok = gateway.attachStorageManager(
             rwaType, 
             version, 
-            "1", 
-            address(storageManager).toHexString()
+            chainIdsStr, 
+            storageAddrsStr
         );
-
-        assertEq(ok, false); // was not already set
+        assertEq(ok, true);
+        chainIdsStr.pop();
+        storageAddrsStr.pop();
 
         ctmRwaDeployer = address(deployer);
 
         rwa001X.setCtmRwaDeployer(ctmRwaDeployer);
         map.setCtmRwaDeployer(ctmRwaDeployer);
 
-        gateway.addChainContract("1", "ethereumGateway");
+        chainIdsStr.push("1");
+        gwaysStr.push("ethereumGateway");
+        gateway.addChainContract(chainIdsStr, gwaysStr);
+        chainIdsStr.pop();
+        gwaysStr.pop();
 
         vm.stopPrank();
 
@@ -437,7 +457,7 @@ contract SetUp is Test {
 
     function CTMRWA001Deploy() public returns(uint256, address) {
         string memory tokenStr = _toLower((address(usdc).toHexString()));
-        string[] memory chainIdsStr;
+        string[] memory dummyChainIdsStr;
 
         uint256 ID = rwa001X.deployAllCTMRWA001X(
             true,  // include local mint
@@ -448,7 +468,7 @@ contract SetUp is Test {
             "SFTX",
             18,
             "continuumdao/",
-            chainIdsStr,  // empty array - no cross-chain minting
+            dummyChainIdsStr,  // empty array - no cross-chain minting
             tokenStr
         );
         (bool ok, address tokenAddress) =  map.getTokenContract(ID, rwaType, version);
@@ -569,6 +589,8 @@ contract TestBasicToken is SetUp {
         vm.stopPrank();
 
         vm.startPrank(gov);
+        feeTokenList = feeManager.getFeeTokenList();
+        assertEq(feeTokenList.length, 2);
         feeManager.delFeeToken(tokenStr);
         feeTokenList = feeManager.getFeeTokenList();
         assertEq(feeTokenList.length, 1);

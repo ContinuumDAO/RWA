@@ -7,7 +7,6 @@ import "forge-std/console.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import "./lib/RWALib.sol";
 
 import{ICTMRWAAttachment} from "./interfaces/ICTMRWAMap.sol";
 
@@ -50,7 +49,7 @@ contract CTMRWAMap is Context {
         gov = _gov;
         gateway = _gateway;
         ctmRwa001X = _rwa001X;
-        cIdStr = RWALib.cID().toString();
+        cIdStr = cID().toString();
     }
 
     modifier onlyGov {
@@ -92,7 +91,7 @@ contract CTMRWAMap is Context {
     function getTokenId(string memory _tokenAddrStr, uint256 _rwaType, uint256 _version) public view returns(bool, uint256) {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
-        string memory tokenAddrStr = RWALib._toLower(_tokenAddrStr);
+        string memory tokenAddrStr = _toLower(_tokenAddrStr);
 
         uint256 id = contractToId[tokenAddrStr];
         return (id != 0, id);
@@ -103,7 +102,7 @@ contract CTMRWAMap is Context {
 
         string memory _contractStr = idToContract[_ID];
         return bytes(_contractStr).length != 0 
-            ? (true, RWALib.stringToAddress(_contractStr)) 
+            ? (true, stringToAddress(_contractStr)) 
             : (false, address(0));
     }
 
@@ -112,7 +111,7 @@ contract CTMRWAMap is Context {
 
         string memory _dividendStr = idToDividend[_ID];
         return bytes(_dividendStr).length != 0 
-            ? (true, RWALib.stringToAddress(_dividendStr)) 
+            ? (true, stringToAddress(_dividendStr)) 
             : (false, address(0));
     }
 
@@ -121,7 +120,7 @@ contract CTMRWAMap is Context {
 
         string memory _storageStr = idToStorage[_ID];
         return bytes(_storageStr).length != 0 
-            ? (true, RWALib.stringToAddress(_storageStr)) 
+            ? (true, stringToAddress(_storageStr)) 
             : (false, address(0));
     }
 
@@ -159,9 +158,9 @@ contract CTMRWAMap is Context {
         address _storageAddr
     ) internal returns(bool) {
 
-        string memory ctmRwaAddrStr = RWALib._toLower(_ctmRwaAddr.toHexString());
-        string memory dividendAddr = RWALib._toLower(_dividendAddr.toHexString());
-        string memory storageAddr = RWALib._toLower(_storageAddr.toHexString());
+        string memory ctmRwaAddrStr = _toLower(_ctmRwaAddr.toHexString());
+        string memory dividendAddr = _toLower(_dividendAddr.toHexString());
+        string memory storageAddr = _toLower(_storageAddr.toHexString());
 
         uint256 lenContract = bytes(idToContract[_ID]).length;
 
@@ -181,7 +180,94 @@ contract CTMRWAMap is Context {
         }
     }
 
+    function cID() internal view returns (uint256) {
+        return block.chainid;
+    }
 
+    function strToUint(
+        string memory _str
+    ) internal pure returns (uint256 res, bool err) {
+        if (bytes(_str).length == 0) {
+            return (0, true);
+        }
+        for (uint256 i = 0; i < bytes(_str).length; i++) {
+            if (
+                (uint8(bytes(_str)[i]) - 48) < 0 ||
+                (uint8(bytes(_str)[i]) - 48) > 9
+            ) {
+                return (0, false);
+            }
+            res +=
+                (uint8(bytes(_str)[i]) - 48) *
+                10 ** (bytes(_str).length - i - 1);
+        }
+
+        return (res, true);
+    }
+
+    function stringToAddress(string memory str) internal pure returns (address) {
+        bytes memory strBytes = bytes(str);
+        require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
+        bytes memory addrBytes = new bytes(20);
+
+        for (uint i = 0; i < 20; i++) {
+            addrBytes[i] = bytes1(
+                hexCharToByte(strBytes[2 + i * 2]) *
+                    16 +
+                    hexCharToByte(strBytes[3 + i * 2])
+            );
+        }
+
+        return address(uint160(bytes20(addrBytes)));
+    }
+
+    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
+        uint8 byteValue = uint8(char);
+        if (
+            byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))
+        ) {
+            return byteValue - uint8(bytes1("0"));
+        } else if (
+            byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))
+        ) {
+            return 10 + byteValue - uint8(bytes1("a"));
+        } else if (
+            byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))
+        ) {
+            return 10 + byteValue - uint8(bytes1("A"));
+        }
+        revert("Invalid hex character");
+    }
+
+    function stringsEqual(
+        string memory a,
+        string memory b
+    ) internal pure returns (bool) {
+        bytes32 ka = keccak256(abi.encode(a));
+        bytes32 kb = keccak256(abi.encode(b));
+        return (ka == kb);
+    }
+
+    function _toLower(string memory str) internal pure returns (string memory) {
+        bytes memory bStr = bytes(str);
+        bytes memory bLower = new bytes(bStr.length);
+        for (uint i = 0; i < bStr.length; i++) {
+            // Uppercase character...
+            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
+                // So we add 32 to make it lowercase
+                bLower[i] = bytes1(uint8(bStr[i]) + 32);
+            } else {
+                bLower[i] = bStr[i];
+            }
+        }
+        return string(bLower);
+    }
+    
+    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
+        string[] memory strArray = new string[](1);
+        strArray[0] = _string;
+        return(strArray);
+    }
    
 
 }

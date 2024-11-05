@@ -7,7 +7,6 @@ pragma solidity ^0.8.23;
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import "./lib/RWALib.sol";
 
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
 
@@ -68,7 +67,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         version = _version;
         gateway = _gateway;
         feeManager = _feeManager;
-        cIdStr = RWALib.cID().toString();
+        cIdStr = cID().toString();
     }
 
     function setGateway(address _gateway) external onlyGov {
@@ -130,9 +129,9 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         _checkTokenAdmin(ctmRwa001Addr);
 
         for(uint256 i=0; i<_chainIdsStr.length; i++) {
-            string memory chainIdStr = RWALib._toLower(_chainIdsStr[i]);
+            string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
-            if(RWALib.stringsEqual(chainIdStr, cIdStr)) {
+            if(stringsEqual(chainIdStr, cIdStr)) {
                 ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _objectName, _uriDataHash);
             } else {
                 (, string memory toRwaXStr) = _getSM(chainIdStr);
@@ -167,7 +166,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         require(ok, "CTMRWA001X: Could not find _ID or its storage address");
 
         (, string memory fromChainIdStr,) = context();
-        fromChainIdStr = RWALib._toLower(fromChainIdStr);
+        fromChainIdStr = _toLower(fromChainIdStr);
 
         ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _objectName, _uriDataHash);
 
@@ -177,15 +176,15 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA001X: The requested tokenID does not exist");
-        string memory tokenAddrStr = RWALib._toLower(tokenAddr.toHexString());
+        string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
 
         return(tokenAddr, tokenAddrStr);
     }
 
     function _getSM(string memory _toChainIdStr) internal view returns(string memory, string memory) {
-        require(!RWALib.stringsEqual(_toChainIdStr, cIdStr), "CTMRWA001X: Not a cross-chain tokenAdmin change");
+        require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA001X: Not a cross-chain tokenAdmin change");
 
-        string memory fromAddressStr = RWALib._toLower(_msgSender().toHexString());
+        string memory fromAddressStr = _toLower(_msgSender().toHexString());
 
         (bool ok, string memory toSMStr) = ICTMRWAGateway(gateway).getAttachedStorageManager(rwaType, version, _toChainIdStr);
         require(ok, "CTMRWA001X: Target contract address not found");
@@ -195,14 +194,101 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
     function _checkTokenAdmin(address _tokenAddr) internal returns(address, string memory) {
         address currentAdmin = ICTMRWA001(_tokenAddr).tokenAdmin();
-        string memory currentAdminStr = RWALib._toLower(currentAdmin.toHexString());
+        string memory currentAdminStr = _toLower(currentAdmin.toHexString());
 
         require(_msgSender() == currentAdmin, "CTMRWA001X: Only tokenAdmin can change the tokenAdmin");
 
         return(currentAdmin, currentAdminStr);
     }
 
+    function cID() internal view returns (uint256) {
+        return block.chainid;
+    }
 
+    function strToUint(
+        string memory _str
+    ) internal pure returns (uint256 res, bool err) {
+        if (bytes(_str).length == 0) {
+            return (0, true);
+        }
+        for (uint256 i = 0; i < bytes(_str).length; i++) {
+            if (
+                (uint8(bytes(_str)[i]) - 48) < 0 ||
+                (uint8(bytes(_str)[i]) - 48) > 9
+            ) {
+                return (0, false);
+            }
+            res +=
+                (uint8(bytes(_str)[i]) - 48) *
+                10 ** (bytes(_str).length - i - 1);
+        }
+
+        return (res, true);
+    }
+
+    function stringToAddress(string memory str) internal pure returns (address) {
+        bytes memory strBytes = bytes(str);
+        require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
+        bytes memory addrBytes = new bytes(20);
+
+        for (uint i = 0; i < 20; i++) {
+            addrBytes[i] = bytes1(
+                hexCharToByte(strBytes[2 + i * 2]) *
+                    16 +
+                    hexCharToByte(strBytes[3 + i * 2])
+            );
+        }
+
+        return address(uint160(bytes20(addrBytes)));
+    }
+
+    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
+        uint8 byteValue = uint8(char);
+        if (
+            byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))
+        ) {
+            return byteValue - uint8(bytes1("0"));
+        } else if (
+            byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))
+        ) {
+            return 10 + byteValue - uint8(bytes1("a"));
+        } else if (
+            byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))
+        ) {
+            return 10 + byteValue - uint8(bytes1("A"));
+        }
+        revert("Invalid hex character");
+    }
+
+    function stringsEqual(
+        string memory a,
+        string memory b
+    ) internal pure returns (bool) {
+        bytes32 ka = keccak256(abi.encode(a));
+        bytes32 kb = keccak256(abi.encode(b));
+        return (ka == kb);
+    }
+
+    function _toLower(string memory str) internal pure returns (string memory) {
+        bytes memory bStr = bytes(str);
+        bytes memory bLower = new bytes(bStr.length);
+        for (uint i = 0; i < bStr.length; i++) {
+            // Uppercase character...
+            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
+                // So we add 32 to make it lowercase
+                bLower[i] = bytes1(uint8(bStr[i]) + 32);
+            } else {
+                bLower[i] = bStr[i];
+            }
+        }
+        return string(bLower);
+    }
+    
+    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
+        string[] memory strArray = new string[](1);
+        strArray[0] = _string;
+        return(strArray);
+    }
 
     function _c3Fallback(bytes4 _selector,
         bytes calldata _data,
