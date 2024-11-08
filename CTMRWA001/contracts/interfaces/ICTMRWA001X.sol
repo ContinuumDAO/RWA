@@ -59,14 +59,14 @@ interface ICTMRWA001X {
         uint256 ID
     ) external returns(uint256);
 
-    function mintNewTokenValueX(
-        string memory toAddressStr,
-        string memory toChainIdStr,
-        uint256 slot,
-        uint256 value,
+
+    function createNewSlot(
         uint256 ID,
+        uint256 slot,
+        string memory slotName,
+        string[] memory toChainIdsStr,
         string memory feeTokenStr
-    ) external;
+    ) external returns(bool);
 
 
     // transferFromX
@@ -79,15 +79,6 @@ interface ICTMRWA001X {
         string memory feeTokenStr
     ) external;
     
-    function transferFromX( // transfer from tokenid to different tokenid with value
-        uint256 fromTokenId_,
-        string memory toAddressStr_,
-        uint256 toTokenId_,
-        string memory toChainIdStr_,
-        uint256 value_,
-        uint256 ID,
-        string memory feeTokenStr
-    ) external;
 
     function transferFromX( // transfer from/to same tokenid without value
         string memory toAddressStr_,
@@ -97,16 +88,6 @@ interface ICTMRWA001X {
         string memory feeTokenStr
     ) external;
 
-    function mintX(
-        uint256 ID,
-        string memory fromAddressStr,
-        string memory toAddressStr,
-        uint256 fromTokenId,
-        uint256 toTokenId,
-        uint256 slot,
-        uint256 value,
-        string memory fromTokenStr
-    ) external returns(bool);  // onlyCaller
 
     function mintX(
         uint256 ID,

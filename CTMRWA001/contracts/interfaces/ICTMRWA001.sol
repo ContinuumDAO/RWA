@@ -19,6 +19,14 @@ struct TokenContract {
     string contractStr;
 }
 
+// SLOT ENUMERABLE
+struct SlotData {
+    uint256 slot;
+    string slotName;
+    uint256 dividendRate;  // per unit of this slot
+    uint256[] slotTokens;
+}
+
 interface ITokenContract {
     function tokenContract() external returns(TokenContract[] memory);
     function tokenChainIdStrs() external returns(string[] memory);
@@ -31,21 +39,32 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
     function ctmRwa001X() external returns(address);
     function changeAdmin(address _admin) external returns(bool);
     function attachId(uint256 nextID, address tokenAdmin) external returns(bool);
-    
-    function getTokenInfo(uint256 tokenId_) external view returns(uint256 id,uint256 bal,address owner,uint256 slot);
+
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
     function valueDecimals() external view returns (uint8);
+    
+    function getTokenInfo(uint256 tokenId_) external view returns(uint256 id,uint256 bal,address owner,uint256 slot, string memory slotName);
+    function slotNameOf(uint256 _tokenId) external view returns(string memory);
+    function balanceOf(uint256 _tokenId) external view returns (uint256);
    
     function baseURI() external view returns(string memory);
-    function balanceOf(uint256 _tokenId) external view returns (uint256);
+    
     function balanceOf(address user) external view returns (uint256);
     function dividendUnclaimedOf(uint256 tokenId) external view returns (uint256);
     function tokenOfOwnerByIndex(address owner, uint256 index_) external view returns (uint256);
     function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);
     function tokenSupplyInSlot(uint256 slot) external view returns(uint256);
-    function totalSupplyInSlot(uint256 slot) external view returns(uint256);
+    function totalSupplyInSlot(uint256 _slot) external view returns (uint256);
+
+    function createSlotX(uint256 _slot, string memory _slotName) external;
+    function getAllSlots() external view returns(SlotData[] memory);
+    function slotCount() external view returns (uint256);
     function slotExists(uint256 slot_) external view returns (bool);
+    function slotName(uint256 _slot) external view returns (string memory);
+    function slotByIndex(uint256 index_) external view returns (uint256);
+    function setAllSlotData(SlotData[] memory _slotData) external;
+   
 
     function approveFromX(address to_, uint256 tokenId_) external;
     function clearApprovedValues(uint256 tokenId_) external;
@@ -53,8 +72,8 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
 
     function burnValueX(uint256 fromTokenId, uint256 value_) external returns(bool);
     function mintValueX(uint256 toTokenId, uint256 slot_, uint256 value_) external returns(bool);
-    function mintFromX(address to, uint256 slot_, uint256 value_) external returns (uint256 tokenId);
-    function mintFromX(address to, uint256 tokenId, uint256 slot, uint256 value) external;
+    function mintFromX(address to, uint256 slot_, string memory slotName, uint256 value_) external returns (uint256 tokenId);
+    function mintFromX(address to, uint256 tokenId, uint256 slot, string memory slotName, uint256 value) external;
 
     function spendAllowance(address operator, uint256 tokenId, uint256 value_) external;
     function requireMinted(uint256 tokenId) external view returns(bool);

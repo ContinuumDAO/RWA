@@ -18,7 +18,8 @@ interface ICTMRWA001StorageManager {
         uint256 slot,
         bytes memory link,  
         bytes32 uriDataHash,
-        string[] memory chainIdsStr
+        string[] memory chainIdsStr,
+        string memory feeTokenStr
     ) external;
 
     function addURIX(

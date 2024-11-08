@@ -29,9 +29,10 @@ contract CTMRWA001Mintable is Context, CTMRWA001 {
         address mintTo_,
         uint256 tokenId_,
         uint256 slot_,
+        string memory _slotName,
         uint256 value_
     ) public virtual {
-        CTMRWA001._mint(mintTo_, tokenId_, slot_, value_);
+        CTMRWA001._mint(mintTo_, tokenId_, slot_, _slotName, value_);
     }
 
     function mintValue(

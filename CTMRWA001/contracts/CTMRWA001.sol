@@ -9,7 +9,7 @@ import {IERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions
 import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-import {ICTMRWA001, ICTMRWA001SlotApprovable, ICTMRWA001SlotEnumerable} from "./interfaces/ICTMRWA001.sol";
+import {ICTMRWA001, SlotData, ICTMRWA001SlotApprovable, ICTMRWA001SlotEnumerable} from "./interfaces/ICTMRWA001.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
 
@@ -23,8 +23,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     uint256 public constant version = 1;
     uint256 public constant rwaType = 1;
 
-    // regulator is the wallet address of the Regulator, if this is a Security, else zero length
-    string public regulator;
+    address public ctmRwaDeployer;
     address public tokenAdmin;
     address ctmRwaMap;
     address public ctmRwa001X;
@@ -47,6 +46,16 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         mapping(uint256 => uint256) ownedTokensIndex;
         mapping(address => bool) approvals;
     }
+
+    
+
+    // slot => tokenId => index
+    mapping(uint256 => mapping(uint256 => uint256)) private _slotTokensIndex;
+
+    SlotData[] public _allSlots;
+
+    // slot => index
+    mapping(uint256 => uint256) public _allSlotsIndex;
 
     string private _name;
     string private _symbol;
@@ -87,7 +96,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _decimals = decimals_;
         baseURI = baseURI_;
         ctmRwa001X = _ctmRwa001X;
-        
+        ctmRwaDeployer = _msgSender();
 
         //addTokenContract(cID().toString(), _toLower(address(this).toHexString()));
     }
@@ -97,8 +106,13 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _;
     }
 
+    modifier onlyDeployer() {
+        require(_msgSender() == ctmRwaDeployer, "CTMRWA001: This is an onlyDeployer function");
+        _;
+    }
+
     modifier onlyCtmMap() {
-        require(msg.sender == ctmRwaMap, "CTMRWA001: This can only be called by CTMRWAMap");
+        require(_msgSender() == ctmRwaMap, "CTMRWA001: This can only be called by CTMRWAMap");
         _;
     }
 
@@ -195,13 +209,22 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _allTokens[_allTokensIndex[tokenId_]].slot;
     }
 
-    function getTokenInfo(uint256 tokenId_) external view returns(uint256,uint256,address,uint256) {
+    function slotNameOf(uint256 _tokenId) public view virtual returns(string memory) {
+        uint256 thisSlot = slotOf(_tokenId);
+        return(slotName(thisSlot));
+    }
+
+    function getTokenInfo(uint256 tokenId_) external view returns(uint256,uint256,address,uint256,string memory) {
         requireMinted(tokenId_);
+
+        uint256 slot = slotOf(tokenId_);
+    
         return(
             _allTokens[_allTokensIndex[tokenId_]].id,
             _allTokens[_allTokensIndex[tokenId_]].balance,
             _allTokens[_allTokensIndex[tokenId_]].owner,
-            _allTokens[_allTokensIndex[tokenId_]].slot
+            slot,
+            slotName(slot)
         );
     }
 
@@ -252,8 +275,10 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     ) public payable virtual override returns (uint256 newTokenId) {
         spendAllowance(_msgSender(), fromTokenId_, value_);
 
+        string memory thisSlotName = slotNameOf(fromTokenId_);
+
         newTokenId = _createDerivedTokenId(fromTokenId_);
-        _mint(to_, newTokenId, CTMRWA001.slotOf(fromTokenId_), 0);
+        _mint(to_, newTokenId, CTMRWA001.slotOf(fromTokenId_), thisSlotName, 0);
         _transferValue(fromTokenId_, newTokenId, value_);
     }
 
@@ -366,34 +391,35 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return(_exists(tokenId_));
     }
 
-    function _mint(address to_, uint256 slot_, uint256 value_) internal virtual returns (uint256 tokenId) {
+    function _mint(address to_, uint256 slot_, string memory _slotName, uint256 value_) internal virtual returns (uint256 tokenId) {
         tokenId = _createOriginalTokenId();
-        _mint(to_, tokenId, slot_, value_);  
+        _mint(to_, tokenId, slot_, _slotName, value_);  
     }
 
-    function mintFromX(address to_, uint256 slot_, uint256 value_) external onlyRwa001X returns (uint256 tokenId) {
-        return(_mint(to_, slot_, value_));
+    function mintFromX(address to_, uint256 slot_, string memory _slotName, uint256 value_) external onlyRwa001X returns (uint256 tokenId) {
+        return(_mint(to_, slot_, _slotName, value_));
     }
 
-    function _mint(address to_, uint256 tokenId_, uint256 slot_, uint256 value_) internal virtual {
+    function _mint(address to_, uint256 tokenId_, uint256 slot_, string memory _slotName, uint256 value_) internal virtual {
         require(to_ != address(0), "CTMRWA001: mint to the zero address");
         require(tokenId_ != 0, "CTMRWA001: cannot mint zero tokenId");
         require(!_exists(tokenId_), "CTMRWA001: token already minted");
 
-        _beforeValueTransfer(address(0), to_, 0, tokenId_, slot_, value_);
+        _beforeValueTransfer(address(0), to_, 0, tokenId_, slot_, _slotName, value_);
         __mintToken(to_, tokenId_, slot_);
         __mintValue(tokenId_, value_);
         _afterValueTransfer(address(0), to_, 0, tokenId_, slot_, value_);
     }
 
-    function mintFromX(address to_, uint256 tokenId_, uint256 slot_, uint256 value_) external onlyRwa001X {
-        _mint(to_, tokenId_, slot_, value_);
+    function mintFromX(address to_, uint256 tokenId_, uint256 slot_, string memory _slotName, uint256 value_) external onlyRwa001X {
+        _mint(to_, tokenId_, slot_, _slotName, value_);
     }
 
     function _mintValue(uint256 tokenId_, uint256 value_) internal virtual {
         address owner = CTMRWA001.ownerOf(tokenId_);
         uint256 slot = CTMRWA001.slotOf(tokenId_);
-        _beforeValueTransfer(address(0), owner, 0, tokenId_, slot, value_);
+        string memory thisSlotName = CTMRWA001.slotNameOf(tokenId_);
+        _beforeValueTransfer(address(0), owner, 0, tokenId_, slot, thisSlotName, value_);
         __mintValue(tokenId_, value_);
         _afterValueTransfer(address(0), owner, 0, tokenId_, slot, value_);
     }
@@ -421,15 +447,21 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         emit SlotChanged(tokenId_, 0, slot_);
     }
 
+    // function burn(uint256 tokenId_) public virtual {
+    //     require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: caller is not token owner nor approved");
+    //     _burn(tokenId_);
+    // }
+
     function _burn(uint256 tokenId_) internal virtual {
         requireMinted(tokenId_);
 
         TokenData storage tokenData = _allTokens[_allTokensIndex[tokenId_]];
         address owner = tokenData.owner;
         uint256 slot = tokenData.slot;
+        string memory thisSlotName = slotNameOf(tokenId_);
         uint256 value = tokenData.balance;
 
-        _beforeValueTransfer(owner, address(0), tokenId_, 0, slot, value);
+        _beforeValueTransfer(owner, address(0), tokenId_, 0, slot, thisSlotName, value);
 
         _clearApprovedValues(tokenId_);
         _removeTokenFromOwnerEnumeration(owner, tokenId_);
@@ -448,11 +480,12 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         TokenData storage tokenData = _allTokens[_allTokensIndex[tokenId_]];
         address owner = tokenData.owner;
         uint256 slot = tokenData.slot;
+        string memory thisSlotName = slotNameOf(tokenId_);
         uint256 value = tokenData.balance;
 
         require(value >= burnValue_, "CTMRWA001: burn value exceeds balance");
 
-        _beforeValueTransfer(owner, address(0), tokenId_, 0, slot, burnValue_);
+        _beforeValueTransfer(owner, address(0), tokenId_, 0, slot, thisSlotName, burnValue_);
         
         tokenData.balance -= burnValue_;
         emit TransferValue(tokenId_, 0, burnValue_);
@@ -578,6 +611,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             fromTokenId_,
             toTokenId_,
             fromTokenData.slot,
+            slotNameOf(fromTokenId_),
             value_
         );
 
@@ -631,8 +665,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
         uint256 slot = CTMRWA001.slotOf(tokenId_);
         uint256 value = CTMRWA001.balanceOf(tokenId_);
+        string memory thisSlotName = slotNameOf(tokenId_);
 
-        _beforeValueTransfer(from_, to_, tokenId_, tokenId_, slot, value);
+        _beforeValueTransfer(from_, to_, tokenId_, tokenId_, slot, thisSlotName, value);
 
         _approve(address(0), tokenId_);
         _clearApprovedValues(tokenId_);
@@ -665,20 +700,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         bytes memory data_
     ) internal virtual returns (bool) {
         address to = CTMRWA001.ownerOf(toTokenId_);
-        if (_isContract(to)) {
-            try IERC165(to).supportsInterface(type(ICTMRWA001Receiver).interfaceId) returns (bool retval) {
-                if (retval) {
-                    bytes4 receivedVal = ICTMRWA001Receiver(to).onCTMRWA001Received(_msgSender(), fromTokenId_, toTokenId_, value_, data_);
-                    return receivedVal == ICTMRWA001Receiver.onCTMRWA001Received.selector;
-                } else {
-                    return true;
-                }
-            } catch (bytes memory /** reason */) {
-                return true;
-            }
-        } else {
-            return true;
-        }
+        
+        // Placeholder
+        return(true);
     }
 
     /**
@@ -723,6 +747,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         uint256 fromTokenId_,
         uint256 toTokenId_,
         uint256 slot_,
+        string memory _slotName,
         uint256 value_
     ) internal virtual {}
 
@@ -841,28 +866,25 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
 
-    // SLOT ENUMERABLE
-
-    struct SlotData {
-        uint256 slot;
-        uint256 dividendRate;  // per unit of this slot
-        uint256[] slotTokens;
-    }
-
-    // slot => tokenId => index
-    mapping(uint256 => mapping(uint256 => uint256)) private _slotTokensIndex;
-
-    SlotData[] public _allSlots;
-
-    // slot => index
-    mapping(uint256 => uint256) public _allSlotsIndex;
-
     function slotCount() public view virtual override returns (uint256) {
         return _allSlots.length;
     }
 
+    function getAllSlots() public view returns(SlotData[] memory) {
+        return(_allSlots);
+    }
+
+    function setAllSlotData(SlotData[] memory _slotData) external onlyDeployer {
+        _allSlots = _slotData;
+    }
+
+    function slotName(uint256 _slot) public view virtual returns (string memory) {
+        require(slotExists(_slot), "CTMRWA001: slot does not exist");
+        return( _allSlots[_allSlotsIndex[_slot]].slotName);
+    }
+
     function slotByIndex(uint256 index_) public view virtual override returns (uint256) {
-        require(index_ < slotCount(), "CTMRWA001SlotEnumerable: slot index out of bounds");
+        require(index_ < slotCount(), "CTMRWA001: slot index out of bounds");
         return _allSlots[index_].slot;
     }
 
@@ -901,33 +923,40 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return slotData.slotTokens.length > 0 && slotData.slotTokens[_slotTokensIndex[slot_][tokenId_]] == tokenId_;
     }
 
-    function _createSlot(uint256 slot_) internal virtual {
-        require(!slotExists(slot_), "CTMRWA001SlotEnumerable: slot already exists");
+    function createSlotX(uint256 _slot, string memory _slotName) external onlyRwa001X {
+        _createSlot(_slot, _slotName);
+    }
+
+    function _createSlot(uint256 _slot, string memory _slotName) internal virtual {
+        require(!slotExists(_slot), "CTMRWA001SlotEnumerable: slot already exists");
+        require(bytes(_name).length <= 128, "CTMRWA001: Slot name > 128 characters");
         SlotData memory slotData = SlotData({
-            slot: slot_,
+            slot: _slot,
+            slotName: _slotName,
             dividendRate: 0,
             slotTokens: new uint256[](0)
         });
         _addSlotToAllSlotsEnumeration(slotData);
-        emit SlotChanged(0, 0, slot_);
+        emit SlotChanged(0, 0, _slot);
     }
    
     function _beforeValueTransfer(
-        address from_,
-        address to_,
-        uint256 fromTokenId_,
-        uint256 toTokenId_,
-        uint256 slot_,
-        uint256 value_
+        address _from,
+        address _to,
+        uint256 _fromTokenId,
+        uint256 _toTokenId,
+        uint256 _slot,
+        string memory _slotName,
+        uint256 _value
     ) internal virtual {
-        if (from_ == address(0) && fromTokenId_ == 0 && !slotExists(slot_)) {
-            _createSlot(slot_);
+        if (_from == address(0) && _fromTokenId == 0 && !slotExists(_slot)) {
+            _createSlot(_slot, _slotName);
         }
 
         //Shh - currently unused
-        to_;
-        toTokenId_;
-        value_;
+        _to;
+        _toTokenId;
+        _value;
     }
 
     function _afterValueTransfer(

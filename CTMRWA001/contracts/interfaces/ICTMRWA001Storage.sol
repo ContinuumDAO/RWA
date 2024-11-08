@@ -5,10 +5,15 @@ pragma solidity ^0.8.23;
 enum URICategory {
     PROVENANCE,
     VALUATION,
+    PROSPECTUS,
     RATING,
+    LEGAL,
+    FINANCIAL,
     LICENSE,
+    DUEDILIGENCE,
     NOTICE,
     DIVIDEND,
+    IMAGE,
     EMPTY
 }
 

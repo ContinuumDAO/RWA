@@ -19,7 +19,7 @@ contract FeeManager is GovernDapp, IFeeManager {
     address[] public feeTokenList;
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
-    uint256[5] public feeMultiplier;
+    uint256[7] public feeMultiplier;
 
     mapping(address => FeeParams) public feeParams;
 
@@ -146,6 +146,12 @@ contract FeeManager is GovernDapp, IFeeManager {
         } else if (_feeType == FeeType.BURN) {
             feeMultiplier[4] = _multiplier;
             return(true);
+        } else if (_feeType == FeeType.URICONTRACT) {
+            feeMultiplier[5] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.URISLOT) {
+            feeMultiplier[6] = _multiplier;
+            return(true);
         } else {
             return(false);
         }
@@ -162,6 +168,10 @@ contract FeeManager is GovernDapp, IFeeManager {
             return(feeMultiplier[3]);
         } else if (_feeType == FeeType.BURN) {
             return(feeMultiplier[4]);
+        }  else if (_feeType == FeeType.URICONTRACT) {
+            return(feeMultiplier[5]);
+        }  else if (_feeType == FeeType.URISLOT) {
+            return(feeMultiplier[6]);
         } else {
             revert("FeeManager: Bad FeeType");
         }

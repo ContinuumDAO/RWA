@@ -38,7 +38,16 @@ contract CTMRWA001Storage is Context {
     modifier onlyTokenAdmin() {
         require(
             _msgSender() == tokenAdmin || _msgSender() == ctmRwa001X, 
-            "CTMRWA001Storage: onlyTokenAdmin function");
+            "CTMRWA001Storage: onlyTokenAdmin function"
+        );
+        _;
+    }
+
+    modifier onlyStorageManager() {
+        require(
+            _msgSender() == storageManagerAddr,
+            "CTMRWA001Storage: onlyStorageManager function"
+        );
         _;
     }
 
@@ -103,7 +112,7 @@ contract CTMRWA001Storage is Context {
         uint256 _slot,
         bytes memory _objectName,
         bytes32 _uriDataHash
-    ) external onlyTokenAdmin {
+    ) external onlyStorageManager {
         require(_ID == ID, "CTMRWA001Storage: Attempt to add URI to an incorrect ID");
         require(!existURIHash(_uriDataHash), "CTMRWA001Storage: Hash already exists");
 

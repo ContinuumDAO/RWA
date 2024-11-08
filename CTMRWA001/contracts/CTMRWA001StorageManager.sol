@@ -6,6 +6,8 @@ pragma solidity ^0.8.23;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
@@ -33,6 +35,7 @@ struct URIData {
 
 contract CTMRWA001StorageManager is Context, GovernDapp {
     using Strings for *;
+    using SafeERC20 for IERC20;
 
     address public ctmRwaDeployer;
     address public ctmRwa001Map;
@@ -119,14 +122,29 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         uint256 _slot,
         bytes memory _objectName,
         bytes32 _uriDataHash,
-        string[] memory _chainIdsStr
+        string[] memory _chainIdsStr,
+        string memory _feeTokenStr
     ) external {
-
+        
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001X: Could not find _ID or its storage address");
+        require(ok, "CTMRWA001StorageManager: Could not find _ID or its storage address");
 
         (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa001Addr);
+
+        require(bytes(ICTMRWA001(ctmRwa001Addr).baseURI()).length > 0, "CTMRWA001StorageManager: This token does not have storage");
+
+
+        FeeType uriFeeType;
+        if(_uriType == URIType.CONTRACT) {
+            uriFeeType = FeeType.URICONTRACT;
+        } else if(_uriType == URIType.SLOT) {
+            uriFeeType = FeeType.URISLOT;
+        } else {
+            revert("CTMRWA001StorageManager: Incorrect URIType");
+        }
+
+        _payFee(uriFeeType, _feeTokenStr, _chainIdsStr, true);
 
         for(uint256 i=0; i<_chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
@@ -199,6 +217,26 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         require(_msgSender() == currentAdmin, "CTMRWA001X: Only tokenAdmin can change the tokenAdmin");
 
         return(currentAdmin, currentAdminStr);
+    }
+
+    function _payFee(
+        FeeType _feeType, 
+        string memory _feeTokenStr, 
+        string[] memory _toChainIdsStr,
+        bool _includeLocal
+    ) internal returns(bool) {
+        uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, _feeType, _feeTokenStr);
+        
+        if(fee>0) {
+            address feeToken = stringToAddress(_feeTokenStr);
+            uint256 feeWei = fee*10**(IERC20Extended(feeToken).decimals()-2);
+
+            IERC20(feeToken).transferFrom(_msgSender(), address(this), feeWei);
+            
+            IERC20(feeToken).approve(feeManager, feeWei);
+            IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);
+        }
+        return(true);
     }
 
     function cID() internal view returns (uint256) {

@@ -245,6 +245,10 @@ contract NewChainSetup is Script {
                 require(ok, "NewChainSetup: Could not set fee multiplier");
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.BURN, 4);
                 require(ok, "NewChainSetup: Could not set fee multiplier");
+                ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.URICONTRACT, 8);
+                require(ok, "NewChainSetup: Could not set fee multiplier");
+                ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.URISLOT, 4);
+                require(ok, "NewChainSetup: Could not set fee multiplier");
 
                 if(!stringsEqual(_toLower(ICTMRWAGateway(thisGway).getChainContract(chainIdStr)), thisGway.toHexString())) {
                     chainIdContractsStr.push(chainIdStr);
@@ -321,13 +325,13 @@ contract NewChainSetup is Script {
                     storageManagersStr.push(storageManagerStr);
                 }
 
-                
-                feeTokensStr.push(thisFeeTokenStr);
-                fees.push(1000);
-                IFeeManager(thisFeeManager).addFeeToken(chainIdStr, feeTokensStr, fees);
-                feeTokensStr.pop();
-                fees.pop();
             }
+
+            feeTokensStr.push(thisFeeTokenStr);
+            fees.push(1000);
+            IFeeManager(thisFeeManager).addFeeToken(chainIdStr, feeTokensStr, fees);
+            feeTokensStr.pop();
+            fees.pop();
             
         }
 

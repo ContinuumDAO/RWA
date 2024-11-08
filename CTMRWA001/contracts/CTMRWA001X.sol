@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// import "forge-std/console.sol";
-
 pragma solidity ^0.8.23;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
@@ -13,7 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
 import {ICTMRWAGateway} from "./interfaces/ICTMRWAGateway.sol";
-import {ICTMRWA001, TokenContract, ITokenContract} from "./interfaces/ICTMRWA001.sol";
+import {ICTMRWA001, SlotData, TokenContract, ITokenContract} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWADeployer} from "./interfaces/ICTMRWADeployer.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {URICategory, URIType, ICTMRWA001Storage} from "./interfaces/ICTMRWA001Storage.sol";
@@ -34,36 +32,18 @@ contract CTMRWA001X is Context, GovernDapp {
     address public fallbackAddr;
     string public cIDStr;
 
+    SlotData[] emptySlots;
+    SlotData[] allSlots;
+
 
     mapping(address => address[]) public adminTokens;  // tokenAdmin address => array of CTMRWA001 contracts
     mapping(address => address[]) public ownedCtmRwa001;  // owner address => array of CTMRWA001 contracts
 
-    //event LogFallback(bytes4 selector, bytes data, bytes reason);
+    event CreateNewCTMRWA001(uint256 ID);
 
-    event CreateNewCTMRWA001(
-        address ctmRwa001Token, 
-        uint256 ID, 
-        address newAdmin, 
-        string fromChainIdStr, 
-        string fromContractStr
-    );
+    event CreateSlot(uint256 ID, uint256 slot, string fromChainIdStr);
 
-    event ChangeAdminDest(string currentAdminStr, string newAdminStr, string fromChainIdStr);
-    event AddNewChainAndToken(string fromChainIdStr, string fromContractStr, string[] chainIdsStr, string[] ctmRwa001AddrsStr);
-   
-
-    event TransferToDestX(
-        uint256 ID,
-        string fromAddressStr,
-        string toAddressStr,
-        uint256 fromTokenId,
-        uint256 toTokenId,
-        uint256 slot,
-        uint256 value,
-        string fromChainIdStr,
-        string fromTokenStr,
-        string ctmRwa001AddrStr
-    );
+    event TransferToDestX(uint256 ID);
 
 
     constructor(
@@ -127,6 +107,7 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory symbol;
         uint8 decimals;
         string memory baseURI;
+        
 
         if(_includeLocal) {
             // generate a new ID
@@ -144,9 +125,21 @@ contract CTMRWA001X is Context, GovernDapp {
             baseURI = _baseURI;
 
             currentAdmin = _msgSender();
-            ctmRwa001Addr = _deployCTMRWA001Local(ID, _rwaType, _version, _tokenName, _symbol, _decimals, baseURI, currentAdmin);
+            allSlots = emptySlots;
+            ctmRwa001Addr = _deployCTMRWA001Local(
+                ID, 
+                _rwaType, 
+                _version, 
+                _tokenName, 
+                _symbol, 
+                _decimals, 
+                baseURI, 
+                allSlots, 
+                currentAdmin
+            );
+            
 
-            emit CreateNewCTMRWA001(ctmRwa001Addr, ID, currentAdmin, cIDStr, "");
+            emit CreateNewCTMRWA001(ID);
         } else {  // a CTMRWA001 token must be deployed already, so use the existing ID
             ID = _existingID;
             (bool ok, address rwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(ID, _rwaType, _version);
@@ -159,6 +152,11 @@ contract CTMRWA001X is Context, GovernDapp {
             symbol = ICTMRWA001(ctmRwa001Addr).symbol();
             decimals = ICTMRWA001(ctmRwa001Addr).valueDecimals();
             baseURI = ICTMRWA001(ctmRwa001Addr).baseURI();
+
+            allSlots = ICTMRWA001(ctmRwa001Addr).getAllSlots();
+            for(uint256 i=0; i<allSlots.length; i++) {
+                allSlots[i].slotTokens= new uint256[](0);
+            }
         }
 
         ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
@@ -171,7 +169,8 @@ contract CTMRWA001X is Context, GovernDapp {
                 symbol,
                 decimals, 
                 baseURI,
-                _toChainIdsStr[i], 
+                _toChainIdsStr[i],
+                allSlots,
                 ctmRwa001AddrStr
             );
         }
@@ -189,12 +188,22 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory _symbol, 
         uint8 _decimals,
         string memory _baseURI,
+        SlotData[] memory _allSlots,
         address _tokenAdmin
     ) internal returns(address) {
         (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, _rwaType, _version);
         require(!ok, "CTMRWA001X: A local contract with this ID already exists");
 
-        bytes memory deployData = abi.encode(_ID, _tokenAdmin, _tokenName, _symbol, _decimals, _baseURI, address(this));
+        bytes memory deployData = abi.encode(
+            _ID, 
+            _tokenAdmin, 
+            _tokenName, 
+            _symbol, 
+            _decimals, 
+            _baseURI,
+            _allSlots,
+            address(this)
+        );
 
         address ctmRwa001Token = ICTMRWADeployer(ctmRwaDeployer).deploy(
             _ID,
@@ -222,6 +231,7 @@ contract CTMRWA001X is Context, GovernDapp {
         uint8 _decimals,
         string memory _baseURI,
         string memory _toChainIdStr,
+        SlotData[] memory _allSlots,
         string memory _ctmRwa001AddrStr
     ) internal returns (bool) {
         require(!stringsEqual(_toChainIdStr, cID().toString()), "CTMRWA001X: Not a cross-chain transfer");
@@ -235,7 +245,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
 
-        string memory funcCall = "deployCTMRWA001(string,uint256,uint256,uint256,string,string,uint8,string,string)";
+        string memory funcCall = "deployCTMRWA001(string,uint256,uint256,uint256,string,string,uint8,string,SlotData[],string)";
         bytes memory callData = abi.encodeWithSignature(
             funcCall,
             currentAdminStr,
@@ -246,6 +256,7 @@ contract CTMRWA001X is Context, GovernDapp {
             _symbol,
             _decimals,
             _baseURI,
+            _allSlots,
             _ctmRwa001AddrStr
         );
 
@@ -266,6 +277,7 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory _symbol, 
         uint8 _decimals,
         string memory _baseURI,
+        SlotData[] memory _allSlots,
         string memory _fromContractStr
     ) external onlyCaller returns(bool) {
 
@@ -277,28 +289,33 @@ contract CTMRWA001X is Context, GovernDapp {
         (, string memory fromChainIdStr,) = context();
         fromChainIdStr = _toLower(fromChainIdStr);
 
-        address ctmRwa001Token = _deployCTMRWA001Local(_ID, _rwaType, _version, _tokenName, _symbol, _decimals, _baseURI, newAdmin);
+        address ctmRwa001Token = _deployCTMRWA001Local(
+            _ID, 
+            _rwaType, 
+            _version, 
+            _tokenName, 
+            _symbol, 
+            _decimals, 
+            _baseURI,
+            _allSlots,
+            newAdmin
+        );
 
-        emit CreateNewCTMRWA001(ctmRwa001Token, _ID, newAdmin, fromChainIdStr, _fromContractStr);
+        emit CreateNewCTMRWA001(_ID);
 
         return(true);
     }
 
 
-    function changeAdmin(address _newAdmin, uint256 _ID) external returns(bool) {
+    function changeAdmin(address _newAdmin, uint256 _ID) public returns(bool) {
 
         (address ctmRwa001Addr,) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa001Addr);
 
-        bool ok = _replaceAdmin(_newAdmin, _msgSender(), ctmRwa001Addr);
-        if(ok) {
-            ICTMRWA001(ctmRwa001Addr).changeAdmin(_newAdmin);
-            (, address ctmRwa001StorageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
-            ICTMRWA001Storage(ctmRwa001StorageAddr).setTokenAdmin(_newAdmin);
-            return(true);
-        } else revert("CTMRWA001X: Could not replace admin address");
-
-        // emit ChangeAdmin(_ID, currentAdminStr, _newAdmin.toHexString(), "");
+        ICTMRWA001(ctmRwa001Addr).changeAdmin(_newAdmin);
+        (, address ctmRwa001StorageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
+        ICTMRWA001Storage(ctmRwa001StorageAddr).setTokenAdmin(_newAdmin);
+        return(true);
 
     }
 
@@ -328,6 +345,7 @@ contract CTMRWA001X is Context, GovernDapp {
         );
 
         c3call(toRwaXStr, toChainIdStr, callData);
+        
 
         return(true);
     }
@@ -351,13 +369,9 @@ contract CTMRWA001X is Context, GovernDapp {
         address oldAdmin = stringToAddress(_oldAdminStr);
         require(currentAdmin == oldAdmin, "CTMRWA001X: Not admin. Cannot change admin address");
 
-        ok = _replaceAdmin(newAdmin, oldAdmin, ctmRwa001Addr);
-        if(ok) {
-            ICTMRWA001(ctmRwa001Addr).changeAdmin(newAdmin);
-            (, address ctmRwa001StorageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
-            ICTMRWA001Storage(ctmRwa001StorageAddr).setTokenAdmin(newAdmin);
-            return(true);
-        } else revert("CTMRWA001X: Could not replace admin address");
+        changeAdmin(newAdmin, _ID );
+
+        return(true);
     
     }
 
@@ -377,8 +391,12 @@ contract CTMRWA001X is Context, GovernDapp {
             ICTMRWA001(ctmRwa001Addr).mintValueX(toTokenId_, slot_, value_);
             return(toTokenId_);
         } else {
-            uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(toAddress_, slot_, value_);
-            (,,address owner,) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(newTokenId);
+            bool slotExists = ICTMRWA001(ctmRwa001Addr).slotExists(slot_);
+            require(slotExists, "CTMRWA001X: Slot does nor exist");
+            string memory thisSlotName = ICTMRWA001(ctmRwa001Addr).slotName(slot_);
+           
+            uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(toAddress_, slot_, thisSlotName, value_);
+            address owner = ICTMRWA001(ctmRwa001Addr).ownerOf(newTokenId);
             ownedCtmRwa001[owner].push(ctmRwa001Addr);
 
             return(newTokenId);
@@ -386,157 +404,117 @@ contract CTMRWA001X is Context, GovernDapp {
 
     }
 
-    function mintNewTokenValueX(
-        string memory _toAddressStr,
-        string memory _toChainIdStr,
-        uint256 _slot,
-        uint256 _value,
-        uint256 _ID,
-        string memory _feeTokenStr
-    ) public {
-        string memory toChainIdStr = _toLower(_toChainIdStr);
 
+    function createNewSlot(
+        uint256 _ID,
+        uint256 _slot,
+        string memory _slotName,
+        string[] memory _toChainIdsStr,
+        string memory _feeTokenStr
+    ) public returns(bool) {
+        require(bytes(_slotName).length <= 128, "CTMRWA001X: Slot name > 128 characters");
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
+        
         _checkTokenAdmin(ctmRwa001Addr);
 
-        _payFee(FeeType.MINT, _feeTokenStr, _stringToArray(toChainIdStr), false);
+        string memory toChainIdStr;
+        string memory toRwaXStr;
+        string memory fromAddressStr;
 
-        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
-        bytes memory callData = abi.encodeWithSignature(
-            funcCall,
-            _ID,
-            fromAddressStr,
-            _toAddressStr,
-            0,  // Not used, since we are not transferring value from a tokenId, but creating new value
-            _slot,
-            _value,
-            ctmRwa001AddrStr
-        );
+        _payFee(FeeType.ADMIN, _feeTokenStr, _toChainIdsStr, true);
 
-        c3call(toRwaXStr, toChainIdStr, callData);
+        uint256 len = _toChainIdsStr.length;
+
+        for(uint256 i=0; i<len; i++) {
+            require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "CTMRWA001X: Trying to create a slot that already exists");
+            toChainIdStr = _toLower(_toChainIdsStr[i]);
+            if(!stringsEqual(cIDStr, toChainIdStr)){
+                (fromAddressStr, toRwaXStr) = _getRWAX(toChainIdStr);
+                string memory funcCall = "createNewSlotX(uint256,string,uint256,string)";
+                bytes memory callData = abi.encodeWithSignature(
+                    funcCall,
+                    _ID,
+                    fromAddressStr,
+                    _slot,
+                    _slotName
+                );
+
+                c3call(toRwaXStr, toChainIdStr, callData);
+            }
+        }
+
+        ICTMRWA001(ctmRwa001Addr).createSlotX(_slot, _slotName);
+
+        emit CreateSlot(_ID, _slot, cIDStr);
+        return(true);
     }
 
-    
-    function transferFromX(
-        uint256 _fromTokenId,
-        string memory _toAddressStr,
-        string memory _toChainIdStr,
-        uint256 _value,
-        uint256 _ID,
-        string memory _feeTokenStr
-    ) public {
-        require(bytes(_toAddressStr).length>0, "CTMRWA001X: Destination address has zero length");
-
-        string memory toChainIdStr = _toLower(_toChainIdStr);
-
-        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
-        
-        ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
-
-        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
-
-        uint256 slot = ICTMRWA001(ctmRwa001Addr).slotOf(_fromTokenId);
-
-        ICTMRWA001(ctmRwa001Addr).burnValueX(_fromTokenId, _value);
-
-        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
-        
-        bytes memory callData = abi.encodeWithSignature(
-            funcCall,
-            _ID,
-            fromAddressStr,
-            _toAddressStr,
-            _fromTokenId,
-            slot,
-            _value,
-            ctmRwa001AddrStr
-        );
-        
-        c3call(toRwaXStr, toChainIdStr, callData);
-
-    }
-    
-
-    function transferFromX(
-        uint256 _fromTokenId,
-        string memory _toAddressStr,
-        uint256 _toTokenId,
-        string memory _toChainIdStr,
-        uint256 _value,
-        uint256 _ID,
-        string memory _feeTokenStr
-    ) public {
-        string memory toChainIdStr = _toLower(_toChainIdStr);
-
-        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
-        
-        ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
-        require(bytes(_toAddressStr).length>0, "CTMRWA001X: Destination address has zero length");
-
-        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
-
-        uint256 slot = ICTMRWA001(ctmRwa001Addr).slotOf(_fromTokenId);
-
-        ICTMRWA001(ctmRwa001Addr).burnValueX(_fromTokenId, _value);
-
-        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,uint256,string)";
-        
-        bytes memory callData = abi.encodeWithSignature(
-            funcCall,
-            _ID,
-            fromAddressStr,
-            _toAddressStr,
-            _fromTokenId,
-            _toTokenId,
-            slot,
-            _value,
-            ctmRwa001AddrStr
-        );
-        
-        c3call(toRwaXStr, toChainIdStr, callData);
-
-    }
-
-    function mintX(
+    function createNewSlotX(
         uint256 _ID,
         string memory _fromAddressStr,
-        string memory _toAddressStr,
-        uint256 _fromTokenId,
-        uint256 _toTokenId,
         uint256 _slot,
-        uint256 _value,
-        string memory _fromTokenStr
-    ) external onlyCaller returns(bool){
+        string memory _slotName
+    ) external onlyCaller returns(bool) {
+        (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+        require(ok, "CTMRWA001X: Destination token contract with this ID does not exist");
+        require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "CTMRWA001X: Slot already exists. Cannot add");
 
         (, string memory fromChainIdStr,) = context();
 
-        (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001X: Destination token contract with this ID does not exist");
+        address fromAddress = stringToAddress(_fromAddressStr);
 
-        string memory ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
+        address currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
+        require(fromAddress == currentAdmin, "CTMRWA001X: Only current admin can add slots");
 
-        ICTMRWA001(ctmRwa001Addr).mintValueX(_toTokenId, _slot, _value);
-        (,,address owner,) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_toTokenId);
-        ownedCtmRwa001[owner].push(ctmRwa001Addr);
+        ICTMRWA001(ctmRwa001Addr).createSlotX(_slot, _slotName);
 
-        emit TransferToDestX(
-            _ID,
-            _fromAddressStr,
-            _toAddressStr,
-            _fromTokenId,
-            _toTokenId,
-            _slot,
-            _value,
-            fromChainIdStr,
-            _fromTokenStr,
-            ctmRwa001AddrStr
-        );
+        emit CreateSlot(_ID, _slot, fromChainIdStr);
 
         return(true);
+
     }
+
+    
+    function transferFromX(
+        uint256 _fromTokenId,
+        string memory _toAddressStr,
+        string memory _toChainIdStr,
+        uint256 _value,
+        uint256 _ID,
+        string memory _feeTokenStr
+    ) public {
+        require(bytes(_toAddressStr).length>0, "CTMRWA001X: Destination address has zero length");
+
+        string memory toChainIdStr = _toLower(_toChainIdStr);
+
+        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
+        (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
+        
+        ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
+
+        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
+
+        uint256 slot = ICTMRWA001(ctmRwa001Addr).slotOf(_fromTokenId);
+
+        ICTMRWA001(ctmRwa001Addr).burnValueX(_fromTokenId, _value);
+
+        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
+        
+        bytes memory callData = abi.encodeWithSignature(
+            funcCall,
+            _ID,
+            fromAddressStr,
+            _toAddressStr,
+            _fromTokenId,
+            slot,
+            _value,
+            ctmRwa001AddrStr
+        );
+        
+        c3call(toRwaXStr, toChainIdStr, callData);
+
+    }
+    
 
     function transferFromX(
         string memory _toAddressStr,
@@ -554,7 +532,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
-        (,uint256 value,,uint256 slot) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_fromTokenId);
+        (,uint256 value,,uint256 slot,) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_fromTokenId);
 
         ICTMRWA001(ctmRwa001Addr).approveFromX(address(0), _fromTokenId);
         ICTMRWA001(ctmRwa001Addr).clearApprovedValues(_fromTokenId);
@@ -597,22 +575,16 @@ contract CTMRWA001X is Context, GovernDapp {
 
         string memory ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
 
-        uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(toAddr, _slot, _balance);
+        bool slotExists = ICTMRWA001(ctmRwa001Addr).slotExists(_slot);
+        require(slotExists, "CTMRWA001X: Destination slot does not exist");
+
+        string memory thisSlotName = ICTMRWA001(ctmRwa001Addr).slotName(_slot);
+
+        uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(toAddr, _slot, thisSlotName, _balance);
 
         ownedCtmRwa001[toAddr].push(ctmRwa001Addr);
 
-        emit TransferToDestX(
-            _ID,
-            _fromAddressStr,
-            _toAddressStr,
-            _fromTokenId,
-            newTokenId,
-            _slot,
-            _balance,
-            fromChainIdStr,
-            _fromTokenStr,
-            ctmRwa001AddrStr
-        );
+        emit TransferToDestX(_ID);
 
         return(true);
     }
@@ -662,19 +634,6 @@ contract CTMRWA001X is Context, GovernDapp {
         return(currentAdmin, currentAdminStr);
     }
 
-    function _replaceAdmin(address _newAdmin, address _oldAdmin, address _tokenId) internal returns(bool) {
-        uint256 found;
-        for(uint256 i=0; i<adminTokens[_oldAdmin].length; i++) {
-            if(adminTokens[_oldAdmin][i] == _tokenId) {
-                found = i;
-            }
-        }
-        if(found>0) {
-            adminTokens[_newAdmin].push(_tokenId);
-            delete adminTokens[_oldAdmin][found];
-            return(true);
-        } else return(false);
-    }
 
     function _payFee(
         FeeType _feeType, 
@@ -700,26 +659,6 @@ contract CTMRWA001X is Context, GovernDapp {
         return block.chainid;
     }
 
-    function strToUint(
-        string memory _str
-    ) internal pure returns (uint256 res, bool err) {
-        if (bytes(_str).length == 0) {
-            return (0, true);
-        }
-        for (uint256 i = 0; i < bytes(_str).length; i++) {
-            if (
-                (uint8(bytes(_str)[i]) - 48) < 0 ||
-                (uint8(bytes(_str)[i]) - 48) > 9
-            ) {
-                return (0, false);
-            }
-            res +=
-                (uint8(bytes(_str)[i]) - 48) *
-                10 ** (bytes(_str).length - i - 1);
-        }
-
-        return (res, true);
-    }
 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
@@ -797,7 +736,6 @@ contract CTMRWA001X is Context, GovernDapp {
             _reason
         );
 
-        //emit LogFallback(_selector, _data, _reason);
         return ok;
     }
 

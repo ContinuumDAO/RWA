@@ -64,29 +64,28 @@ contract XChainTests is Script {
 
         loadContracts(421614);
 
-        bytes32 uuid = 0x0af4db05db5de1fe5bf857058d248429a9b590d7ba9b0d9303245791707e87f4;
-        checkC3Call(uuid);
+        // bytes32 uuid = 0x0af4db05db5de1fe5bf857058d248429a9b590d7ba9b0d9303245791707e87f4;
+        // checkC3Call(uuid);
 
         // decodeXChain();
 
         // checkDeployData();
 
-        // this.deployLocal();
-
-        //IERC20(feeToken).approve(feeManager, 10000*10**18);
-        // IERC20(feeToken).approve(rwa001XAddr, 10000*10**6);
+        this.deployLocal();
 
         // this.deployRemote(97, 0);
 
+        // toChainIdsStr.push("421614");
+        // toChainIdsStr.push("97");
+        // this.createSlots(toChainIdsStr);
+
         // this.transferValueTokenToAddress();
-
-        // this.addURI();
-
-        // this.transferValueTokenToToken();
 
         // this.transferValueWholeTokenToAddress();
 
-        // this.mintNewTokenValueX();
+        // this.addURI();
+
+
     }
 
     function loadContracts(uint256 chainId) public {
@@ -135,166 +134,6 @@ contract XChainTests is Script {
         feeTokenStr = feeToken.toHexString();
     }
 
-    function mintNewTokenValueX() external {
-
-        vm.startBroadcast(senderPrivateKey);
-
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log("First admin token address");
-        console.log(adminTokens[0]);
-
-        address firstTokenAddr = adminTokens[0];
-
-        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(firstTokenAddr.toHexString(), 1, 1);
-
-        // uint256 bal = IERC20(feeToken).balanceOf(admin);
-
-        // IERC20(feeToken).approve(address(rwa001X), 100000);
-
-        // function mintNewTokenValueX(
-        //     string memory _toAddressStr,
-        //     string memory _toChainIdStr,
-        //     uint256 _slot,
-        //     uint256 _value,
-        //     uint256 _ID,
-        //     string memory _feeTokenStr
-        // ) public {
-
-        rwa001X.mintNewTokenValueX(
-            admin.toHexString(),
-            "97",
-            4,
-            1234,
-            ID,
-            feeTokenStr
-        );
-
-    }
-
-    function transferValueTokenToAddress() external {
-
-        vm.startBroadcast(senderPrivateKey);
-
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log("First admin token address");
-        console.log(adminTokens[0]);
-
-        address firstTokenAddr = adminTokens[0];
-
-        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(firstTokenAddr.toHexString(), 1, 1);
-        console.log("ID");
-        console.log(ID);
-
-        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 0);
-        console.log("tokenId");
-        console.log(tokenId);
-        console.log("with slot =");
-        console.log(ICTMRWA001(firstTokenAddr).slotOf(tokenId));
-
-        // function transferFromX(
-        //     uint256 _fromTokenId,
-        //     string memory _toAddressStr,
-        //     string memory _toChainIdStr,
-        //     uint256 _value,
-        //     uint256 _ID,
-        //     string memory _feeTokenStr
-        // ) public {
-
-        rwa001X.transferFromX(
-            tokenId,
-            admin.toHexString(),
-            "97",
-            50,
-            ID,
-            feeTokenStr
-        );
-
-    }
-
-    function transferValueTokenToToken() external {
-
-        vm.startBroadcast(senderPrivateKey);
-
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log("First admin token address");
-        console.log(adminTokens[0]);
-
-        address firstTokenAddr = adminTokens[0];
-
-        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(firstTokenAddr.toHexString(), 1, 1);
-        console.log("ID");
-        console.log(ID);
-
-        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 1);
-        console.log("second tokenId");
-        console.log(tokenId);
-
-        console.log("with slot");
-        console.log(ICTMRWA001(firstTokenAddr).slotOf(tokenId));
-
-    // function transferFromX(
-    //     uint256 _fromTokenId,
-    //     string memory _toAddressStr,
-    //     uint256 _toTokenId,
-    //     string memory _toChainIdStr,
-    //     uint256 _value,
-    //     uint256 _ID,
-    //     string memory _feeTokenStr
-    // ) public {
-
-        rwa001X.transferFromX(
-            tokenId,
-            admin.toHexString(),
-            1,
-            "97",
-            100,
-            ID,
-            feeTokenStr
-        );
-
-    }
-
-    function transferValueWholeTokenToAddress() public {
-        vm.startBroadcast(senderPrivateKey);
-
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log("First admin token address");
-        console.log(adminTokens[0]);
-
-        address firstTokenAddr = adminTokens[0];
-
-        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(firstTokenAddr.toHexString(), 1, 1);
-        console.log("ID");
-        console.log(ID);
-
-        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 2);
-        console.log("second tokenId");
-        console.log(tokenId);
-
-        console.log("with slot");
-        console.log(ICTMRWA001(firstTokenAddr).slotOf(tokenId));
-
-        // function transferFromX(
-        //     string memory _toAddressStr,
-        //     string memory _toChainIdStr,
-        //     uint256 _fromTokenId,
-        //     uint256 _ID,
-        //     string memory _feeTokenStr
-        // ) public {
-
-        rwa001X.transferFromX(
-            admin.toHexString(),
-            "97",
-            tokenId,
-            ID,
-            feeTokenStr
-        );
-
-        vm.stopBroadcast();
-
-    }
-
-
     function deployLocal() external {
        
         //address ctmRwaDeployer = rwa001X.ctmRwaDeployer();
@@ -313,6 +152,8 @@ contract XChainTests is Script {
         // address ctmRwaDeployer = rwa001X.ctmRwaDeployer();
 
         vm.startBroadcast(senderPrivateKey);
+
+        IERC20(feeToken).approve(rwa001XAddr, 10000*10**6);
 
 
         address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
@@ -359,9 +200,131 @@ contract XChainTests is Script {
         vm.stopBroadcast();
     }
 
+    function createSlots(string[] memory chainIdsStr) external {
+        vm.startBroadcast(senderPrivateKey);
+
+        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
+        console.log("First admin token address");
+        console.log(adminTokens[0]);
+
+        address firstTokenAddr = adminTokens[0];
+
+        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(firstTokenAddr.toHexString(), 1, 1);
+        console.log("ID");
+        console.log(ID);
+
+        IERC20(feeToken).approve(rwa001XAddr, 10000*10**6);
+
+
+        // function createNewSlot(
+        //     uint256 _ID,
+        //     uint256 _slot,
+        //     string memory _slotName,
+        //     string[] memory _toChainIdsStr,
+        //     string memory _feeTokenStr
+        // ) public returns(bool) 
+
+        bool ok = rwa001X.createNewSlot(
+            ID,
+            5,
+            "Brand new RWA",
+            chainIdsStr,
+            feeTokenStr
+        );
+    }
+   
+    function transferValueTokenToAddress() external {
+
+        vm.startBroadcast(senderPrivateKey);
+
+        IERC20(feeToken).approve(rwa001XAddr, 10000*10**6);
+
+        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
+        console.log("First admin token address");
+        console.log(adminTokens[0]);
+
+        address firstTokenAddr = adminTokens[0];
+
+        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(firstTokenAddr.toHexString(), 1, 1);
+        console.log("ID");
+        console.log(ID);
+
+        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 0);
+        console.log("tokenId");
+        console.log(tokenId);
+        console.log("with slot =");
+        console.log(ICTMRWA001(firstTokenAddr).slotOf(tokenId));
+
+        // function transferFromX(
+        //     uint256 _fromTokenId,
+        //     string memory _toAddressStr,
+        //     string memory _toChainIdStr,
+        //     uint256 _value,
+        //     uint256 _ID,
+        //     string memory _feeTokenStr
+        // ) public {
+
+        rwa001X.transferFromX(
+            tokenId,
+            admin.toHexString(),
+            "97",
+            50,
+            ID,
+            feeTokenStr
+        );
+
+    }
+
+
+
+    function transferValueWholeTokenToAddress() public {
+        vm.startBroadcast(senderPrivateKey);
+
+        IERC20(feeToken).approve(rwa001XAddr, 10000*10**6);
+
+        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
+        console.log("First admin token address");
+        console.log(adminTokens[0]);
+
+        address firstTokenAddr = adminTokens[0];
+
+        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(firstTokenAddr.toHexString(), 1, 1);
+        console.log("ID");
+        console.log(ID);
+
+        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 2);
+        console.log("second tokenId");
+        console.log(tokenId);
+
+        console.log("with slot");
+        console.log(ICTMRWA001(firstTokenAddr).slotOf(tokenId));
+
+        // function transferFromX(
+        //     string memory _toAddressStr,
+        //     string memory _toChainIdStr,
+        //     uint256 _fromTokenId,
+        //     uint256 _ID,
+        //     string memory _feeTokenStr
+        // ) public {
+
+        rwa001X.transferFromX(
+            admin.toHexString(),
+            "97",
+            tokenId,
+            ID,
+            feeTokenStr
+        );
+
+        vm.stopBroadcast();
+
+    }
+
+
     function addURI() public {
 
         vm.startBroadcast(senderPrivateKey);
+
+        IERC20(feeToken).approve(storageManagerAddr, 100000*10**6);
 
         address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
         console.log("First admin token address");
@@ -392,14 +355,6 @@ contract XChainTests is Script {
         toChainIdsStr.push("97");
 
 
-        // function _addURI(
-        //     uint256 _ID,
-        //     URICategory _uriCategory,
-        //     URIType _uriType,
-        //     uint256 _slot,   
-        //     bytes32 _uriDataHash,
-        //     string[] memory _chainIdsStr
-        // ) external {
 
         storageManager._addURI(
             ID,
@@ -408,7 +363,8 @@ contract XChainTests is Script {
             slot,
             bytes("proof_that_the_asset_exists"),
             junkHash,
-            toChainIdsStr
+            toChainIdsStr,
+            feeTokenStr
         );
 
         vm.stopBroadcast();

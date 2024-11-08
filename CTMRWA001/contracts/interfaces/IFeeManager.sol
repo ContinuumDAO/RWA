@@ -6,7 +6,9 @@ enum FeeType {
     DEPLOY,
     TX,
     MINT,
-    BURN
+    BURN,
+    URICONTRACT,
+    URISLOT
 }
 
 interface IFeeManager {
