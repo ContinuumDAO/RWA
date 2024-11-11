@@ -279,15 +279,15 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory _baseURI,
         SlotData[] memory _allSlots,
         string memory _fromContractStr
-    ) external onlyCaller returns(bool) {
+    ) external onlyCaller returns(bool) { 
 
         (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, _rwaType, _version);
         require(!ok, "CTMRWA001X: A local contract with this ID already exists");
 
         address newAdmin = stringToAddress(_newAdminStr);
 
-        (, string memory fromChainIdStr,) = context();
-        fromChainIdStr = _toLower(fromChainIdStr);
+        // (, string memory fromChainIdStr,) = context();
+        // fromChainIdStr = _toLower(fromChainIdStr);
 
         address ctmRwa001Token = _deployCTMRWA001Local(
             _ID, 

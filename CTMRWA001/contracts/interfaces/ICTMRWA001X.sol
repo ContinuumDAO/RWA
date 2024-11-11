@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.23;
 
-
+import {SlotData} from "./ICTMRWA001.sol";
 
 interface ICTMRWA001X {
     
@@ -32,6 +32,19 @@ interface ICTMRWA001X {
         string[] memory toChainIdsStr,
         string memory feeTokenStr
     ) external returns(uint256);
+
+    function deployCTMRWA001(
+        string memory newAdminStr,
+        uint256 ID,
+        uint256 rwaType,
+        uint256 version,
+        string memory tokenName, 
+        string memory symbol, 
+        uint8 decimals,
+        string memory baseURI,
+        SlotData[] memory allSlots,
+        string memory fromContractStr
+    ) external returns(bool);    // onlyCaller function (added for DEBUG purposes)
 
     function changeAdminCrossChain(
         string memory newAdminStr,

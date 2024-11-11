@@ -911,59 +911,65 @@ contract TestBasicToken is SetUp {
 
     function test_deployExecute() public {
 
-    // function deployCTMRWA001(
-    //     string memory _newAdminStr,
-    //     uint256 _ID,
-    //     uint256 _rwaType,
-    //     uint256 _version,
-    //     string memory _tokenName, 
-    //     string memory _symbol, 
-    //     uint8 _decimals,
-    //     string memory _baseURI,
-    //     string memory _fromContractStr
-    // ) external onlyCaller returns(bool) {
+        // function deployCTMRWA001(
+        //     string memory _newAdminStr,
+        //     uint256 _ID,
+        //     uint256 _rwaType,
+        //     uint256 _version,
+        //     string memory _tokenName, 
+        //     string memory _symbol, 
+        //     uint8 _decimals,
+        //     string memory _baseURI,
+        //     string memory _fromContractStr
+        // ) external onlyCaller returns(bool) {
 
-    string memory newAdminStr = _toLower(user1.toHexString());
+        string memory newAdminStr = _toLower(user1.toHexString());
 
-    string memory tokenName = "RWA Test token";
-    string memory symbol = "RWA";
-    uint8 decimals = 18;
-    uint256 timestamp = 12345;
-    allSlots.push(SlotData(7,"test RWA",876,emptyArr));
+        string memory tokenName = "RWA Test token";
+        string memory symbol = "RWA";
+        uint8 decimals = 18;
+        uint256 timestamp = 12776;
+        allSlots.push(SlotData(7,"test RWA",876,emptyArr));
 
-    uint256 ID = uint256(keccak256(abi.encode(
-        tokenName,
-        symbol,
-        decimals,
-        timestamp,
-        user1
-    )));
+        uint256 ID = uint256(keccak256(abi.encode(
+            tokenName,
+            symbol,
+            decimals,
+            timestamp,
+            user1
+        )));
 
-    string memory baseURI = "GFLD";
+        string memory baseURI = "GFLD";
 
-    string memory fromContractStr = "";
+        string memory fromContractStr = "";
 
-    vm.prank(address(c3CallerLogic));
-    bool ok = rwa001X.deployCTMRWA001(
-        newAdminStr,
-        ID,
-        rwaType,
-        version,
-        tokenName,
-        symbol,
-        decimals,
-        baseURI,
-        allSlots,
-        fromContractStr
-    );
+        vm.prank(address(c3CallerLogic));
+        bool ok = rwa001X.deployCTMRWA001(
+            newAdminStr,
+            ID,
+            rwaType,
+            version,
+            tokenName,
+            symbol,
+            decimals,
+            baseURI,
+            allSlots,
+            fromContractStr
+        );
 
-    assertEq(ok, true);
-    
-    address tokenAddr;
+        assertEq(ok, true);
+        
+        address tokenAddr;
 
-    (ok, tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(ID, rwaType, version);
+        (ok, tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(ID, rwaType, version);
 
-    assertEq(ICTMRWA001(tokenAddr).tokenAdmin(), user1);
+        assertEq(ICTMRWA001(tokenAddr).tokenAdmin(), user1);
+
+        console.log("tokenAddr");
+        console.log(tokenAddr);
+
+        string memory sName = ICTMRWA001(tokenAddr).slotName(7);
+        console.log(sName);
 
     }
 

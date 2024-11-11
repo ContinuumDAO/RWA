@@ -35,30 +35,39 @@ contract DappConfig is Script {
     NewChain[] newchains;
 
 
+    // struct NewChain {
+    //     uint256 chainId;
+    //     address gateway;
+    //     address rwaX;
+    //     address feeManager;
+    //     address storageManager;
+    //     address deployer;
+    // }
+
     constructor() {
         newchains.push(NewChain(    // ARB Sepolia
             421614, 
-            0x358498985E6ac7CA73F5110b415525aE04CB8313,
-            0x9DC772b55e95A630031EBe431706D105af01Cf03,
-            0x9068F274555af3cD0A934Dbcf1c56E7b83Ad450A,
-            0xc047401F28F43eC8Af8C5aAaC26Bf7d007E2474a,
-            0x0EeA0C2FB4122e8193E26B06358E384b2b909848
+            0x82C7Cf3AD2A7C6EA732C131e552AD171d190421E,
+            0x6F2F79720C81631d3a0FE8e19c96F3ceBd56519a,
+            0x1211a2Dd0d01848DC4042A7A354Cb8a4C51dF594,
+            0x6DD5666Ef6b2E83D504C1EE586fB3C630aBc7fD2,
+            0x3800dAcd202a91A791BC040dfD352a9565E51Aa7
         ));
         newchains.push(NewChain(   // POLYGON AMOY  Chain 80002
             80002,
-            0x2927d422CBEA7F315ee3E0660aF2eD9b35302004,
-            0x1B87108B35Abb5751Bfc64647E9D5cD1Cb77E236,
-            0x0897e91383Ab942bC502549eD75AA8ea7538B5Fe,
-            0x3418a45e442210EC9579B074Ae9ACb13b2A67554,
-            0x0D8723a971ab42D0c52bf241ddb313B20F84E837
+            0xB75A2833405907508bD5f8DEa3A24FA537D9C85c,
+            0x74Da08aBCb64A66370E9C1609771e68aAfEDE27B,
+            0xF663c3De2d18920ffd7392242459275d0Dd249e4,
+            0x44bd5B80fEd6d6574d21f9b748d0b9A1D5566312,
+            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca
         ));
         newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
             84532,
-            0x6640eC42F86ABCF799C21A070f7bAF6Db38a2AB9,
-            0x8230abAb39F9C618282dDd0AF1DFA278DE7Df98f,
-            0xeCd4b2ab820215AcC3Cd579B8e65530D44A83643,
-            0xAF685f104E7428311F25526180cbd416Fa8668CD,
-            0x05a804374Bb77345854022Fd0CD2A602E00bF2E7
+            0x8b8De69a9cBCa6B7cb85406DdE46116DD520d5B0,
+            0x24DA0F2114B682D01234bC9E103ff7eEbF86aE6A,
+            0xCBf4E5FDA887e602E5132FA800d74154DFb5B237,
+            0x4fB3A28c53C88731D783610d0fF275B02bbF19E0,
+            0x60676AB7BA46D702b171B67381648477AE16B5b8
         ));
         // newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
         //     59141,
@@ -150,19 +159,19 @@ contract DappConfig is Script {
         // ));
         newchains.push(NewChain(  //  BSC TESTNET Chain 97
             97,
-            0x969035b34B913c507b87FD805Fff608FB1fE13f0,
-            0x66b719C489193594c617801e67119959CD15b63A,
-            0x41543A4C6423E2546FC58AC63117B5692D68c323,
-            0xE569c146B0d4c1c941607b5c6A648b5877AE29EF,
-            0x766061Cd28592Fd2503cAA3E4772C1215192cD3d
+            0x291E038Ef58dcFDF020e0BBEA0C9a36713dB7966,
+            0x4328Bf65bC8C69067a03D0fbDe94ca1e24ED966c,
+            0xBCe6B1Ab3790BCe90E2299cc9C46f6D2bCB56324,
+            0x6187ee058bB5b7Db140cfd470a27EBe1f16D92B1,
+            0x038a39974a702ada213a318c855792244884EDCC
         ));
         newchains.push(NewChain(  //  SEPOLIA  Chain 11155111
             11155111,
-            0x9266e8bf4943f2b366F2be89688a8622084DB8B9,
-            0xB5638019CBfC1B523d5167a269E755b05BF24fD9,
-            0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994,
-            0xa240B0714712e2927Ec055CEAa8e031AC671a55F,
-            0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3
+            0xF1a79c24efF78FfFfbd4f8Df0Ce31aDEc284b9Cf,
+            0x2BE0C4Ac75784737D4D0E75C4026d4Bc671B938E,
+            0xa9888fD40bc181958BD2C2b2D06DD1559D0c8E55,
+            0x8E36C2b1aC03d98faC0074C9E8e27023a3ce2206,
+            0x2927d422CBEA7F315ee3E0660aF2eD9b35302004
         ));
     }
 
