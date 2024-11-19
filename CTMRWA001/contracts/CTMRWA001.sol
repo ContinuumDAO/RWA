@@ -13,6 +13,8 @@ import {ICTMRWA001, SlotData, ICTMRWA001SlotApprovable, ICTMRWA001SlotEnumerable
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
 
+import {ICTMRWA001X} from "./interfaces/ICTMRWA001X.sol"; 
+
 
 contract CTMRWA001 is Context, ICTMRWA001 {
     using Strings for *;
@@ -27,8 +29,13 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     address public tokenAdmin;
     address ctmRwaMap;
     address public ctmRwa001X;
+    address public rwa001XFallback;
     address public dividendAddr;
     address public storageAddr;
+
+    uint256[] slotNumbers;
+    string[] slotNames;
+    uint256[] emptyUint256;
 
 
     struct TokenData {
@@ -96,9 +103,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _decimals = decimals_;
         baseURI = baseURI_;
         ctmRwa001X = _ctmRwa001X;
+        rwa001XFallback = ICTMRWA001X(ctmRwa001X).fallbackAddr();
         ctmRwaDeployer = _msgSender();
 
-        //addTokenContract(cID().toString(), _toLower(address(this).toHexString()));
     }
     
     modifier onlyTokenAdmin() {
@@ -117,7 +124,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     modifier onlyRwa001X() {
-        require(_msgSender() == ctmRwa001X, "CTMRWA001: This can only be called by CTMRWA001X");
+        require(_msgSender() == ctmRwa001X || _msgSender() == rwa001XFallback, "CTMRWA001: This can only be called by CTMRWA001X");
         _;
     }
 
@@ -280,6 +287,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         newTokenId = _createDerivedTokenId(fromTokenId_);
         _mint(to_, newTokenId, CTMRWA001.slotOf(fromTokenId_), thisSlotName, 0);
         _transferValue(fromTokenId_, newTokenId, value_);
+
     }
 
     function transferFrom(
@@ -303,6 +311,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     ) public virtual override {
         require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
         _transferTokenId(from_, to_, tokenId_);
+
     }
 
     function safeTransferFrom(
@@ -447,10 +456,10 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         emit SlotChanged(tokenId_, 0, slot_);
     }
 
-    // function burn(uint256 tokenId_) public virtual {
-    //     require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: caller is not token owner nor approved");
-    //     _burn(tokenId_);
-    // }
+    function burn(uint256 tokenId_) public virtual {
+        require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: caller is not token owner nor approved");
+        _burn(tokenId_);
+    }
 
     function _burn(uint256 tokenId_) internal virtual {
         requireMinted(tokenId_);
@@ -870,12 +879,22 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _allSlots.length;
     }
 
-    function getAllSlots() public view returns(SlotData[] memory) {
-        return(_allSlots);
+    function getAllSlots() public view returns(uint256[] memory, string[] memory) {
+       return(slotNumbers, slotNames);
     }
 
-    function setAllSlotData(SlotData[] memory _slotData) external onlyDeployer {
-        _allSlots = _slotData;
+    function getSlotInfoByIndex(uint256 _indx) public view returns(SlotData memory) {
+        return(_allSlots[_indx]);
+    }
+
+    function initializeSlotData(uint256[] memory _slotNumbers, string[] memory _slotNames) external onlyDeployer {
+        require(_slotNumbers.length == _slotNames.length, "CTMRWA001: initializeSlotData length input mismatch");
+        require(_allSlots.length == 0, "CTMRWA001: initializeSlotData slot data must be uninitialized");
+        for(uint256 i=0; i<_slotNumbers.length; i++) {
+            _allSlots.push(SlotData(_slotNumbers[i], _slotNames[i], 0, emptyUint256));
+        }
+        slotNumbers = _slotNumbers;
+        slotNames = _slotNames;
     }
 
     function slotName(uint256 _slot) public view virtual returns (string memory) {
@@ -937,6 +956,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             slotTokens: new uint256[](0)
         });
         _addSlotToAllSlotsEnumeration(slotData);
+        slotNumbers.push(_slot);
+        slotNames.push(_slotName);
         emit SlotChanged(0, 0, _slot);
     }
    

@@ -7,9 +7,20 @@ enum FeeType {
     TX,
     MINT,
     BURN,
-    URICONTRACT,
-    URISLOT
+    PROVENANCE,
+    VALUATION,
+    PROSPECTUS,
+    RATING,
+    LEGAL,
+    FINANCIAL,
+    LICENSE,
+    DUEDILIGENCE,
+    NOTICE,
+    DIVIDEND,
+    REDEMPTION,
+    IMAGE
 }
+
 
 interface IFeeManager {
     function getXChainFee(

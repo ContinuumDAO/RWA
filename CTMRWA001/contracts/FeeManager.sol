@@ -19,7 +19,7 @@ contract FeeManager is GovernDapp, IFeeManager {
     address[] public feeTokenList;
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
-    uint256[7] public feeMultiplier;
+    uint256[17] public feeMultiplier;
 
     mapping(address => FeeParams) public feeParams;
 
@@ -146,16 +146,47 @@ contract FeeManager is GovernDapp, IFeeManager {
         } else if (_feeType == FeeType.BURN) {
             feeMultiplier[4] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.URICONTRACT) {
+        } else if (_feeType == FeeType.PROVENANCE) {
             feeMultiplier[5] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.URISLOT) {
+        } else if (_feeType == FeeType.VALUATION) {
             feeMultiplier[6] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.PROSPECTUS) {
+            feeMultiplier[7] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.RATING) {
+            feeMultiplier[8] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.LEGAL) {
+            feeMultiplier[9] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.FINANCIAL) {
+            feeMultiplier[10] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.LICENSE) {
+            feeMultiplier[11] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.DUEDILIGENCE) {
+            feeMultiplier[12] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.NOTICE) {
+            feeMultiplier[13] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.DIVIDEND) {
+            feeMultiplier[14] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.REDEMPTION) {
+            feeMultiplier[15] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.IMAGE) {
+            feeMultiplier[16] = _multiplier;
             return(true);
         } else {
             return(false);
         }
     }
+
 
     function getFeeMultiplier(FeeType _feeType) external view returns (uint256) {
         if(_feeType == FeeType.ADMIN) {
@@ -168,10 +199,30 @@ contract FeeManager is GovernDapp, IFeeManager {
             return(feeMultiplier[3]);
         } else if (_feeType == FeeType.BURN) {
             return(feeMultiplier[4]);
-        }  else if (_feeType == FeeType.URICONTRACT) {
+        }  else if (_feeType == FeeType.PROVENANCE) {
             return(feeMultiplier[5]);
-        }  else if (_feeType == FeeType.URISLOT) {
+        }  else if (_feeType == FeeType.VALUATION) {
             return(feeMultiplier[6]);
+        }  else if (_feeType == FeeType.PROSPECTUS) {
+            return(feeMultiplier[7]);
+        }  else if (_feeType == FeeType.RATING) {
+            return(feeMultiplier[8]);
+        }  else if (_feeType == FeeType.LEGAL) {
+            return(feeMultiplier[9]);
+        }  else if (_feeType == FeeType.FINANCIAL) {
+            return(feeMultiplier[10]);
+        }  else if (_feeType == FeeType.LICENSE) {
+            return(feeMultiplier[11]);
+        }  else if (_feeType == FeeType.DUEDILIGENCE) {
+            return(feeMultiplier[12]);
+        }  else if (_feeType == FeeType.NOTICE) {
+            return(feeMultiplier[13]);
+        }  else if (_feeType == FeeType.DIVIDEND) {
+            return(feeMultiplier[14]);
+        }  else if (_feeType == FeeType.REDEMPTION) {
+            return(feeMultiplier[15]);
+        }  else if (_feeType == FeeType.IMAGE) {
+            return(feeMultiplier[16]);
         } else {
             revert("FeeManager: Bad FeeType");
         }

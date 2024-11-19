@@ -12,7 +12,7 @@ import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
 //   0x3B63cD222C5080cDeA921B8D3cF4A692b8DfEE4D
 
 
-contract Deploy is Script {
+contract DeployDebugRwaX is Script {
 
     CTMRWA001X ctmRwa001X;
 
@@ -66,7 +66,7 @@ contract Deploy is Script {
         address ctmRwaDeployerAddr = address(0x038a39974a702ada213a318c855792244884EDCC);
         ctmRwa001X.setCtmRwaDeployer(ctmRwaDeployerAddr);
 
-        ICTMRWADeployer(ctmRwaDeployerAddr).setRwaX(address(ctmRwa001X));  // MUST CHANGE BACK
+        // ICTMRWADeployer(ctmRwaDeployerAddr).setRwaX(address(ctmRwa001X));  // MUST CHANGE BACK
 
 
         vm.stopBroadcast();

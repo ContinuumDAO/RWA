@@ -120,11 +120,12 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         URICategory _uriCategory,
         URIType _uriType,
         uint256 _slot,
+        FeeType _uriFeeType,
         bytes memory _objectName,
         bytes32 _uriDataHash,
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
-    ) external {
+    ) public {
         
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
         require(ok, "CTMRWA001StorageManager: Could not find _ID or its storage address");
@@ -134,17 +135,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
         require(bytes(ICTMRWA001(ctmRwa001Addr).baseURI()).length > 0, "CTMRWA001StorageManager: This token does not have storage");
 
-
-        FeeType uriFeeType;
-        if(_uriType == URIType.CONTRACT) {
-            uriFeeType = FeeType.URICONTRACT;
-        } else if(_uriType == URIType.SLOT) {
-            uriFeeType = FeeType.URISLOT;
-        } else {
-            revert("CTMRWA001StorageManager: Incorrect URIType");
-        }
-
-        _payFee(uriFeeType, _feeTokenStr, _chainIdsStr, true);
+        _payFee(_uriFeeType, _feeTokenStr, _chainIdsStr, true);
 
         for(uint256 i=0; i<_chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);

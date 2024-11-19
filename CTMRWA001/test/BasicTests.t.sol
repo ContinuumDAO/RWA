@@ -83,8 +83,8 @@ contract SetUp is Test {
     string[] rwaXsStr;
     string[] storageAddrsStr;
 
-    SlotData[] allSlots;
-    uint256[] emptyArr;
+    uint256[] slotNumbers;
+    string[] slotNames;
 
 
     // address c3;
@@ -870,8 +870,6 @@ contract TestBasicToken is SetUp {
             sig,
             currentAdminStr,
             ID,
-            rwaType,
-            version,
             tokenName,
             symbol,
             decimals,
@@ -929,7 +927,8 @@ contract TestBasicToken is SetUp {
         string memory symbol = "RWA";
         uint8 decimals = 18;
         uint256 timestamp = 12776;
-        allSlots.push(SlotData(7,"test RWA",876,emptyArr));
+        slotNumbers.push(7);
+        slotNames.push("test RWA");
 
         uint256 ID = uint256(keccak256(abi.encode(
             tokenName,
@@ -941,20 +940,17 @@ contract TestBasicToken is SetUp {
 
         string memory baseURI = "GFLD";
 
-        string memory fromContractStr = "";
 
         vm.prank(address(c3CallerLogic));
         bool ok = rwa001X.deployCTMRWA001(
             newAdminStr,
             ID,
-            rwaType,
-            version,
             tokenName,
             symbol,
             decimals,
             baseURI,
-            allSlots,
-            fromContractStr
+            slotNumbers,
+            slotNames
         );
 
         assertEq(ok, true);

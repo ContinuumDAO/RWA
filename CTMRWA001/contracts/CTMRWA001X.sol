@@ -32,9 +32,6 @@ contract CTMRWA001X is Context, GovernDapp {
     address public fallbackAddr;
     string public cIDStr;
 
-    SlotData[] emptySlots;
-    SlotData[] allSlots;
-
 
     mapping(address => address[]) public adminTokens;  // tokenAdmin address => array of CTMRWA001 contracts
     mapping(address => address[]) public ownedCtmRwa001;  // owner address => array of CTMRWA001 contracts
@@ -82,7 +79,7 @@ contract CTMRWA001X is Context, GovernDapp {
         fallbackAddr = _fallbackAddr;
 
     }
-   
+
 
     function deployAllCTMRWA001X(
         bool _includeLocal,
@@ -107,6 +104,9 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory symbol;
         uint8 decimals;
         string memory baseURI;
+
+        uint256[] memory slotNumbers;
+        string[] memory slotNames;
         
 
         if(_includeLocal) {
@@ -125,16 +125,14 @@ contract CTMRWA001X is Context, GovernDapp {
             baseURI = _baseURI;
 
             currentAdmin = _msgSender();
-            allSlots = emptySlots;
             ctmRwa001Addr = _deployCTMRWA001Local(
                 ID, 
-                _rwaType, 
-                _version, 
                 _tokenName, 
                 _symbol, 
                 _decimals, 
                 baseURI, 
-                allSlots, 
+                slotNumbers,
+                slotNames, 
                 currentAdmin
             );
             
@@ -153,10 +151,7 @@ contract CTMRWA001X is Context, GovernDapp {
             decimals = ICTMRWA001(ctmRwa001Addr).valueDecimals();
             baseURI = ICTMRWA001(ctmRwa001Addr).baseURI();
 
-            allSlots = ICTMRWA001(ctmRwa001Addr).getAllSlots();
-            for(uint256 i=0; i<allSlots.length; i++) {
-                allSlots[i].slotTokens= new uint256[](0);
-            }
+            (slotNumbers, slotNames) = ICTMRWA001(ctmRwa001Addr).getAllSlots();
         }
 
         ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
@@ -170,7 +165,8 @@ contract CTMRWA001X is Context, GovernDapp {
                 decimals, 
                 baseURI,
                 _toChainIdsStr[i],
-                allSlots,
+                slotNumbers,
+                slotNames,
                 ctmRwa001AddrStr
             );
         }
@@ -182,16 +178,15 @@ contract CTMRWA001X is Context, GovernDapp {
         
     function _deployCTMRWA001Local(
         uint256 _ID,
-        uint256 _rwaType,
-        uint256 _version,
         string memory _tokenName, 
         string memory _symbol, 
         uint8 _decimals,
         string memory _baseURI,
-        SlotData[] memory _allSlots,
+        uint256[] memory _slotNumbers,
+        string[] memory _slotNames,
         address _tokenAdmin
     ) internal returns(address) {
-        (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, _rwaType, _version);
+        (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(!ok, "CTMRWA001X: A local contract with this ID already exists");
 
         bytes memory deployData = abi.encode(
@@ -201,14 +196,15 @@ contract CTMRWA001X is Context, GovernDapp {
             _symbol, 
             _decimals, 
             _baseURI,
-            _allSlots,
+            _slotNumbers,
+            _slotNames,
             address(this)
         );
 
         address ctmRwa001Token = ICTMRWADeployer(ctmRwaDeployer).deploy(
             _ID,
-            _rwaType,
-            _version,
+            rwaType,
+            version,
             deployData
         );
 
@@ -231,7 +227,8 @@ contract CTMRWA001X is Context, GovernDapp {
         uint8 _decimals,
         string memory _baseURI,
         string memory _toChainIdStr,
-        SlotData[] memory _allSlots,
+        uint256[] memory _slotNumbers,
+        string[] memory _slotNames,
         string memory _ctmRwa001AddrStr
     ) internal returns (bool) {
         require(!stringsEqual(_toChainIdStr, cID().toString()), "CTMRWA001X: Not a cross-chain transfer");
@@ -245,19 +242,17 @@ contract CTMRWA001X is Context, GovernDapp {
 
         (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
 
-        string memory funcCall = "deployCTMRWA001(string,uint256,uint256,uint256,string,string,uint8,string,SlotData[],string)";
+        string memory funcCall = "deployCTMRWA001(string,uint256,string,string,uint8,string,uint256[],string[])";
         bytes memory callData = abi.encodeWithSignature(
             funcCall,
             currentAdminStr,
             ID,
-            rwaType,
-            version,
             _tokenName,
             _symbol,
             _decimals,
             _baseURI,
-            _allSlots,
-            _ctmRwa001AddrStr
+            _slotNumbers,
+            _slotNames
         );
 
         c3call(toRwaXStr, toChainIdStr, callData);
@@ -271,33 +266,27 @@ contract CTMRWA001X is Context, GovernDapp {
     function deployCTMRWA001(
         string memory _newAdminStr,
         uint256 _ID,
-        uint256 _rwaType,
-        uint256 _version,
         string memory _tokenName, 
         string memory _symbol, 
         uint8 _decimals,
         string memory _baseURI,
-        SlotData[] memory _allSlots,
-        string memory _fromContractStr
+        uint256[] memory _slotNumbers,
+        string[] memory _slotNames
     ) external onlyCaller returns(bool) { 
 
-        (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, _rwaType, _version);
+        (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(!ok, "CTMRWA001X: A local contract with this ID already exists");
 
         address newAdmin = stringToAddress(_newAdminStr);
 
-        // (, string memory fromChainIdStr,) = context();
-        // fromChainIdStr = _toLower(fromChainIdStr);
-
-        address ctmRwa001Token = _deployCTMRWA001Local(
+        _deployCTMRWA001Local(
             _ID, 
-            _rwaType, 
-            _version, 
             _tokenName, 
             _symbol, 
             _decimals, 
             _baseURI,
-            _allSlots,
+            _slotNumbers,
+            _slotNames,
             newAdmin
         );
 
@@ -392,7 +381,7 @@ contract CTMRWA001X is Context, GovernDapp {
             return(toTokenId_);
         } else {
             bool slotExists = ICTMRWA001(ctmRwa001Addr).slotExists(slot_);
-            require(slotExists, "CTMRWA001X: Slot does nor exist");
+            require(slotExists, "CTMRWA001X: Slot does not exist");
             string memory thisSlotName = ICTMRWA001(ctmRwa001Addr).slotName(slot_);
            
             uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(toAddress_, slot_, thisSlotName, value_);
@@ -414,6 +403,7 @@ contract CTMRWA001X is Context, GovernDapp {
     ) public returns(bool) {
         require(bytes(_slotName).length <= 128, "CTMRWA001X: Slot name > 128 characters");
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
+        require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "CTMRWA001X: Trying to create a slot that already exists");
         
         _checkTokenAdmin(ctmRwa001Addr);
 
@@ -426,7 +416,6 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 len = _toChainIdsStr.length;
 
         for(uint256 i=0; i<len; i++) {
-            require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "CTMRWA001X: Trying to create a slot that already exists");
             toChainIdStr = _toLower(_toChainIdsStr[i]);
             if(!stringsEqual(cIDStr, toChainIdStr)){
                 (fromAddressStr, toRwaXStr) = _getRWAX(toChainIdStr);
@@ -457,7 +446,7 @@ contract CTMRWA001X is Context, GovernDapp {
     ) external onlyCaller returns(bool) {
         (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA001X: Destination token contract with this ID does not exist");
-        require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "CTMRWA001X: Slot already exists. Cannot add");
+        require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "CTMRWA001X: Trying to create a slot that already exists");
 
         (, string memory fromChainIdStr,) = context();
 
@@ -615,7 +604,7 @@ contract CTMRWA001X is Context, GovernDapp {
     }
 
     function _getRWAX(string memory _toChainIdStr) internal view returns(string memory, string memory) {
-        require(!stringsEqual(_toChainIdStr, cIDStr), "CTMRWA001X: Not a cross-chain tokenAdmin change");
+        require(!stringsEqual(_toChainIdStr, cIDStr), "CTMRWA001X: Not a cross-chain request");
 
         string memory fromAddressStr = _toLower(_msgSender().toHexString());
 

@@ -63,10 +63,9 @@ contract XChainTests is Script {
 
     function run() external {
 
-        loadContracts(97);
-        rwa001XAddr = 0x1944F7fdd330Af7b0e7C08349591213E35ed5948;  // DEBUG rwaX
+        loadContracts(421614);
 
-        debugRwaXCall();
+        // debugRwaXCall();
 
         // bytes32 uuid = 0x0af4db05db5de1fe5bf857058d248429a9b590d7ba9b0d9303245791707e87f4;
         // checkC3Call(uuid);
@@ -77,14 +76,16 @@ contract XChainTests is Script {
 
         // this.deployLocal();
 
-        // this.deployRemote(97, 0);
+        // this.deployRemote(84532, 0);
 
         // toChainIdsStr.push("421614");
-        // toChainIdsStr.push("97");
-        //this.createSlots(toChainIdsStr, 0);
-        // getSlots(0);
+        // toChainIdsStr.push("84532");
+        // this.createSlots(toChainIdsStr, 0);
+        // getSlots(0,1);
 
-        // this.transferValueTokenToAddress();
+        // mintLocalValue(0);
+
+        transferValueTokenToAddress();
 
         // this.transferValueWholeTokenToAddress();
 
@@ -97,38 +98,38 @@ contract XChainTests is Script {
         if(chainId == 421614) {   // On ARB SEPOLIA
             // c3UUIDKeeper = ;
             feeToken = 0x92829288C6Aa874c1A0F190dA35A4023C22be637;
-            feeManager = 0x1211a2Dd0d01848DC4042A7A354Cb8a4C51dF594;
-            gatewayAddr =  0x82C7Cf3AD2A7C6EA732C131e552AD171d190421E;
-            rwa001XAddr = 0x6F2F79720C81631d3a0FE8e19c96F3ceBd56519a;
-            ctmFallbackAddr =  0xDB28747B45cca117D7E825B820f896f485a5C729;
-            ctmRwa001Map = 0x13797c225F8E3645299F17d83365e0f5DB1c1607;
-            ctmRwaDeployer = 0x3800dAcd202a91A791BC040dfD352a9565E51Aa7;
-            ctmRwaFactory = 0x4f102432739a2DE082B7977316796A05C99147fb;
-            dividendAddr = 0xe07AD311e5ec29EB04e1b6208852fDFBBD614bC4;
-            storageManagerAddr = 0x6DD5666Ef6b2E83D504C1EE586fB3C630aBc7fD2;
+            feeManager = 0xb413850c2d470643f5CB4bA9678c4E7D822C326e;
+            gatewayAddr =  0x787A3afdebABb386b31d56cF7Cc3cD6637340799;
+            rwa001XAddr = 0x386ed9c1a214Cc8700AF43F4a39df8c722176e01;
+            ctmFallbackAddr = 0x9D2C8c788b64E4F32eB3Fd0Bea254d785B505a11;
+            ctmRwa001Map = 0x412fd3b06042b73D9d186D013C74BDfD9E9e61Ca;
+            ctmRwaDeployer = 0x5f3D14bE07b8133f5CEeBe528F8d7D1BDA4eA2ED;
+            ctmRwaFactory = 0x75674E2ef76e733745FCE92C7C85643A8a708ABA;
+            dividendAddr = 0x25F853ee74B7014285513bF348dC8aa77fA44fCE;
+            storageManagerAddr = 0xe60CC236b36bA33B07832EC9bFeaf875A409A1D3;
 
         } else if(chainId == 84532) {    // on BASE SEPOLIA
-            // feeToken = ;
+            feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
+            feeManager = 0x41543A4C6423E2546FC58AC63117B5692D68c323;
+            gatewayAddr =  0x969035b34B913c507b87FD805Fff608FB1fE13f0;
+            rwa001XAddr = 0x66b719C489193594c617801e67119959CD15b63A;
+            ctmFallbackAddr = 0x5Fb1394608Ce2Ef7092A642d6c5D3b2325300bFD;
+            ctmRwa001Map = 0xe96270a4DeFb602d8C7E5aDB7f090EAC5291A641;
+            ctmRwaDeployer = 0x766061Cd28592Fd2503cAA3E4772C1215192cD3d;
+            ctmRwaFactory = 0xa78f13ddB2538e76ed0EB66F3B0c36d77c237Ab8;
+            dividendAddr = 0x208a83079E25e17fe5dC64BbB77e388FEe725A99;
+            storageManagerAddr = 0xE569c146B0d4c1c941607b5c6A648b5877AE29EF;
+        } else if(chainId == 97) {  // BSC TESTNET
+            // feeToken = 0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD;
             // feeManager = ;
             // gatewayAddr =  ;
             // rwa001XAddr = ;
-            // ctmFallbackAddr =   ;
+            // ctmFallbackAddr =  ;
             // ctmRwa001Map = ;
             // ctmRwaDeployer = ;
             // ctmRwaFactory = ;
             // dividendAddr = ;
             // storageManagerAddr = ;
-        } else if(chainId == 97) {  // BSC TESTNET
-            feeToken = 0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD;
-            feeManager = 0xBCe6B1Ab3790BCe90E2299cc9C46f6D2bCB56324;
-            gatewayAddr =  0x291E038Ef58dcFDF020e0BBEA0C9a36713dB7966;
-            rwa001XAddr = 0x4328Bf65bC8C69067a03D0fbDe94ca1e24ED966c;
-            ctmFallbackAddr =  0xEa911684c200aC1FD3Ca8A3FFD21aFE9EF0e35Da;
-            ctmRwa001Map = 0x69D461E1314af5E3bcab39f0ebA3872c5de2c1e5;
-            ctmRwaDeployer = 0x038a39974a702ada213a318c855792244884EDCC;
-            ctmRwaFactory = 0x957EBEeCcA9E712e335f99dE34D0F46317283696;
-            dividendAddr = 0x29d457B659BF1E3b10254Eb46D351A7Ea8df5A7B;
-            storageManagerAddr = 0x6187ee058bB5b7Db140cfd470a27EBe1f16D92B1;
         }
 
         gateway = ICTMRWAGateway(gatewayAddr);
@@ -156,7 +157,7 @@ contract XChainTests is Script {
 
         vm.startBroadcast(senderPrivateKey);
 
-        IERC20(feeToken).approve(rwa001XAddr, 10000*10**6);
+        // IERC20(feeToken).approve(rwa001XAddr, 1000*10**6);
 
 
         address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
@@ -209,20 +210,15 @@ contract XChainTests is Script {
 
         string memory newAdminStr = admin.toHexString();
         uint256 ID = 29251130053171396288129669670399520996794011934199132580927820677505894114636;
-        uint256 rwaType = 1;
-        uint256 version = 1;
 
         bool ok = rwa001X.deployCTMRWA001(
             newAdminStr,
             ID,
-            rwaType,
-            version,
             "Selqui SQ1",
             "SQ1",
             uint8(18),
             "GFLD",
-            allSlots,
-            "0x6F2F79720C81631d3a0FE8e19c96F3ceBd56519a"
+            allSlots
         );
 
         console.log("RETURNS");
@@ -256,8 +252,8 @@ contract XChainTests is Script {
 
         bool ok = rwa001X.createNewSlot(
             ID,
-            5,
-            "Brand new RWA",
+            6,
+            "Another new RWA",
             chainIdsStr,
             feeTokenStr
         );
@@ -265,29 +261,24 @@ contract XChainTests is Script {
         vm.stopBroadcast();
     }
 
-    function getSlots(uint256 indx) public {
+    function getSlots(uint256 tokenIndx, uint256 slotIndx) public {
 
         address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
         console.log("admin token address");
-        console.log(adminTokens[indx]);
+        console.log(adminTokens[tokenIndx]);
 
-        address tokenAddr = adminTokens[indx];
+        address tokenAddr = adminTokens[tokenIndx];
 
-        SlotData[] memory slotData = ICTMRWA001(tokenAddr).getAllSlots();
+        (uint256[] memory slotNumbers, string[] memory slotNames) = ICTMRWA001(tokenAddr).getAllSlots();
 
         console.log("SlotData - slot");
-        console.log(slotData[0].slot);
+        console.log(slotNumbers[slotIndx]);
         console.log("SlotData - slotName");
-        console.log(slotData[0].slotName);
-        console.log("SlotData - dividendRate");
-        console.log(slotData[0].dividendRate);
-        console.log("SlotData - slotTokens.length");
-        console.log(slotData[0].slotTokens.length);
-
+        console.log(slotNames[slotIndx]);
 
     }
 
-    function mintLocalValue(uint256 indx) external {
+    function mintLocalValue(uint256 indx) public {
 
         vm.startBroadcast(senderPrivateKey);
 
@@ -312,7 +303,7 @@ contract XChainTests is Script {
 
     }
    
-    function transferValueTokenToAddress() external {
+    function transferValueTokenToAddress() public {
 
         vm.startBroadcast(senderPrivateKey);
 
@@ -346,7 +337,7 @@ contract XChainTests is Script {
         rwa001X.transferFromX(
             tokenId,
             admin.toHexString(),
-            "97",
+            "84532",
             50,
             ID,
             feeTokenStr

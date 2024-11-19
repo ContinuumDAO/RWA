@@ -18,8 +18,6 @@ interface ICTMRWA001X {
     function ctmRwaDeployer() external returns(address);
 
     
-
-    
     function deployAllCTMRWA001X(
         bool includeLocal,
         uint256 existingID,
@@ -36,14 +34,11 @@ interface ICTMRWA001X {
     function deployCTMRWA001(
         string memory newAdminStr,
         uint256 ID,
-        uint256 rwaType,
-        uint256 version,
         string memory tokenName, 
         string memory symbol, 
         uint8 decimals,
         string memory baseURI,
-        SlotData[] memory allSlots,
-        string memory fromContractStr
+        SlotData[] memory allSlots
     ) external returns(bool);    // onlyCaller function (added for DEBUG purposes)
 
     function changeAdminCrossChain(

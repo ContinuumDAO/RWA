@@ -36,9 +36,10 @@ contract CTMRWA001TokenFactory {
             string memory symbol,
             uint8 decimals,
             string memory baseURI,
-            SlotData[] memory allSlots,
+            uint256[] memory slotNumbers,
+            string[] memory slotNames,
             address ctmRwa001X
-        ) = abi.decode(_deployData, (uint256, address, string, string, uint8, string, SlotData[], address));
+        ) = abi.decode(_deployData, (uint256, address, string, string, uint8, string, uint256[], string[], address));
 
         CTMRWA001Token ctmRwa001Token = new CTMRWA001Token{
             salt: bytes32(ID) 
@@ -53,7 +54,9 @@ contract CTMRWA001TokenFactory {
         );
 
         address ctmRwa001Addr = address(ctmRwa001Token);
-        ICTMRWA001(ctmRwa001Addr).setAllSlotData(allSlots);
+        if(slotNumbers.length >0 ) {
+            ICTMRWA001(ctmRwa001Addr).initializeSlotData(slotNumbers, slotNames);
+        }
 
         return(ctmRwa001Addr);
     }
