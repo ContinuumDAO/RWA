@@ -200,7 +200,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _allTokens[_allTokensIndex[tokenId_]].balance;
     }
 
-    function dividendUnclaimedOf(uint256 tokenId_) external view virtual returns (uint256) {
+    function dividendUnclaimedOf(uint256 tokenId_) public view virtual returns (uint256) {
        requireMinted(tokenId_);
         return _allTokens[_allTokensIndex[tokenId_]].dividendUnclaimed;
     }
@@ -279,7 +279,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         uint256 fromTokenId_,
         address to_,
         uint256 value_
-    ) public payable virtual override returns (uint256 newTokenId) {
+    ) public override onlyRwa001X returns (uint256 newTokenId) {
         spendAllowance(_msgSender(), fromTokenId_, value_);
 
         string memory thisSlotName = slotNameOf(fromTokenId_);
@@ -294,9 +294,11 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         uint256 fromTokenId_,
         uint256 toTokenId_,
         uint256 value_
-    ) public payable virtual override {
+    ) public virtual override returns(address) {
         spendAllowance(_msgSender(), fromTokenId_, value_);
         _transferValue(fromTokenId_, toTokenId_, value_);
+
+        return(ownerOf(toTokenId_));
     }
 
     function balanceOf(address owner_) public view virtual override returns (uint256 balance) {
@@ -308,8 +310,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         address from_,
         address to_,
         uint256 tokenId_
-    ) public virtual override {
+    ) public override onlyRwa001X {
         require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
+        require(dividendUnclaimedOf(tokenId_) == 0, "CTMRWA001: TokenId has unclaimed dividend");
         _transferTokenId(from_, to_, tokenId_);
 
     }

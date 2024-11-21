@@ -464,7 +464,7 @@ contract CTMRWA001X is Context, GovernDapp {
     }
 
     
-    function transferFromX(
+    function transferPartialTokenX(
         uint256 _fromTokenId,
         string memory _toAddressStr,
         string memory _toChainIdStr,
@@ -473,74 +473,100 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory _feeTokenStr
     ) public {
         require(bytes(_toAddressStr).length>0, "CTMRWA001X: Destination address has zero length");
-
+        
         string memory toChainIdStr = _toLower(_toChainIdStr);
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
-        
-        ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
+        require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "CTMRWA001X: Not approved or owner of tokenId");
+        require(ICTMRWA001(ctmRwa001Addr).dividendUnclaimedOf(_fromTokenId) == 0, "CTMRWA001X: TokenId has unclaimed dividend");
 
-        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
+        if(stringsEqual(toChainIdStr, cIDStr)) {
+            address toAddr = stringToAddress(_toAddressStr);
+            ICTMRWA001(ctmRwa001Addr).approveFromX(address(this), _fromTokenId);
+            ICTMRWA001(ctmRwa001Addr).transferFrom(_fromTokenId, toAddr, _value);
+            ICTMRWA001(ctmRwa001Addr).approveFromX(address(0), _fromTokenId);
+            ownedCtmRwa001[toAddr].push(ctmRwa001Addr);
+        } else {
 
-        uint256 slot = ICTMRWA001(ctmRwa001Addr).slotOf(_fromTokenId);
+            (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
+            
+            ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
 
-        ICTMRWA001(ctmRwa001Addr).burnValueX(_fromTokenId, _value);
+            _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
-        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
-        
-        bytes memory callData = abi.encodeWithSignature(
-            funcCall,
-            _ID,
-            fromAddressStr,
-            _toAddressStr,
-            _fromTokenId,
-            slot,
-            _value,
-            ctmRwa001AddrStr
-        );
-        
-        c3call(toRwaXStr, toChainIdStr, callData);
+            uint256 slot = ICTMRWA001(ctmRwa001Addr).slotOf(_fromTokenId);
+
+            ICTMRWA001(ctmRwa001Addr).burnValueX(_fromTokenId, _value);
+
+            string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
+            
+            bytes memory callData = abi.encodeWithSignature(
+                funcCall,
+                _ID,
+                fromAddressStr,
+                _toAddressStr,
+                _fromTokenId,
+                slot,
+                _value,
+                ctmRwa001AddrStr
+            );
+            
+            c3call(toRwaXStr, toChainIdStr, callData);
+        }
 
     }
     
 
-    function transferFromX(
+    function transferWholeTokenX(
+        string memory _fromAddrStr,
         string memory _toAddressStr,
         string memory _toChainIdStr,
         uint256 _fromTokenId,
         uint256 _ID,
         string memory _feeTokenStr
     ) public {
+        
         string memory toChainIdStr = _toLower(_toChainIdStr);
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
-        
-        require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "CTMRWA001X: transfer caller is not owner nor approved");
+        address fromAddr = stringToAddress(_fromAddrStr);
+        require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(fromAddr, _fromTokenId), "CTMRWA001X: transfer caller is not owner nor approved");
+        require(ICTMRWA001(ctmRwa001Addr).dividendUnclaimedOf(_fromTokenId) == 0, "CTMRWA001X: TokenId has unclaimed dividend");
 
-        _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
-        (,uint256 value,,uint256 slot,) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_fromTokenId);
+        if(stringsEqual(toChainIdStr, cIDStr)) {
+            address toAddr = stringToAddress(_toAddressStr);
+            ICTMRWA001(ctmRwa001Addr).approveFromX(address(this), _fromTokenId);
+            ICTMRWA001(ctmRwa001Addr).transferFrom(fromAddr, toAddr, _fromTokenId);
+            ICTMRWA001(ctmRwa001Addr).approveFromX(toAddr, _fromTokenId);
+            ownedCtmRwa001[toAddr].push(ctmRwa001Addr);
+        } else {
 
-        ICTMRWA001(ctmRwa001Addr).approveFromX(address(0), _fromTokenId);
-        ICTMRWA001(ctmRwa001Addr).clearApprovedValues(_fromTokenId);
+            (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
+            
+            _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
-        ICTMRWA001(ctmRwa001Addr).removeTokenFromOwnerEnumeration(_msgSender(), _fromTokenId);
+            (,uint256 value,,uint256 slot,) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_fromTokenId);
 
-        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
-        bytes memory callData = abi.encodeWithSignature(
-            funcCall,
-            _ID,
-            fromAddressStr,
-            _toAddressStr,
-            _fromTokenId,
-            slot,
-            value,
-            ctmRwa001AddrStr
-        );
+            ICTMRWA001(ctmRwa001Addr).approveFromX(address(0), _fromTokenId);
+            ICTMRWA001(ctmRwa001Addr).clearApprovedValues(_fromTokenId);
 
-        c3call(toRwaXStr, toChainIdStr, callData);
+            ICTMRWA001(ctmRwa001Addr).removeTokenFromOwnerEnumeration(_msgSender(), _fromTokenId);
+
+            string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
+            bytes memory callData = abi.encodeWithSignature(
+                funcCall,
+                _ID,
+                _fromAddrStr,
+                _toAddressStr,
+                _fromTokenId,
+                slot,
+                value,
+                ctmRwa001AddrStr
+            );
+
+            c3call(toRwaXStr, toChainIdStr, callData);
+        }
 
     }
 

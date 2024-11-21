@@ -27,7 +27,7 @@ contract NewChainSetup is Script {
     uint256 rwaType = 1;
     uint256 version = 1;
 
-    uint256 chainId = 421614;   // This is the chainId we are processing
+    uint256 chainId = 11155111;   // This is the chainId we are processing
 
     string[] feeTokensStr;
     uint256[] fees;
@@ -52,24 +52,27 @@ contract NewChainSetup is Script {
 
     constructor() {
         newchains.push(NewChain(    // ARB Sepolia
-            421614, 
-            0x787A3afdebABb386b31d56cF7Cc3cD6637340799,
-            0x386ed9c1a214Cc8700AF43F4a39df8c722176e01,
-            0xb413850c2d470643f5CB4bA9678c4E7D822C326e,
-            0xe60CC236b36bA33B07832EC9bFeaf875A409A1D3,
+            421614,
+            0xeb4b038c0f1F086BB7Ab5B4192611015aFf95390,
+            0xb3aefEa9F49De70C41Ce22Afa321E64393932d21,
+            0x0e95227823f64F54D6611Ae6f4fb70a4D76D4378,
+            0x37C7137Dc6e3DC3c3637bFEd3F6dBFbd43386429,
             0x92829288C6Aa874c1A0F190dA35A4023C22be637
         ));
-        // newchains.push(NewChain(   // POLYGON AMOY  Chain 80002
-        //     80002,
-            
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        // ));
+        newchains.push(NewChain(   // POLYGON AMOY  Chain 80002
+            80002,
+            0xfdD1a5B3AEEa2DF15a6F6B502784B61BdCbF66BC,
+            0xD586Ea1FcE09384F71B69e80F643135FC0641def,
+            0xA9522e00101Ee85f3B8E6a4F0723F5eA4A2F0A50,
+            0xB523F0e72A7BdF94a5a3d84BA9e8Dc42E69229ea,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        ));
         newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
             84532,
-            0x969035b34B913c507b87FD805Fff608FB1fE13f0,
-            0x66b719C489193594c617801e67119959CD15b63A,
-            0x41543A4C6423E2546FC58AC63117B5692D68c323,
-            0xE569c146B0d4c1c941607b5c6A648b5877AE29EF,
+            0xEa4A06cB68ABa869e6BF98Edc4BdbC731d2D82e3,
+            0x9A0F81de582Ce9194FEADC6CCefaf9eA70451616,
+            0x66dc636132fb9b7f6ed858928B65864D3fd0ea67,
+            0x9372CD1287E0bB6337802D80DFF342348c85fd78,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         ));
         // newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
@@ -87,6 +90,16 @@ contract NewChainSetup is Script {
             
         //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         // ));
+
+
+        // uint256 chainId;
+        // address gateway;
+        // address rwaX;
+        // address feeManager;
+        // address storageManager;
+        // address feeToken;
+
+
         // newchains.push(NewChain(  // HOLESKY Chain 17000
         //     17000,
             
@@ -182,16 +195,22 @@ contract NewChainSetup is Script {
             
         //     0xf6d2060494cD08e776D22a47E67d485a33C8c5d2
         // ));
-        // newchains.push(NewChain(  //  BSC TESTNET Chain 97
-        //     97,
-           
-        //     0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD
-        // ));
-        // newchains.push(NewChain(  //  SEPOLIA  Chain 11155111
-        //     11155111,
-           
-        //     0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c
-        // ));
+        newchains.push(NewChain(  //  BSC TESTNET Chain 97
+            97,
+            0xc0DD542BCaC26095A2C83fFb10826CCEf806C07b,
+            0x7658E59CdbA5e7E08263a216e89c8438C9F02048,
+            0x605Ab9626e57C5d1f3f0508D5400aB0449b5a015,
+            0x855c06F9f7b01838DC540Ec6fcfF17fD86A378D8,
+            0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD
+        ));
+        newchains.push(NewChain(  //  SEPOLIA  Chain 11155111
+            11155111,
+            0xF065f9BbD5F59afa0D24BE34bDf8aD483485ED1C,
+            0x1eE4bA474da815f728dF08F0147DeFac07F0BAb3,
+            0x1e608FD1546e1bC1382Abc4E676CeFB7e314Fb30,
+            0xCBf4E5FDA887e602E5132FA800d74154DFb5B237,
+            0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c
+        ));
     }
     
    

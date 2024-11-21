@@ -176,7 +176,7 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
         uint256 _fromTokenId,
         uint256 _toTokenId,
         uint256 _value
-    ) external payable;
+    ) external returns(address);
 
     /**
      * @notice Transfer value from a specified token to an address. The caller should confirm that
@@ -197,6 +197,6 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
         uint256 _fromTokenId,
         address _to,
         uint256 _value
-    ) external payable returns (uint256);
+    ) external returns (uint256);
 }
 

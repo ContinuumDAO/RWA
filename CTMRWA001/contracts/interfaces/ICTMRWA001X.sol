@@ -77,8 +77,7 @@ interface ICTMRWA001X {
     ) external returns(bool);
 
 
-    // transferFromX
-    function transferFromX( // transfer from/to same tokenid with value
+    function transferPartialTokenX( // transfer from/to same tokenid with value
         uint256 fromTokenId_,
         string memory toAddressStr_,
         string memory toChainIdStr_,
@@ -88,10 +87,11 @@ interface ICTMRWA001X {
     ) external;
     
 
-    function transferFromX( // transfer from/to same tokenid without value
-        string memory toAddressStr_,
-        string memory toChainIdStr_,
-        uint256 fromTokenId_,
+    function transferWholeTokenX( // transfer from/to same tokenid without value
+        string memory fromAddressStr,
+        string memory toAddressStr,
+        string memory toChainIdStr,
+        uint256 fromTokenId,
         uint256 ID,
         string memory feeTokenStr
     ) external;

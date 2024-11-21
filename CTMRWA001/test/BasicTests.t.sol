@@ -134,7 +134,7 @@ contract SetUp is Test {
         uint256 privKey5 = vm.deriveKey(mnemonic, 5);
         uint256 privKey6 = vm.deriveKey(mnemonic, 6);
 
-        cIdStr = block.chainid.toHexString();
+        cIdStr = block.chainid.toString();
 
         admin = vm.addr(privKey0);
         gov = vm.addr(privKey1);
@@ -818,6 +818,47 @@ contract TestBasicToken is SetUp {
         assertEq(balBefore, balAfter-toClaim);
     }
 
+    function test_localTransferX() public {
+        vm.startPrank(admin);  // this CTMRWA001 has an admin of admin
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
+        (uint256 tokenId, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+
+        address[] memory feeTokenList = feeManager.getFeeTokenList();
+        string memory feeTokenStr = feeTokenList[0].toHexString();
+
+
+        vm.expectRevert("CTMRWA001X: Not approved or owner of tokenId");
+        rwa001X.transferPartialTokenX(tokenId, user1.toHexString(), cIdStr, 5, ID, feeTokenStr);
+        vm.stopPrank();
+
+
+        vm.startPrank(user1);
+        uint256 balBefore = ICTMRWA001(ctmRwaAddr).balanceOf(tokenId);
+        rwa001X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 5, ID, feeTokenStr);
+        uint256 balAfter = ICTMRWA001(ctmRwaAddr).balanceOf(tokenId);
+        assertEq(balBefore, balAfter+5);
+
+        address owned = rwa001X.getAllTokensByOwnerAddress(user2)[0];
+        assertEq(owned, ctmRwaAddr);
+
+        uint256 newTokenId = ICTMRWA001(ctmRwaAddr).tokenOfOwnerByIndex(user2,0);
+        assertEq(ICTMRWA001(ctmRwaAddr).ownerOf(newTokenId), user2);
+        uint256 balNewToken = ICTMRWA001(ctmRwaAddr).balanceOf(newTokenId);
+        assertEq(balNewToken, 5);
+
+        ICTMRWA001(ctmRwaAddr).approve(tokenId2, user2, 50);
+        vm.stopPrank();
+
+        vm.startPrank(user2);
+        rwa001X.transferWholeTokenX(user1.toHexString(), admin.toHexString(), cIdStr, tokenId2, ID, feeTokenStr);
+        address owner = ICTMRWA001(ctmRwaAddr).ownerOf(tokenId2);
+        assertEq(owner, admin);
+        assertEq(ICTMRWA001(ctmRwaAddr).getApproved(tokenId2), admin);
+
+        vm.stopPrank();
+
+    }
+
     function test_remoteDeploy() public {
 
         vm.startPrank(user1);
@@ -1179,7 +1220,8 @@ contract TestBasicToken is SetUp {
         vm.expectEmit(true, true, false, true);
         emit LogC3Call(2, testUUID, address(rwa001X), toChainIdStr, toRwaXStr, callData, bytes(""));
 
-        // function transferFromX(
+        // function transferWholeTokenX(
+        //     string memory _fromAddressStr,
         //     string memory _toAddressStr,
         //     string memory _toChainIdStr,
         //     uint256 _fromTokenId,
@@ -1188,7 +1230,7 @@ contract TestBasicToken is SetUp {
         // ) public {
 
         vm.prank(user1);
-        rwa001X.transferFromX(user1Str, toChainIdStr, tokenId1, ID, feeTokenStr);
+        rwa001X.transferWholeTokenX(user1Str, user1Str, toChainIdStr, tokenId1, ID, feeTokenStr);
     }
 
 
@@ -1256,7 +1298,7 @@ contract TestBasicToken is SetUp {
         vm.expectEmit(true, true, false, true);
         emit LogC3Call(2, testUUID, address(rwa001X), toChainIdStr, toRwaXStr, callData, bytes(""));
 
-    //    function transferFromX(
+    //    function transferPartialTokenX(
     //         uint256 _fromTokenId,
     //         string memory _toAddressStr,
     //         string memory _toChainIdStr,
@@ -1266,7 +1308,7 @@ contract TestBasicToken is SetUp {
     //     ) public 
 
         vm.prank(user1);
-        rwa001X.transferFromX(tokenId1, user1Str, toChainIdStr, value/2, ID, feeTokenStr);
+        rwa001X.transferPartialTokenX(tokenId1, user1Str, toChainIdStr, value/2, ID, feeTokenStr);
 
     }
 
