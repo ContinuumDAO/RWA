@@ -6,7 +6,7 @@ node_modules/
 CTMRWA001/lib
 
 # Ignores development broadcast logs
-!CTMRWA001/broadcast
+CTMRWA001/broadcast
 CTMRWA001/broadcast/*/31337/
 CTMRWA001/broadcast/**/dry-run/
 CTMRWA001/flattened

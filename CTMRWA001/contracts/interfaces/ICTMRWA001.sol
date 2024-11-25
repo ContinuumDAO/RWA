@@ -44,7 +44,14 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
     function symbol() external view returns (string memory);
     function valueDecimals() external view returns (uint8);
     
-    function getTokenInfo(uint256 tokenId_) external view returns(uint256 id,uint256 bal,address owner,uint256 slot, string memory slotName);
+    function getTokenInfo(uint256 tokenId_) external view returns(
+        uint256 id,
+        uint256 bal,
+        address owner,
+        uint256 slot,
+        string memory slotName,
+        address admin
+    );
     function slotNameOf(uint256 _tokenId) external view returns(string memory);
     function balanceOf(uint256 _tokenId) external view returns (uint256);
    
@@ -70,6 +77,8 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
     function approveFromX(address to_, uint256 tokenId_) external;
     function clearApprovedValues(uint256 tokenId_) external;
     function removeTokenFromOwnerEnumeration(address from_, uint256 tokenId_) external;
+
+    function burn(uint256 tokenId) external;
 
     function burnValueX(uint256 fromTokenId, uint256 value_) external returns(bool);
     function mintValueX(uint256 toTokenId, uint256 slot_, uint256 value_) external returns(bool);

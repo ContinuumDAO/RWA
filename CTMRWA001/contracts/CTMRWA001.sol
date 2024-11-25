@@ -221,7 +221,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return(slotName(thisSlot));
     }
 
-    function getTokenInfo(uint256 tokenId_) external view returns(uint256,uint256,address,uint256,string memory) {
+    function getTokenInfo(uint256 tokenId_) external view returns(uint256,uint256,address,uint256,string memory, address) {
         requireMinted(tokenId_);
 
         uint256 slot = slotOf(tokenId_);
@@ -231,7 +231,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             _allTokens[_allTokensIndex[tokenId_]].balance,
             _allTokens[_allTokensIndex[tokenId_]].owner,
             slot,
-            slotName(slot)
+            slotName(slot),
+            tokenAdmin
         );
     }
 

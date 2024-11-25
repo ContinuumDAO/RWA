@@ -558,7 +558,7 @@ contract SetUp is Test {
 
         for(uint256 i=0; i<bal; i++) {
             uint256 tokenId = ICTMRWA001(tokenAddr).tokenOfOwnerByIndex(user, i);
-            (, uint256 balance, , uint256 slot, string memory slotName) = ICTMRWA001(tokenAddr).getTokenInfo(tokenId);
+            (, uint256 balance, , uint256 slot, string memory slotName,) = ICTMRWA001(tokenAddr).getTokenInfo(tokenId);
             console.log("tokenId");
             console.log(tokenId);
             console.log("balance");
@@ -710,13 +710,21 @@ contract TestBasicToken is SetUp {
         );
 
         assertEq(tokenId, 1);
-        (uint256 id, uint256 bal, address owner, uint256 slot, string memory slotName) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId);
+        (uint256 id, uint256 bal, address owner, uint256 slot, string memory slotName,) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId);
         //console.log(id, bal, owner, slot);
         assertEq(id,1);
         assertEq(bal, 2000);
         assertEq(owner, user1);
         assertEq(slot, 5);
         assertEq(stringsEqual(slotName, "slot 5 is the best RWA"), true);
+
+        vm.startPrank(user1);
+        bool exists = ICTMRWA001(ctmRwaAddr).requireMinted(tokenId);
+        assertEq(exists, true);
+        ICTMRWA001(ctmRwaAddr).burn(tokenId);
+        exists = ICTMRWA001(ctmRwaAddr).requireMinted(tokenId);
+        assertEq(exists, false);
+        vm.stopPrank();
     }
 
     function test_getTokenList() public {
@@ -741,7 +749,7 @@ contract TestBasicToken is SetUp {
 
         for(uint256 i=0; i<nRWA001.length; i++) {
             tokenId = ICTMRWA001(nRWA001[i]).tokenOfOwnerByIndex(user1, i);
-            (id, bal, owner, slot, slotName) = ICTMRWA001(nRWA001[i]).getTokenInfo(tokenId);
+            (id, bal, owner, slot, slotName,) = ICTMRWA001(nRWA001[i]).getTokenInfo(tokenId);
             // console.log(tokenId);
             // console.log(id);
             // console.log(bal);
@@ -1174,7 +1182,7 @@ contract TestBasicToken is SetUp {
 
  
         (, string memory toRwaXStr) = gateway.getAttachedRWAX(rwaType, version, toChainIdStr);
-        (,uint256 value,,uint256 slot, string memory slotName) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
+        (,uint256 value,,uint256 slot, string memory slotName,) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         string memory thisSlotName = ICTMRWA001(ctmRwaAddr).slotName(slot);
@@ -1249,7 +1257,7 @@ contract TestBasicToken is SetUp {
 
         (bool ok, string memory toRwaXStr) = gateway.getAttachedRWAX(rwaType, version, toChainIdStr);
         require(ok, "CTMRWA001X: Target contract address not found");
-        (,uint256 value,,uint256 slot, string memory thisSlotName) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
+        (,uint256 value,,uint256 slot, string memory thisSlotName,) = ICTMRWA001(ctmRwaAddr).getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string)";

@@ -63,7 +63,7 @@ contract XChainTests is Script {
 
     function run() external {
 
-        loadContracts(421614);
+        loadContracts(84532);
 
         // debugRwaXCall();
 
@@ -74,16 +74,16 @@ contract XChainTests is Script {
 
         // checkDeployData();
 
-        // this.deployLocal();
+        // deployLocal();
 
-        // this.deployRemote(84532, 0);
+        // deployRemote(84532, 0);
 
         // toChainIdsStr.push("421614");
         // toChainIdsStr.push("84532");
-        // this.createSlots(toChainIdsStr, 0);
-        // getSlots(0,1);
+        // createSlots(toChainIdsStr, 0);
+        // getSlots(0,0);
 
-        // mintLocalValue(0);
+        mintLocalValue(0);
 
         // transferValueTokenToAddress();
 
@@ -139,7 +139,7 @@ contract XChainTests is Script {
         feeTokenStr = feeToken.toHexString();
     }
 
-    function deployLocal() external {
+    function deployLocal() public {
 
         vm.startBroadcast(senderPrivateKey);
 
@@ -152,11 +152,11 @@ contract XChainTests is Script {
         vm.stopBroadcast();
     }
 
-    function deployRemote(uint256 _toChainId, uint256 indx) external {
+    function deployRemote(uint256 _toChainId, uint256 indx) public {
 
         vm.startBroadcast(senderPrivateKey);
 
-        // IERC20(feeToken).approve(rwa001XAddr, 1000*10**6);
+        IERC20(feeToken).approve(rwa001XAddr, 1000*10**6);
 
 
         address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
@@ -225,7 +225,7 @@ contract XChainTests is Script {
 
     }
 
-    function createSlots(string[] memory chainIdsStr, uint256 indx) external {
+    function createSlots(string[] memory chainIdsStr, uint256 indx) public {
         vm.startBroadcast(senderPrivateKey);
 
         address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
@@ -294,7 +294,7 @@ contract XChainTests is Script {
 
         address[] memory nRWA001 = rwa001X.getAllTokensByOwnerAddress(admin);
 
-        uint256 newTokenId = rwa001X.mintNewTokenValueLocal(senderAccount, 0, 5, 1450, ID);
+        uint256 newTokenId = rwa001X.mintNewTokenValueLocal(senderAccount, 0, 6, 1450, ID);
         console.log("newTokenId = ");
         console.log(newTokenId);
 

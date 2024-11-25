@@ -386,7 +386,7 @@ contract CTMRWA001X is Context, GovernDapp {
            
             uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(toAddress_, slot_, thisSlotName, value_);
             address owner = ICTMRWA001(ctmRwa001Addr).ownerOf(newTokenId);
-            ownedCtmRwa001[owner].push(ctmRwa001Addr);
+            _updateOwnedCtmRwa001(owner, ctmRwa001Addr);
 
             return(newTokenId);
         }
@@ -485,7 +485,7 @@ contract CTMRWA001X is Context, GovernDapp {
             ICTMRWA001(ctmRwa001Addr).approveFromX(address(this), _fromTokenId);
             ICTMRWA001(ctmRwa001Addr).transferFrom(_fromTokenId, toAddr, _value);
             ICTMRWA001(ctmRwa001Addr).approveFromX(address(0), _fromTokenId);
-            ownedCtmRwa001[toAddr].push(ctmRwa001Addr);
+            _updateOwnedCtmRwa001(toAddr, ctmRwa001Addr);
         } else {
 
             (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
@@ -539,14 +539,14 @@ contract CTMRWA001X is Context, GovernDapp {
             ICTMRWA001(ctmRwa001Addr).approveFromX(address(this), _fromTokenId);
             ICTMRWA001(ctmRwa001Addr).transferFrom(fromAddr, toAddr, _fromTokenId);
             ICTMRWA001(ctmRwa001Addr).approveFromX(toAddr, _fromTokenId);
-            ownedCtmRwa001[toAddr].push(ctmRwa001Addr);
+            _updateOwnedCtmRwa001(toAddr, ctmRwa001Addr);
         } else {
 
             (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
             
             _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
-            (,uint256 value,,uint256 slot,) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_fromTokenId);
+            (,uint256 value,,uint256 slot,,) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_fromTokenId);
 
             ICTMRWA001(ctmRwa001Addr).approveFromX(address(0), _fromTokenId);
             ICTMRWA001(ctmRwa001Addr).clearApprovedValues(_fromTokenId);
@@ -581,23 +581,19 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory _fromTokenStr
     ) external onlyCaller returns(bool){
 
-        (, string memory fromChainIdStr,) = context();
-
         address toAddr = stringToAddress(_toAddressStr);
 
         (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA001X: Destination token contract with this ID does not exist"); 
-
-        string memory ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
 
         bool slotExists = ICTMRWA001(ctmRwa001Addr).slotExists(_slot);
         require(slotExists, "CTMRWA001X: Destination slot does not exist");
 
         string memory thisSlotName = ICTMRWA001(ctmRwa001Addr).slotName(_slot);
 
-        uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(toAddr, _slot, thisSlotName, _balance);
+        ICTMRWA001(ctmRwa001Addr).mintFromX(toAddr, _slot, thisSlotName, _balance);
 
-        ownedCtmRwa001[toAddr].push(ctmRwa001Addr);
+        _updateOwnedCtmRwa001(toAddr, ctmRwa001Addr);
 
         emit TransferToDestX(_ID);
 
@@ -606,6 +602,17 @@ contract CTMRWA001X is Context, GovernDapp {
 
 
     // End of cross chain transfers
+
+    function _updateOwnedCtmRwa001(address _ownerAddr, address _tokenAddr) internal returns(bool) {
+        uint256 len = ownedCtmRwa001[_ownerAddr].length;
+        
+        for(uint256 i=0; i<len; i++) {
+            if(ownedCtmRwa001[_ownerAddr][i] == _tokenAddr) return(true);
+        }
+
+        ownedCtmRwa001[_ownerAddr].push(_tokenAddr);
+        return(false);
+    }
 
 
     function getAllTokensByAdminAddress(address _admin) public view returns(address[] memory) {

@@ -2,8 +2,14 @@
 
 pragma solidity ^0.8.23;
 
+struct ChainContract {
+    string chainIdStr;
+    string contractStr;
+}
+
 interface ICTMRWAGateway {
     function getChainCount() external view returns(uint256);
+    function chainContract() external view returns(ChainContract[] memory);
     function addXChainInfo(
         string memory tochainIdStr,
         string memory toContractStr,

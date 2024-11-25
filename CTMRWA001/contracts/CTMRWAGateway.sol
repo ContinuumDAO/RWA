@@ -5,6 +5,8 @@ pragma solidity ^0.8.23;
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+import {ChainContract} from "./interfaces/ICTMRWAGateway.sol";
+
 
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
 
@@ -21,10 +23,7 @@ contract CTMRWAGateway is Context, GovernDapp {
     event SetChainContract(string[] chainIdsStr, string[] contractAddrsStr, string fromContractStr, string fromChainIdStr);
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
-    struct ChainContract {
-        string chainIdStr;
-        string contractStr;
-    }
+    
     //  This array holds ChainContract structs for all chains
     ChainContract[] public chainContract;
 

@@ -29,6 +29,7 @@ struct URIData {
     uint256 slot;
     bytes objectName;
     bytes32 uriHash;
+    uint256 timeStamp;
 }
 
 interface ICTMRWA001Storage {

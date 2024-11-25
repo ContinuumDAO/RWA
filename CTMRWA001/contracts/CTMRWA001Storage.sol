@@ -116,7 +116,7 @@ contract CTMRWA001Storage is Context {
         require(_ID == ID, "CTMRWA001Storage: Attempt to add URI to an incorrect ID");
         require(!existURIHash(_uriDataHash), "CTMRWA001Storage: Hash already exists");
 
-        uriData.push(URIData(_uriCategory, _uriType, _slot, _objectName, _uriDataHash));
+        uriData.push(URIData(_uriCategory, _uriType, _slot, _objectName, _uriDataHash, block.timestamp));
         nonce++;
     }
 
@@ -150,7 +150,7 @@ contract CTMRWA001Storage is Context {
                 return(uriData[i]);
             }
         }
-        return(URIData(URICategory.EMPTY,URIType.EMPTY,0,bytes(""),0));
+        return(URIData(URICategory.EMPTY,URIType.EMPTY,0,bytes(""),0,0));
     }
 
     function existURIHash(bytes32 uriHash) public view returns(bool) {
