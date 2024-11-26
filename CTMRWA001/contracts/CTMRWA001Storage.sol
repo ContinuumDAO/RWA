@@ -80,37 +80,28 @@ contract CTMRWA001Storage is Context {
         return(true);
     }
 
-    function contractURI() public view returns (string memory) {
+    function greenfieldBucket() public view returns (string memory) {
         return
-            stringsEqual(baseURI, "GFLD") || stringsEqual(baseURI, "IPFS")
-                ? string.concat(TYPE, idStr, ".c.", nonce.toString())
+            stringsEqual(baseURI, "GFLD")
+                ? string.concat(TYPE, idStr)
                 : "";
     }
 
-    function slotURI(uint256 slot_) public view returns (string memory) {
-        return 
-            stringsEqual(baseURI, "GFLD") || stringsEqual(baseURI, "IPFS") 
-                ? string.concat(TYPE, idStr, ".s.", slot_.toString(), ".", nonce.toString())
-                : "";
+    function greenfieldObject(URIType _uriType,  uint256 _slot) public view returns (string memory) {
+        if(_uriType == URIType.CONTRACT) {
+            return(nonce.toString());
+        } else {
+            return(string.concat("s.", _slot.toString(), ".", nonce.toString()));
+        }
     }
 
-    /**
-     * @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
-     */
-    function tokenURI(uint256 tokenId_) public view returns (string memory) {
-        ICTMRWA001(tokenAddr).requireMinted(tokenId_);
-        return 
-            stringsEqual(baseURI, "GFLD") || stringsEqual(baseURI, "IPFS")
-                ? string.concat(TYPE, idStr, ".t.", tokenId_.toString(), ".", nonce.toString())
-                : "";
-    }
 
     function addURILocal(
         uint256 _ID,
         URICategory _uriCategory,
         URIType _uriType,
         uint256 _slot,
-        bytes memory _objectName,
+        string memory _objectName,
         bytes32 _uriDataHash
     ) external onlyStorageManager {
         require(_ID == ID, "CTMRWA001Storage: Attempt to add URI to an incorrect ID");
@@ -120,7 +111,7 @@ contract CTMRWA001Storage is Context {
         nonce++;
     }
 
-    function getURIHashByIndex(URICategory uriCat, URIType uriTyp, uint256 index) public view returns(bytes32, bytes memory) {
+    function getURIHashByIndex(URICategory uriCat, URIType uriTyp, uint256 index) public view returns(bytes32, string memory) {
         uint256 currentIndx;
 
         for(uint256 i=0; i<uriData.length; i++) {
@@ -150,7 +141,7 @@ contract CTMRWA001Storage is Context {
                 return(uriData[i]);
             }
         }
-        return(URIData(URICategory.EMPTY,URIType.EMPTY,0,bytes(""),0,0));
+        return(URIData(URICategory.EMPTY,URIType.EMPTY,0,"",0,0));
     }
 
     function existURIHash(bytes32 uriHash) public view returns(bool) {

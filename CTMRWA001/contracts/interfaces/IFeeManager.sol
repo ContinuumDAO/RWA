@@ -7,6 +7,7 @@ enum FeeType {
     TX,
     MINT,
     BURN,
+    ISSUER,
     PROVENANCE,
     VALUATION,
     PROSPECTUS,
@@ -18,6 +19,7 @@ enum FeeType {
     NOTICE,
     DIVIDEND,
     REDEMPTION,
+    WHOCANINVEST,
     IMAGE
 }
 

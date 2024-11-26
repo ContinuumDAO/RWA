@@ -3,6 +3,7 @@
 pragma solidity ^0.8.23;
 
 enum URICategory {
+    ISSUER,
     PROVENANCE,
     VALUATION,
     PROSPECTUS,
@@ -13,6 +14,8 @@ enum URICategory {
     DUEDILIGENCE,
     NOTICE,
     DIVIDEND,
+    REDEMPTION,
+    WHOCANINVEST,
     IMAGE,
     EMPTY
 }
@@ -27,7 +30,7 @@ struct URIData {
     URICategory uriCategory;
     URIType uriType;
     uint256 slot;
-    bytes objectName;
+    string objectName;
     bytes32 uriHash;
     uint256 timeStamp;
 }
@@ -38,16 +41,15 @@ interface ICTMRWA001Storage {
 
     function setTokenAdmin(address _tokenAdmin) external returns(bool);
 
-    function contractURI() external view returns (string memory);
-    function slotURI(uint256 slot_) external view returns (string memory);
-    function tokenURI(uint256 tokenId_) external view returns (string memory);
+    function greenfieldBucket() external view returns (string memory);
+    function greenfieldObject(URIType _uriType,  uint256 _slot) external view returns (string memory);
 
     function addURILocal(
         uint256 ID,
         URICategory uriCategory,
         URIType uriType,
         uint256 slot,
-        bytes memory objectName,
+        string memory objectName,
         bytes32 uriDataHash
     ) external;
 

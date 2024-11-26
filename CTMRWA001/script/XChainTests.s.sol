@@ -426,12 +426,11 @@ contract XChainTests is Script {
 
 
 
-        storageManager._addURI(
+        storageManager.addURI(
             ID,
             URICategory.PROVENANCE,
             URIType.SLOT,
             slot,
-            bytes("proof_that_the_asset_exists"),
             junkHash,
             toChainIdsStr,
             feeTokenStr

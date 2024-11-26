@@ -256,6 +256,8 @@ contract NewChainSetup is Script {
                 require(ok, "NewChainSetup: Could not set fee multiplier");
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.BURN, 4);
                 require(ok, "NewChainSetup: Could not set fee multiplier");
+                ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.ISSUER, 4);
+                require(ok, "NewChainSetup: Could not set fee multiplier");
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.PROVENANCE, 8);
                 require(ok, "NewChainSetup: Could not set fee multiplier");
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.VALUATION, 4);
@@ -277,6 +279,8 @@ contract NewChainSetup is Script {
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.DIVIDEND, 4);
                 require(ok, "NewChainSetup: Could not set fee multiplier");
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.REDEMPTION, 4);
+                require(ok, "NewChainSetup: Could not set fee multiplier");
+                ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.WHOCANINVEST, 4);
                 require(ok, "NewChainSetup: Could not set fee multiplier");
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.IMAGE, 2);
                 require(ok, "NewChainSetup: Could not set fee multiplier");

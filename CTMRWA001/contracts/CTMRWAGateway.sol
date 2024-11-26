@@ -18,6 +18,7 @@ contract CTMRWAGateway is Context, GovernDapp {
     string public cIdStr;
 
     mapping(uint256 => mapping(uint256 => ChainContract[])) rwaX; // rwaType => version => ChainContract
+    mapping(uint256 => mapping(uint256 => string[])) rwaXChains; // rwaType => version => chainStr array
     mapping(uint256 => mapping(uint256 => ChainContract[])) storageManager;
 
     event SetChainContract(string[] chainIdsStr, string[] contractAddrsStr, string fromContractStr, string fromChainIdStr);
@@ -84,6 +85,20 @@ contract CTMRWAGateway is Context, GovernDapp {
 
     function getChainCount() public view returns(uint256) {
         return(chainContract.length);
+    }
+
+    function getAllRwaXChains(
+        uint256 _rwaType,
+        uint256 _version
+    ) public view returns(string[] memory) {
+        return(rwaXChains[_rwaType][_version]);
+    }
+
+    function existRwaXChain(uint256 _rwaType, uint256 _version, string memory _chainIdStr) public view returns(bool) {
+        for(uint256 i=0; i < rwaXChains[_rwaType][_version].length; i++) {
+            if(stringsEqual(rwaXChains[_rwaType][_version][i], _toLower(_chainIdStr))) return(true);
+        }
+        return(false);
     }
 
     function getAttachedRWAX(
@@ -181,6 +196,7 @@ contract CTMRWAGateway is Context, GovernDapp {
             if(!preExisted) {
                 ChainContract memory newAttach = ChainContract(chainIdStr, rwaXAddrStr);
                 rwaX[_rwaType][_version].push(newAttach);
+                rwaXChains[_rwaType][_version].push(chainIdStr);
                 preExisted = false;
             }
         }

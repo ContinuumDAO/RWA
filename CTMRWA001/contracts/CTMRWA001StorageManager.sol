@@ -120,8 +120,6 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         URICategory _uriCategory,
         URIType _uriType,
         uint256 _slot,
-        FeeType _uriFeeType,
-        bytes memory _objectName,
         bytes32 _uriDataHash,
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
@@ -135,13 +133,25 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
         require(bytes(ICTMRWA001(ctmRwa001Addr).baseURI()).length > 0, "CTMRWA001StorageManager: This token does not have storage");
 
-        _payFee(_uriFeeType, _feeTokenStr, _chainIdsStr, true);
+        if(_uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER) {
+            require(ICTMRWA001Storage(ctmRwa001Addr).getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0, 
+            "CTMRWA001StorageManager: Type CONTRACT and CATEGORY ISSUER must be the first stored element");
+        }
+
+        _payFee(_uriCategory, _feeTokenStr, _chainIdsStr, true);
+
+        string memory objectName;
+
+        if(stringsEqual(ICTMRWA001(ctmRwa001Addr).baseURI(), "GFLD")) {
+            objectName = CTMRWA001Storage(ctmRwa001Addr).greenfieldObject(_uriType, _slot);
+        } else objectName = "";
+
 
         for(uint256 i=0; i<_chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
             if(stringsEqual(chainIdStr, cIdStr)) {
-                ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _objectName, _uriDataHash);
+                ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, objectName, _uriDataHash);
             } else {
                 (, string memory toRwaXStr) = _getSM(chainIdStr);
 
@@ -152,7 +162,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
                     _uriCategory,
                     _uriType,
                     _slot,
-                    _objectName,
+                    objectName,
                     _uriDataHash
                 );
 
@@ -167,7 +177,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         URICategory _uriCategory,
         URIType _uriType,
         uint256 _slot,
-        bytes memory _objectName,
+        string memory _objectName,
         bytes32 _uriDataHash
     ) external onlyCaller returns(bool) {
 
@@ -211,12 +221,30 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     }
 
     function _payFee(
-        FeeType _feeType, 
+        URICategory _uriCategory, 
         string memory _feeTokenStr, 
         string[] memory _toChainIdsStr,
         bool _includeLocal
     ) internal returns(bool) {
-        uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, _feeType, _feeTokenStr);
+
+        FeeType feeType;
+
+        if(_uriCategory == URICategory.ISSUER) feeType = FeeType.ISSUER;
+        else if(_uriCategory == URICategory.PROVENANCE) feeType = FeeType.PROVENANCE;
+        else if(_uriCategory == URICategory.VALUATION) feeType = FeeType.VALUATION;
+        else if(_uriCategory == URICategory.PROSPECTUS) feeType = FeeType.PROSPECTUS;
+        else if(_uriCategory == URICategory.RATING) feeType = FeeType.RATING;
+        else if(_uriCategory == URICategory.LEGAL) feeType = FeeType.LEGAL;
+        else if(_uriCategory == URICategory.FINANCIAL) feeType = FeeType.FINANCIAL;
+        else if(_uriCategory == URICategory.LICENSE) feeType = FeeType.LICENSE;
+        else if(_uriCategory == URICategory.DUEDILIGENCE) feeType = FeeType.DUEDILIGENCE;
+        else if(_uriCategory == URICategory.NOTICE) feeType = FeeType.NOTICE;
+        else if(_uriCategory == URICategory.DIVIDEND) feeType = FeeType.DIVIDEND;
+        else if(_uriCategory == URICategory.REDEMPTION) feeType = FeeType.REDEMPTION;
+        else if(_uriCategory == URICategory.WHOCANINVEST) feeType = FeeType.WHOCANINVEST;
+        else if(_uriCategory == URICategory.IMAGE) feeType = FeeType.IMAGE;
+
+        uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, feeType, _feeTokenStr);
         
         if(fee>0) {
             address feeToken = stringToAddress(_feeTokenStr);

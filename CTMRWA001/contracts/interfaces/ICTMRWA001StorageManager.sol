@@ -11,12 +11,11 @@ interface ICTMRWA001StorageManager {
     function setCtmRwaDeployer(address deployer) external;
     function setCtmRwaMap(address map) external;
 
-    function _addURI(
+    function addURI(
         uint256 ID,
         URICategory uriCategory,
         URIType uriType,
         uint256 slot,
-        bytes memory link,  
         bytes32 uriDataHash,
         string[] memory chainIdsStr,
         string memory feeTokenStr
@@ -27,8 +26,8 @@ interface ICTMRWA001StorageManager {
         URICategory uriCategory,
         URIType uriType,
         uint256 slot,
-        bytes memory link,
+        string memory objectName,
         bytes32 uriDataHash
-    ) external returns(bool);
+    ) external returns(bool);  // onlyCaller
 
 }

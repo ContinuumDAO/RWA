@@ -19,7 +19,7 @@ contract FeeManager is GovernDapp, IFeeManager {
     address[] public feeTokenList;
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
-    uint256[17] public feeMultiplier;
+    uint256[19] public feeMultiplier;
 
     mapping(address => FeeParams) public feeParams;
 
@@ -146,41 +146,47 @@ contract FeeManager is GovernDapp, IFeeManager {
         } else if (_feeType == FeeType.BURN) {
             feeMultiplier[4] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.PROVENANCE) {
+        } else if (_feeType == FeeType.ISSUER) {
             feeMultiplier[5] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.VALUATION) {
+        } else if (_feeType == FeeType.PROVENANCE) {
             feeMultiplier[6] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.PROSPECTUS) {
+        } else if (_feeType == FeeType.VALUATION) {
             feeMultiplier[7] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.RATING) {
+        } else if (_feeType == FeeType.PROSPECTUS) {
             feeMultiplier[8] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.LEGAL) {
+        } else if (_feeType == FeeType.RATING) {
             feeMultiplier[9] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.FINANCIAL) {
+        } else if (_feeType == FeeType.LEGAL) {
             feeMultiplier[10] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.LICENSE) {
+        } else if (_feeType == FeeType.FINANCIAL) {
             feeMultiplier[11] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.DUEDILIGENCE) {
+        } else if (_feeType == FeeType.LICENSE) {
             feeMultiplier[12] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.NOTICE) {
+        } else if (_feeType == FeeType.DUEDILIGENCE) {
             feeMultiplier[13] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.DIVIDEND) {
+        } else if (_feeType == FeeType.NOTICE) {
             feeMultiplier[14] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.REDEMPTION) {
+        } else if (_feeType == FeeType.DIVIDEND) {
             feeMultiplier[15] = _multiplier;
             return(true);
-        } else if (_feeType == FeeType.IMAGE) {
+        } else if (_feeType == FeeType.REDEMPTION) {
             feeMultiplier[16] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.WHOCANINVEST) {
+            feeMultiplier[17] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.IMAGE) {
+            feeMultiplier[18] = _multiplier;
             return(true);
         } else {
             return(false);
@@ -199,30 +205,34 @@ contract FeeManager is GovernDapp, IFeeManager {
             return(feeMultiplier[3]);
         } else if (_feeType == FeeType.BURN) {
             return(feeMultiplier[4]);
-        }  else if (_feeType == FeeType.PROVENANCE) {
+        } else if (_feeType == FeeType.PROVENANCE) {
             return(feeMultiplier[5]);
-        }  else if (_feeType == FeeType.VALUATION) {
+        }  else if (_feeType == FeeType.PROVENANCE) {
             return(feeMultiplier[6]);
-        }  else if (_feeType == FeeType.PROSPECTUS) {
+        }  else if (_feeType == FeeType.VALUATION) {
             return(feeMultiplier[7]);
-        }  else if (_feeType == FeeType.RATING) {
+        }  else if (_feeType == FeeType.PROSPECTUS) {
             return(feeMultiplier[8]);
-        }  else if (_feeType == FeeType.LEGAL) {
+        }  else if (_feeType == FeeType.RATING) {
             return(feeMultiplier[9]);
-        }  else if (_feeType == FeeType.FINANCIAL) {
+        }  else if (_feeType == FeeType.LEGAL) {
             return(feeMultiplier[10]);
-        }  else if (_feeType == FeeType.LICENSE) {
+        }  else if (_feeType == FeeType.FINANCIAL) {
             return(feeMultiplier[11]);
-        }  else if (_feeType == FeeType.DUEDILIGENCE) {
+        }  else if (_feeType == FeeType.LICENSE) {
             return(feeMultiplier[12]);
-        }  else if (_feeType == FeeType.NOTICE) {
+        }  else if (_feeType == FeeType.DUEDILIGENCE) {
             return(feeMultiplier[13]);
-        }  else if (_feeType == FeeType.DIVIDEND) {
+        }  else if (_feeType == FeeType.NOTICE) {
             return(feeMultiplier[14]);
-        }  else if (_feeType == FeeType.REDEMPTION) {
+        }  else if (_feeType == FeeType.DIVIDEND) {
             return(feeMultiplier[15]);
-        }  else if (_feeType == FeeType.IMAGE) {
+        }  else if (_feeType == FeeType.REDEMPTION) {
             return(feeMultiplier[16]);
+        }  else if (_feeType == FeeType.WHOCANINVEST) {
+            return(feeMultiplier[17]);
+        }  else if (_feeType == FeeType.IMAGE) {
+            return(feeMultiplier[18]);
         } else {
             revert("FeeManager: Bad FeeType");
         }
