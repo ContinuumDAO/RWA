@@ -37,7 +37,7 @@ interface ICTMRWA001SlotApprovable {
         uint256 _slot,
         address _operator,
         bool _approved
-    ) external payable;
+    ) external;
 
     /**
      * @notice Query if `_operator` is authorized to manage all of `_owner`'s tokens with the

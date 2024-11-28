@@ -36,7 +36,6 @@ import {ICTMRWADeployer} from "../contracts/interfaces/ICTMRWADeployer.sol";
 import {ICTMRWAFactory} from "../contracts/interfaces/ICTMRWAFactory.sol";
 import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
 import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
-import {ICTMRWA001SlotEnumerable} from "../contracts/extensions/ICTMRWA001SlotEnumerable.sol";
 import {ICTMRWA001Token} from "../contracts/interfaces/ICTMRWA001Token.sol";
 import {ICTMRWA001XFallback} from "../contracts/interfaces/ICTMRWA001XFallback.sol";
 import {ICTMRWA001Dividend} from "../contracts/interfaces/ICTMRWA001Dividend.sol";
@@ -812,7 +811,7 @@ contract TestBasicToken is SetUp {
         vm.stopPrank();
         assertEq(unclaimed, dividendTotal);
 
-        uint256 tokenId = ICTMRWA001SlotEnumerable(ctmRwaAddr).tokenOfOwnerByIndex(user1, 0);
+        uint256 tokenId = ICTMRWA001(ctmRwaAddr).tokenOfOwnerByIndex(user1, 0);
         uint256 toClaim = ICTMRWA001(ctmRwaAddr).dividendUnclaimedOf(tokenId);
         uint256 balBefore = usdc.balanceOf(user1);
 

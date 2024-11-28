@@ -47,27 +47,27 @@ contract DappConfig is Script {
     constructor() {
         newchains.push(NewChain(    // ARB Sepolia
             421614,
-            0xeb4b038c0f1F086BB7Ab5B4192611015aFf95390,
-            0xb3aefEa9F49De70C41Ce22Afa321E64393932d21,
-            0x0e95227823f64F54D6611Ae6f4fb70a4D76D4378,
-            0x37C7137Dc6e3DC3c3637bFEd3F6dBFbd43386429,
-            0x1F95f5957BbAa5184ED90768F5B38a87b824B097
+            0xD990EF52a6a375B19375B07cfC2AAD2B592E66Be,
+            0x8BDe23E16f4F9b19b3E11EdCb65168E7f2720006,
+            0x33348aa4A1D62757Eb6077C86554672Dd22902Ae,
+            0xf4E9Dc949cA6EB2bBaFA1e887017E91E523C1BC8,
+            0x4E154f20a4C932378457ebE90044566939605f9D
         ));
         newchains.push(NewChain(   // POLYGON AMOY  Chain 80002
             80002,
-            0xfdD1a5B3AEEa2DF15a6F6B502784B61BdCbF66BC,
-            0xD586Ea1FcE09384F71B69e80F643135FC0641def,
-            0xA9522e00101Ee85f3B8E6a4F0723F5eA4A2F0A50,
-            0xB523F0e72A7BdF94a5a3d84BA9e8Dc42E69229ea,
-            0xA31AC55003cde3eF9CE9c576a691d0F41586c20b
+            0x73a3ECD2fad26975d16B31E482EAF0f5152d420E,
+            0x4DA174a7024b242Fb979D120EE63F1Bf6Aba3E07,
+            0xcC2461B294f68e860B046038Df8Ad3A2A8C2fC51,
+            0xb07C3788549cd48aD1d4Cb9B7336f7C9Dd53D67F,
+            0xBCe6B1Ab3790BCe90E2299cc9C46f6D2bCB56324
         ));
         newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
             84532,
-            0xEa4A06cB68ABa869e6BF98Edc4BdbC731d2D82e3,
-            0x9A0F81de582Ce9194FEADC6CCefaf9eA70451616,
-            0x66dc636132fb9b7f6ed858928B65864D3fd0ea67,
-            0x9372CD1287E0bB6337802D80DFF342348c85fd78,
-            0x69556bb0528157e0f6B31D3aCB38E61E16Bcd9f4
+            0x497d31415cc6D20113d2F96c90C706b98701c1c9,
+            0xbe87477FD18FbEbD8cCcdD003f6F66FFC4D49CD1,
+            0x1b902Cf02724ac790DA51e8004B82c7d0DE6F957,
+            0x2c4be93Acd346CA06363b37a06bEb9D693d02dAc,
+            0xF5F405ccF62c2E9f636f9f0de9878dD26550B63d
         ));
         // newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
         //     59141,
@@ -159,19 +159,19 @@ contract DappConfig is Script {
         // ));
         newchains.push(NewChain(  //  BSC TESTNET Chain 97
             97,
-            0xc0DD542BCaC26095A2C83fFb10826CCEf806C07b,
-            0x7658E59CdbA5e7E08263a216e89c8438C9F02048,
-            0x605Ab9626e57C5d1f3f0508D5400aB0449b5a015,
-            0x855c06F9f7b01838DC540Ec6fcfF17fD86A378D8,
-            0x5dA87094aCD03EE1E3722A1E0f80280eeeCaD630
+            0x9B191600588B59e314D2927204c8EdC57603D672,
+            0x730e8b2D89bA0D3403bb3d8C9929A9f0da61E051,
+            0x0bCb87c43E2ad859412D90892FF73d64C6DbB962,
+            0xc653cd79F70165005319eF97Ad1229aC7f88a25D,
+            0xDf495F3724a6c705fed4aDfa7588Cd326162A39c
         ));
         newchains.push(NewChain(  //  SEPOLIA  Chain 11155111
             11155111,
-            0xF065f9BbD5F59afa0D24BE34bDf8aD483485ED1C,
-            0x1eE4bA474da815f728dF08F0147DeFac07F0BAb3,
-            0x1e608FD1546e1bC1382Abc4E676CeFB7e314Fb30,
-            0xCBf4E5FDA887e602E5132FA800d74154DFb5B237,
-            0xD523b4f68c015B472724c24e127FF1f51EeE0fbf
+            0x3CB56e6E5917a2a8924BC2A5C1f0ecc90b585e74,
+            0x1F652e2D8A9FCa346A0F45D59a67FB998999e454,
+            0xa3bae05aA45bcC739258b124FACE332043D3B1dA,
+            0xA33cfD901896C775c5a6d62e94081b4Fdd1B09BC,
+            0xeFbd6990A5C4ABFA30b91409aA3d9A0e7C8Bb77b
         ));
     }
 
@@ -185,7 +185,7 @@ contract DappConfig is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // addDappWhitelist(44);
-        addSingle(44,0);
+        addSingle(48,4);
 
         vm.stopBroadcast();
 

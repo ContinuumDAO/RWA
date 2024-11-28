@@ -651,7 +651,7 @@ contract CTMRWA001X is Context, GovernDapp {
         address currentAdmin = ICTMRWA001(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = _toLower(currentAdmin.toHexString());
 
-        require(_msgSender() == currentAdmin, "CTMRWA001X: Only tokenAdmin can change the tokenAdmin");
+        require(_msgSender() == currentAdmin, "CTMRWA001X: Not tokenAdmin");
 
         return(currentAdmin, currentAdminStr);
     }

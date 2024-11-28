@@ -48,7 +48,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     string[] chainIdsStr;
 
     modifier onlyDeployer {
-        require(msg.sender == ctmRwaDeployer, "CTMRWA001ManagerFactory: onlyDeployer function");
+        require(msg.sender == ctmRwaDeployer, "CTMRWA001StorageManager: onlyDeployer function");
         _;
     }
 
@@ -153,7 +153,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
             if(stringsEqual(chainIdStr, cIdStr)) {
                 ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, objectName, _uriDataHash);
             } else {
-                (, string memory toRwaXStr) = _getSM(chainIdStr);
+                (, string memory toRwaSMStr) = _getSM(chainIdStr);
 
                 string memory funcCall = "addURIX(uint256,uint8,uint8,uint256,string,bytes32)";
                 bytes memory callData = abi.encodeWithSignature(
@@ -166,7 +166,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
                     _uriDataHash
                 );
 
-                c3call(toRwaXStr, chainIdStr, callData);
+                c3call(toRwaSMStr, chainIdStr, callData);
             }
         }
     }
@@ -182,7 +182,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     ) external onlyCaller returns(bool) {
 
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001X: Could not find _ID or its storage address");
+        require(ok, "CTMRWA0CTMRWA001StorageManager: Could not find _ID or its storage address");
 
         (, string memory fromChainIdStr,) = context();
         fromChainIdStr = _toLower(fromChainIdStr);
@@ -194,19 +194,19 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
     function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001X: The requested tokenID does not exist");
+        require(ok, "CTMRWA001StorageManager: The requested tokenID does not exist");
         string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
 
         return(tokenAddr, tokenAddrStr);
     }
 
     function _getSM(string memory _toChainIdStr) internal view returns(string memory, string memory) {
-        require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA001X: Not a cross-chain tokenAdmin change");
+        require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA001StorageManager: Not a cross-chain tokenAdmin change");
 
         string memory fromAddressStr = _toLower(_msgSender().toHexString());
 
         (bool ok, string memory toSMStr) = ICTMRWAGateway(gateway).getAttachedStorageManager(rwaType, version, _toChainIdStr);
-        require(ok, "CTMRWA001X: Target contract address not found");
+        require(ok, "CTMRWA001StorageManager: Target contract address not found");
 
         return(fromAddressStr, toSMStr);
     }
@@ -215,7 +215,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         address currentAdmin = ICTMRWA001(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = _toLower(currentAdmin.toHexString());
 
-        require(_msgSender() == currentAdmin, "CTMRWA001X: Only tokenAdmin can change the tokenAdmin");
+        require(_msgSender() == currentAdmin, "CTMRWA001StorageManager: Not tokenAdmin");
 
         return(currentAdmin, currentAdminStr);
     }
@@ -243,6 +243,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         else if(_uriCategory == URICategory.REDEMPTION) feeType = FeeType.REDEMPTION;
         else if(_uriCategory == URICategory.WHOCANINVEST) feeType = FeeType.WHOCANINVEST;
         else if(_uriCategory == URICategory.IMAGE) feeType = FeeType.IMAGE;
+        else if(_uriCategory == URICategory.ICON) feeType = FeeType.ICON;
 
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, feeType, _feeTokenStr);
         
@@ -285,7 +286,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
+        require(strBytes.length == 42, "CTMRWA001StorageManager: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {

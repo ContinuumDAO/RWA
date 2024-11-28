@@ -172,7 +172,7 @@ contract CTMRWADeployer is Context, GovernDapp {
 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
+        require(strBytes.length == 42, "CTMRWADeployer: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {

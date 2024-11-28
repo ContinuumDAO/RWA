@@ -50,7 +50,7 @@ contract CTMRWA001Dividend is Context {
     function setDividendToken(address _dividendToken) external onlyTokenAdmin returns(bool) {
         for(uint256 i=1; i<=ICTMRWA001(tokenAddr).totalSupply(); i++) {
             if(ICTMRWA001(tokenAddr).dividendUnclaimedOf(i) > 0) {
-                revert("CTMRWA001: Cannot change dividend token address whilst there is unclaimed dividend");
+                revert("CTMRWA001Dividend: Cannot change dividend token address whilst there is unclaimed dividend");
             }
         }
 
@@ -105,7 +105,7 @@ contract CTMRWA001Dividend is Context {
     }
 
     function fundDividend(uint256 _dividendPayable) external payable onlyTokenAdmin returns(uint256) {
-        require(IERC20(dividendToken).transferFrom(_msgSender(), address(this), _dividendPayable), "CTMRWA001: Did not fund the dividend");
+        require(IERC20(dividendToken).transferFrom(_msgSender(), address(this), _dividendPayable), "CTMRWA001Dividend: Did not fund the dividend");
         uint256 unclaimedDividend;
         uint256 tokenId;
 
@@ -120,7 +120,7 @@ contract CTMRWA001Dividend is Context {
     }
 
     function claimDividend(uint256 _tokenId) external returns(bool) {
-        require(ICTMRWA001(tokenAddr).ownerOf(_tokenId) == _msgSender(), "CTMRWA001: Cannot claim dividend, since not owner");
+        require(ICTMRWA001(tokenAddr).ownerOf(_tokenId) == _msgSender(), "CTMRWA001Dividend: Cannot claim dividend, since not owner");
         uint256 dividend = ICTMRWA001(tokenAddr).dividendUnclaimedOf(_tokenId);
         ICTMRWA001(tokenAddr).decrementDividend(_tokenId, dividend);
         IERC20(dividendToken).transferFrom(address(this), _msgSender(), dividend);

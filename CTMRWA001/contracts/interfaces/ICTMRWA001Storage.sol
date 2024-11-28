@@ -17,6 +17,7 @@ enum URICategory {
     REDEMPTION,
     WHOCANINVEST,
     IMAGE,
+    ICON,
     EMPTY
 }
 

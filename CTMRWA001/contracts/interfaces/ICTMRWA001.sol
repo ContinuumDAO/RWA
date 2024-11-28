@@ -2,10 +2,6 @@
 
 pragma solidity ^0.8.23;
 
-// import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-// import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-//import {ICTMRWA001Metadata} from "../extensions/ICTMRWA001Metadata.sol";
-import {ICTMRWA001SlotEnumerable} from "../extensions/ICTMRWA001SlotEnumerable.sol";
 import {ICTMRWA001SlotApprovable} from "../extensions/ICTMRWA001SlotApprovable.sol";
 
 /**
@@ -19,7 +15,6 @@ struct TokenContract {
     string contractStr;
 }
 
-// SLOT ENUMERABLE
 struct SlotData {
     uint256 slot;
     string slotName;
@@ -32,7 +27,7 @@ interface ITokenContract {
     function tokenChainIdStrs() external returns(string[] memory);
 }
 
-interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
+interface ICTMRWA001 is ICTMRWA001SlotApprovable {
 
     function ID() external view returns(uint256);
     function tokenAdmin() external returns(address);
@@ -43,8 +38,8 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
     function valueDecimals() external view returns (uint8);
-    
-    function getTokenInfo(uint256 tokenId_) external view returns(
+    function ownerOf(uint256 tokenId) external view returns (address owner);
+    function getTokenInfo(uint256 tokenId) external view returns(
         uint256 id,
         uint256 bal,
         address owner,
@@ -60,9 +55,11 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
     function balanceOf(address user) external view returns (uint256);
     function dividendUnclaimedOf(uint256 tokenId) external view returns (uint256);
     function tokenOfOwnerByIndex(address owner, uint256 index_) external view returns (uint256);
+    function totalSupply() external view returns (uint256);
     function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);
     function tokenSupplyInSlot(uint256 slot) external view returns(uint256);
     function totalSupplyInSlot(uint256 _slot) external view returns (uint256);
+    function tokenByIndex(uint256 index_) external view returns (uint256);
 
     function createSlotX(uint256 _slot, string memory _slotName) external;
     function getAllSlots() external view returns(uint256[] memory, string[] memory);
@@ -76,19 +73,25 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
 
     function approveFromX(address to_, uint256 tokenId_) external;
     function clearApprovedValues(uint256 tokenId_) external;
-    function removeTokenFromOwnerEnumeration(address from_, uint256 tokenId_) external;
+    function setApprovalForSlot(
+        address owner,
+        uint256 slot,
+        address operator,
+        bool approved
+    ) external;
+    function removeTokenFromOwnerEnumeration(address from, uint256 tokenId) external;
 
     function burn(uint256 tokenId) external;
 
-    function burnValueX(uint256 fromTokenId, uint256 value_) external returns(bool);
-    function mintValueX(uint256 toTokenId, uint256 slot_, uint256 value_) external returns(bool);
-    function mintFromX(address to, uint256 slot_, string memory slotName, uint256 value_) external returns (uint256 tokenId);
+    function burnValueX(uint256 fromTokenId, uint256 value) external returns(bool);
+    function mintValueX(uint256 toTokenId, uint256 slot, uint256 value) external returns(bool);
+    function mintFromX(address to, uint256 slot, string memory slotName, uint256 value) external returns (uint256 tokenId);
     function mintFromX(address to, uint256 tokenId, uint256 slot, string memory slotName, uint256 value) external;
 
-    function spendAllowance(address operator, uint256 tokenId, uint256 value_) external;
+    function spendAllowance(address operator, uint256 tokenId, uint256 value) external;
     function requireMinted(uint256 tokenId) external view returns(bool);
     function isApprovedOrOwner(address operator, uint256 tokenId) external view returns(bool);
-    
+    function getApproved(uint256 tokenId) external view returns (address);
 
    
     function dividendAddr() external view returns(address);
@@ -98,31 +101,36 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
     function incrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
     function decrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
 
+
+    event Approval(address from, address to, uint256 tokenId);
+    event ApprovalForAll(address owner, address operator, bool approved);
+    event Transfer(address from, address to, uint256 tokenId);
+
     /**
      * @dev MUST emit when value of a token is transferred to another token with the same slot,
      *  including zero value transfers (_value == 0) as well as transfers when tokens are created
      *  (`_fromTokenId` == 0) or destroyed (`_toTokenId` == 0).
-     * @param _fromTokenId The token id to transfer value from
-     * @param _toTokenId The token id to transfer value to
-     * @param _value The transferred value
+     * @param fromTokenId The token id to transfer value from
+     * @param toTokenId The token id to transfer value to
+     * @param value The transferred value
      */
-    event TransferValue(uint256 indexed _fromTokenId, uint256 indexed _toTokenId, uint256 _value);
+    event TransferValue(uint256 indexed fromTokenId, uint256 indexed toTokenId, uint256 value);
 
     /**
      * @dev MUST emits when the approval value of a token is set or changed.
-     * @param _tokenId The token to approve
-     * @param _operator The operator to approve for
-     * @param _value The maximum value that `_operator` is allowed to manage
+     * @param tokenId The token to approve
+     * @param operator The operator to approve for
+     * @param value The maximum value that `_operator` is allowed to manage
      */
-    event ApprovalValue(uint256 indexed _tokenId, address indexed _operator, uint256 _value);
+    event ApprovalValue(uint256 indexed tokenId, address indexed operator, uint256 value);
 
     /**
      * @dev MUST emit when the slot of a token is set or changed.
-     * @param _tokenId The token of which slot is set or changed
-     * @param _oldSlot The previous slot of the token
-     * @param _newSlot The updated slot of the token
+     * @param tokenId The token of which slot is set or changed
+     * @param oldSlot The previous slot of the token
+     * @param newSlot The updated slot of the token
      */ 
-    event SlotChanged(uint256 indexed _tokenId, uint256 indexed _oldSlot, uint256 indexed _newSlot);
+    event SlotChanged(uint256 indexed tokenId, uint256 indexed oldSlot, uint256 indexed newSlot);
 
     /**
      * @notice Get the number of decimals the token uses for value - e.g. 6, means the user
@@ -134,39 +142,39 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
 
     /**
      * @notice Get the value of a token.
-     * @param _tokenId The token for which to query the balance
+     * @param tokenId The token for which to query the balance
      * @return The value of `_tokenId`
      */
 
     /**
      * @notice Get the slot of a token.
-     * @param _tokenId The identifier for a token
+     * @param tokenId The identifier for a token
      * @return The slot of the token
      */
-    function slotOf(uint256 _tokenId) external view returns (uint256);
+    function slotOf(uint256 tokenId) external view returns (uint256);
 
     /**
      * @notice Allow an operator to manage the value of a token, up to the `_value` amount.
      * @dev MUST revert unless caller is the current owner, an authorized operator, or the approved
      *  address for `_tokenId`.
      *  MUST emit ApprovalValue event.
-     * @param _tokenId The token to approve
-     * @param _operator The operator to be approved
-     * @param _value The maximum value of `_toTokenId` that `_operator` is allowed to manage
+     * @param tokenId The token to approve
+     * @param operator The operator to be approved
+     * @param value The maximum value of `_toTokenId` that `_operator` is allowed to manage
      */
     function approve(
-        uint256 _tokenId,
-        address _operator,
-        uint256 _value
+        uint256 tokenId,
+        address operator,
+        uint256 value
     ) external payable;
 
     /**
      * @notice Get the maximum value of a token that an operator is allowed to manage.
-     * @param _tokenId The token for which to query the allowance
-     * @param _operator The address of an operator
+     * @param tokenId The token for which to query the allowance
+     * @param operator The address of an operator
      * @return The current approval value of `_tokenId` that `_operator` is allowed to manage
      */
-    function allowance(uint256 _tokenId, address _operator) external view returns (uint256);
+    function allowance(uint256 tokenId, address operator) external view returns (uint256);
 
     /**
      * @notice Transfer value from a specified token to another specified token with the same slot.
@@ -177,14 +185,14 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
      *  MUST revert if `_value` exceeds the balance of `_fromTokenId` or its allowance to the
      *  operator.
      *  MUST emit `TransferValue` event.
-     * @param _fromTokenId The token to transfer value from
-     * @param _toTokenId The token to transfer value to
-     * @param _value The transferred value
+     * @param fromTokenId The token to transfer value from
+     * @param toTokenId The token to transfer value to
+     * @param value The transferred value
      */
     function transferFrom(
-        uint256 _fromTokenId,
-        uint256 _toTokenId,
-        uint256 _value
+        uint256 fromTokenId,
+        uint256 toTokenId,
+        uint256 value
     ) external returns(address);
 
     /**
@@ -197,15 +205,18 @@ interface ICTMRWA001 is ICTMRWA001SlotEnumerable, ICTMRWA001SlotApprovable {
      *  MUST revert if `_value` exceeds the balance of `_fromTokenId` or its allowance to the
      *  operator.
      *  MUST emit `Transfer` and `TransferValue` events.
-     * @param _fromTokenId The token to transfer value from
-     * @param _to The address to transfer value to
-     * @param _value The transferred value
+     * @param fromTokenId The token to transfer value from
+     * @param to The address to transfer value to
+     * @param value The transferred value
      * @return ID of the new token created for `_to` which receives the transferred value
      */
     function transferFrom(
-        uint256 _fromTokenId,
-        address _to,
-        uint256 _value
+        uint256 fromTokenId,
+        address to,
+        uint256 value
     ) external returns (uint256);
+
+    function transferFrom(address fromAddr, address toAddr,  uint256 fromTokenId) external;
+    
 }
 

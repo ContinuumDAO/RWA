@@ -20,7 +20,8 @@ enum FeeType {
     DIVIDEND,
     REDEMPTION,
     WHOCANINVEST,
-    IMAGE
+    IMAGE,
+    ICON
 }
 
 

@@ -19,7 +19,7 @@ contract FeeManager is GovernDapp, IFeeManager {
     address[] public feeTokenList;
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
-    uint256[19] public feeMultiplier;
+    uint256[20] public feeMultiplier;
 
     mapping(address => FeeParams) public feeParams;
 
@@ -68,7 +68,7 @@ contract FeeManager is GovernDapp, IFeeManager {
     function delFeeToken(string memory feeTokenStr) external onlyGov returns (bool) {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
         address feeToken = stringToAddress(feeTokenStr);
-        require(feeTokenIndexMap[feeToken] > 0, "FM: token not exist");
+        require(feeTokenIndexMap[feeToken] > 0, "FeeManager: token not exist");
         uint256 index = feeTokenIndexMap[feeToken];
         uint256 len = feeTokenList.length;
         if (index == len) {
@@ -109,9 +109,9 @@ contract FeeManager is GovernDapp, IFeeManager {
         string[] memory feeTokensStr,
         uint256[] memory fee // human readable * 100
     ) external onlyGov returns (bool) {
-        require(bytes(dstChainIDStr).length > 0, "FM: ChainID empty");
+        require(bytes(dstChainIDStr).length > 0, "FeeManager: ChainID empty");
         
-        require(feeTokensStr.length == fee.length, "FM: Invalid list size");
+        require(feeTokensStr.length == fee.length, "FeeManager: Invalid list size");
 
         dstChainIDStr = _toLower(dstChainIDStr);
 
@@ -123,7 +123,7 @@ contract FeeManager is GovernDapp, IFeeManager {
         for (uint256 index = 0; index < feeTokensStr.length; index++) {
             require(
                 feeTokenIndexMap[feetokens[index]] > 0,
-                "FM: fee token does not exist"
+                "FeeManager: fee token does not exist"
             );
             _toFeeConfigs[dstChainIDStr][feetokens[index]] = fee[index];
         }
@@ -188,6 +188,9 @@ contract FeeManager is GovernDapp, IFeeManager {
         } else if (_feeType == FeeType.IMAGE) {
             feeMultiplier[18] = _multiplier;
             return(true);
+        } else if (_feeType == FeeType.ICON) {
+            feeMultiplier[19] = _multiplier;
+            return(true);
         } else {
             return(false);
         }
@@ -205,7 +208,7 @@ contract FeeManager is GovernDapp, IFeeManager {
             return(feeMultiplier[3]);
         } else if (_feeType == FeeType.BURN) {
             return(feeMultiplier[4]);
-        } else if (_feeType == FeeType.PROVENANCE) {
+        } else if (_feeType == FeeType.ISSUER) {
             return(feeMultiplier[5]);
         }  else if (_feeType == FeeType.PROVENANCE) {
             return(feeMultiplier[6]);
@@ -233,6 +236,8 @@ contract FeeManager is GovernDapp, IFeeManager {
             return(feeMultiplier[17]);
         }  else if (_feeType == FeeType.IMAGE) {
             return(feeMultiplier[18]);
+        }  else if (_feeType == FeeType.ICON) {
+            return(feeMultiplier[19]);
         } else {
             revert("FeeManager: Bad FeeType");
         }
@@ -249,7 +254,7 @@ contract FeeManager is GovernDapp, IFeeManager {
         uint256 baseFee;
 
         for(uint256 i=0; i<_toChainIDsStr.length; i++) {
-            require(bytes(_toChainIDsStr[i]).length > 0, "FM: Invalid chainIDStr");
+            require(bytes(_toChainIDsStr[i]).length > 0, "FeeManager: Invalid chainIDStr");
             baseFee += getToChainBaseFee(_toChainIDsStr[i], _feeTokenStr);
         }
 
@@ -291,7 +296,7 @@ contract FeeManager is GovernDapp, IFeeManager {
         if (bal < amount) {
             amount = bal;
         }
-        require(IERC20(feeToken).transfer(treasury, amount), "FM: transfer fail");
+        require(IERC20(feeToken).transfer(treasury, amount), "FeeManager: transfer fail");
         return true;
     }
 
@@ -387,7 +392,7 @@ contract FeeManager is GovernDapp, IFeeManager {
 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
+        require(strBytes.length == 42, "FeeManager: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {
@@ -416,7 +421,7 @@ contract FeeManager is GovernDapp, IFeeManager {
         ) {
             return 10 + byteValue - uint8(bytes1("A"));
         }
-        revert("Invalid hex character");
+        revert("FeeManager: Invalid hex character");
     }
 
     function stringsEqual(
