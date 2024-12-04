@@ -201,10 +201,10 @@ class License {
         authority_website,
         license_link
     ) {
-        this.licensing_authority
-        this.license_number
-        this.authority_website
-        this.license_link
+        this.licensing_authority = licensing_authority
+        this.license_number = license_number
+        this.authority_website = authority_website
+        this.license_link = license_link
     }
 }
 
