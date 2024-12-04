@@ -34,6 +34,7 @@ contract CTMRWA001Storage is Context {
 
     URIData[] uriData;
 
+    event NewURI(URICategory uriCategory, URIType uriType, uint256 slot, bytes32 uriDataHash);
 
     modifier onlyTokenAdmin() {
         require(
@@ -108,6 +109,9 @@ contract CTMRWA001Storage is Context {
         require(!existURIHash(_uriDataHash), "CTMRWA001Storage: Hash already exists");
 
         uriData.push(URIData(_uriCategory, _uriType, _slot, _objectName, _uriDataHash, block.timestamp));
+
+        emit NewURI(_uriCategory, _uriType, _slot, _uriDataHash);
+
         nonce++;
     }
 

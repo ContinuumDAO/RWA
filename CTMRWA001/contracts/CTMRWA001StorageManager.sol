@@ -134,7 +134,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         require(bytes(ICTMRWA001(ctmRwa001Addr).baseURI()).length > 0, "CTMRWA001StorageManager: This token does not have storage");
 
         if(_uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER) {
-            require(ICTMRWA001Storage(ctmRwa001Addr).getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0, 
+            require(ICTMRWA001Storage(storageAddr).getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0, 
             "CTMRWA001StorageManager: Type CONTRACT and CATEGORY ISSUER must be the first stored element");
         }
 
@@ -143,7 +143,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         string memory objectName;
 
         if(stringsEqual(ICTMRWA001(ctmRwa001Addr).baseURI(), "GFLD")) {
-            objectName = CTMRWA001Storage(ctmRwa001Addr).greenfieldObject(_uriType, _slot);
+            objectName = CTMRWA001Storage(storageAddr).greenfieldObject(_uriType, _slot);
         } else objectName = "";
 
 
@@ -183,9 +183,6 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
         require(ok, "CTMRWA0CTMRWA001StorageManager: Could not find _ID or its storage address");
-
-        (, string memory fromChainIdStr,) = context();
-        fromChainIdStr = _toLower(fromChainIdStr);
 
         ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _objectName, _uriDataHash);
 

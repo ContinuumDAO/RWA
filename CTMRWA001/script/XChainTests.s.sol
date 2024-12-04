@@ -66,6 +66,7 @@ contract XChainTests is Script {
 
         loadContracts(84532);
 
+
         // debugRwaXCall();
 
         // bytes32 uuid = 0x0af4db05db5de1fe5bf857058d248429a9b590d7ba9b0d9303245791707e87f4;
@@ -99,37 +100,37 @@ contract XChainTests is Script {
         if(chainId == 421614) {   // On ARB SEPOLIA
             // c3UUIDKeeper = ;
             feeToken = 0x92829288C6Aa874c1A0F190dA35A4023C22be637;
-            feeManager = 0x1Ba78c17F0b190FA84Bef5FB0de2234404AcbEa3;
-            gatewayAddr = 0xC70BAa204cfDcDA282BC16980A5bAb15D152dF5c;
-            rwa001XAddr = 0xaFc30031D05CAb08f6E7eA5db3e3dBA7e83DE000;
-            ctmFallbackAddr = 0xF205EAEb99f7170bE5ab8B6159917b12f50a5Cf4;
-            ctmRwa001Map = 0x499B519ac09C343eF3f6133eC24FFf8CD53B2098;
-            ctmRwaDeployer = 0x8F318Aa24F0559c219B2757a5064E7cE2f286E13;
-            ctmRwaFactory = 0xfbea541baD336339a86d5240097C7aC47a98e972;
-            dividendAddr = 0x30D2d988C28EF3C7Fa1DfC67b7a76b33744DE448;
-            storageManagerAddr = 0x95FdF4044A76A886b80481C360D2F64cDB337918;
+            feeManager = 0x3Dd9BB1ff0e52390c1BC16f1aB77608a2C7631c4;
+            gatewayAddr = 0x9b81c6A2A62EEA2A814AFDBB5D69CE0592E1C751;
+            rwa001XAddr = 0xe0f1cd117107457Bc14c2f1b82E218157c2a620c;
+            ctmFallbackAddr = 0xdb23084993Cc7647c7210fb8d096b19188601783;
+            ctmRwa001Map = 0x53C42f0AE7BbBD3c5c1336d7E87a9408EC27b90F;
+            ctmRwaDeployer = 0x24b34AB7851871E761cd502dbCAD5a461eE5d4D8;
+            ctmRwaFactory = 0x975715Af31AF252a5A8788ea369D13021675ABAf;
+            dividendAddr = 0x2E3dD74986BD4c23b048090794259ca09402b61F;
+            storageManagerAddr = 0x78e9F16b42508a9BC0892bFF922c09067de08Fc5;
         } else if(chainId == 84532) {    // on BASE SEPOLIA
             feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0x3AF6a526DD51C8B08FD54dBB624E042BB3b0a77e;
-            gatewayAddr = 0x605Ab9626e57C5d1f3f0508D5400aB0449b5a015;
-            rwa001XAddr = 0xc0DD542BCaC26095A2C83fFb10826CCEf806C07b;
-            ctmFallbackAddr = 0x7658E59CdbA5e7E08263a216e89c8438C9F02048;
-            ctmRwa001Map = 0x70aF28A024463D3EFB5772adb8869470015bf076;
-            ctmRwaDeployer = 0xD6172a20bc94c1017b9F7B060cae5F5B8bd6482a;
-            ctmRwaFactory = 0x93DEF24108852Be52b2c34084d584338E46ab8f4;
-            dividendAddr = 0x855c06F9f7b01838DC540Ec6fcfF17fD86A378D8;
-            storageManagerAddr = 0xaa0558DD75995a3916E79b354ec4cB40FE9f122d;
+            feeManager = 0x9BFaB09e477e0e931F292C8132F2579883C6921A;
+            gatewayAddr = 0x2d1967eF42ECf9a42785D08398aADba806Aa090B;
+            rwa001XAddr = 0xA09E913fa1aA5383a90aD6d8B94BC3DaBeE90332;
+            ctmFallbackAddr = 0xBa59F04dbdcB1B74d601fbBF3E7e1ca82081c536;
+            ctmRwa001Map = 0xE881090c0635c60EA579B5ABa3eef25Ac6a9599a;
+            ctmRwaDeployer = 0x88802732af13061009363B12256A446DaEd6Fb81;
+            ctmRwaFactory = 0x9d3fA9C6436D9b447aB548458d3167B166A85F83;
+            dividendAddr = 0xF7B712f57e4227a9CE876A482762a0F5a67b2B8E;
+            storageManagerAddr = 0xa840A5eC6557DF201a6a1561DbDc8AD6f3B3fAF4;
         } else if(chainId == 97) {  // BSC TESTNET
             feeToken = 0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD;
-            feeManager = 0x02ac04fbA3eE9723ae60697b95128b6a5d5Bda33;
-            gatewayAddr = 0x409774624E037E950B7c6f099357ffDE3e7F8e1B;
-            rwa001XAddr = 0xb84577bF16b7AE120bCa7bB9dBDb42e0a1ae67Ec;
-            ctmFallbackAddr = 0x7a08bBAd9eA90D1FeD55D993a18a8899D263AB4F;
-            ctmRwa001Map = 0x497d31415cc6D20113d2F96c90C706b98701c1c9;
-            ctmRwaDeployer = 0x300B0334FBbb148194A86a798A7C77AA4c39484f;
-            ctmRwaFactory = 0x73A08E3DC5A5fE357c9760aa21d291035F218E31;
-            dividendAddr = 0xeeEF6a3EaBe62DF296d2711254ed0a0AB2920cA6;
-            storageManagerAddr = 0xF5F405ccF62c2E9f636f9f0de9878dD26550B63d;
+            feeManager = 0xf204b97DBbba1bed029Bd13bef456d1A17dA9Bf9;
+            gatewayAddr = 0x1392fC45312550197adF2039de80e8DA58fc72A3;
+            rwa001XAddr = 0xC5070659D0290f2Eb2B1eD886f3F7574fde5C4Be;
+            ctmFallbackAddr = 0xC18200720f76B30DB33cEB20eF18DEaC96e32671;
+            ctmRwa001Map = 0x0Cd62Ee006ea6ef99EEcd69085315Ebc66786772;
+            ctmRwaDeployer = 0x89251083bEFB84486cE91407f40634c0E547Cc0e;
+            ctmRwaFactory = 0x6C67D4fb441f56F4E2dDb197d4347c244Fcd3bC8;
+            dividendAddr = 0xC813b7b87712f7Aad5c0a3aca49177DBee2D1a70;
+            storageManagerAddr = 0x8159be9135ecC4893826E40cf19047a79c523008;
         }
 
         gateway = ICTMRWAGateway(gatewayAddr);
@@ -421,6 +422,16 @@ contract XChainTests is Script {
 
         console.log("junkHash");
         console.logBytes32(junkHash);
+
+        // function addURI(
+        //     uint256 _ID,
+        //     URICategory _uriCategory,
+        //     URIType _uriType,
+        //     uint256 _slot,
+        //     bytes32 _uriDataHash,
+        //     string[] memory _chainIdsStr,
+        //     string memory _feeTokenStr
+        // ) public {
 
 
         storageManager.addURI(

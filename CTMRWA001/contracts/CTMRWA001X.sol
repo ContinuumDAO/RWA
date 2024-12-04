@@ -40,7 +40,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
     event CreateSlot(uint256 ID, uint256 slot, string fromChainIdStr);
 
-    event TransferToDestX(uint256 ID);
+    event MintingX(uint256 ID, string fromChainIdStr, string fromAddrStr);
 
 
     constructor(
@@ -299,11 +299,12 @@ contract CTMRWA001X is Context, GovernDapp {
     function changeAdmin(address _newAdmin, uint256 _ID) public returns(bool) {
 
         (address ctmRwa001Addr,) = _getTokenAddr(_ID);
-        _checkTokenAdmin(ctmRwa001Addr);
+        (address currentAdmin,) = _checkTokenAdmin(ctmRwa001Addr);
 
         ICTMRWA001(ctmRwa001Addr).changeAdmin(_newAdmin);
         (, address ctmRwa001StorageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
         ICTMRWA001Storage(ctmRwa001StorageAddr).setTokenAdmin(_newAdmin);
+        swapAdminAddress(currentAdmin, _newAdmin, ctmRwa001Addr);
         return(true);
 
     }
@@ -472,7 +473,6 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _ID,
         string memory _feeTokenStr
     ) public {
-        require(bytes(_toAddressStr).length>0, "CTMRWA001X: Destination address has zero length");
         
         string memory toChainIdStr = _toLower(_toChainIdStr);
 
@@ -581,6 +581,8 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory _fromTokenStr
     ) external onlyCaller returns(bool){
 
+        (, string memory fromChainIdStr,) = context();
+
         address toAddr = stringToAddress(_toAddressStr);
 
         (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
@@ -595,7 +597,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         _updateOwnedCtmRwa001(toAddr, ctmRwa001Addr);
 
-        emit TransferToDestX(_ID);
+        emit MintingX(_ID, fromChainIdStr, _fromAddressStr);
 
         return(true);
     }
@@ -654,6 +656,16 @@ contract CTMRWA001X is Context, GovernDapp {
         require(_msgSender() == currentAdmin, "CTMRWA001X: Not tokenAdmin");
 
         return(currentAdmin, currentAdminStr);
+    }
+
+    function swapAdminAddress(address _oldAdmin, address _newAdmin, address _ctmRwa001Addr) internal {
+        for(uint256 i=0; i<adminTokens[_oldAdmin].length; i++) {
+            if(adminTokens[_oldAdmin][i] == _ctmRwa001Addr) {
+                delete adminTokens[_oldAdmin][i];
+                adminTokens[_newAdmin].push(_ctmRwa001Addr);
+                break;
+            }
+        }
     }
 
 

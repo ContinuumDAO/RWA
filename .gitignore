@@ -10,7 +10,7 @@ CTMRWA001/broadcast
 CTMRWA001/broadcast/*/31337/
 CTMRWA001/broadcast/**/dry-run/
 CTMRWA001/flattened
-CTMRWA001/Greenfield
+CTMRWA001/Greenfield/node_modules/
 
 # Docs
 CTMRWA001/docs
