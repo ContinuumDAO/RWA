@@ -470,7 +470,7 @@ contract SetUp is Test {
             "Semi Fungible Token XChain",
             "SFTX",
             18,
-            "continuumdao/",
+            "GFLD",
             dummyChainIdsStr,  // empty array - no cross-chain minting
             tokenStr
         );
@@ -643,7 +643,7 @@ contract TestBasicToken is SetUp {
         vm.stopPrank();
     }
 
-    function test_CTMRWA001XBasic() public {
+    function test_CTMRWA001XBasic() public view {
         string memory gatewayStr = gateway.getChainContract(cID().toString());
         //console.log(gatewayStr);
         address gway = stringToAddress(gatewayStr);
@@ -861,6 +861,37 @@ contract TestBasicToken is SetUp {
         address owner = ICTMRWA001(ctmRwaAddr).ownerOf(tokenId2);
         assertEq(owner, admin);
         assertEq(ICTMRWA001(ctmRwaAddr).getApproved(tokenId2), admin);
+
+        vm.stopPrank();
+
+    }
+
+    function test_changeAdmin() public {
+        vm.startPrank(admin);  // this CTMRWA001 has an admin of admin
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
+        skip(10);
+        (uint256 ID2, address ctmRwaAddr2) = CTMRWA001Deploy();
+        address[] memory aTokens = rwa001X.getAllTokensByAdminAddress(admin);
+        assertEq(aTokens.length, 2);
+        
+        assertEq(aTokens[0], ctmRwaAddr);
+        assertEq(aTokens[1], ctmRwaAddr2);
+
+        rwa001X.changeAdmin(user2, ID);
+        aTokens = rwa001X.getAllTokensByAdminAddress(admin);
+        assertEq(aTokens.length, 1);
+
+        aTokens = rwa001X.getAllTokensByAdminAddress(user2);
+        assertEq(aTokens.length, 1);
+        assertEq(aTokens[0], ctmRwaAddr);
+
+        rwa001X.changeAdmin(address(0), ID2);
+        aTokens = rwa001X.getAllTokensByAdminAddress(admin);
+        assertEq(aTokens.length, 0);
+
+        address dustbin = ICTMRWA001(ctmRwaAddr2).tokenAdmin();
+        assertEq(dustbin, address(0));
+
 
         vm.stopPrank();
 

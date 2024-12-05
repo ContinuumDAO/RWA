@@ -659,9 +659,14 @@ contract CTMRWA001X is Context, GovernDapp {
     }
 
     function swapAdminAddress(address _oldAdmin, address _newAdmin, address _ctmRwa001Addr) internal {
-        for(uint256 i=0; i<adminTokens[_oldAdmin].length; i++) {
+        uint256 len = adminTokens[_oldAdmin].length;
+
+        for(uint256 i=0; i<len; i++) {
             if(adminTokens[_oldAdmin][i] == _ctmRwa001Addr) {
-                delete adminTokens[_oldAdmin][i];
+                if(i != len-1) {
+                    adminTokens[_oldAdmin][i] = adminTokens[_oldAdmin][len-1];
+                } 
+                adminTokens[_oldAdmin].pop();
                 adminTokens[_newAdmin].push(_ctmRwa001Addr);
                 break;
             }
