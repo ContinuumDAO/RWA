@@ -21,6 +21,7 @@ enum FeeType {
     REDEMPTION,
     WHOCANINVEST,
     IMAGE,
+    VIDEO,
     ICON
 }
 

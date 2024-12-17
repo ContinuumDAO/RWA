@@ -53,26 +53,26 @@ contract NewChainSetup is Script {
     constructor() {
         newchains.push(NewChain(    // ARB Sepolia
             421614,
-            0x9b81c6A2A62EEA2A814AFDBB5D69CE0592E1C751,
-            0xe0f1cd117107457Bc14c2f1b82E218157c2a620c,
-            0x3Dd9BB1ff0e52390c1BC16f1aB77608a2C7631c4,
-            0x78e9F16b42508a9BC0892bFF922c09067de08Fc5,
-            0x92829288C6Aa874c1A0F190dA35A4023C22be637
+            0x67FD0C58Bd8b925A3D3546ecc505653514B64013,
+            0xa8f94374FaCDf9413407fd10af8954e20e299C5d,
+            0x2A07E30CEb718F199268b5Cd1cd473500Af53c52,
+            0xE38F40EFC472Aae401BA1EDF37eDD98Ba43f5266,
+            0xbF5356AdE7e5F775659F301b07c4Bc6961044b11
         ));
         newchains.push(NewChain(   // POLYGON AMOY  Chain 80002
             80002,
-            0x1249d751e6a0b7b11b9e55CBF8bC7d397AC3c083,
-            0x797AA64f83e4d17c2C6C80321f22445AAB153630,
-            0x1944F7fdd330Af7b0e7C08349591213E35ed5948,
-            0xb406b937C12E03d676727Fc1Bb686279EeDbc178,
+            0x89330bE16C672D4378B6731a8347D23B0c611de3,
+            0xb4317DBA65486889643585A8D96C8d1990971Cad,
+            0x7743150e59d6A27ec96dDDa07B24131D0122b611,
+            0x10A04ad4a73C8bb00Ee5A29B27d11eeE85390306,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         ));
         newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
             84532,
-            0x2d1967eF42ECf9a42785D08398aADba806Aa090B,
-            0xA09E913fa1aA5383a90aD6d8B94BC3DaBeE90332,
-            0x9BFaB09e477e0e931F292C8132F2579883C6921A,
-            0xa840A5eC6557DF201a6a1561DbDc8AD6f3B3fAF4,
+            0x3561Aa249d1262a912764770Bb8c387a7bBb56b6,
+            0x410871E12756f751974379d56319AE5D34bB3EB5,
+            0x7cd54FCbd1e2Fdad5ec77557F76Cc35972977a5a,
+            0xa3D476BB425aD923483c5f699fAB17dbEb4473Be,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         ));
         // newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
@@ -197,18 +197,18 @@ contract NewChainSetup is Script {
         // ));
         newchains.push(NewChain(  //  BSC TESTNET Chain 97
             97,
-            0x1392fC45312550197adF2039de80e8DA58fc72A3,
-            0xC5070659D0290f2Eb2B1eD886f3F7574fde5C4Be,
-            0xf204b97DBbba1bed029Bd13bef456d1A17dA9Bf9,
-            0x8159be9135ecC4893826E40cf19047a79c523008,
+            0x7240FCDB0DD116293044Ed50Db499680Aa532eeB,
+            0x636D43798340603707c936c1A93597Dc44Effbee,
+            0xDC44569f688a91ba3517C292de75E30EA284eeA0,
+            0x358498985E6ac7CA73F5110b415525aE04CB8313,
             0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD
         ));
         newchains.push(NewChain(  //  SEPOLIA  Chain 11155111
             11155111,
-            0xb07C3788549cd48aD1d4Cb9B7336f7C9Dd53D67F,
-            0x69D461E1314af5E3bcab39f0ebA3872c5de2c1e5,
-            0xEa911684c200aC1FD3Ca8A3FFD21aFE9EF0e35Da,
-            0x8Ee0AeE8A42f55Ed43F5e7DB765FA591C4714C41,
+            0xb406b937C12E03d676727Fc1Bb686279EeDbc178,
+            0xD455BB0f664Ac8241b505729C3116f1ACC441be4,
+            0xc04058E417De221448D4140FC1622dE24121C5e3,
+            0xAd77409a722056b0D41b5Ce2f03a6b7a2B18E3ED,
             0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c
         ));
     }
@@ -283,6 +283,8 @@ contract NewChainSetup is Script {
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.WHOCANINVEST, 4);
                 require(ok, "NewChainSetup: Could not set fee multiplier");
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.IMAGE, 2);
+                require(ok, "NewChainSetup: Could not set fee multiplier");
+                ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.VIDEO, 20);
                 require(ok, "NewChainSetup: Could not set fee multiplier");
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.ICON, 2);
                 require(ok, "NewChainSetup: Could not set fee multiplier");

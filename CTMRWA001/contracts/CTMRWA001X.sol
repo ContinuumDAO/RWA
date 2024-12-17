@@ -32,7 +32,7 @@ contract CTMRWA001X is Context, GovernDapp {
     address public fallbackAddr;
     string public cIDStr;
 
-
+    mapping(address => bool) public isMinter; // which routers can use bridge tokens
     mapping(address => address[]) public adminTokens;  // tokenAdmin address => array of CTMRWA001 contracts
     mapping(address => address[]) public ownedCtmRwa001;  // owner address => array of CTMRWA001 contracts
 
@@ -56,6 +56,12 @@ contract CTMRWA001X is Context, GovernDapp {
         version = 1;
         feeManager = _feeManager;
         cIDStr = cID().toString();
+        isMinter[address(this)] = true;
+    }
+
+    function changeMinterStatus(address _minter, bool _set) external onlyGov {
+        require(_minter != address(this) && _minter != fallbackAddr, "CTMRWA001X: Cannot unset minter CTMRWA001X");
+        isMinter[_minter] = _set;
     }
 
     function changeFeeManager(address _feeManager) external onlyGov {
@@ -76,8 +82,10 @@ contract CTMRWA001X is Context, GovernDapp {
     }
 
     function setFallback(address _fallbackAddr) external onlyGov {
+        require(_fallbackAddr != address(this) && _fallbackAddr != address(0), "CTMRWA001X: Invalid fallBackAddr");
+        isMinter[fallbackAddr] = false;
+        isMinter[_fallbackAddr] = true;
         fallbackAddr = _fallbackAddr;
-
     }
 
 
@@ -141,7 +149,7 @@ contract CTMRWA001X is Context, GovernDapp {
         } else {  // a CTMRWA001 token must be deployed already, so use the existing ID
             ID = _existingID;
             (bool ok, address rwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(ID, _rwaType, _version);
-            require(ok, "CTMRWA001X: ID does not exist on local chain");
+            require(ok, "CTMRWA001X: The token ID does not exist on the current chain");
             ctmRwa001Addr = rwa001Addr;
 
             _checkTokenAdmin(ctmRwa001Addr);
@@ -357,7 +365,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         address currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
         address oldAdmin = stringToAddress(_oldAdminStr);
-        require(currentAdmin == oldAdmin, "CTMRWA001X: Not admin. Cannot change admin address");
+        require(currentAdmin == oldAdmin, "CTMRWA001X: Not admin, or token is locked. Cannot change admin address");
 
         changeAdmin(newAdmin, _ID );
 
@@ -402,7 +410,7 @@ contract CTMRWA001X is Context, GovernDapp {
         string[] memory _toChainIdsStr,
         string memory _feeTokenStr
     ) public returns(bool) {
-        require(bytes(_slotName).length <= 128, "CTMRWA001X: Slot name > 128 characters");
+        require(bytes(_slotName).length <= 256, "CTMRWA001X: Slot name > 256 characters");
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "CTMRWA001X: Trying to create a slot that already exists");
         
@@ -454,7 +462,7 @@ contract CTMRWA001X is Context, GovernDapp {
         address fromAddress = stringToAddress(_fromAddressStr);
 
         address currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
-        require(fromAddress == currentAdmin, "CTMRWA001X: Only current admin can add slots");
+        require(fromAddress == currentAdmin, "CTMRWA001X: Only the token admin can add slots, or token is locked");
 
         ICTMRWA001(ctmRwa001Addr).createSlotX(_slot, _slotName);
 
@@ -653,7 +661,7 @@ contract CTMRWA001X is Context, GovernDapp {
         address currentAdmin = ICTMRWA001(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = _toLower(currentAdmin.toHexString());
 
-        require(_msgSender() == currentAdmin, "CTMRWA001X: Not tokenAdmin");
+        require(_msgSender() == currentAdmin, "CTMRWA001X: Not token admin, or it is locked");
 
         return(currentAdmin, currentAdminStr);
     }

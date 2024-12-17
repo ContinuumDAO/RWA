@@ -658,6 +658,7 @@ contract TestBasicToken is SetUp {
         uint256 rwaType = 1;
         uint256 version = 1;
 
+        vm.startPrank(admin);
         uint256 ID = rwa001X.deployAllCTMRWA001X(
             true,  // include local mint
             0,
@@ -684,6 +685,12 @@ contract TestBasicToken is SetUp {
 
         uint256 deployedVersion = ICTMRWA001Token(ctmRwaAddr).getVersion();
         assertEq(deployedVersion, version);
+
+        address[] memory aTokens = rwa001X.getAllTokensByAdminAddress(admin);
+        console.log('aTokens');
+        assertEq(aTokens[0], ctmRwaAddr);
+
+        vm.stopPrank();
     }
 
     function test_CTMRWA001Mint() public {

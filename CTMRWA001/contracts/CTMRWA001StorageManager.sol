@@ -119,12 +119,14 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         uint256 _ID,
         URICategory _uriCategory,
         URIType _uriType,
+        string memory _title,
         uint256 _slot,
         bytes32 _uriDataHash,
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
-        
+        uint256 titleLength = bytes(_title).length;
+        require(titleLength >= 10 && titleLength <= 128, "CTMRWA001StorageManager: The title parameter must be between 10 and 128 characters");
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
         require(ok, "CTMRWA001StorageManager: Could not find _ID or its storage address");
 
@@ -151,16 +153,17 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
             if(stringsEqual(chainIdStr, cIdStr)) {
-                ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, objectName, _uriDataHash);
+                ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _title, _slot, objectName, _uriDataHash);
             } else {
                 (, string memory toRwaSMStr) = _getSM(chainIdStr);
 
-                string memory funcCall = "addURIX(uint256,uint8,uint8,uint256,string,bytes32)";
+                string memory funcCall = "addURIX(uint256,uint8,uint8,string,uint256,string,bytes32)";
                 bytes memory callData = abi.encodeWithSignature(
                     funcCall,
                     _ID,
                     _uriCategory,
                     _uriType,
+                    _title,
                     _slot,
                     objectName,
                     _uriDataHash
@@ -176,6 +179,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         uint256 _ID,
         URICategory _uriCategory,
         URIType _uriType,
+        string memory _title,
         uint256 _slot,
         string memory _objectName,
         bytes32 _uriDataHash
@@ -184,7 +188,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
         require(ok, "CTMRWA0CTMRWA001StorageManager: Could not find _ID or its storage address");
 
-        ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _slot, _objectName, _uriDataHash);
+        ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _title, _slot, _objectName, _uriDataHash);
 
         return(true);
     }

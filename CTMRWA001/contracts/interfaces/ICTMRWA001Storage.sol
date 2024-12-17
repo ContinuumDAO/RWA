@@ -17,6 +17,7 @@ enum URICategory {
     REDEMPTION,
     WHOCANINVEST,
     IMAGE,
+    VIDEO,
     ICON,
     EMPTY
 }
@@ -30,6 +31,7 @@ enum URIType {
 struct URIData {
     URICategory uriCategory;
     URIType uriType;
+    string title;
     uint256 slot;
     string objectName;
     bytes32 uriHash;
@@ -49,11 +51,13 @@ interface ICTMRWA001Storage {
         uint256 ID,
         URICategory uriCategory,
         URIType uriType,
+        string memory title,
         uint256 slot,
         string memory objectName,
         bytes32 uriDataHash
     ) external;
 
+    function getAllURIData() external view returns(URIData[] memory);
     function getURIHashByIndex(URICategory uriCat, URIType uriTyp, uint256 index) external view returns(bytes32);
     function getURIHashCount(URICategory uriCat, URIType uriTyp) external view returns(uint256);
     function getURIHash(bytes32 _hash) external view returns(URIData memory);

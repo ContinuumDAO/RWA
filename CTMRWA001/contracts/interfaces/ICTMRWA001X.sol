@@ -5,6 +5,9 @@ pragma solidity ^0.8.23;
 import {SlotData} from "./ICTMRWA001.sol";
 
 interface ICTMRWA001X {
+
+    function isMinter(address) external returns(bool);
+    function changeMinterStatus(address minter, bool set) external;
     
     function changeAdmin(address _newAdmin, uint256 _ID) external returns(bool);
     function changeFeeManager(address _feeManager) external;

@@ -123,6 +123,11 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _;
     }
 
+    modifier onlyMinter() {
+        require(ICTMRWA001X(ctmRwa001X).isMinter(_msgSender()), "CTMRWA001: This is an onlyMinter function");
+        _;
+    }
+
     modifier onlyDividend() {
         require(_msgSender() == dividendAddr, "CTMRWA001: This can only be called by Dividend contract");
         _;
@@ -363,7 +368,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _mint(to_, tokenId, slot_, _slotName, value_);  
     }
 
-    function mintFromX(address to_, uint256 slot_, string memory _slotName, uint256 value_) external onlyRwa001X returns (uint256 tokenId) {
+    function mintFromX(address to_, uint256 slot_, string memory _slotName, uint256 value_) external onlyMinter returns (uint256 tokenId) {
         return(_mint(to_, slot_, _slotName, value_));
     }
 
@@ -378,7 +383,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _afterValueTransfer(address(0), to_, 0, tokenId_, slot_, value_);
     }
 
-    function mintFromX(address to_, uint256 tokenId_, uint256 slot_, string memory _slotName, uint256 value_) external onlyRwa001X {
+    function mintFromX(address to_, uint256 tokenId_, uint256 slot_, string memory _slotName, uint256 value_) external onlyMinter {
         _mint(to_, tokenId_, slot_, _slotName, value_);
     }
 
@@ -602,7 +607,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         );
     }
 
-    function burnValueX(uint256 fromTokenId_, uint256 value_) external onlyRwa001X returns(bool) {
+    function burnValueX(uint256 fromTokenId_, uint256 value_) external onlyMinter returns(bool) {
         require(_exists(fromTokenId_), "CTMRWA001: transfer from invalid token ID");
 
         TokenData storage fromTokenData = _allTokens[_allTokensIndex[fromTokenId_]];
@@ -612,7 +617,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return(true);
     }
 
-    function mintValueX(uint256 toTokenId_, uint256 slot_, uint256 value_) external onlyRwa001X returns(bool) {
+    function mintValueX(uint256 toTokenId_, uint256 slot_, uint256 value_) external onlyMinter returns(bool) {
         require(_exists(toTokenId_), "CTMRWA001: transfer to invalid token ID");
 
         TokenData storage toTokenData = _allTokens[_allTokensIndex[toTokenId_]];
