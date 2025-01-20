@@ -58,7 +58,7 @@ interface ICTMRWA001Storage {
     ) external;
 
     function getAllURIData() external view returns(URIData[] memory);
-    function getURIHashByIndex(URICategory uriCat, URIType uriTyp, uint256 index) external view returns(bytes32);
+    function getURIHashByIndex(URICategory uriCat, URIType uriTyp, uint256 index) external view returns(bytes32, string memory);
     function getURIHashCount(URICategory uriCat, URIType uriTyp) external view returns(uint256);
     function getURIHash(bytes32 _hash) external view returns(URIData memory);
     function existURIHash(bytes32 uriHash) external view returns(bool);

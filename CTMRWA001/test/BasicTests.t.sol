@@ -39,6 +39,7 @@ import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
 import {ICTMRWA001Token} from "../contracts/interfaces/ICTMRWA001Token.sol";
 import {ICTMRWA001XFallback} from "../contracts/interfaces/ICTMRWA001XFallback.sol";
 import {ICTMRWA001Dividend} from "../contracts/interfaces/ICTMRWA001Dividend.sol";
+import {URIType, URICategory, URIData, ICTMRWA001Storage} from "../contracts/interfaces/ICTMRWA001Storage.sol";
 
 import {C3CallerStructLib, IC3GovClient} from "../contracts/c3Caller/IC3Caller.sol";
 
@@ -202,6 +203,8 @@ contract SetUp is Test {
             3,
             88
         );
+
+        storageManager.setCtmRwaMap(address(ctmRwa001Map));
 
         chainIdsStr.push("1");
         storageAddrsStr.push(address(storageManager).toHexString());
@@ -731,6 +734,49 @@ contract TestBasicToken is SetUp {
         exists = ICTMRWA001(ctmRwaAddr).requireMinted(tokenId);
         assertEq(exists, false);
         vm.stopPrank();
+    }
+
+    function test_addURI() public {
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
+        createSomeSlots(ID);
+
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+
+
+        string memory randomData = "this is any old data";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+
+        chainIdsStr.push(block.chainid.toString());
+
+        storageManager.addURI(
+            ID,
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Basic RWA for testing",
+            0, // dummy
+            junkHash,
+            chainIdsStr,
+            tokenStr
+        );
+
+        (bool ok, address thisStorage) = map.getStorageContract(ID, rwaType, version);
+
+        uint256 num = ICTMRWA001Storage(thisStorage).getURIHashCount(URICategory.ISSUER, URIType.CONTRACT);
+        assertEq(num, 1);
+
+        URIData memory thisHash = ICTMRWA001Storage(thisStorage).getURIHash(junkHash);
+        assertEq(uint8(thisHash.uriCategory), uint8(URICategory.ISSUER));
+
+        uint256 indx = 0;
+        bytes32 issuerHash;
+        string memory objectName;
+
+        (issuerHash, objectName) = ICTMRWA001Storage(thisStorage).getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, indx);
+        // console.log("ObjectName");
+        // console.log(objectName);
+        // console.log("Issuer hash");
+        // console.logBytes32(issuerHash);
+        assertEq(issuerHash, junkHash);
     }
 
     function test_getTokenList() public {

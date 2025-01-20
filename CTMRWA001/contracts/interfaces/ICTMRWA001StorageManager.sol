@@ -15,6 +15,7 @@ interface ICTMRWA001StorageManager {
         uint256 ID,
         URICategory uriCategory,
         URIType uriType,
+        string memory title,
         uint256 slot,
         bytes32 uriDataHash,
         string[] memory chainIdsStr,

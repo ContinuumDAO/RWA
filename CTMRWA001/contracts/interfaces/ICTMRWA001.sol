@@ -58,7 +58,6 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
     function totalSupply() external view returns (uint256);
     function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);
     function tokenSupplyInSlot(uint256 slot) external view returns(uint256);
-    function totalSupplyInSlot(uint256 _slot) external view returns (uint256);
     function tokenByIndex(uint256 index_) external view returns (uint256);
 
     function createSlotX(uint256 _slot, string memory _slotName) external;
@@ -69,6 +68,7 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
     function slotName(uint256 _slot) external view returns (string memory);
     function slotByIndex(uint256 index_) external view returns (uint256);
     function initializeSlotData(uint256[] memory _slotNumbers, string[] memory _slotNames) external;
+    function totalSupplyInSlot(uint256 _slot) external view returns (uint256);
    
 
     function approveFromX(address to_, uint256 tokenId_) external;

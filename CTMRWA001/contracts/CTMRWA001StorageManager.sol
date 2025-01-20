@@ -244,6 +244,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         else if(_uriCategory == URICategory.REDEMPTION) feeType = FeeType.REDEMPTION;
         else if(_uriCategory == URICategory.WHOCANINVEST) feeType = FeeType.WHOCANINVEST;
         else if(_uriCategory == URICategory.IMAGE) feeType = FeeType.IMAGE;
+        else if(_uriCategory == URICategory.VIDEO) feeType = FeeType.VIDEO;
         else if(_uriCategory == URICategory.ICON) feeType = FeeType.ICON;
 
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, feeType, _feeTokenStr);

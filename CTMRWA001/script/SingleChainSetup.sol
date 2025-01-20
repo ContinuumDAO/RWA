@@ -21,13 +21,13 @@ struct NewChain {
 }
 
 
-contract NewChainSetup is Script {
+contract SingleChainSetup is Script {
     using Strings for *;
 
     uint256 rwaType = 1;
     uint256 version = 1;
 
-    uint256 chainId = 1952959480;   // This is the chainId we are processing
+    uint256 chainId = 1115;   // This is the chainId we are processing
 
     string[] feeTokensStr;
     uint256[] fees;

@@ -30,7 +30,7 @@ contract CTMRWA001Storage is Context {
     string idStr;
     uint256 public nonce;
 
-    string constant TYPE = "ctm-rwa001.";
+    string constant TYPE = "ctm-rwa001-";
 
     URIData[] uriData;
 
@@ -92,7 +92,7 @@ contract CTMRWA001Storage is Context {
         if(_uriType == URIType.CONTRACT) {
             return(nonce.toString());
         } else {
-            return(string.concat("s.", _slot.toString(), ".", nonce.toString()));
+            return(string.concat("s-", _slot.toString(), "-", nonce.toString()));
         }
     }
 
