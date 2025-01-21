@@ -3,11 +3,12 @@ const dotenv = require('dotenv')
 const {getRwaContracts} = require('./rwaContracts.js')
 const fs = require('fs')
 const axios = require('axios')
-const keccak256 = require('keccak256')
 const {ReedSolomon} = require('@bnb-chain/reed-solomon')
 const { NodeAdapterReedSolomon } = require('@bnb-chain/reed-solomon/node.adapter')
+
 const {
     client,
+    connect,
     selectSp,
     generateString,
     getTokenAdmin,
@@ -27,6 +28,7 @@ const {
     addObject,
     deleteObject,
     createFile,
+    downloadFile,
     createStorageObject,
     getObject
 } = require('./greenfieldLib.js')
@@ -58,7 +60,7 @@ const {
     Image,
 } = require('./storage_classes.js')
 
-const REMOTE = false
+const REMOTE = true
 
 const greenfieldServer = "http://127.0.0.1:3000"
 
@@ -72,28 +74,17 @@ const {abi:storageAbi} = require('../out/CTMRWA001Storage.sol/CTMRWA001Storage.j
 const rwaType = 1
 const version = 1
 
-const RPC_URL = process.env.RPC_URL
 const PRIVATE_KEY = process.env.PRIVATE_KEY
 
 var signer
-let chainId
-let ctmRwaMap
-let storageManager
-let feeToken
-
-const connect = async () => {
-    const provider = new ethers.JsonRpcProvider(RPC_URL)
-
-    const signer = new ethers.Wallet(PRIVATE_KEY, provider)
-    const { chainId } = await provider.getNetwork()
-
-    return {signer: signer, chainId: chainId}
-}
-
+var chainIdStr
+var ctmRwaMap
+var storageManager
+var feeToken
 
 const deleteBucket = async(bucketName, admin, signer) => {
 
-    let ok = checkBucketExists(bucketName, signer)
+    let ok = checkBucketExists(bucketName)
     if(!ok) {
         return false
     }
@@ -126,38 +117,38 @@ const deleteBucket = async(bucketName, admin, signer) => {
 }
 
 
-const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, override) => {
+const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, owner, signer, override) => {
 
     let bucketRes
     let storageContract
     let bucketName
-    const storRes = await getStorageContract(ID)
+    const storRes = await getStorageContract(ID, chainIdStr, signer)
     if(!storRes.ok) {
         return({ok: storRes.ok, msg: storRes.msg, objectName: null, bucketName: bucketName})
     } else {
         storageContract = storRes.storageContract
     }
-    let tokenAdmin = await getTokenAdmin(storageContract)
-    bucketRes = await getBucketName(storageContract, signer)
+    let tokenAdmin = await getTokenAdmin(storageContract, signer)
+    bucketRes = await getBucketName(ID, chainIdStr, signer)
     if(!bucketRes.ok) {
         return {ok: false, msg: bucketRes.msg, objectName: null, bucketName: null}
     } else {
         bucketName = bucketRes.bucketName
     }
 
-    let ok = await checkBucketExists(bucketName, signer)
+    let ok = await checkBucketExists(bucketName)
     console.log(`bucketExists = ${ok}`)
     let msg
     if(!ok) {
         console.log('adding a bucket for ID ', ID)
         if(REMOTE) {
-            let addBucketRes = await axios.post(greenfieldServer + '/add-bucket', {ID: ID.toString()})
+            let addBucketRes = await axios.post(greenfieldServer + '/add-bucket', {ID: ID.toString(), chainIdStr: chainIdStr})
             let bucketData = addBucketRes.data
             if(!bucketData.ok) {
                 return {ok: false, msg: bucketData.msg, objectName: null, bucketName: bucketData.bucketName}
             }
         } else {
-            let deployBucketRes = await deployBucket(bucketName, tokenAdmin)
+            let deployBucketRes = await deployBucket(bucketName, tokenAdmin, signer)
             if(!deployBucketRes.ok) {
                 return {ok: false, msg: deployBucketRes.msg, objectName: null, bucketName: bucketName}
             }
@@ -177,7 +168,7 @@ const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, o
     let objectName
 
     if(override) {
-        const getObjRes = await getExistingObjectName(ID, hash)
+        const getObjRes = await getExistingObjectName(ID, hash, chainIdStr, signer)
         if(!getObjRes.ok) {
             return {ok: false, msg:getObjRes.msg, objectName: objectName, transactionHash: null}
         } else {
@@ -185,20 +176,28 @@ const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, o
             console.log('existing objectName = ', objectName)
         }
     } else {
-        objectRes = await getNextObjectName(rwaObject.type, rwaObject.slot, ID, signer)
+        objectRes = await getNextObjectName(rwaObject.type, rwaObject.slot, ID, chainIdStr, signer)
         if(!objectRes.ok) {
             return {ok: false, msg: objectRes.msg, objectName: null, transactionHash: null}
         } else {
             objectName = objectRes.objectName
         }
 
-        let res = await createStorageObject(ID, rwaObject, hash, chainIdsStr, feeToken, feeApproval)
+        let res = await createStorageObject(
+            ID, 
+            rwaObject, 
+            hash, 
+            chainIdsStr, 
+            feeToken, 
+            feeApproval, 
+            chainIdStr, 
+            signer
+        )
         if(!res.ok) {
             return {ok: false, msg: res.msg, objectName: objectName, transactionHash: null}
         }
     }
 
-    
     fileBuffer = resChecksum.fileBuffer
     console.log('fileBuffer length = ', Long.fromInt(fileBuffer.byteLength))
 
@@ -213,9 +212,12 @@ const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, o
         if(REMOTE) {
             addObjectRes = await axios.post(greenfieldServer + '/add-object', {
                 ID: ID.toString(),
-                fileBuffer: fileBuffer,
+                owner: owner,
+                chainIdStr: chainIdStr,
+                rwaObject: rwaObject,
                 bucketName: bucketName,
                 objectName: objectName,
+                expectChecksums: expectCheckSums,
             })
 
             ok = addObjectRes.data.ok
@@ -223,54 +225,59 @@ const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, o
             transactionHash = addObjectRes.data.transactionHash
 
         } else {
-            createObjectTx = await client.object.createObject({
-                bucketName: bucketName,
-                objectName: objectName,
-                creator: signer.address,
-                visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
-                contentType: 'text/plain',
-                redundancyType: RedundancyType.REDUNDANCY_EC_TYPE,
-                payloadSize: Long.fromInt(fileBuffer.byteLength),
-                expectChecksums: expectCheckSums.map((x) => bytesFromBase64(x)),
-            });
+            addObjectRes = await addObject(fileBuffer, bucketName, objectName, expectCheckSums, owner, signer)
+            ok = addObjectRes.ok
+            msg = addObjectRes.msg
+            transactionHash = addObjectRes.transactionHash
 
-            const createObjectTxSimulateInfo = await createObjectTx.simulate({
-                denom: 'BNB',
-            })
+            // createObjectTx = await client.object.createObject({
+            //     bucketName: bucketName,
+            //     objectName: objectName,
+            //     creator: signer.address,
+            //     visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
+            //     contentType: 'text/plain',
+            //     redundancyType: RedundancyType.REDUNDANCY_EC_TYPE,
+            //     payloadSize: Long.fromInt(fileBuffer.byteLength),
+            //     expectChecksums: expectCheckSums.map((x) => bytesFromBase64(x)),
+            // });
 
-            createObjectTxRes = await createObjectTx.broadcast({
-                denom: 'BNB',
-                gasLimit: Number(createObjectTxSimulateInfo?.gasLimit),
-                gasPrice: createObjectTxSimulateInfo?.gasPrice || '5000000000',
-                payer: signer.address,
-                granter: '',
-                privateKey: PRIVATE_KEY,
-            })
+            // const createObjectTxSimulateInfo = await createObjectTx.simulate({
+            //     denom: 'BNB',
+            // })
 
-            transactionHash = createObjectTxRes.transactionHash
+            // createObjectTxRes = await createObjectTx.broadcast({
+            //     denom: 'BNB',
+            //     gasLimit: Number(createObjectTxSimulateInfo?.gasLimit),
+            //     gasPrice: createObjectTxSimulateInfo?.gasPrice || '5000000000',
+            //     payer: signer.address,
+            //     granter: '',
+            //     privateKey: PRIVATE_KEY,
+            // })
 
-            uploadRes = await client.object.uploadObject(
-                {
-                    bucketName: bucketName,
-                    objectName: objectName,
-                    body: fileBuffer,
-                    txnHash: transactionHash,
-                },
-                {
-                    type: 'ECDSA',
-                    privateKey: PRIVATE_KEY,
-                },
-            )
+            // transactionHash = createObjectTxRes.transactionHash
 
-            if(uploadRes.code == 0 || uploadRes.code == '110004') {
-                ok = true
-                msg = "Object successfully created"
-                // console.log('Upload Result:', uploadRes)
-            } else {
-                ok = false
-                console.log(uploadRes)
-                msg = "Object not successfully created"
-            }
+            // uploadRes = await client.object.uploadObject(
+            //     {
+            //         bucketName: bucketName,
+            //         objectName: objectName,
+            //         body: fileBuffer,
+            //         txnHash: transactionHash,
+            //     },
+            //     {
+            //         type: 'ECDSA',
+            //         privateKey: PRIVATE_KEY,
+            //     },
+            // )
+
+            // if(uploadRes.code == 0 || uploadRes.code == '110004') {
+            //     ok = true
+            //     msg = "Object successfully created"
+            //     // console.log('Upload Result:', uploadRes)
+            // } else {
+            //     ok = false
+            //     console.log(uploadRes)
+            //     msg = "Object not successfully created"
+            // }
             
         }
 
@@ -292,8 +299,8 @@ const getChecksumObj = async(rwaObject) => {
 
     let checksumRes
     let expectCheckSums
-    let serialObject
     let fileBuffer
+    let fromBase64Res
 
     if(REMOTE) {
         checksumRes = await axios.post(greenfieldServer + '/get-checksum', rwaObject)
@@ -305,16 +312,34 @@ const getChecksumObj = async(rwaObject) => {
         }
 
         expectCheckSums = checksumRes.data.expectCheckSums
-        fileBuffer = checksumRes.data.fileBuffer
+        fileBuffer = Buffer.from(JSON.stringify(rwaObject))
     } else {
         checksumRes = await getChecksum(JSON.stringify(rwaObject))
         expectCheckSums = checksumRes.expectCheckSums
         fileBuffer = checksumRes.fileBuffer
     }
 
-    checksumRes = checksumFromBase64(expectCheckSums)
+    fromBase64Res = checksumFromBase64(expectCheckSums)
 
-    return {ok: true, msg: "Checksum returned successfully", fileBuffer: fileBuffer, expectCheckSums: expectCheckSums, checksum: checksumRes.checksum, hash: checksumRes.hash}
+    return {ok: true, msg: "Checksum returned successfully", fileBuffer: fileBuffer, expectCheckSums: expectCheckSums, checksum: fromBase64Res.checksum, hash: fromBase64Res.hash}
+}
+
+
+const getSingleProperty = async (ID, objectName, signer) => {
+
+    let objectListRes
+
+    try {
+        if (REMOTE) {
+            res = await axios.post(greenfieldServer + '/list-one_object', {ID: ID.toString(), objectName: objectName, chainIdStr: chainIdStr})
+            return {ok: true, msg: "listObject successful", objectList: res.data.objectList}
+        } else {
+            objectListRes = await getSingleObject(ID, objectName, chainIdStr, signer)
+            return objectListRes
+        }
+    } catch(err) {
+        return {ok: false, msg: err.message, objectList: null}
+    }
 }
 
 
@@ -322,9 +347,9 @@ const getPropertyList = async(ID, signer) => {
     try {
 
         let bucketName
-        const storRes = await getStorageContract(ID, signer)
+        const storRes = await getStorageContract(ID, chainIdStr, signer)
 
-        let bucketRes = await getBucketNameFromID(ID, signer)
+        let bucketRes = await getBucketNameFromID(ID, chainIdStr, signer)
         if(!bucketRes.ok) {
             return {ok: false, msg: bucketRes.msg, objectList: null}
         } else {
@@ -334,11 +359,10 @@ const getPropertyList = async(ID, signer) => {
         let res
 
         if(REMOTE) {
-            res = await axios.post(greenfieldServer + '/list-objects', {bucketName: bucketName})
-            console.log(res.data.objectList)
+            res = await axios.post(greenfieldServer + '/list-objects', {ID: ID.toString(), chainIdStr: chainIdStr})
             return {ok: true, msg: "listObjects successful", objectList: res.data.objectList}
         } else {
-            res = await getObjectList(ID, signer)
+            res = await getObjectList(ID, chainIdStr, signer)
             return res
         }
     } catch(err) {
@@ -363,7 +387,7 @@ const addIssuer = () => {
         "CTM",
         "Co-Founder",
         "Continuum DAO",
-        "All the World is mine to take !!",
+        "All the World is free",
         "Xanadu",
         "12345678XN",
         "https:XanaduCompanyRegistrationOffice",
@@ -385,8 +409,6 @@ const addIssuer = () => {
         rwaText       
     )
 
-    // console.log(newRwaURI.properties.email)
-
     return newRwaURI
 
 }
@@ -394,17 +416,20 @@ const addIssuer = () => {
 
 const main = async () => {
 
-    const connectRes = await connect()
-    signer = connectRes.signer
-    chainId = connectRes.chainId
+    // This is an example - we are on Arbitrum Sepolia
+    chainIdStr = "421614"
 
-    publicAddress = await signer.getAddress()
-    console.log(publicAddress)
-
-    const contractRes = getRwaContracts(chainId)
+    const contractRes = getRwaContracts(chainIdStr)
+    let rpcUrl = contractRes.rpcUrl
     ctmRwaMap = contractRes.ctmRwaMap
     storageManager = contractRes.storageManager
     feeToken = contractRes.feeToken
+
+    const connectRes = await connect(rpcUrl)
+    signer = connectRes.signer
+
+    let publicAddress = await signer.getAddress()
+    console.log(publicAddress)
 
 
     // This is just an example using one ID and on the connected chain
@@ -412,7 +437,7 @@ const main = async () => {
     const ID =  52132802886920618599792052678530329303821379622883015540104134213040705464055n
     const rwaObject = addIssuer()  // sample rwaObject
 
-    let storageRes = await getStorageContract(ID, signer)
+    let storageRes = await getStorageContract(ID, chainIdStr, signer)
     let storageContract = storageRes.storageContract
    
     let tokenAdmin = await getTokenAdmin(storageContract, signer)
@@ -422,28 +447,30 @@ const main = async () => {
 
     try {
 
-        // let bucketRes = await getBucketName(storageContract, signer)
+        // let bucketRes = await getBucketName(ID, chainIdStr, signer)
         // let bucketName = bucketRes.bucketName
+        // console.log(bucketName)
 
-        // let singleRes = await getSingleObject(ID, '5', signer)
+        // let singleRes = await getSingleProperty(ID, '5', signer)
         // console.log(singleRes)
         // return
 
-        // let objectRes = await getNextObjectName(rwaObject.type,rwaObject.slot,ID, signer)
+        // let objectRes = await getNextObjectName(rwaObject.type,rwaObject.slot,ID, chainIdStr, signer)
         // let objectName = objectRes.objectName
         // console.log(`Next objectName = ${objectName}`)
         // return
 
-        // let ok = await checkBucketExists(bucketName, signer)
+        // let ok = await checkBucketExists(bucketName)
         // console.log('bucketExists = ', bucketName)
         // return
 
                                             
         // let res = await getPropertyList(ID, signer)
         // console.log(res)
+        // console.log(res.objectList)
         // return
 
-        // await deleteObject(bucketName, 'pxxfmedtun', tokenAdmin)
+        // await deleteObject(bucketName, '10', signer)
         // await deleteBucket(bucketName, tokenAdmin, signer)
         // return
 
@@ -451,12 +478,12 @@ const main = async () => {
         // let expectCheckSums = resChecksum.expectCheckSums
         // return
 
+        let storageObjectExists = false
+        const res = await createObject(ID, rwaObject, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
+        console.log(res)
 
-        // const res = await createObject(ID, rwaObject, chainIdsStr, feeToken, 100, false)
-        // console.log(res)
-
-        const getObjRes = await getObject(ID, '6', signer)
-        console.log(getObjRes)
+        // const getObjRes = await getObject(ID, '6', chainIdStr, signer)
+        // console.log(getObjRes)
 
     } catch(err) {
         if (

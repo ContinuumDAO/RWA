@@ -5,7 +5,10 @@ const cors = require("cors")
 const helmet = require("helmet")
 const rateLimit = require("express-rate-limit")
 const {ReedSolomon} = require('@bnb-chain/reed-solomon')
+
 const fs = require('fs')
+
+const {getRwaContracts} = require('./rwaContracts.js')
 
 const {
     Client,
@@ -14,6 +17,32 @@ const {
     Long,
     bytesFromBase64,
 } = require('@bnb-chain/greenfield-js-sdk')
+
+const {
+    client,
+    connect,
+    selectSp,
+    generateString,
+    getTokenAdmin,
+    getStorageContract,
+    checkBucketExists,
+    getExistingObjectName,
+    getBucketName,
+    getBucketNameFromID,
+    getNextObjectName,
+    getObjectList,
+    getSingleObject,
+    getChecksum,
+    checksumFromBase64,
+    uriTypeToInt,
+    uriCategoryToInt,
+    deployBucket,
+    addObject,
+    deleteObject,
+    createFile,
+    createStorageObject,
+    getObject
+} = require('./greenfieldLib.js')
 
 const {
     Rwa,
@@ -35,7 +64,6 @@ const {
 
 const rs = new ReedSolomon()
 
-const SPNUMBER = 3
 const ASSETXFRONT = "::ffff:127.0.0.1"
 
 dotenv.config()
@@ -43,12 +71,7 @@ const {abi:ctmRwaMapAbi} = require('../out/CTMRWAMap.sol/CTMRWAMap.json')
 const {abi:storageManagerAbi} = require('../out/CTMRWA001StorageManager.sol/CTMRWA001StorageManager.json')
 const {abi:storageAbi} = require('../out/CTMRWA001Storage.sol/CTMRWA001Storage.json')
 
-const RPC_URL = process.env.RPC_URL
-const GREENFIELD_RPC_URL = process.env.NEXT_PUBLIC_GREENFIELD_RPC_URL
-const GREENFIELD_CHAINID = process.env.NEXT_PUBLIC_GREEN_CHAIN_ID
 const PRIVATE_KEY = process.env.PRIVATE_KEY
-
-const client = Client.create(GREENFIELD_RPC_URL, GREENFIELD_CHAINID);
 
 const limiter = rateLimit({
 	windowMs: 10 * 60 * 1000, // 10 minutes
@@ -66,213 +89,20 @@ const PORT = 3000
 const rwaType = 1
 const version = 1
 
-var publicAddress
 
-
-// For Arbitrum Sepolia
-const ctmRwaMap = "0x1113E64C90dab3d1c2Da5850e3eEE672D33CE1f3"
-const storageManager = "0x769139881024cE730dE9de9c21E3ad6fb5a872f2"
-
-var createBucketTx
-
-var signer
-
-
-
-const connect = () => {
-    const provider = new ethers.JsonRpcProvider(RPC_URL)
-
-    const wallet = new ethers.Wallet(PRIVATE_KEY)
-    signer = wallet.connect(provider)
-    return signer
-}
-
-const getSps = async (indx) => {
-    const spList = await client.sp.getStorageProviders()
-    const sp = {
-        operatorAddress: spList[indx].operatorAddress,
-        endpoint: spList[indx].endpoint,
-    };
-    return sp
-}
-
-const getBucketName = async (storageContract) => {
-    let bucketName
-
-    try {
-        const stor = new ethers.Contract(storageContract, storageAbi, signer)
-        bucketName = await stor.greenfieldBucket()
-    return {ok: true, msg: "Successfully got bucketName", bucketName: bucketName.replace('.', '-')}
-    } catch(err) {
-        return {ok: false, msg: err.message, bucketName: null}
-    }
-}
-
-const getNextObjectName = async (uriType, slot, ID) => {
-
-    let objectName
-    let storageContract
-
-    let storRes = await getStorageContract(ID)
-    if(!storRes.ok) {
-        return {ok: false, msg: storRes.msg, objectName: null}
-    } else {
-        storageContract = storRes.storageContract
-    }
-
-    const stor = new ethers.Contract(storageContract, storageAbi, signer)
-    objectName = await stor.greenfieldObject(uriTypeToInt(uriType), uriSlotToInt(slot))
-   
-    return{ok: true, msg: "Successfully got objectName", objectName: objectName.replaceAll('.', '-')}
-}
-
-const uriTypeToInt = (uriType) => {
-    if(uriType == "CONTRACT") return 0
-    else if(uriType == "SLOT") return 1
-    else return -1
-}
-
-const uriSlotToInt = (slot) => {
-    if(slot == "") return 0
-    else return Number(slot)
-}
-
-const uriCategoryToInt = (uriCategory) => {
-    if(uriCategory == "ISSUER") return 0
-    else if(uriCategory == "PROVENANCE") return 1
-    else if(uriCategory == "VALUATION") return 2
-    else if(uriCategory == "PROSPECTUS") return 3
-    else if(uriCategory == "RATING") return 4
-    else if(uriCategory == "LEGAL") return 5
-    else if(uriCategory == "FINANCIAL") return 6
-    else if(uriCategory == "LICENSE") return 7
-    else if(uriCategory == "DUEDILIGENCE") return 8
-    else if(uriCategory == "NOTICE") return 9
-    else if(uriCategory == "DIVIDEND") return 10
-    else if(uriCategory == "REDEMPTION") return 11
-    else if(uriCategory == "WHOCANINVEST") return 12
-    else if(uriCategory == "IMAGE") return 13
-    else if(uriCategory == "VIDEO") return 14
-    else if(uriCategory == "ICON") return 15
-    else return -1
-}
-
-const getTokenAdmin = async (storageContract) => {
-    let tokenAdmin
-    const stor = new ethers.Contract(storageContract, storageAbi, signer)
-    return(tokenAdmin = await stor.tokenAdmin());
-}
-
-const getStorageContract = async (ID) => {
-
-    const ctmMap = new ethers.Contract(ctmRwaMap, ctmRwaMapAbi, signer)
-    
-    const res = await ctmMap.getStorageContract(ID, rwaType, version)
-    let ok = res[0]
-    let msg
-
-    if(!ok) {
-        msg = "CTMRWA001 does not exist, or does not have a storage contract"
-        console.log("CTMRWA001 does not exist, or does not have a storage contract")
-        return {ok: false, msg: msg, storageContract: null}
-    } else {
-        return {ok: true, msg: "Successfully got storageContract", storageContract: res[1]}
-    }
-}
-
-const checkBucketExists = async (bucketName) => {
-    let bucketInfo
-    try {
-        bucketInfo = await client.bucket.getBucketMeta({
-            bucketName: bucketName,
-        });
-        return true
-    } catch(err) {
-        if (err.message.includes('No such bucket')) {
-            console.log('Bucket does not exist')
-            return false
-        } else {
-            throw new Error(`Error checking bucket: ${err.message}`)
-        }
-    }
-}
-
-
-
-const deployBucket = async (bucketName, creator, operatorAddress) => {
-
-    try {
-        createBucketTx = await client.bucket.createBucket({
-            bucketName: bucketName,
-            creator: creator,
-            visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
-            chargedReadQuota: Long.fromString('0'),
-            primarySpAddress: operatorAddress,
-            paymentAddress: signer.address,
-        });
-
-        var createBucketTxSimulateInfo
-
-        createBucketTxSimulateInfo = await createBucketTx.simulate({
-            denom: 'BNB',
-        });
-    } catch(err) {
-        console.log(err.message)
-        return false
-    }
-
-    // console.log('createBucketTxSimulateInfo = ', createBucketTxSimulateInfo)
-
-    var res
-
-    try{
-            res = await createBucketTx.broadcast({
-            denom: 'BNB',
-            gasLimit: Number(createBucketTxSimulateInfo?.gasLimit),
-            gasPrice: createBucketTxSimulateInfo?.gasPrice || '5000000000',
-            payer: signer.address,
-            granter: '',
-            privateKey: PRIVATE_KEY
-        });
-
-        console.log('res = ', res)
-        return true
-
-    } catch(err) {
-        console.log(err.message)
-        return false
-    }
-
-}
-
-
-const deployGreenfield = async (ID) => {
+const deployGreenfield = async (ID, chainIdStr, signer) => {
 
     let res
 
-    let storageContract = await getStorageContract(ID)
+    let storageContract = await getStorageContract(ID, chainIdStr, signer)
     if(!storageContract) {
         console.error('No Storage Contract exists for this ID')
         return {ok: false, msg: "No Storage contract", bucketName: null}
     }
 
-    let tokenAdmin = await getTokenAdmin(storageContract)
-    // if(tokenAdmin != publicAddress) {
-    //     console.error(`Signer is not the token admin for ID ${ID}`)
-    //     return {ok: false, msg: "Signer is not tokenAdmin", bucketName: null}
-    // }
+    let tokenAdmin = await getTokenAdmin(storageContract, signer)
 
-
-    let bucketName = await getBucketName(storageContract)
-    const sp = await getSps(SPNUMBER)
-    if(!sp) {
-        console.error('Greenfield Storage Provider is undefined')
-        return {ok: false, msg: "Greenfield Storage Provider is undefined", bucketName: null}
-    }
-    // console.log(sp)
-    
-    // console.log('bucketName = ', bucketName)
-    console.log(`operator address : ${sp.operatorAddress}`)
+    let bucketName = await getBucketName(storageContract, signer)
 
     if (await checkBucketExists(bucketName)) {
         console.log("Bucket already exists")
@@ -280,7 +110,7 @@ const deployGreenfield = async (ID) => {
     } else {
         try {
             console.log('Adding a Bucket for CTMRWA001')
-            res = await deployBucket(bucketName, tokenAdmin, sp.operatorAddress)
+            res = await deployBucket(bucketName, tokenAdmin, signer)
             if(!res) {
                 return({ok: false, msg: "Did not create a bucket", bucketName: null})
             } else {
@@ -323,148 +153,6 @@ const createObjectPolicy = async (bucketName, objectName, creator) => {
      granter: '',
      privateKey: PRIVATE_KEY,
    });
-}
-
-
-const createObject = async (ID, rwaObject, bucketName, objectName) => {
-
-    let tempFile = bucketName + '.' + objectName + '.json'
-
-    let serialObject = JSON.stringify(rwaObject)
-
-    let storageContract = await getStorageContract(ID)
-    let admin = await getTokenAdmin(storageContract)
-    console.log("admin = ", admin)
-
-    const expectCheckSums = rs.encode(Uint8Array.from(serialObject))
-
-    let ok
-    let msg
-    let createObjectTx
-    let createObjectTxRes
-    let transactionHash = null
-    let uploadRes
-
-
-    try {
-        createObjectTx = await client.object.createObject({
-            bucketName: bucketName,
-            objectName: objectName,
-            creator: signer.address,
-            visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
-            contentType: 'application/json',
-            redundancyType: RedundancyType.REDUNDANCY_EC_TYPE,
-            payloadSize: Long.fromInt(serialObject.length),
-            expectChecksums: expectCheckSums.map((x) => bytesFromBase64(x)),
-        });
-
-        const createObjectTxSimulateInfo = await createObjectTx.simulate({
-            denom: 'BNB',
-        })
-
-        createObjectTxRes = await createObjectTx.broadcast({
-            denom: 'BNB',
-            gasLimit: Number(createObjectTxSimulateInfo?.gasLimit),
-            gasPrice: createObjectTxSimulateInfo?.gasPrice || '5000000000',
-            payer: signer.address,
-            granter: '',
-            privateKey: PRIVATE_KEY,
-        })
-
-        // Write the serialized object to a temporary local file for upload
-        fs.writeFileSync(tempFile, serialObject)
-        // console.log(fs.readFileSync(tempFile))
-
-        transactionHash = createObjectTxRes.transactionHash
-
-        uploadRes = await client.object.uploadObject(
-            {
-                bucketName: bucketName,
-                objectName: objectName,
-                body: createFile(tempFile),
-                txnHash: transactionHash,
-            },
-            {
-                type: 'ECDSA',
-                privateKey: PRIVATE_KEY,
-            },
-        )
-
-        console.log('Upload Result:', uploadRes)
-
-
-        // Clean up temporary file
-        fs.unlinkSync(tempFile)
-
-        if(uploadRes.code == 0 || uploadRes.code == '110004') {
-            ok = true
-            msg = "Object successfully created"
-            console.log('Upload Result:', uploadRes)
-        } else {
-            ok = false
-            msg = "Object not successfully created"
-        }
-        
-        return {ok: ok, msg: msg, objectName: objectName, transactionHash: transactionHash}
-
-    } catch(err) {
-        console.log('ERROR')
-        ok = false
-        msg = `error creating Greenfield Object ${err.message}`
-        console.log(msg)
-        return {ok: ok, msg: msg, objectName: objectName, transactionHash: transactionHash}
-    }
-}
-
-function createFile(path) {
-    const stats = fs.statSync(path)
-    const fileSize = stats.size
-  
-    return {
-      name: path,
-      type: '',
-      size: fileSize,
-      content: fs.readFileSync(path),
-    }
-}
-
-
-const getObject = async (bucketName, objectName) => {
-    const getObjectResult = await client.object.getObject(
-        {
-            bucketName: bucketName, 
-            objectName: objectName,
-        },
-        {
-            type: 'ECDSA',
-            privateKey: PRIVATE_KEY,
-        }
-
-    );
-
-    if(getObjectResult.statusCode == 404) {
-        console.error(`Greenfield Object ${objectName} does not exist`)
-        return null
-    } else {
-        const deserializedObject = JSON.parse(getObjectResult.body.toString());
-        console.log('Deserialized Object:', deserializedObject);
-        return(deserializedObject)
-    }
-}
-
-
-const downloadFile = async(bucketName, objectName) => {
-    const res = await client.object.downloadFile(
-        {
-            bucketName,
-            objectName,
-        },
-        {
-            type: 'ECDSA',
-            privateKey: PRIVATE_KEY,
-        },
-    );
-    return res
 }
 
 
@@ -513,130 +201,7 @@ const listObjects = async (bucketName) => {
 
 }
 
-const getObjectList = async(ID) => {
-    try {
 
-        let bucketName
-        const storRes = await getStorageContract(ID)
-
-        let bucketRes = await getBucketNameFromID(ID)
-        if(!bucketRes.ok) {
-            return {ok: false, msg: bucketRes.msg, objectList: null}
-        } else {
-            bucketName = bucketRes.bucketName
-        }
-
-        let spRes
-        let sp
-
-        if(REMOTE) {
-            let res = await axios.post(greenfieldServer + '/list-objects', {bucketName: bucketName})
-            console.log(res.data.objectList)
-            return {ok: true, msg: "listObjects successful", objectList: res.data.objectList}
-        } else {
-            sp = await selectSp()
-
-            const res = await client.object.listObjects({
-                bucketName: bucketName,
-                endpoint: sp.endpoint,
-            })
-            // console.log(`res.code = ${res.code}`)
-            // console.log(res.message)
-
-            if(res.code != 0) {
-                return {ok: false, msg: res.message, objectList: null}
-            } else {
-
-                const gfldObjects = res.body.GfSpListObjectsByBucketNameResponse.Objects
-                // console.log(`OBJS = ${gfldObjects}`)
-                const numObjects = gfldObjects.length
-                console.log(`number of candidate objects = ${numObjects}`)
-
-                let objInfoRoot
-                let objInfo = []
-
-                let uriCategory
-                let uriType
-                let uriObjectName
-                let uriTitle
-                let slot
-                let uriTimestamp
-
-                for(let i=0; i<numObjects; i++) {
-                    objInfoRoot = gfldObjects[i].ObjectInfo
-
-                    checksumRes = checksumFromBase64(objInfoRoot.Checksums)
-
-                    uriDataRes = await getURIStorageData(ID, checksumRes.hash)
-
-                    uriCategory = Number(uriDataRes.uriData[0])
-                    uriType = Number(uriDataRes.uriData[1])
-                    uriObjectName = uriDataRes.uriData[4].replaceAll('.', '-')
-                    uriTitle = uriDataRes.uriData[2]
-                    slot = uriType == 0? slot = -1: slot = Number(uriDataRes.uriData[3])
-                    uriTimestamp = Number(uriDataRes.uriData[6])
-
-                    console.log(`objectName ${uriObjectName}`)
-
-                    storageHash = uriDataRes.uriData[5]
-                    objectHash = '0x' + checksumRes.hash.toString('hex')
-
-                    if (!uriDataRes.ok) {
-                        return {ok: false, msg: uriDataRes.msg, objectList: null}
-                    } else if (uriObjectName != objInfoRoot.ObjectName) {
-                        console.log(`Object name in contract ${uriObjectName} does not match objectName in Greenfield ${objInfoRoot.ObjectName}`)
-                    } else if (storageHash == objectHash) {
-                        // console.log('stor hash')
-                        // console.log(storageHash)
-                        // console.log('Obj hash')
-                        // console.log(objectHash)
-            
-
-                        objInfo.push({
-                            name: objInfoRoot.ObjectName,
-                            uriCategory: uriCategory,
-                            uriType: uriType,
-                            slot: slot,
-                            uriTitle: uriTitle,
-                            owner: objInfoRoot.Owner,
-                            creator: objInfoRoot.Creator,
-                            size: objInfoRoot.PayloadSize,
-                            visibility: objInfoRoot.Visibility,
-                            creationTime: objInfoRoot.CreateAt,
-                            uriTimestamp: uriTimestamp,
-                            checksums: objInfoRoot.Checksums,
-                        })
-                    } else if (storageHash != objectHash) {
-                        console.log(`Storage hash ${storageHash} does not match Object hash ${objectHash}`)
-                    }
-                }
-
-                return {ok: true, msg: "listObjects successful", objectList: objInfo}
-            }
-        }
-    } catch(err) {
-        return {ok: false, msg: err, objectList: null}
-    }
-
-}
-
-const getChecksum = async(serialObject) => {
-
-    let expectCheckSums
-    let fileBuffer
-   
-    try {
-        fileBuffer = Buffer.from(serialObject)
-
-        expectCheckSums = rs.encode(Uint8Array.from(fileBuffer))
-
-        let checksumRes = checksumFromBase64(expectCheckSums)
-
-        return {ok: true, msg: "Checksum returned successfully", fileBuffer: fileBuffer, expectCheckSums: expectCheckSums, checksum: checksumRes.checksum, hash: checksumRes.hash}
-    } catch (err) {
-        return {ok: false, msg: err.message, fileBuffer: null, expectCheckSums: null, checksum: null, hash: null}
-    }
-}
 
 ////  POST and GET methods /////////////////////////////////////////////////////////////////////////////
 
@@ -645,6 +210,7 @@ app.get("/", async (req, res) => {
         Try one of the following routes:\n\t
         /add-bucket (POST)\n\t
         /add-object (POST)\n\t
+        /list-one_object (POST)\n\t
         /list-objects (POST)\n\t
         /delete-object (POST)\n\t
         /get-object (POST)\n\t
@@ -661,20 +227,69 @@ app.post("/get-checksum", async (req, res) => {
     if(ipAddress != ASSETXFRONT) {
         res.send(`Request from an illegal address ${ipAddress}`)
     }
-    //console.log(req.body)
 
     try {
         const { body } = req
-        // console.log(body)
         if (!body) res.send(`No serialObject passed with POST request.`)
         const serialObject = JSON.stringify(body)
-        // console.log(serialObject)
 
-        const checksumRes = getChecksum(serialObject)
+        const checksumRes = await getChecksum(serialObject)
 
-        res.send(JSON.stringify(checksumRes))
+        res.send(JSON.stringify({
+            ok: checksumRes.ok, 
+            msg: checksumRes.msg, 
+            expectCheckSums: checksumRes.expectCheckSums, 
+            checksum: checksumRes.checksum,
+            hash: checksumRes.hash
+        }))
     } catch(err) {
         res.send(JSON.stringify({ok: false, msg:err.message, checksum: null}))
+    }
+})
+
+app.post("/list-one_object", async (req, res) => {
+    const ipAddress = req.headers["x-real-ip"] || req.socket.remoteAddress
+    console.log(`get-checksum request from IP Address: ${ipAddress}`)
+
+    let msg
+
+    if(ipAddress != ASSETXFRONT) {
+        msg = `Request from an illegal address ${ipAddress}`
+        res.send(JSON.stringify({ok: false, msg: msg, objectList: null}))
+    }
+
+    let IDn
+    let objectName
+    let rpcUrl
+    let signer
+    let chainIdStr
+    let objectListRes
+
+    try {
+        const { body } = req
+        if (!body) res.send(`No bucketName passed with POST request.`)
+
+        IDn = BigInt(body.ID)
+        console.log('ID = ', IDn)
+        objectName = body.objectName
+        chainIdStr = body.chainIdStr
+        console.log('from chainId ', chainIdStr)
+
+        const contractRes = getRwaContracts(chainIdStr)
+        rpcUrl = contractRes.rpcUrl
+
+        const signerRes = await connect(rpcUrl)
+        signer = signerRes.signer
+
+        objectListRes = await getSingleObject(IDn, objectName, chainIdStr, signer)
+
+        if(objectListRes.ok) {
+            res.send(JSON.stringify(objectListRes))
+        } else {
+            throw new Error(objectListRes.msg)
+        }
+    } catch(err) {
+        return {ok: false, msg: objectListRes.msg, objectList: null}
     }
 })
 
@@ -689,20 +304,35 @@ app.post("/list-objects", async (req, res) => {
         res.send(JSON.stringify({ok: false, msg: msg, objectList: null}))
     }
 
+    let IDn
+    let rpcUrl
+    let signer
+    let chainIdStr
     let objectList
+
     try {
         const { body } = req
         if (!body) res.send(`No bucketName passed with POST request.`)
 
-        console.log(`bucketName = ${body.bucketName}`)
-        objectList = await listObjects(body.bucketName)
+        IDn = BigInt(body.ID)
+        console.log('ID = ', IDn)
+        chainIdStr = body.chainIdStr
+        console.log('from chainId ', chainIdStr)
 
-        if(objectList < 0) {
+        const contractRes = getRwaContracts(chainIdStr)
+        rpcUrl = contractRes.rpcUrl
+
+        const signerRes = await connect(rpcUrl)
+        signer = signerRes.signer
+
+        objectList = await getObjectList(IDn, chainIdStr, signer)
+
+        if(!objectList.ok) {
             res.send(JSON.stringify({ok: false, msg: "Could not generate object list", objectList: null}))
+        } else {
+            res.send(JSON.stringify({ok: true, msg: "Object list generated OK", objectList: objectList}))
         }
 
-        res.send(JSON.stringify({ok: true, msg: "Object list generated OK", objectList: objectList}))
-        
     } catch(err) {
         res.send(JSON.stringify({ok: false, msg:err.message, objectList: null}))
     }
@@ -712,12 +342,19 @@ app.post("/add-object", async (req, res) => {
     const ipAddress = req.headers["x-real-ip"] || req.socket.remoteAddress
     console.log(`Request to add an object from IP Address: ${ipAddress}`)
 
+    let signer
+    let chainIdStr
+
     let ID
+    let rpcUrl
     let rwaObject
+    let fileBuffer
     let bucketName
     let objectName = null
     let createRes
+    let expectChecksums
     let transactionHash
+    let signerRes
     let owner
     let msg
 
@@ -726,7 +363,6 @@ app.post("/add-object", async (req, res) => {
         res.send(JSON.stringify({ok: false, msg: msg, objectName: objectName, transactionHash: null}))
     }
 
-    signer = connect()
 
     try {
         const { body } = req
@@ -738,13 +374,22 @@ app.post("/add-object", async (req, res) => {
 
         ID = BigInt(body.ID)
         console.log('ID = ', ID)
-        fileBuffer = body.fileBuffer
+        owner = body.owner
+        chainIdStr = body.chainIdStr
+        rwaObject = body.rwaObject
+        fileBuffer = Buffer.from(JSON.stringify(rwaObject))
         bucketName = body.bucketName
         objectName = body.objectName
+        expectChecksums = body.expectChecksums
 
-        createRes = await createObject(ID, rwaObject, bucketName, objectName)
+        const contractRes = getRwaContracts(chainIdStr)
+        rpcUrl = contractRes.rpcUrl
 
-        
+        signerRes = await connect(rpcUrl)
+        signer = signerRes.signer
+
+        createRes = await addObject(fileBuffer, bucketName, objectName, expectChecksums, owner, signer)
+
         res.send(JSON.stringify(createRes))
        
     } catch(err) {
@@ -762,12 +407,14 @@ app.post("/add-bucket", async (req, res) => {
     let deployRes
     let ID
     let IDn
+    let chainIdStr
+    let rpcUrl
 
     if(ipAddress != ASSETXFRONT) {
         res.send(`Request from an illegal address ${ipAddress}`)
     }
 
-    signer = connect()
+    
 
     try {
         const { body } = req
@@ -776,8 +423,14 @@ app.post("/add-bucket", async (req, res) => {
         ID = body.ID
         IDn = BigInt(ID)
         console.log(IDn)
+        chainIdStr = body.chainIdStr
+        const contractRes = getRwaContracts(chainIdStr)
+        console.log(contractRes)
+        rpcUrl = contractRes.rpcUrl
+
+        signer = await connect(rpcUrl)
     
-        deployRes = await deployGreenfield(IDn)
+        deployRes = await deployGreenfield(IDn, chainIdStr, signer)
         let ok = deployRes.ok
         const retMessage = deployRes.msg
         let bucketName = deployRes.bucketName
@@ -790,6 +443,4 @@ app.post("/add-bucket", async (req, res) => {
 app.listen(PORT, () => {
     console.log(`CONTINUUM-DAO Greenfield CTMRWA001 Storage service, listening on port ${PORT}...`)
 })
-
-//debug()
 

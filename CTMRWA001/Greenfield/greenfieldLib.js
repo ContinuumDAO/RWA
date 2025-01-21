@@ -7,7 +7,6 @@ const fs = require('fs')
 const dotenv = require('dotenv')
 dotenv.config()
 const PRIVATE_KEY = process.env.PRIVATE_KEY
-const RPC_URL = process.env.RPC_URL
 
 const {abi:ctmRwaMapAbi} = require('../out/CTMRWAMap.sol/CTMRWAMap.json')
 const {abi:storageManagerAbi} = require('../out/CTMRWA001StorageManager.sol/CTMRWA001StorageManager.json')
@@ -55,6 +54,16 @@ const getChainId = async () => {
     const { chainId } = await provider.getNetwork()
     return chainId
 }
+
+const connect = async (rpcUrl) => {
+    const provider = new ethers.JsonRpcProvider(rpcUrl)
+
+    const signer = new ethers.Wallet(PRIVATE_KEY, provider)
+    const { chainId } = await provider.getNetwork()
+
+    return {signer: signer, chainId: chainId}
+}
+
 
 const client = Client.create(
     process.env.NEXT_PUBLIC_GREENFIELD_RPC_URL,
@@ -113,7 +122,17 @@ const generateString = (length) => {
 }
 
 
-const getBucketName = async (storageContract, signer) => {
+const getBucketName = async (ID, chainIdStr, signer) => {
+
+    let storageContract
+    const storRes = await getStorageContract(ID, chainIdStr, signer)
+
+    if(!storRes.ok) {
+        return({ok: storRes.ok, msg: storRes.msg, bucketName: null})
+    } else {
+        storageContract = storRes.storageContract
+    }
+
     let bucketName
 
     try {
@@ -125,19 +144,10 @@ const getBucketName = async (storageContract, signer) => {
     }
 }
 
-const getBucketNameFromID = async (ID, signer) => {
+const getBucketNameFromID = async (ID, chainIdStr, signer) => {
 
-    let storageContract
     let bucketName
-    const storRes = await getStorageContract(ID, signer)
-
-    if(!storRes.ok) {
-        return({ok: storRes.ok, msg: storRes.msg, bucketName: null})
-    } else {
-        storageContract = storRes.storageContract
-    }
-
-    let bucketRes = await getBucketName(storageContract, signer)
+    let bucketRes = await getBucketName(ID, chainIdStr, signer)
     if(!bucketRes.ok) {
         return {ok: false, msg: bucketRes.msg, bucketName: null}
     } else {
@@ -146,12 +156,12 @@ const getBucketNameFromID = async (ID, signer) => {
     }
 }
 
-const getNextObjectName = async (uriType, slot, ID, signer) => {
+const getNextObjectName = async (uriType, slot, ID, chainIdStr, signer) => {
 
     let objectName
     let storageContract
 
-    let storRes = await getStorageContract(ID, signer)
+    let storRes = await getStorageContract(ID, chainIdStr, signer)
     if(!storRes.ok) {
         return {ok: false, msg: storRes.msg, objectName: null}
     } else {
@@ -202,9 +212,9 @@ const getTokenAdmin = async (storageContract, signer) => {
     return(tokenAdmin = await stor.tokenAdmin())
 }
 
-const getStorageContract = async (ID, signer) => {
+const getStorageContract = async (ID, chainIdStr, signer) => {
 
-    const {ctmRwaMap, storageManager} = getRwaContracts(await getChainId())
+    const {ctmRwaMap, storageManager} = getRwaContracts(chainIdStr)
     const ctmMap = new ethers.Contract(ctmRwaMap, ctmRwaMapAbi, signer)
     
     const res = await ctmMap.getStorageContract(ID, rwaType, version)
@@ -237,11 +247,11 @@ const checkBucketExists = async (bucketName) => {
     }
 }
 
-const getExistingObjectName = async (ID, hash, signer) => {
+const getExistingObjectName = async (ID, hash, chainIdStr, signer) => {
     let uriDataRes
 
     try {
-        uriDataRes = await getURIStorageData(ID, hash, signer)
+        uriDataRes = await getURIStorageData(ID, hash, chainIdStr, signer)
 
         if(!uriDataRes.ok) {
             return {ok: false, msg: uriDataRes.msg, objectName: null}
@@ -302,7 +312,6 @@ const getChecksum = async(serialObject) => {
     let expectCheckSums
     let fileBuffer = Buffer.from(serialObject)
 
-
     expectCheckSums = rs.encode(Uint8Array.from(fileBuffer))
     fileBuffer = Buffer.from(serialObject)
 
@@ -328,12 +337,12 @@ const checksumFromBase64 = (expectCheckSums) => {
     return {checksum: checksum, hash: hash}
 }
 
-const getURIStorageData = async (ID, hash, signer) => {
+const getURIStorageData = async (ID, hash, chainIdStr, signer) => {
 
     let uriDataRes
 
     try {
-        const storRes = await getStorageContract(ID, signer)
+        const storRes = await getStorageContract(ID, chainIdStr, signer)
         let storageAddr
 
         if(!storRes.ok) {
@@ -356,13 +365,22 @@ const getURIStorageData = async (ID, hash, signer) => {
     }
 }
 
-const createStorageObject = async(ID, rwaObject, hash, chainIdsStr, feeToken, feeApproval, signer) => {
+const createStorageObject = async(
+    ID, 
+    rwaObject, 
+    hash, 
+    chainIdsStr, 
+    feeToken, 
+    feeApproval, 
+    chainIdStr, 
+    signer
+) => {
 
     try{
 
-        const {ctmRwaMap, storageManager} = getRwaContracts(await getChainId())
+        const {ctmRwaMap, storageManager} = getRwaContracts(chainIdStr)
         const ctmMap = new ethers.Contract(ctmRwaMap, ctmRwaMapAbi, signer)
-        const storRes = await getStorageContract(ID, signer)
+        const storRes = await getStorageContract(ID, chainIdStr, signer)
         let storageAddr
 
         if(!storRes.ok) {
@@ -427,7 +445,7 @@ const createStorageObject = async(ID, rwaObject, hash, chainIdsStr, feeToken, fe
     }
 }
 
-const getSingleObject = async(ID, objectName, signer) => {
+const getSingleObject = async(ID, objectName, chainIdStr, signer) => {
 
     let bucketName
 
@@ -447,7 +465,7 @@ const getSingleObject = async(ID, objectName, signer) => {
     let msg
 
     try {
-        let bucketRes = await getBucketNameFromID(ID, signer)
+        let bucketRes = await getBucketNameFromID(ID, chainIdStr, signer)
         if(!bucketRes.ok) {
             return {ok: false, msg: bucketRes.msg, objectList: null}
         } else {
@@ -461,7 +479,7 @@ const getSingleObject = async(ID, objectName, signer) => {
 
         checksumRes = checksumFromBase64(objInfoRoot.checksums.map((x) => base64FromBytes(x)))
 
-        uriDataRes = await getURIStorageData(ID, checksumRes.hash, signer)
+        uriDataRes = await getURIStorageData(ID, checksumRes.hash, chainIdStr, signer)
 
         storageHash = uriDataRes.uriData[5]
         objectHash = '0x' + checksumRes.hash.toString('hex')
@@ -516,16 +534,15 @@ const getSingleObject = async(ID, objectName, signer) => {
 }
 
 
-const addObject = async (fileBuffer, bucketName, objectName, signer) => {
+const addObject = async (fileBuffer, bucketName, objectName, expectCheckSums, owner, signer) => {
 
     let createObjectTx
-
 
     try {
         createObjectTx = await client.object.createObject({
             bucketName: bucketName,
             objectName: objectName,
-            creator: signer.address,
+            creator: owner,
             visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
             contentType: 'text/plain',
             redundancyType: RedundancyType.REDUNDANCY_EC_TYPE,
@@ -567,7 +584,6 @@ const addObject = async (fileBuffer, bucketName, objectName, signer) => {
             // console.log('Upload Result:', uploadRes)
         } else {
             ok = false
-            console.log(uploadRes)
             msg = "Object not successfully created"
         }
 
@@ -585,7 +601,7 @@ const addObject = async (fileBuffer, bucketName, objectName, signer) => {
 }
 
 
-const getObject = async (ID, objectName, signer) => {
+const getObject = async (ID, objectName, chainIdStr, signer) => {
 
     let fname
     let bucketRes
@@ -593,14 +609,13 @@ const getObject = async (ID, objectName, signer) => {
    
 
     try {
-        bucketRes = await getBucketNameFromID(ID, signer)
+        bucketRes = await getBucketNameFromID(ID, chainIdStr, signer)
         if(!bucketRes.ok) {
             return {ok: false, msg: bucketRes.msg, filename: null}
         } else {
             bucketName = bucketRes.bucketName
         }
 
-        console.log(`bucketName = ${bucketName}, objectName = ${objectName}`)
         fname = bucketName + '-' + objectName + '.json'
 
 
@@ -615,7 +630,7 @@ const getObject = async (ID, objectName, signer) => {
             }
         )
 
-        console.log('getObjectResult', getObjectResult)
+        // console.log('getObjectResult', getObjectResult)
         if(getObjectResult.code != 0) {
             throw new Error(`${getObjectResult.message}, statusCode: ${getObjectResult.statusCode}`)
         }
@@ -632,13 +647,12 @@ const getObject = async (ID, objectName, signer) => {
 
 }
 
-const getObjectList = async(ID, signer) => {
+const getObjectList = async(ID, chainIdStr, signer) => {
+    
     try {
 
         let bucketName
-        const storRes = await getStorageContract(ID, signer)
-
-        let bucketRes = await getBucketNameFromID(ID, signer)
+        let bucketRes = await getBucketNameFromID(ID, chainIdStr, signer)
         if(!bucketRes.ok) {
             return {ok: false, msg: bucketRes.msg, objectList: null}
         } else {
@@ -656,8 +670,6 @@ const getObjectList = async(ID, signer) => {
             bucketName: bucketName,
             endpoint: sp.endpoint,
         })
-        // console.log(`res.code = ${res.code}`)
-        // console.log(res.message)
 
         if(res.code != 0) {
             return {ok: false, msg: res.message, objectList: null}
@@ -683,7 +695,7 @@ const getObjectList = async(ID, signer) => {
 
                 checksumRes = checksumFromBase64(objInfoRoot.Checksums)
 
-                uriDataRes = await getURIStorageData(ID, checksumRes.hash, signer)
+                uriDataRes = await getURIStorageData(ID, checksumRes.hash, chainIdStr, signer)
 
                 uriCategory = Number(uriDataRes.uriData[0])
                 uriType = Number(uriDataRes.uriData[1])
@@ -702,11 +714,6 @@ const getObjectList = async(ID, signer) => {
                 } else if (uriObjectName != objInfoRoot.ObjectName) {
                     console.log(`Object name in contract ${uriObjectName} does not match objectName in Greenfield ${objInfoRoot.ObjectName}`)
                 } else if (storageHash == objectHash) {
-                    // console.log('stor hash')
-                    // console.log(storageHash)
-                    // console.log('Obj hash')
-                    // console.log(objectHash)
-        
 
                     objInfo.push({
                         name: objInfoRoot.ObjectName,
@@ -758,6 +765,20 @@ const deleteObject = async (bucketName, objectName, signer) => {
       }
 }
 
+const downloadFile = async(bucketName, objectName) => {
+    const res = await client.object.downloadFile(
+        {
+            bucketName,
+            objectName,
+        },
+        {
+            type: 'ECDSA',
+            privateKey: PRIVATE_KEY,
+        },
+    );
+    return res
+}
+
 function createFile(path) {
     const stats = fs.statSync(path)
     const fileSize = stats.size
@@ -773,6 +794,7 @@ function createFile(path) {
 
 module.exports = {
     client,
+    connect,
     selectSp,
     generateString,
     getTokenAdmin,
@@ -792,6 +814,7 @@ module.exports = {
     addObject,
     deleteObject,
     createFile,
+    downloadFile,
     createStorageObject,
     getObject,
 
