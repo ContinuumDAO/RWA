@@ -4,11 +4,13 @@ const express = require("express")
 const cors = require("cors")
 const helmet = require("helmet")
 const rateLimit = require("express-rate-limit")
+var bodyParser = require('body-parser')
 const {ReedSolomon} = require('@bnb-chain/reed-solomon')
 
 const fs = require('fs')
 
 const {getRwaContracts} = require('./rwaContracts.js')
+const {checkRwaObject, categorySizeLimit} = require('./checkRwaObject.js')
 
 const {
     Client,
@@ -80,6 +82,7 @@ const limiter = rateLimit({
 
 const app = express()
 app.use(limiter)
+app.use(bodyParser.json({limit: '50mb'}))
 app.use(helmet({crossOriginResourcePolicy: false}))
 app.use(cors())
 app.use(express.json())

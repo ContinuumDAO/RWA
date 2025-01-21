@@ -1,7 +1,10 @@
 const {ethers} = require('ethers')
 const dotenv = require('dotenv')
 const {getRwaContracts} = require('./rwaContracts.js')
+const {checkRwaObject, categorySizeLimit} = require('./checkRwaObject.js')
 const fs = require('fs')
+const path = require('path')
+const mimeTypes = require('mime-types')
 const axios = require('axios')
 const {ReedSolomon} = require('@bnb-chain/reed-solomon')
 const { NodeAdapterReedSolomon } = require('@bnb-chain/reed-solomon/node.adapter')
@@ -119,12 +122,14 @@ const deleteBucket = async(bucketName, admin, signer) => {
 
 const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, owner, signer, override) => {
 
+    let objCheckRes
     let bucketRes
     let storageContract
     let bucketName
+
     const storRes = await getStorageContract(ID, chainIdStr, signer)
     if(!storRes.ok) {
-        return({ok: storRes.ok, msg: storRes.msg, objectName: null, bucketName: bucketName})
+        return({ok: storRes.ok, msg: storRes.msg, objectName: null, bucketName: null})
     } else {
         storageContract = storRes.storageContract
     }
@@ -163,6 +168,12 @@ const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, o
 
     let expectCheckSums = resChecksum.expectCheckSums
     let hash = resChecksum.hash
+    let size = resChecksum.fileBuffer.byteLength
+
+    objCheckRes = checkRwaObject(rwaObject, size)
+    if(!objCheckRes.ok) {
+        return {ok: false, msg: objCheckRes.msg,objectName: null, bucketName: null }
+    }
 
     let objectRes
     let objectName
@@ -199,7 +210,7 @@ const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, o
     }
 
     fileBuffer = resChecksum.fileBuffer
-    console.log('fileBuffer length = ', Long.fromInt(fileBuffer.byteLength))
+    console.log('fileBuffer length = ', Long.fromInt(size))
 
 
     let createObjectTx
@@ -371,7 +382,36 @@ const getPropertyList = async(ID, signer) => {
 
 }
 
+const addImage = (filePath) => {
+    const rwaTitle = "# Image of the product"
+    const rwaType = "CONTRACT"
+    const slot = 0
+    const rwaCategory = "IMAGE"
+    const rwaText = "## Close up of product detail"
 
+    const fileBuffer = fs.readFileSync(filePath)
+    const extname = path.extname(filePath)
+    const fileType = mimeTypes.lookup(extname)
+
+    const imageData = JSON.stringify(fileBuffer.toString('base64'))
+
+    const rwaImage = new Image(
+        "Main product image",
+        fileType,
+        imageData
+    )
+
+    const newRwaURI = new Rwa(
+        rwaTitle,
+        rwaType,
+        slot,
+        rwaCategory,
+        rwaImage,
+        rwaText       
+    )
+
+    return newRwaURI
+}
 
 
 const addIssuer = () => {
@@ -435,7 +475,8 @@ const main = async () => {
     // This is just an example using one ID and on the connected chain
 
     const ID =  52132802886920618599792052678530329303821379622883015540104134213040705464055n
-    const rwaObject = addIssuer()  // sample rwaObject
+    const rwaObject = addIssuer()  // sample rwaObject ISSUER Category
+    const rwaImage = addImage("./22.png") // sample rwaObject IMAGE Category
 
     let storageRes = await getStorageContract(ID, chainIdStr, signer)
     let storageContract = storageRes.storageContract
@@ -478,12 +519,12 @@ const main = async () => {
         // let expectCheckSums = resChecksum.expectCheckSums
         // return
 
-        let storageObjectExists = false
-        const res = await createObject(ID, rwaObject, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
-        console.log(res)
+        // let storageObjectExists = false
+        // const res = await createObject(ID, rwaImage, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
+        // console.log(res)
 
-        // const getObjRes = await getObject(ID, '6', chainIdStr, signer)
-        // console.log(getObjRes)
+        const getObjRes = await getObject(ID, '12', chainIdStr, signer)
+        console.log(getObjRes)
 
     } catch(err) {
         if (
