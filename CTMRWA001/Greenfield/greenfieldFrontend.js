@@ -523,8 +523,34 @@ const main = async () => {
         // const res = await createObject(ID, rwaImage, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
         // console.log(res)
 
-        const getObjRes = await getObject(ID, '12', chainIdStr, signer)
-        console.log(getObjRes)
+        let myObject = '12'
+        const getObjRes = await getObject(ID, myObject, chainIdStr, signer)
+
+        if (getObjRes.ok) {
+            console.log(getObjRes.msg)
+
+            // To recover the original rwaObject that was uploaded (for display in Explorer, or download)
+            let rwaObject = getObjRes.rwaObject
+
+            let fname = 'my_object-' + myObject + '.json'
+            fs.writeFileSync(fname, Buffer.from(JSON.stringify(rwaObject)))
+            console.log(`JSON file written: ${fname}`)
+
+            let rwaProp = rwaObject.properties
+            // console.log(rwaProp)
+
+            // Procedure to download the image/video file, if required (only for node.js)
+            let rwaCategory = getObjRes.rwaObject.category
+            if (rwaCategory == "IMAGE" || rwaCategory == "VIDEO") {
+                console.log(`IMAGE/VIDEO: size: = ${rwaProp.image_data.length}`)
+                let imageType = rwaProp.image_type.split("/")[1]
+                let imageName = rwaProp.image_name.replaceAll(" ", "_") + '.' + imageType
+
+                let imageBase64 = rwaProp.image_data
+                fs.writeFileSync(imageName, imageBase64, {encoding: 'base64'})
+                console.log(`Image/video file created: ${imageName}`)
+            }
+        }
 
     } catch(err) {
         if (

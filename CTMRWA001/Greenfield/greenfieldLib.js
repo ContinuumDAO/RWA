@@ -638,11 +638,13 @@ const getObject = async (ID, objectName, chainIdStr, signer) => {
         const blob = getObjectResult.body
         const buffer = Buffer.from(await blob.arrayBuffer())
 
-        fs.writeFileSync(fname, buffer)
+        // fs.writeFileSync(fname, buffer)
 
-        return {ok: true, msg: "Object successfully retrieved", filename: fname}
+        let rwaObject = JSON.parse(buffer.toString())
+
+        return {ok: true, msg: "Object successfully retrieved", filename: fname, rwaObject: rwaObject}
     } catch(err) {
-        return {ok: false, msg: err.message, filename: null}
+        return {ok: false, msg: err.message, filename: null, rwaObject: null}
     }
 
 }
