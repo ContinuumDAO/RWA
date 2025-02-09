@@ -22,7 +22,10 @@ enum FeeType {
     WHOCANINVEST,
     IMAGE,
     VIDEO,
-    ICON
+    ICON,
+    WHITELIST,
+    COUNTRY,
+    KYC
 }
 
 

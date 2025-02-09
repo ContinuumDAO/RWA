@@ -28,9 +28,11 @@ contract CTMRWA001Storage is Context {
     string baseURI;
 
     string idStr;
-    uint256 public nonce;
+    uint256 public nonce = 1;
 
     string constant TYPE = "ctm-rwa001-";
+
+    mapping(string => uint256) public uriDataIndex; // objectName => uriData index
 
     URIData[] uriData;
 
@@ -99,25 +101,73 @@ contract CTMRWA001Storage is Context {
 
     function addURILocal(
         uint256 _ID,
+        string memory _objectName,
         URICategory _uriCategory,
         URIType _uriType,
         string memory _title,
         uint256 _slot,
-        string memory _objectName,
+        uint256 _timestamp,
         bytes32 _uriDataHash
     ) external onlyStorageManager {
         require(_ID == ID, "CTMRWA001Storage: Attempt to add URI to an incorrect ID");
+
         require(!existURIHash(_uriDataHash), "CTMRWA001Storage: Hash already exists");
 
-        uriData.push(URIData(_uriCategory, _uriType, _title, _slot, _objectName, _uriDataHash, block.timestamp));
+        if(_uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER) {
+            require(getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0, 
+            "CTMRWA001Storage: Type CONTRACT and CATEGORY ISSUER must be the first stored element");
+        }
+
+        uriData.push(URIData(_uriCategory, _uriType, _title, _slot, _objectName, _uriDataHash, _timestamp));
+        uriDataIndex[_objectName] = nonce;
+
+        nonce++;
 
         emit NewURI(_uriCategory, _uriType, _slot, _uriDataHash);
 
-        nonce++;
     }
 
-    function getAllURIData() public view returns(URIData[] memory) {
-        return(uriData);
+
+    function getAllURIData() public view returns(
+        URICategory[] memory,
+        URIType[] memory,
+        string[] memory,
+        uint256[] memory,
+        string[] memory,
+        bytes32[] memory,
+        uint256[] memory
+    ) {
+
+        uint256 len = uriData.length;
+
+        URICategory[] memory uriCategory = new URICategory[](len);
+        URIType[] memory uriType = new URIType[](len);
+        string[] memory title = new string[](len);
+        uint256[] memory slot = new uint256[](len);
+        string[] memory objectName = new string[](len);
+        bytes32[] memory uriHash = new bytes32[](len);
+        uint256[] memory timestamp = new uint256[](len);
+
+        for(uint256 i=0; i<len; i++) {
+            uriCategory[i] = uriData[i].uriCategory;
+            uriType[i] = uriData[i].uriType;
+            title[i] = uriData[i].title;
+            slot[i] = uriData[i].slot;
+            objectName[i] = uriData[i].objectName;
+            uriHash[i] = uriData[i].uriHash;
+            timestamp[i] = uriData[i].timeStamp;
+        }
+
+
+        return(
+            uriCategory,
+            uriType,
+            title,
+            slot,
+            objectName,
+            uriHash,
+            timestamp
+        );
     }
 
     function getURIHashByIndex(URICategory uriCat, URIType uriTyp, uint256 index) public view returns(bytes32, string memory) {
@@ -158,6 +208,23 @@ contract CTMRWA001Storage is Context {
             if(uriData[i].uriHash == uriHash) return(true);
         }
         return(false);
+    }
+
+    function getObjectNonce(string memory _objectName) public view returns(uint256) {
+        return(uriDataIndex[_objectName]);
+    }
+
+    function existObjectName(string memory _objectName) public view returns(bool) {
+        if(uriDataIndex[_objectName] == 0) {
+            return(false);
+        } else {
+            return(true);
+        }
+    }
+
+    function getURIHashByObjectName(string memory _objectName) public view returns(URIData memory) {
+        uint256 indx = uriDataIndex[_objectName];
+        return(uriData[indx]);
     }
 
     function cID() internal view returns (uint256) {

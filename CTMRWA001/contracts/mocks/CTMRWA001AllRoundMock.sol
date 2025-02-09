@@ -42,7 +42,7 @@ contract CTMRWA001AllRoundMock is Context, CTMRWA001 {
         CTMRWA001._mintValue(tokenId_, value_);
     }
 
-    function burn(uint256 tokenId_) public virtual {
+    function burn(uint256 tokenId_) public virtual override {
         require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: caller is not token owner nor approved");
         CTMRWA001._burn(tokenId_);
     }

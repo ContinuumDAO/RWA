@@ -10,14 +10,22 @@ interface ICTMRWA001StorageManager {
     function setFeeManager(address feeManager) external;
     function setCtmRwaDeployer(address deployer) external;
     function setCtmRwaMap(address map) external;
+    function getLastReason() external view returns(string memory);
 
     function addURI(
         uint256 ID,
+        string memory objectName,
         URICategory uriCategory,
         URIType uriType,
         string memory title,
         uint256 slot,
         bytes32 uriDataHash,
+        string[] memory chainIdsStr,
+        string memory feeTokenStr
+    ) external;
+
+    function transferURI(
+        uint256 ID,
         string[] memory chainIdsStr,
         string memory feeTokenStr
     ) external;

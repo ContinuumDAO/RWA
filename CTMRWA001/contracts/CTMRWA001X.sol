@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.23;
 
+import "forge-std/console.sol";
+
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
@@ -15,6 +17,7 @@ import {ICTMRWA001, SlotData, TokenContract, ITokenContract} from "./interfaces/
 import {ICTMRWADeployer} from "./interfaces/ICTMRWADeployer.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {URICategory, URIType, ICTMRWA001Storage} from "./interfaces/ICTMRWA001Storage.sol";
+import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
 import {ICTMRWA001XFallback} from "./interfaces/ICTMRWA001XFallback.sol";
 import {ICTMRWA001Token} from "./interfaces/ICTMRWA001Token.sol";
 
@@ -102,6 +105,10 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory _feeTokenStr
     ) public returns(uint256) {
         require(!_includeLocal && _existingID>0 || _includeLocal && _existingID == 0, "CTMRWA001X: Incorrect call logic");
+        uint256 len = bytes(_tokenName).length;
+        if (_includeLocal) {
+            require(len >= 10 && len <= 512,"CTMRWA001X: Token name length is < 10 or > 512 characters");
+        }
         uint256 nChains = _toChainIdsStr.length;
 
         string memory ctmRwa001AddrStr;
@@ -153,6 +160,11 @@ contract CTMRWA001X is Context, GovernDapp {
             ctmRwa001Addr = rwa001Addr;
 
             _checkTokenAdmin(ctmRwa001Addr);
+
+            (, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(ID, _rwaType, _version);
+            bool whitelist = ICTMRWA001Sentry(sentryAddr).whitelistSwitch();
+            bool kyc = ICTMRWA001Sentry(sentryAddr).kycSwitch();
+            require((!whitelist && !kyc), "CTMRWA001X: Whitelist or kyc set and cannot add new chains");
 
             tokenName = ICTMRWA001(ctmRwa001Addr).name();
             symbol = ICTMRWA001(ctmRwa001Addr).symbol();
@@ -304,46 +316,65 @@ contract CTMRWA001X is Context, GovernDapp {
     }
 
 
-    function changeAdmin(address _newAdmin, uint256 _ID) public returns(bool) {
+    function _changeAdmin(address _currentAdmin, address _newAdmin, uint256 _ID) internal returns(bool) {
 
         (address ctmRwa001Addr,) = _getTokenAddr(_ID);
-        (address currentAdmin,) = _checkTokenAdmin(ctmRwa001Addr);
+        // (address currentAdmin,) = _checkTokenAdmin(ctmRwa001Addr);
 
         ICTMRWA001(ctmRwa001Addr).changeAdmin(_newAdmin);
         (, address ctmRwa001StorageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
         ICTMRWA001Storage(ctmRwa001StorageAddr).setTokenAdmin(_newAdmin);
-        swapAdminAddress(currentAdmin, _newAdmin, ctmRwa001Addr);
+        
+        (, address ctmRwa001SentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, rwaType, version);
+       
+        ICTMRWA001Sentry(ctmRwa001SentryAddr).setTokenAdmin(_newAdmin);
+
+        ICTMRWA001(ctmRwa001Addr).changeAdmin(_newAdmin);
+
+        swapAdminAddress(_currentAdmin, _newAdmin, ctmRwa001Addr);
         return(true);
 
     }
 
     
-    // Change the tokenAdmin address of a deployed CTMRWA001 instance on another chain
-    function changeAdminCrossChain(
+    // Change the tokenAdmin address of a deployed CTMRWA001
+    function changeTokenAdmin(
         string memory _newAdminStr,
-        string memory _toChainIdStr,
+        string[] memory _toChainIdsStr,
         uint256 _ID,
         string memory _feeTokenStr
     ) public returns(bool) {
 
-        string memory toChainIdStr = _toLower(_toChainIdStr);
+        string memory toChainIdStr;
+        string memory funcCall;
+        bytes memory callData;
         
         (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
-        (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
-        (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
+        // (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
+        (address currentAdmin, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
+        address newAdmin = stringToAddress(_newAdminStr);
 
-        _payFee(FeeType.ADMIN, _feeTokenStr, _stringToArray(toChainIdStr), false);
+        _payFee(FeeType.ADMIN, _feeTokenStr, _toChainIdsStr, true);
 
-        string memory funcCall = "adminX(uint256,string,string)";
-        bytes memory callData = abi.encodeWithSignature(
-            funcCall,
-            _ID,
-            currentAdminStr,
-            _newAdminStr
-        );
+        for(uint256 i=0; i<_toChainIdsStr.length; i++) {
+            toChainIdStr = _toLower(_toChainIdsStr[i]);
 
-        c3call(toRwaXStr, toChainIdStr, callData);
-        
+            if(stringsEqual(toChainIdStr, cIDStr)) {
+                _changeAdmin(currentAdmin, newAdmin, _ID );
+            } else {
+                (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
+
+                funcCall = "adminX(uint256,string,string)";
+                callData = abi.encodeWithSignature(
+                    funcCall,
+                    _ID,
+                    currentAdminStr,
+                    _newAdminStr
+                );
+
+                c3call(toRwaXStr, toChainIdStr, callData);
+            }
+        }
 
         return(true);
     }
@@ -367,7 +398,7 @@ contract CTMRWA001X is Context, GovernDapp {
         address oldAdmin = stringToAddress(_oldAdminStr);
         require(currentAdmin == oldAdmin, "CTMRWA001X: Not admin, or token is locked. Cannot change admin address");
 
-        changeAdmin(newAdmin, _ID );
+        _changeAdmin(currentAdmin, newAdmin, _ID );
 
         return(true);
     
@@ -538,7 +569,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         address fromAddr = stringToAddress(_fromAddrStr);
-        require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(fromAddr, _fromTokenId), "CTMRWA001X: transfer caller is not owner nor approved");
+        require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "CTMRWA001X: transfer caller is not owner nor approved");
         require(ICTMRWA001(ctmRwa001Addr).dividendUnclaimedOf(_fromTokenId) == 0, "CTMRWA001X: TokenId has unclaimed dividend");
 
 

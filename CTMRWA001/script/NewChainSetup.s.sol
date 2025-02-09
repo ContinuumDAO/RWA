@@ -17,6 +17,7 @@ struct NewChain {
     address rwaX;
     address feeManager;
     address storageManager;
+    address sentryManager;
     address feeToken;
 }
 
@@ -34,6 +35,7 @@ contract NewChainSetup is Script {
     address thisGway;
     address thisRwaX;
     address thisStorageManager;
+    address thisSentryManager;
     address thisFeeManager;
     address thisFeeToken;
     string thisFeeTokenStr;
@@ -43,7 +45,9 @@ contract NewChainSetup is Script {
     string[] chainIdRwaXsStr;
     string[] rwaXsStr;
     string[] chainIdStorsStr;
+    string[] chainIdSentryStr;
     string[] storageManagersStr;
+    string[] sentryManagersStr;
 
 
     NewChain[] newchains;
@@ -57,7 +61,8 @@ contract NewChainSetup is Script {
             0xD5870cb8400E75F2097F3AF9fD37aF0C758707e0,
             0xc4eDB1cBb639143A6fAa63b7cAF194ce53D88D29,
             0x769139881024cE730dE9de9c21E3ad6fb5a872f2,
-            0xbF5356AdE7e5F775659F301b07c4Bc6961044b11
+            0xbF5356AdE7e5F775659F301b07c4Bc6961044b11,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(   // POLYGON AMOY  Chain 80002
             80002,
@@ -65,7 +70,8 @@ contract NewChainSetup is Script {
             0x88a23d9ec1a9f1100d807D0E8c7a39927D4A7897,
             0x4cDa22b59a1fE957D09273E533cCb7D44bdEf90C,
             0x95ae66aD780E73eF2D2a80611458883C950a1356,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
             84532,
@@ -73,7 +79,8 @@ contract NewChainSetup is Script {
             0xb5d1f61f6B9f0CA2B89eb9D693e8cD737076846A,
             0x5b4d2c1b2e918fF1b0DE85803F5A737E5f816eCb,
             0xf9229aCEba228fdbb757A637EeeBadB46FDb617e,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
             59141,
@@ -81,7 +88,8 @@ contract NewChainSetup is Script {
             0xB5638019CBfC1B523d5167a269E755b05BF24fD9,
             0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994,
             0xa240B0714712e2927Ec055CEAa8e031AC671a55F,
-            0x6654D956A4487A26dF1186b01B689c26939544fC
+            0x6654D956A4487A26dF1186b01B689c26939544fC,
+            0x0000000000000000000000000000000000000000
         ));
         //// newchains.push(NewChain(  // CONFLUX ESPACE  Chain 71
         ////     71,
@@ -94,7 +102,8 @@ contract NewChainSetup is Script {
             0x73943Ec95AaFBb4DD073b11F5c9701E5Bc3708A6,
             0x67510816512511818B5047a4Cce6E8f2ebB15d20,
             0x4b17E8eE1cC1814636DDe9Ac12a42472799CCB64,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // HOLESKY Chain 17000
             17000,
@@ -102,7 +111,8 @@ contract NewChainSetup is Script {
             0x73943Ec95AaFBb4DD073b11F5c9701E5Bc3708A6,
             0x67510816512511818B5047a4Cce6E8f2ebB15d20,
             0x4b17E8eE1cC1814636DDe9Ac12a42472799CCB64,
-            0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
+            0x108642B1b2390AC3f54E3B45369B7c660aeFffAD,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // MORPH HOLESKY  Chain 2810
             2810,
@@ -110,7 +120,8 @@ contract NewChainSetup is Script {
             0xB5638019CBfC1B523d5167a269E755b05BF24fD9,
             0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994,
             0xa240B0714712e2927Ec055CEAa8e031AC671a55F,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // BLAST SEPOLIA Chain 168587773
             168587773,
@@ -118,7 +129,8 @@ contract NewChainSetup is Script {
             0xB5638019CBfC1B523d5167a269E755b05BF24fD9,
             0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994,
             0xa240B0714712e2927Ec055CEAa8e031AC671a55F,
-            0x5d5408e949594E535d0c3d533761Cb044E11b664
+            0x5d5408e949594E535d0c3d533761Cb044E11b664,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // BITLAYER TESTNET Chain 200810
             200810,
@@ -126,7 +138,8 @@ contract NewChainSetup is Script {
             0xa4482dF3A723654A599Ba66d1b5091fD9C42ad05,
             0xEb28C8e7Cc2d8a8d361Cb41EC0937ac11c0c0A1F,
             0x048A5cefCDF0faeB734bc4A941E0de44d8c49f55,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // SCROLL SEPOLIA   Chain 534351
             534351,
@@ -134,7 +147,8 @@ contract NewChainSetup is Script {
             0xB5638019CBfC1B523d5167a269E755b05BF24fD9,
             0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994,
             0xa240B0714712e2927Ec055CEAa8e031AC671a55F,
-            0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
+            0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // MANTLE SEPOLIA Chain 5003
             5003,
@@ -142,7 +156,8 @@ contract NewChainSetup is Script {
             0xB5638019CBfC1B523d5167a269E755b05BF24fD9,
             0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994,
             0xa240B0714712e2927Ec055CEAa8e031AC671a55F,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // LUKSO TESTNET  Chain 4201
             4201,
@@ -150,7 +165,8 @@ contract NewChainSetup is Script {
             0x1B87108B35Abb5751Bfc64647E9D5cD1Cb77E236,
             0x0897e91383Ab942bC502549eD75AA8ea7538B5Fe,
             0x3418a45e442210EC9579B074Ae9ACb13b2A67554,
-            0xC92291fbBe0711b6B34928cB1b09aba1f737DEfd
+            0xC92291fbBe0711b6B34928cB1b09aba1f737DEfd,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // BERA_BARTIO Chain 80084
             80084,
@@ -158,7 +174,8 @@ contract NewChainSetup is Script {
             0x67510816512511818B5047a4Cce6E8f2ebB15d20,
             0x779f7FfdD1157935E1cD6344A6D7a9047736EBc1,
             0xa7C57315395def05F906310d590f4ea15308fe30,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // LUMIA TESTNET Chain 1952959480
             1952959480,
@@ -166,7 +183,8 @@ contract NewChainSetup is Script {
             0x9266e8bf4943f2b366F2be89688a8622084DB8B9,
             0x4f5b13A48d4fC78e154DDa6c49E39c6d59277213,
             0xde3Fdb278B0EC3254E8701c38e58CFd1168f13a5,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae,
+            0x0000000000000000000000000000000000000000
         ));
         //// newchains.push(NewChain(  // PLUME TESTNET Chain 161221135
         // //     161221135,
@@ -179,15 +197,8 @@ contract NewChainSetup is Script {
             0x232c61b3d1A03cC57e976cCcD0F9C9Cd33a98fe0,
             0xa6e0Fa5cCEEf6e87d89B4DC51053E1Ff1A557B53,
             0xC33b3317912d173806D782BFadE797f262d9A4Bd,
-            0x6654D956A4487A26dF1186b01B689c26939544fC
-        ));
-        newchains.push(NewChain(  // RARI TESTNET Chain 1918988905
-            1918988905,
-            0x22c254662850f21bfb09714F6A5638D929439F8D,
-            0x3Abb2780b0BbF630490D155C4861F4E82c623246,
-            0x0D8723a971ab42D0c52bf241ddb313B20F84E837,
-            0x56249F01CF2B50A7F211Bb9de08B1480835F574a,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6654D956A4487A26dF1186b01B689c26939544fC,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // U2U NEBULAS TESTNET Chain 2484
             2484,
@@ -195,7 +206,8 @@ contract NewChainSetup is Script {
             0xB5638019CBfC1B523d5167a269E755b05BF24fD9,
             0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994,
             0xa240B0714712e2927Ec055CEAa8e031AC671a55F, 
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // SONEIUM MINATO Chain 1946
             1946,
@@ -203,7 +215,8 @@ contract NewChainSetup is Script {
             0xB5638019CBfC1B523d5167a269E755b05BF24fD9,
             0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994,
             0xa240B0714712e2927Ec055CEAa8e031AC671a55F,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // OPBNB TESTNET  Chain 5611
             5611,
@@ -211,7 +224,8 @@ contract NewChainSetup is Script {
             0xB5638019CBfC1B523d5167a269E755b05BF24fD9,
             0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994,
             0xa240B0714712e2927Ec055CEAa8e031AC671a55F,
-            0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
+            0x108642B1b2390AC3f54E3B45369B7c660aeFffAD,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // SONIC TESTNET  Chain 64165
             64165,
@@ -219,7 +233,8 @@ contract NewChainSetup is Script {
             0x73943Ec95AaFBb4DD073b11F5c9701E5Bc3708A6,
             0x67510816512511818B5047a4Cce6E8f2ebB15d20,
             0x4b17E8eE1cC1814636DDe9Ac12a42472799CCB64,
-            0x1E411051A586EDB12282c08A933FB8C7699FEFB2
+            0x1E411051A586EDB12282c08A933FB8C7699FEFB2,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // FIRE THUNDER  Chain 997
             997,
@@ -227,7 +242,8 @@ contract NewChainSetup is Script {
             0x73943Ec95AaFBb4DD073b11F5c9701E5Bc3708A6,
             0x67510816512511818B5047a4Cce6E8f2ebB15d20,
             0x4b17E8eE1cC1814636DDe9Ac12a42472799CCB64,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  // HUMANODE TESTNET ISRAFEL  Chain 14853
             14853,
@@ -235,7 +251,8 @@ contract NewChainSetup is Script {
             0xB5638019CBfC1B523d5167a269E755b05BF24fD9,
             0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994,
             0xa240B0714712e2927Ec055CEAa8e031AC671a55F,
-            0x6dD69414E074575c45D5330d2707CAf80303a85B
+            0x6dD69414E074575c45D5330d2707CAf80303a85B,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(   // CRONOS TESTNET   Chain 338
             338,
@@ -243,7 +260,8 @@ contract NewChainSetup is Script {
             0x176cD7aBF4919068d7FeC79935c303b32B7DabE7,
             0x1f8548Eb8Ec40294D7eD5e85DbF0F3BCE228C3Bc,
             0xb8B99101c1DBFaD6Aa418220592773be082Db804,
-            0xf6d2060494cD08e776D22a47E67d485a33C8c5d2
+            0xf6d2060494cD08e776D22a47E67d485a33C8c5d2,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  //  BSC TESTNET Chain 97
             97,
@@ -251,7 +269,8 @@ contract NewChainSetup is Script {
             0x21ea338975678968Da85deA76f298E7f11A09334,
             0x8b97E011A2F64F705C0A65706fB7bb968CB13d52,
             0x60A5B05DB6c8EB0b47F8227ea3b04Bd751B79DbC,
-            0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD
+            0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD,
+            0x0000000000000000000000000000000000000000
         ));
         newchains.push(NewChain(  //  SEPOLIA  Chain 11155111
             11155111,
@@ -259,7 +278,8 @@ contract NewChainSetup is Script {
             0x3AF6a526DD51C8B08FD54dBB624E042BB3b0a77e,
             0x926DF1f820Af8E3cF53A58C94332eB16BA4cB4b5,
             0x93DEF24108852Be52b2c34084d584338E46ab8f4,
-            0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c
+            0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c,
+            0x0000000000000000000000000000000000000000
         ));
     }
     
@@ -285,7 +305,9 @@ contract NewChainSetup is Script {
                 thisRwaX = newchains[i].rwaX;
                 string memory rwaXStr = thisRwaX.toHexString();
                 thisStorageManager = newchains[i].storageManager;
+                thisSentryManager = newchains[i].sentryManager;
                 string memory storageManagerStr = thisStorageManager.toHexString();
+                string memory sentryManagerStr = thisSentryManager.toHexString();
                 thisFeeManager = newchains[i].feeManager;
                 thisFeeToken = newchains[i].feeToken;
                 thisFeeTokenStr = thisFeeToken.toHexString();
@@ -338,6 +360,12 @@ contract NewChainSetup is Script {
                 require(ok, "NewChainSetup: Could not set fee multiplier");
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.ICON, 2);
                 require(ok, "NewChainSetup: Could not set fee multiplier");
+                ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.WHITELIST, 1);
+                require(ok, "NewChainSetup: Could not set fee multiplier");
+                ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.COUNTRY, 1);
+                require(ok, "NewChainSetup: Could not set fee multiplier");
+                ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.KYC, 5);
+                require(ok, "NewChainSetup: Could not set fee multiplier");
 
                 if(!stringsEqual(_toLower(ICTMRWAGateway(thisGway).getChainContract(chainIdStr)), thisGway.toHexString())) {
                     chainIdContractsStr.push(chainIdStr);
@@ -356,17 +384,24 @@ contract NewChainSetup is Script {
                     storageManagersStr.push(storageManagerStr);
                 }
 
+                (, string memory sentry) = ICTMRWAGateway(thisGway).getAttachedSentryManager(rwaType, version, chainIdStr);
+                if(!stringsEqual(sentry, _toLower(sentryManagerStr))) {
+                    chainIdSentryStr.push(chainIdStr);
+                    sentryManagersStr.push(sentryManagerStr);
+                }
+
             }
         }
 
-        
-
+    
         console.log("thisGway");
         console.log(thisGway);
         console.log("thisRwaX");
         console.log(thisRwaX);
         console.log("thisStorageManager");
         console.log(thisStorageManager);
+        console.log("thisSentryManager");
+        console.log(thisSentryManager);
         console.log("thisFeeManager");
         console.log(thisFeeManager);
 
@@ -382,6 +417,8 @@ contract NewChainSetup is Script {
             string memory rwaXStr = rwaX.toHexString();
             address storageManager = newchains[i].storageManager;
             string memory storageManagerStr = storageManager.toHexString();
+            address sentryManager = newchains[i].sentryManager;
+            string memory sentryManagerStr = sentryManager.toHexString();
             address feeManager = newchains[i].feeManager;
             address feeToken = newchains[i].feeToken;
             string memory feeTokenStr = feeToken.toHexString();
@@ -414,6 +451,12 @@ contract NewChainSetup is Script {
                     storageManagersStr.push(storageManagerStr);
                 }
 
+                (, string memory sentry) = ICTMRWAGateway(thisGway).getAttachedSentryManager(rwaType, version, chainIdStr);
+                if(!stringsEqual(sentry, _toLower(sentryManagerStr))) {
+                    chainIdSentryStr.push(chainIdStr);
+                    sentryManagersStr.push(sentryManagerStr);
+                }
+
             }
 
             feeTokensStr.push(thisFeeTokenStr);
@@ -427,6 +470,8 @@ contract NewChainSetup is Script {
         ok = ICTMRWAGateway(thisGway).addChainContract(chainIdContractsStr, gwaysStr);
         ok = ICTMRWAGateway(thisGway).attachRWAX(rwaType, version, chainIdRwaXsStr, rwaXsStr);
         ok = ICTMRWAGateway(thisGway).attachStorageManager(rwaType, version, chainIdStorsStr, storageManagersStr);
+        ok = ICTMRWAGateway(thisGway).attachSentryManager(rwaType, version, chainIdSentryStr, sentryManagersStr);
+
 
         vm.stopBroadcast();
     }

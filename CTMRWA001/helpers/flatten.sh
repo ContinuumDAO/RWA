@@ -10,6 +10,8 @@ forge flatten contracts/CTMRWA001TokenFactory.sol --output flattened/CTMRWA001To
 forge flatten contracts/CTMRWA001XFallback.sol --output flattened/CTMRWA001XFallback.sol
 forge flatten contracts/CTMRWA001StorageManager.sol --output flattened/CTMRWA001StorageManager.sol
 forge flatten contracts/CTMRWA001Storage.sol --output flattened/CTMRWA001Storage.sol
+forge flatten contracts/CTMRWA001SentryManager.sol --output flattened/CTMRWA001SentryManager.sol
+forge flatten contracts/CTMRWA001Sentry.sol --output flattened/CTMRWA001Sentry.sol
 forge flatten contracts/CTMRWA001DividendFactory.sol --output flattened/CTMRWA001DividendFactory.sol
 forge flatten contracts/CTMRWA001Dividend.sol --output flattened/CTMRWA001Dividend.sol
 forge flatten contracts/routerV2/GovernDapp.sol --output flattened/GovernDapp.sol

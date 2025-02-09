@@ -338,6 +338,10 @@ contract SingleChainSetup is Script {
                 require(ok, "NewChainSetup: Could not set fee multiplier");
                 ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.ICON, 2);
                 require(ok, "NewChainSetup: Could not set fee multiplier");
+                ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.WHITELIST, 1);
+                require(ok, "NewChainSetup: Could not set fee multiplier");
+                ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.COUNTRY, 1);
+                require(ok, "NewChainSetup: Could not set fee multiplier");
 
                 if(!stringsEqual(_toLower(ICTMRWAGateway(thisGway).getChainContract(chainIdStr)), thisGway.toHexString())) {
                     chainIdContractsStr.push(chainIdStr);

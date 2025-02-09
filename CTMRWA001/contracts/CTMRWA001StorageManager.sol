@@ -15,7 +15,7 @@ import {GovernDapp} from "./routerV2/GovernDapp.sol";
 import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
 import {ICTMRWAGateway} from "./interfaces/ICTMRWAGateway.sol";
 import {ICTMRWA001, TokenContract, ITokenContract} from "./interfaces/ICTMRWA001.sol";
-import {ICTMRWA001Storage, URICategory, URIType} from "./interfaces/ICTMRWA001Storage.sol";
+import {ICTMRWA001Storage, URICategory, URIType, URIData} from "./interfaces/ICTMRWA001Storage.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {ITokenContract} from "./interfaces/ICTMRWA001.sol";
 
@@ -26,12 +26,12 @@ interface TokenID {
     function ID() external view returns(uint256);
 }
 
-struct URIData {
-    URICategory uriCategory;
-    URIType uriType;
-    uint256 slot;
-    bytes32 uriHash;
-}
+// struct URIData {
+//     URICategory uriCategory;
+//     URIType uriType;
+//     uint256 slot;
+//     bytes32 uriHash;
+// }
 
 contract CTMRWA001StorageManager is Context, GovernDapp {
     using Strings for *;
@@ -44,9 +44,8 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     address gateway;
     address feeManager;
     string cIdStr;
+    bytes public lastReason;
     
-    string[] chainIdsStr;
-
     modifier onlyDeployer {
         require(msg.sender == ctmRwaDeployer, "CTMRWA001StorageManager: onlyDeployer function");
         _;
@@ -95,9 +94,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         address _tokenAddr,
         uint256 _rwaType,
         uint256 _version,
-        address _map,
-        address _gateway,
-        address _feeManager
+        address _map
     ) external onlyDeployer returns(address) {
 
         CTMRWA001Storage ctmRwa001Storage = new CTMRWA001Storage{
@@ -113,10 +110,10 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(address(ctmRwa001Storage));
     }
 
-   
     
     function addURI(
         uint256 _ID,
+        string memory _objectName,
         URICategory _uriCategory,
         URIType _uriType,
         string memory _title,
@@ -125,8 +122,6 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
-        uint256 titleLength = bytes(_title).length;
-        require(titleLength >= 10 && titleLength <= 128, "CTMRWA001StorageManager: The title parameter must be between 10 and 128 characters");
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
         require(ok, "CTMRWA001StorageManager: Could not find _ID or its storage address");
 
@@ -135,38 +130,112 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
         require(bytes(ICTMRWA001(ctmRwa001Addr).baseURI()).length > 0, "CTMRWA001StorageManager: This token does not have storage");
 
-        if(_uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER) {
-            require(ICTMRWA001Storage(storageAddr).getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0, 
-            "CTMRWA001StorageManager: Type CONTRACT and CATEGORY ISSUER must be the first stored element");
-        }
+        uint256 fee;
+        uint256 titleLength;
 
-        _payFee(_uriCategory, _feeTokenStr, _chainIdsStr, true);
+        titleLength = bytes(_title).length;
+        require(!ICTMRWA001Storage(storageAddr).existObjectName(_objectName), "CTMRWA001StorageManager: Object already exists in Storage");
+        require(titleLength >= 10 && titleLength <= 256, "CTMRWA001StorageManager: The title parameter must be between 10 and 256 characters");
+            
+        fee = _individualFee(_uriCategory, _feeTokenStr, _chainIdsStr, false);
 
-        string memory objectName;
+        _payFee(fee, _feeTokenStr);
 
-        if(stringsEqual(ICTMRWA001(ctmRwa001Addr).baseURI(), "GFLD")) {
-            objectName = CTMRWA001Storage(storageAddr).greenfieldObject(_uriType, _slot);
-        } else objectName = "";
-
+        uint256 startNonce = ICTMRWA001Storage(storageAddr).getObjectNonce(_objectName);
 
         for(uint256 i=0; i<_chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
             if(stringsEqual(chainIdStr, cIdStr)) {
-                ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _title, _slot, objectName, _uriDataHash);
+                ICTMRWA001Storage(storageAddr).addURILocal(
+                    _ID, 
+                    _objectName, 
+                    _uriCategory, 
+                    _uriType, 
+                    _title, 
+                    _slot, 
+                    block.timestamp, 
+                    _uriDataHash
+                );
             } else {
                 (, string memory toRwaSMStr) = _getSM(chainIdStr);
 
-                string memory funcCall = "addURIX(uint256,uint8,uint8,string,uint256,string,bytes32)";
+                string memory funcCall = "addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])";
                 bytes memory callData = abi.encodeWithSignature(
                     funcCall,
                     _ID,
-                    _uriCategory,
-                    _uriType,
-                    _title,
-                    _slot,
+                    startNonce,
+                    _stringToArray(_objectName),
+                    _uriCategoryToArray(_uriCategory),
+                    _uriTypeToArray(_uriType),
+                    _stringToArray(_title),
+                    _uint256ToArray(_slot),
+                    _uint256ToArray(block.timestamp),
+                    _bytes32ToArray(_uriDataHash)
+                );
+
+                c3call(toRwaSMStr, chainIdStr, callData);
+            }
+        }
+    }
+
+
+    function transferURI(
+        uint256 _ID,
+        string[] memory _chainIdsStr,
+        string memory _feeTokenStr
+    ) public {
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
+        require(ok, "CTMRWA001StorageManager: Could not find _ID or its storage address");
+
+        (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
+        _checkTokenAdmin(ctmRwa001Addr);
+
+        require(bytes(ICTMRWA001(ctmRwa001Addr).baseURI()).length > 0, "CTMRWA001StorageManager: This token does not have storage");
+
+
+        (
+            URICategory[] memory uriCategory,
+            URIType[] memory uriType,
+            string[] memory title,
+            uint256[] memory slot,
+            string[] memory objectName,
+            bytes32[] memory uriDataHash,
+            uint256[] memory timestamp
+        ) = ICTMRWA001Storage(storageAddr).getAllURIData();
+
+        uint256 len = objectName.length;
+
+        uint256 fee;
+
+        for (uint256 i=0; i<len; i++) {
+            fee = fee + _individualFee(uriCategory[i], _feeTokenStr, _chainIdsStr, false);
+        }
+
+        _payFee(fee, _feeTokenStr);
+
+        uint256 startNonce = ICTMRWA001Storage(storageAddr).getObjectNonce(objectName[0]);
+
+        for(uint256 i=0; i<_chainIdsStr.length; i++) {
+            string memory chainIdStr = _toLower(_chainIdsStr[i]);
+
+            if(stringsEqual(chainIdStr, cIdStr)) {
+                revert("CTMRWA001StorageManager: Cannot transferURI to the local chain");
+            } else {
+                (, string memory toRwaSMStr) = _getSM(chainIdStr);
+
+                string memory funcCall = "addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])";
+                bytes memory callData = abi.encodeWithSignature(
+                    funcCall,
+                    _ID,
+                    startNonce,
                     objectName,
-                    _uriDataHash
+                    uriCategory,
+                    uriType,
+                    title,
+                    slot,
+                    timestamp,
+                    uriDataHash
                 );
 
                 c3call(toRwaSMStr, chainIdStr, callData);
@@ -177,18 +246,29 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
     function addURIX(
         uint256 _ID,
-        URICategory _uriCategory,
-        URIType _uriType,
-        string memory _title,
-        uint256 _slot,
-        string memory _objectName,
-        bytes32 _uriDataHash
+        uint256 _startNonce,
+        string[] memory _objectName,
+        URICategory[] memory _uriCategory,
+        URIType[] memory _uriType,
+        string[] memory _title,
+        uint256[] memory _slot,
+        uint256[] memory _timestamp,
+        bytes32[] memory _uriDataHash
     ) external onlyCaller returns(bool) {
 
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
         require(ok, "CTMRWA0CTMRWA001StorageManager: Could not find _ID or its storage address");
 
-        ICTMRWA001Storage(storageAddr).addURILocal(_ID, _uriCategory, _uriType, _title, _slot, _objectName, _uriDataHash);
+        uint256 currentNonce = ICTMRWA001Storage(storageAddr).nonce();
+        require(_startNonce == currentNonce,
+            "CTMRWA0CTMRWA001StorageManager: addURI Starting nonce mismatch"
+        );
+
+        uint256 len =_objectName.length;
+
+        for(uint256 i=0; i<len; i++) {
+            ICTMRWA001Storage(storageAddr).addURILocal(_ID, _objectName[i], _uriCategory[i], _uriType[i], _title[i], _slot[i], _timestamp[i], _uriDataHash[i]);
+        }
 
         return(true);
     }
@@ -221,12 +301,12 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(currentAdmin, currentAdminStr);
     }
 
-    function _payFee(
+    function _individualFee(
         URICategory _uriCategory, 
         string memory _feeTokenStr, 
         string[] memory _toChainIdsStr,
         bool _includeLocal
-    ) internal returns(bool) {
+    ) internal view returns(uint256) {
 
         FeeType feeType;
 
@@ -248,10 +328,19 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         else if(_uriCategory == URICategory.ICON) feeType = FeeType.ICON;
 
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, feeType, _feeTokenStr);
-        
-        if(fee>0) {
+ 
+        return(fee);
+    }
+
+    function _payFee(
+        uint256 _fee,
+        string memory _feeTokenStr
+    ) internal returns(bool) {
+
+               
+        if(_fee>0) {
             address feeToken = stringToAddress(_feeTokenStr);
-            uint256 feeWei = fee*10**(IERC20Extended(feeToken).decimals()-2);
+            uint256 feeWei = _fee*10**(IERC20Extended(feeToken).decimals()-2);
 
             IERC20(feeToken).transferFrom(_msgSender(), address(this), feeWei);
             
@@ -259,6 +348,10 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
             IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);
         }
         return(true);
+    }
+
+    function getLastReason() public view returns(string memory) {
+        return(string(lastReason));
     }
 
     function cID() internal view returns (uint256) {
@@ -350,10 +443,35 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(strArray);
     }
 
+    function _uint256ToArray(uint256 _myUint256) internal pure returns(uint256[] memory) {
+        uint256[] memory uintArray = new uint256[](1);
+        uintArray[0] = _myUint256;
+        return(uintArray);
+    }
+
+    function _uriCategoryToArray(URICategory _myCat) internal pure returns(URICategory[] memory) {
+        URICategory[] memory uriCatArray = new URICategory[](1);
+        uriCatArray[0] = _myCat;
+        return(uriCatArray);
+    }
+
+    function _uriTypeToArray(URIType _myType) internal pure returns(URIType[] memory) {
+        URIType[] memory uriTypeArray = new URIType[](1);
+        uriTypeArray[0] = _myType;
+        return(uriTypeArray);
+    }
+
+    function _bytes32ToArray(bytes32 _myBytes32) internal pure returns(bytes32[] memory) {
+        bytes32[] memory bytes32Array = new bytes32[](1);
+        bytes32Array[0] = _myBytes32;
+        return(bytes32Array);
+    }
+
     function _c3Fallback(bytes4 _selector,
         bytes calldata _data,
         bytes calldata _reason) internal override returns (bool) {
 
+        lastReason = _reason;
 
         emit LogFallback(_selector, _data, _reason);
         return true;

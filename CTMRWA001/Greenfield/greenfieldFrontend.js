@@ -63,7 +63,7 @@ const {
     Image,
 } = require('./storage_classes.js')
 
-const REMOTE = true
+const REMOTE = false
 
 const greenfieldServer = "http://127.0.0.1:3000"
 
@@ -240,55 +240,6 @@ const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, o
             ok = addObjectRes.ok
             msg = addObjectRes.msg
             transactionHash = addObjectRes.transactionHash
-
-            // createObjectTx = await client.object.createObject({
-            //     bucketName: bucketName,
-            //     objectName: objectName,
-            //     creator: signer.address,
-            //     visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
-            //     contentType: 'text/plain',
-            //     redundancyType: RedundancyType.REDUNDANCY_EC_TYPE,
-            //     payloadSize: Long.fromInt(fileBuffer.byteLength),
-            //     expectChecksums: expectCheckSums.map((x) => bytesFromBase64(x)),
-            // });
-
-            // const createObjectTxSimulateInfo = await createObjectTx.simulate({
-            //     denom: 'BNB',
-            // })
-
-            // createObjectTxRes = await createObjectTx.broadcast({
-            //     denom: 'BNB',
-            //     gasLimit: Number(createObjectTxSimulateInfo?.gasLimit),
-            //     gasPrice: createObjectTxSimulateInfo?.gasPrice || '5000000000',
-            //     payer: signer.address,
-            //     granter: '',
-            //     privateKey: PRIVATE_KEY,
-            // })
-
-            // transactionHash = createObjectTxRes.transactionHash
-
-            // uploadRes = await client.object.uploadObject(
-            //     {
-            //         bucketName: bucketName,
-            //         objectName: objectName,
-            //         body: fileBuffer,
-            //         txnHash: transactionHash,
-            //     },
-            //     {
-            //         type: 'ECDSA',
-            //         privateKey: PRIVATE_KEY,
-            //     },
-            // )
-
-            // if(uploadRes.code == 0 || uploadRes.code == '110004') {
-            //     ok = true
-            //     msg = "Object successfully created"
-            //     // console.log('Upload Result:', uploadRes)
-            // } else {
-            //     ok = false
-            //     console.log(uploadRes)
-            //     msg = "Object not successfully created"
-            // }
             
         }
 

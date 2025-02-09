@@ -8,7 +8,8 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ICTMRWA001, SlotData} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
 
-import {ICTMRWA001X} from "./interfaces/ICTMRWA001X.sol"; 
+import {ICTMRWA001X} from "./interfaces/ICTMRWA001X.sol";
+import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
 
 
 contract CTMRWA001 is Context, ICTMRWA001 {
@@ -27,6 +28,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     address public rwa001XFallback;
     address public dividendAddr;
     address public storageAddr;
+    address public sentryAddr;
 
     uint256[] slotNumbers;
     string[] slotNames;
@@ -176,6 +178,12 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     function attachStorage(address _storageAddr) external onlyCtmMap returns(bool) {
         require(storageAddr == address(0), "CTMRWA001: Cannot reset the storage contract address");
         storageAddr = _storageAddr;
+        return(true);
+    }
+
+    function attachSentry(address _sentryAddr) external onlyCtmMap returns(bool) {
+        require(sentryAddr == address(0), "CTMRWA001: Cannot reset the sentry contract address");
+        sentryAddr = _sentryAddr;
         return(true);
     }
 
@@ -373,7 +381,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     function _mint(address to_, uint256 tokenId_, uint256 slot_, string memory _slotName, uint256 value_) internal virtual {
-        require(to_ != address(0), "CTMRWA001: mint to the zero address");
+        require(to_ != address(0), "CTMRWA001: cannot mint to the zero address");
         require(tokenId_ != 0, "CTMRWA001: cannot mint zero tokenId");
         require(!_exists(tokenId_), "CTMRWA001: token already minted");
 
@@ -619,6 +627,10 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     function mintValueX(uint256 toTokenId_, uint256 slot_, uint256 value_) external onlyMinter returns(bool) {
         require(_exists(toTokenId_), "CTMRWA001: transfer to invalid token ID");
+        string memory toAddressStr = ownerOf(toTokenId_).toHexString();
+        require(ICTMRWA001Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
+            "CTMRWA001: Transfer of value to this address is not allowable"
+        );
 
         TokenData storage toTokenData = _allTokens[_allTokensIndex[toTokenId_]];
         require(toTokenData.slot == slot_, "CTMRWA001: Destination slot is not the same as source slot");
@@ -663,17 +675,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         // Placeholder
         return(true);
     }
-
-    function _beforeValueTransferX(
-        string memory fromAddressStr_,
-        string memory toAddressStr,
-        string memory toChainIdStr_,
-        uint256 fromTokenId_,
-        uint256 toTokenId_,
-        uint256 slot_,
-        string memory _slotName,
-        uint256 value_
-    ) internal virtual {}
 
     /* solhint-enable */
 
@@ -741,7 +742,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _slotApprovals[owner_][slot_][operator_];
     }
 
-    function approve(address to_, uint256 tokenId_) public virtual {
+    function approve(address to_, uint256 tokenId_) public virtual override {
         address owner = ownerOf(tokenId_);
         uint256 slot = slotOf(tokenId_);
         require(to_ != owner, "CTMRWA001: approval to current owner");
@@ -879,8 +880,12 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             _createSlot(_slot, _slotName);
         }
 
+        string memory toAddressStr = _to.toHexString();
+        require(ICTMRWA001Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
+            "CTMRWA001: Transfer of the token to this address is not allowable"
+        );
+
         //Shh - currently unused
-        _to;
         _toTokenId;
         _value;
     }

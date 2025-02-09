@@ -26,7 +26,7 @@ contract CTMRWA001Burnable is Context, CTMRWA001Mintable {
        _ctmRwa001XChain
     ) {}
 
-    function burn(uint256 tokenId_) public virtual {
+    function burn(uint256 tokenId_) public virtual override {
         require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: caller is not token owner nor approved");
         CTMRWA001._burn(tokenId_);
     }

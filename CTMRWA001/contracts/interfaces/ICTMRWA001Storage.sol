@@ -49,17 +49,29 @@ interface ICTMRWA001Storage {
 
     function addURILocal(
         uint256 ID,
+        string memory objectName,
         URICategory uriCategory,
         URIType uriType,
         string memory title,
         uint256 slot,
-        string memory objectName,
+        uint256 timestamp,
         bytes32 uriDataHash
     ) external;
 
-    function getAllURIData() external view returns(URIData[] memory);
+    function getAllURIData() external view returns(
+        URICategory[] memory uriCategory,
+        URIType[] memory uriType,
+        string[] memory title,
+        uint256[] memory slot,
+        string[] memory objectName,
+        bytes32[] memory uriHash,
+        uint256[] memory timeStamp
+    );
     function getURIHashByIndex(URICategory uriCat, URIType uriTyp, uint256 index) external view returns(bytes32, string memory);
     function getURIHashCount(URICategory uriCat, URIType uriTyp) external view returns(uint256);
     function getURIHash(bytes32 _hash) external view returns(URIData memory);
     function existURIHash(bytes32 uriHash) external view returns(bool);
+    function getObjectNonce(string memory _objectName) external view returns(uint256);
+    function existObjectName(string memory objectName) external view returns(bool);
+    function getURIHashByObjectName(string memory objectName) external view returns(URIData memory);
 }

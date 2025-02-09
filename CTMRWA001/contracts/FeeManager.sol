@@ -19,7 +19,7 @@ contract FeeManager is GovernDapp, IFeeManager {
     address[] public feeTokenList;
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
-    uint256[21] public feeMultiplier;
+    uint256[24] public feeMultiplier;
 
     mapping(address => FeeParams) public feeParams;
 
@@ -194,6 +194,15 @@ contract FeeManager is GovernDapp, IFeeManager {
         } else if (_feeType == FeeType.ICON) {
             feeMultiplier[20] = _multiplier;
             return(true);
+        } else if (_feeType == FeeType.WHITELIST) {
+            feeMultiplier[21] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.COUNTRY) {
+            feeMultiplier[22] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.KYC) {
+            feeMultiplier[23] = _multiplier;
+            return(true);
         } else {
             return(false);
         }
@@ -239,10 +248,16 @@ contract FeeManager is GovernDapp, IFeeManager {
             return(feeMultiplier[17]);
         }  else if (_feeType == FeeType.IMAGE) {
             return(feeMultiplier[18]);
-        }  else if (_feeType == FeeType.IMAGE) {
+        }  else if (_feeType == FeeType.VIDEO) {
             return(feeMultiplier[19]);
         }  else if (_feeType == FeeType.ICON) {
             return(feeMultiplier[20]);
+        } else if (_feeType == FeeType.WHITELIST) {
+            return(feeMultiplier[21]);
+        } else if (_feeType == FeeType.COUNTRY) {
+            return(feeMultiplier[22]);
+        } else if (_feeType == FeeType.KYC) {
+            return(feeMultiplier[23]);
         } else {
             revert("FeeManager: Bad FeeType");
         }

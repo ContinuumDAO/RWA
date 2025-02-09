@@ -20,6 +20,7 @@ contract CTMRWAGateway is Context, GovernDapp {
     mapping(uint256 => mapping(uint256 => ChainContract[])) rwaX; // rwaType => version => ChainContract
     mapping(uint256 => mapping(uint256 => string[])) rwaXChains; // rwaType => version => chainStr array
     mapping(uint256 => mapping(uint256 => ChainContract[])) storageManager;
+    mapping(uint256 => mapping(uint256 => ChainContract[])) sentryManager;
 
     event SetChainContract(string[] chainIdsStr, string[] contractAddrsStr, string fromContractStr, string fromChainIdStr);
     event LogFallback(bytes4 selector, bytes data, bytes reason);
@@ -168,6 +169,40 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(false, "0");
     }
 
+
+    function getAttachedSentryManager(
+        uint256 _rwaType,
+        uint256 _version,
+        uint256 _indx
+    ) public view returns(string memory, string memory) {
+        return(
+            sentryManager[_rwaType][_version][_indx].chainIdStr,
+            sentryManager[_rwaType][_version][_indx].contractStr
+        );
+    }
+
+    function getSentryManagerCount(
+        uint256 _rwaType,
+        uint256 _version
+    ) public view returns(uint256) {
+        return(sentryManager[_rwaType][_version].length);
+    }
+
+    function getAttachedSentryManager(
+        uint256 _rwaType,
+        uint256 _version,
+        string memory _chainIdStr
+    ) public view returns(bool, string memory) {
+
+        for(uint256 i=0; i<sentryManager[_rwaType][_version].length; i++) {
+            if(stringsEqual(sentryManager[_rwaType][_version][i].chainIdStr, _chainIdStr)) {
+                return(true, sentryManager[_rwaType][_version][i].contractStr);
+            }
+        }
+
+        return(false, "0");
+    }
+
     // Keeps a record of RWA contracts on this chain on other chains.
     function attachRWAX (
         uint256 _rwaType,
@@ -230,6 +265,39 @@ contract CTMRWAGateway is Context, GovernDapp {
             if(!preExisted) {
                 ChainContract memory newAttach = ChainContract(chainIdStr, storageManagerAddrStr);
                 storageManager[_rwaType][_version].push(newAttach);
+                preExisted = false;
+            }
+        }
+
+        return(true);
+    }
+
+    function attachSentryManager (
+        uint256 _rwaType,
+        uint256 _version,
+        string[] memory _chainIdsStr, 
+        string[] memory _sentryManagerAddrsStr
+    ) external onlyGov returns(bool) {
+        require(_chainIdsStr.length == _sentryManagerAddrsStr.length, "CTMRWAGateway: Argument lengths not equal in attachSentryManager");
+
+        bool preExisted;
+
+        for(uint256 j=0; j<_chainIdsStr.length; j++) {
+            string memory sentryManagerAddrStr = _toLower(_sentryManagerAddrsStr[j]);
+            string memory chainIdStr = _toLower(_chainIdsStr[j]);
+
+            require(bytes(sentryManagerAddrStr).length == 42, "CTMRWAGateway: Incorrect address length");
+
+            for(uint256 i=0; i<sentryManager[_rwaType][_version].length; i++) {
+                if(stringsEqual(sentryManager[_rwaType][_version][i].chainIdStr, chainIdStr)) {
+                    sentryManager[_rwaType][_version][i].contractStr = sentryManagerAddrStr;
+                    preExisted = true;
+                }
+            }
+
+            if(!preExisted) {
+                ChainContract memory newAttach = ChainContract(chainIdStr, sentryManagerAddrStr);
+                sentryManager[_rwaType][_version].push(newAttach);
                 preExisted = false;
             }
         }

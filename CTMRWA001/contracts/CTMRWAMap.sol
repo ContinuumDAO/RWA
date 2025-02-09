@@ -14,6 +14,7 @@ struct TokenContract {
     string chainIdStr;
     string contractStr;
     string storageAddrStr;
+    string sentryAddrStr;
 }
 
 uint256 constant rwaType = 1;
@@ -39,6 +40,9 @@ contract CTMRWAMap is Context {
 
     mapping(uint256 => string) idToStorage;
     mapping(string => uint256) storageToId;
+
+    mapping(uint256 => string) idToSentry;
+    mapping(string => uint256) sentryToId;
 
 
     constructor(
@@ -124,6 +128,15 @@ contract CTMRWAMap is Context {
             : (false, address(0));
     }
 
+    function getSentryContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns(bool, address) {
+        require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
+
+        string memory _sentryStr = idToSentry[_ID];
+        return bytes(_sentryStr).length != 0 
+            ? (true, stringToAddress(_sentryStr)) 
+            : (false, address(0));
+    }
+
 
     function attachContracts(
         uint256 _ID, 
@@ -131,7 +144,8 @@ contract CTMRWAMap is Context {
         uint256 _version,
         address _tokenAddr, 
         address _dividendAddr, 
-        address _storageAddr
+        address _storageAddr,
+        address _sentryAddr
     ) external onlyDeployer {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
@@ -139,7 +153,8 @@ contract CTMRWAMap is Context {
             _ID,
             _tokenAddr,
             _dividendAddr, 
-            _storageAddr
+            _storageAddr,
+            _sentryAddr
         );
         require(ok, "CTMRWAMap: Failed to set token ID");
 
@@ -149,18 +164,23 @@ contract CTMRWAMap is Context {
         ok = ICTMRWAAttachment(_tokenAddr).attachStorage(_storageAddr);
         require(ok, "CTMRWAMap: Failed to set the storage contract address");
 
+        ok = ICTMRWAAttachment(_tokenAddr).attachSentry(_sentryAddr);
+        require(ok, "CTMRWAMap: Failed to set the sentry contract address");
+
     }
 
     function _attachCTMRWAID(
         uint256 _ID, 
         address _ctmRwaAddr,
         address _dividendAddr, 
-        address _storageAddr
+        address _storageAddr,
+        address _sentryAddr
     ) internal returns(bool) {
 
         string memory ctmRwaAddrStr = _toLower(_ctmRwaAddr.toHexString());
         string memory dividendAddr = _toLower(_dividendAddr.toHexString());
         string memory storageAddr = _toLower(_storageAddr.toHexString());
+        string memory sentryAddr = _toLower(_sentryAddr.toHexString());
 
         uint256 lenContract = bytes(idToContract[_ID]).length;
 
@@ -175,6 +195,9 @@ contract CTMRWAMap is Context {
 
             idToStorage[_ID] = storageAddr;
             storageToId[storageAddr] = _ID;
+
+            idToSentry[_ID] = sentryAddr;
+            sentryToId[sentryAddr] = _ID;
 
             return(true);
         }

@@ -8,8 +8,14 @@ interface ICTMRWA001X {
 
     function isMinter(address) external returns(bool);
     function changeMinterStatus(address minter, bool set) external;
+
+    function changeTokenAdmin(
+        string memory newAdminStr,
+        string[] memory toChainIdsStr,
+        uint256 ID,
+        string memory feeTokenStr
+    ) external returns(bool);
     
-    function changeAdmin(address _newAdmin, uint256 _ID) external returns(bool);
     function changeFeeManager(address _feeManager) external;
     function setGateway(address _gateway) external;
     function setFallback(address _fallbackAddr) external;

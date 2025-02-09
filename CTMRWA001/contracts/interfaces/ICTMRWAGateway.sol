@@ -69,4 +69,25 @@ interface ICTMRWAGateway {
         string[] memory chainIdStr, 
         string[] memory storageManagerStr
     ) external returns(bool);   // onlyGov
+
+    function getAttachedSentryManager(
+        uint256 _rwaType,
+        uint256 _version,
+        uint256 _indx
+    ) external view returns(string memory, string memory);
+    function getAttachedSentryManager(
+        uint256 _rwaType,
+        uint256 _version,
+        string memory _chainIdStr
+    ) external view returns(bool, string memory);
+    function getSentryManagerCount(
+        uint256 _rwaType,
+        uint256 _version
+    ) external view returns(uint256);
+    function attachSentryManager (
+        uint256 rwaType,
+        uint256 version,
+        string[] memory chainIdStr, 
+        string[] memory storageManagerStr
+    ) external returns(bool);   // onlyGov
 }

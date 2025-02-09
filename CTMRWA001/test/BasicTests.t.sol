@@ -26,6 +26,7 @@ import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
 import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
 import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
 import {CTMRWA001StorageManager} from "../contracts/CTMRWA001StorageManager.sol";
+import {CTMRWA001SentryManager} from "../contracts/CTMRWA001SentryManager.sol";
 
 import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
 import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
@@ -40,6 +41,8 @@ import {ICTMRWA001Token} from "../contracts/interfaces/ICTMRWA001Token.sol";
 import {ICTMRWA001XFallback} from "../contracts/interfaces/ICTMRWA001XFallback.sol";
 import {ICTMRWA001Dividend} from "../contracts/interfaces/ICTMRWA001Dividend.sol";
 import {URIType, URICategory, URIData, ICTMRWA001Storage} from "../contracts/interfaces/ICTMRWA001Storage.sol";
+import {ICTMRWA001Sentry} from "../contracts/interfaces/ICTMRWA001Sentry.sol";
+import {ICTMRWA001SentryManager} from "../contracts/interfaces/ICTMRWA001SentryManager.sol";
 
 import {C3CallerStructLib, IC3GovClient} from "../contracts/c3Caller/IC3Caller.sol";
 
@@ -82,6 +85,11 @@ contract SetUp is Test {
     string[] gwaysStr;
     string[] rwaXsStr;
     string[] storageAddrsStr;
+    string[] objNames;
+    URICategory[] uricats;
+    URIType[] uriTypes;
+    string[] uriNames;
+    bytes32[] hashes;
 
     uint256[] slotNumbers;
     string[] slotNames;
@@ -122,6 +130,7 @@ contract SetUp is Test {
     CTMRWA001XFallback rwa001XFallback;
     CTMRWA001DividendFactory dividendFactory;
     CTMRWA001StorageManager storageManager;
+    CTMRWA001SentryManager sentryManager;
 
 
     function setUp() public virtual {
@@ -201,23 +210,35 @@ contract SetUp is Test {
             address(c3),
             admin,
             3,
-            88
+            88,
+            89
         );
 
         storageManager.setCtmRwaMap(address(ctmRwa001Map));
 
-        chainIdsStr.push("1");
-        storageAddrsStr.push(address(storageManager).toHexString());
-        assertEq(chainIdsStr.length, storageAddrsStr.length);
+        // chainIdsStr.push("1");
+        // storageAddrsStr.push(address(storageManager).toHexString());
+        // assertEq(chainIdsStr.length, storageAddrsStr.length);
         ok = gateway.attachStorageManager(
             rwaType, 
             version, 
-            chainIdsStr, 
-            storageAddrsStr
+            _stringToArray("1"),
+            _stringToArray(address(storageManager).toHexString())
         );
         assertEq(ok, true);
-        chainIdsStr.pop();
-        storageAddrsStr.pop();
+        // chainIdsStr.pop();
+        // storageAddrsStr.pop();
+
+        sentryManager.setCtmRwaMap(address(ctmRwa001Map));
+
+        ok = gateway.attachSentryManager(
+            rwaType, 
+            version, 
+            _stringToArray("1"),
+            _stringToArray(address(sentryManager).toHexString())
+        );
+        assertEq(ok, true);
+        
 
         ctmRwaDeployer = address(deployer);
 
@@ -298,7 +319,8 @@ contract SetUp is Test {
         address _c3callerProxy,
         address _txSender,
         uint256 _dappIDDeployer,
-        uint256 _dappIDStorageManager
+        uint256 _dappIDStorageManager,
+        uint256 _dappIDSentryManager
     ) internal {
         deployer = new CTMRWADeployer(
             _gov,
@@ -328,8 +350,23 @@ contract SetUp is Test {
             address(gateway),
             address(feeManager)
         );
-        ICTMRWAFactory(address(storageManager)).setCtmRwaDeployer(address(deployer));
+       
         deployer.setStorageFactory(_rwaType, _version, address(storageManager));
+        ICTMRWAFactory(address(storageManager)).setCtmRwaDeployer(address(deployer));
+
+        sentryManager = new CTMRWA001SentryManager(
+            _gov,
+            _rwaType,
+            _version,
+            _c3callerProxy,
+            _txSender,
+            _dappIDStorageManager,
+            _map,
+            address(gateway),
+            address(feeManager)
+        );
+        deployer.setSentryFactory(_rwaType, _version, address(sentryManager));
+        ICTMRWAFactory(address(sentryManager)).setCtmRwaDeployer(address(deployer));
 
     }
 
@@ -351,6 +388,8 @@ contract SetUp is Test {
         feeManager.setFeeMultiplier(FeeType.MINT, 5);
         feeManager.setFeeMultiplier(FeeType.BURN, 5);
         feeManager.setFeeMultiplier(FeeType.TX, 1);
+        feeManager.setFeeMultiplier(FeeType.WHITELIST, 1);
+        feeManager.setFeeMultiplier(FeeType.COUNTRY, 1);
 
         string memory destChain = "1";
         string memory ctmAddrStr = _toLower(address(ctm).toHexString());
@@ -414,6 +453,7 @@ contract SetUp is Test {
 
         return address(uint160(bytes20(addrBytes)));
     }
+    
 
     function hexCharToByte(bytes1 char) internal pure returns (uint8) {
         uint8 byteValue = uint8(char);
@@ -459,6 +499,12 @@ contract SetUp is Test {
         string[] memory strArray = new string[](1);
         strArray[0] = _string;
         return(strArray);
+    }
+
+    function _boolToArray(bool _bool) internal pure returns(bool[] memory) {
+        bool[] memory boolArray = new bool[](1);
+        boolArray[0] = _bool;
+        return(boolArray);
     }
 
     function CTMRWA001Deploy() public returns(uint256, address) {
@@ -746,20 +792,36 @@ contract TestBasicToken is SetUp {
         string memory randomData = "this is any old data";
         bytes32 junkHash = keccak256(abi.encode(randomData));
 
-        chainIdsStr.push(block.chainid.toString());
-
+        vm.expectRevert("CTMRWA001Storage: Type CONTRACT and CATEGORY ISSUER must be the first stored element");
         storageManager.addURI(
             ID,
+            "1",
+            URICategory.IMAGE,
+            URIType.CONTRACT,
+            "Basic RWA for testing",
+            0, // dummy
+            junkHash,
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        
+        storageManager.addURI(
+            ID,
+            "1",
             URICategory.ISSUER,
             URIType.CONTRACT,
             "Basic RWA for testing",
             0, // dummy
             junkHash,
-            chainIdsStr,
+            _stringToArray(cIdStr),
             tokenStr
         );
 
         (bool ok, address thisStorage) = map.getStorageContract(ID, rwaType, version);
+
+        bool existObject = ICTMRWA001Storage(thisStorage).existObjectName("1");
+        assertEq(existObject, true);
 
         uint256 num = ICTMRWA001Storage(thisStorage).getURIHashCount(URICategory.ISSUER, URIType.CONTRACT);
         assertEq(num, 1);
@@ -777,6 +839,7 @@ contract TestBasicToken is SetUp {
         // console.log("Issuer hash");
         // console.logBytes32(issuerHash);
         assertEq(issuerHash, junkHash);
+
     }
 
     function test_getTokenList() public {
@@ -878,6 +941,410 @@ contract TestBasicToken is SetUp {
         assertEq(balBefore, balAfter-toClaim);
     }
 
+    function test_sentryOptions() public {
+        vm.startPrank(admin);  // this CTMRWA001 has an admin of admin
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
+        createSomeSlots(ID);
+
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+
+        (bool ok, address sentry) = map.getSentryContract(ID, rwaType, version);
+
+        string memory adminStr = admin.toHexString();
+        string memory user1Str = user1.toHexString();
+        string memory user2Str = user2.toHexString();
+
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+
+        vm.expectRevert("CTMRWA001SentryManager: Not tokenAdmin");
+        sentryManager.setSentryOptions(
+            ID,
+            true,  // whitelistSwitch
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+        vm.stopPrank();
+
+        vm.startPrank(admin);
+
+        vm.expectRevert("CTMRWA001SentryManager: Can only set one of whitelist or KYC");
+        sentryManager.setSentryOptions(
+            ID,
+            true,  // whitelistSwitch
+            true,  // kycSwitch
+            false, // KYB
+            false, // over18
+            false, // accredited
+            false, // country WL
+            false, // country BL
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        vm.expectRevert("CTMRWA001SentryManager: Must set either whitelist or KYC");
+        sentryManager.setSentryOptions(
+            ID,
+            false, // whitelistSwitch
+            false, // kycSwitch
+            false, // KYB
+            false, // over18
+            false, // accredited
+            false, // country WL
+            false, // country BL
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        vm.expectRevert("CTMRWA001SentryManager: Must set KYC to use KYB");
+        sentryManager.setSentryOptions(
+            ID,
+            true, // whitelistSwitch
+            false, // kycSwitch
+            true,  // kybSwitch
+            false,
+            false,
+            false,
+            false,
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        vm.expectRevert("CTMRWA001SentryManager: Must set KYC to use over18 flag");
+        sentryManager.setSentryOptions(
+            ID,
+            true, // whitelistSwitch
+            false, // kycSwitch
+            false, // kybSwitch
+            true,  // over18Switch
+            false, // accredited
+            false, // country WL
+            false, // country BL
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        vm.expectRevert("CTMRWA001SentryManager: Must set KYC to use Accredited flag");
+        sentryManager.setSentryOptions(
+            ID,
+            true,  // whitelistSwitch
+            false,  // kycSwitch
+            false,  // kybSwitch
+            false,  // over18Switch
+            true,   // accreditedSwitch
+            false,
+            false,
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        vm.expectRevert("CTMRWA001SentryManager: Must set KYC to use Country black or white lists");
+        sentryManager.setSentryOptions(
+            ID,
+            true,  // whitelistSwitch
+            false,  // kycSwitch
+            false,  // kybSwitch
+            false,  // over18Switch
+            false,  // accreditedSwitch
+            true,   // countryWLSwitch
+            false,
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        vm.expectRevert("CTMRWA001SentryManager: Must set KYC to use Country black or white lists");
+        sentryManager.setSentryOptions(
+            ID,
+            true,  // whitelistSwitch
+            false,  // kycSwitch
+            false,  // kybSwitch
+            false,  // over18Switch
+            false,  // accreditedSwitch
+            false,  // countryWLSwitch
+            true,   // countryBLSwitch
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        vm.expectRevert("CTMRWA001SentryManager: Cannot set Country blacklist and Country whitelist together");
+        sentryManager.setSentryOptions(
+            ID,
+            false,  // whitelistSwitch
+            true,  // kycSwitch
+            false,  // kybSwitch
+            false,  // over18Switch
+            false,  // accreditedSwitch
+            true,  // countryWLSwitch
+            true,   // countryBLSwitch
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        sentryManager.setSentryOptions(
+            ID,
+            false,  // whitelistSwitch
+            true,  // kycSwitch
+            false,  // kybSwitch
+            true,  // over18Switch
+            true,  // accreditedSwitch
+            false,  // countryWLSwitch
+            false,   // countryBLSwitch
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        sentryManager.goPublic(
+            ID,
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        bool newAccredited = ICTMRWA001Sentry(sentry).accreditedSwitch();
+        assertEq(newAccredited, false);
+
+        vm.expectRevert("CTMRWA001SentryManager: Error. setSentryOptions has already been called");
+        sentryManager.setSentryOptions(
+            ID,
+            false,  // whitelistSwitch
+            true,  // kycSwitch
+            false,  // kybSwitch
+            true,  // over18Switch
+            false,  // accreditedSwitch
+            false,  // countryWLSwitch
+            false,   // countryBLSwitch
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        vm.expectRevert("CTMRWA001X: Whitelist or kyc set and cannot add new chains");
+        rwa001X.deployAllCTMRWA001X(
+            false,  // include local mint
+            ID,
+            rwaType,
+            version,
+            "",
+            "",
+            18,
+            "",
+            _stringToArray("1"), // extend to another chain
+            tokenStr
+        );
+
+        vm.stopPrank();
+
+    }
+
+    function test_whitelists() public {
+        vm.startPrank(admin);  // this CTMRWA001 has an admin of admin
+        // console.log("admin");
+        // console.log(admin);
+        // console.log("user1");
+        // console.log(user1);
+        // console.log("user2");
+        // console.log(user2);
+
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
+        createSomeSlots(ID);
+
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+
+        (bool ok, address sentry) = map.getSentryContract(ID, rwaType, version);
+
+        string memory adminStr = admin.toHexString();
+        string memory user1Str = user1.toHexString();
+        string memory user2Str = user2.toHexString();
+
+        
+        ok = ICTMRWA001Sentry(sentry).isAllowableTransfer(user2Str);
+        assertEq(ok, true); // whitelistSwitch not called yet, so all addresses are allowable
+
+        bool wl = ICTMRWA001Sentry(sentry).whitelistSwitch();
+        assertEq(wl, false); // whitelistSwitch not called yet
+        // ICTMRWA001Sentry(sentry).setWhitelist();
+
+        sentryManager.setSentryOptions(
+            ID,
+            true,  // whitelistSwitch
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        wl = ICTMRWA001Sentry(sentry).whitelistSwitch();
+        assertEq(wl, true); // whitelistSwitch now set
+
+        ok = ICTMRWA001Sentry(sentry).isAllowableTransfer(user2.toHexString());
+        assertEq(ok, false); // user2 not in whitelist, so is not now allowable
+
+        sentryManager.addWhitelist(
+            ID,
+            _stringToArray(user1Str), 
+            _boolToArray(true),
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        sentryManager.addWhitelist(
+            ID,
+            _stringToArray(user2Str), 
+            _boolToArray(true),
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        ok = ICTMRWA001Sentry(sentry).isAllowableTransfer(user2Str);
+        assertEq(ok, true); // user2 is now allowable
+
+        sentryManager.addWhitelist(
+            ID,
+            _stringToArray(user1Str), 
+            _boolToArray(false),
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        ok = ICTMRWA001Sentry(sentry).isAllowableTransfer(user1Str);
+        assertEq(ok, false); // user1 was removed and is not now allowable
+        ok = ICTMRWA001Sentry(sentry).isAllowableTransfer(user2Str);
+        assertEq(ok, true); // user2 remains in whitelist
+
+
+        string memory addr1 = ICTMRWA001Sentry(sentry).getWhitelistAddressAtIndx(1);
+        assertEq(stringToAddress(addr1), admin);
+        string memory addr2 = ICTMRWA001Sentry(sentry).getWhitelistAddressAtIndx(2);
+        assertEq(stringToAddress(addr2), user2);
+
+        rwa001X.changeTokenAdmin(user1Str, _stringToArray(cIdStr), ID, tokenStr);
+        address newAdmin = ICTMRWA001Sentry(sentry).tokenAdmin();
+        assertEq(newAdmin, user1);
+
+        // admin was replaced with user1 as tokenAdmin, but still remains in whitelist (at the end)
+        ok = ICTMRWA001Sentry(sentry).isAllowableTransfer(adminStr);
+        assertEq(ok, true);
+
+        vm.expectRevert("CTMRWA001SentryManager: Not tokenAdmin");
+        sentryManager.addWhitelist(
+            ID,
+            _stringToArray(adminStr), 
+            _boolToArray(false),
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+
+        vm.expectRevert("CTMRWA001Sentry: Cannot remove tokenAdmin from the whitelist");
+        sentryManager.addWhitelist(
+            ID,
+            _stringToArray(user1Str), 
+            _boolToArray(false),
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        // Now we test token minting by the tokenAdmin
+
+        uint256 newTokenId = rwa001X.mintNewTokenValueLocal(
+            user2,
+            0,
+            5,
+            1000,
+            ID
+        );
+
+        vm.expectRevert("CTMRWA001: Transfer of the token to this address is not allowable");
+        newTokenId = rwa001X.mintNewTokenValueLocal(
+            treasury,
+            0,
+            5,
+            1000,
+            ID
+        );
+
+       
+        vm.stopPrank();
+
+        // here we can test transferring some tokens owned by user2
+        vm.startPrank(user2);
+
+        vm.expectRevert("CTMRWA001: Transfer of the token to this address is not allowable");
+        rwa001X.transferWholeTokenX(
+            user2Str,
+            treasury.toHexString(),
+            cIdStr,
+            newTokenId,
+            ID,
+            tokenStr
+        );
+
+        vm.expectRevert("CTMRWA001: Transfer of the token to this address is not allowable");
+        rwa001X.transferPartialTokenX(
+            newTokenId,
+            treasury.toHexString(),
+            cIdStr,
+            10,
+            ID,
+            tokenStr
+        );
+
+        ICTMRWA001(ctmRwaAddr).approve(treasury, newTokenId);
+
+        vm.stopPrank();
+
+        vm.startPrank(treasury);
+        rwa001X.transferWholeTokenX(
+            user2Str,
+            adminStr,
+            cIdStr,
+            newTokenId,
+            ID,
+            tokenStr
+        );
+
+        vm.stopPrank();
+
+    }
+
+    function test_countryList() public {
+
+         vm.startPrank(admin);  // this CTMRWA001 has an admin of admin
+        // console.log("admin");
+        // console.log(admin);
+        // console.log("user1");
+        // console.log(user1);
+        // console.log("user2");
+        // console.log(user2);
+
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
+        createSomeSlots(ID);
+
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+
+        (bool ok, address sentry) = map.getSentryContract(ID, rwaType, version);
+
+        string memory adminStr = admin.toHexString();
+        string memory user1Str = user1.toHexString();
+        string memory user2Str = user2.toHexString();
+
+
+
+
+    }
+
     function test_localTransferX() public {
         vm.startPrank(admin);  // this CTMRWA001 has an admin of admin
         (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
@@ -920,6 +1387,10 @@ contract TestBasicToken is SetUp {
     }
 
     function test_changeAdmin() public {
+
+        address[] memory feeTokenList = feeManager.getFeeTokenList();
+        string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
+
         vm.startPrank(admin);  // this CTMRWA001 has an admin of admin
         (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
         skip(10);
@@ -930,7 +1401,13 @@ contract TestBasicToken is SetUp {
         assertEq(aTokens[0], ctmRwaAddr);
         assertEq(aTokens[1], ctmRwaAddr2);
 
-        rwa001X.changeAdmin(user2, ID);
+        rwa001X.changeTokenAdmin(
+            _toLower(user2.toHexString()),
+            _stringToArray(cIdStr),
+            ID,
+            feeTokenStr
+        );
+
         aTokens = rwa001X.getAllTokensByAdminAddress(admin);
         assertEq(aTokens.length, 1);
 
@@ -938,7 +1415,14 @@ contract TestBasicToken is SetUp {
         assertEq(aTokens.length, 1);
         assertEq(aTokens[0], ctmRwaAddr);
 
-        rwa001X.changeAdmin(address(0), ID2);
+
+        rwa001X.changeTokenAdmin(
+            _toLower(address(0).toHexString()),
+            _stringToArray(cIdStr),
+            ID2,
+            feeTokenStr
+        );
+
         aTokens = rwa001X.getAllTokensByAdminAddress(admin);
         assertEq(aTokens.length, 0);
 

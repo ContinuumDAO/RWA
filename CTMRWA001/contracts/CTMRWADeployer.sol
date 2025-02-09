@@ -33,6 +33,7 @@ contract CTMRWADeployer is Context, GovernDapp {
     mapping(uint256 => address[1_000_000_000]) public tokenFactory;
     mapping(uint256 => address[1_000_000_000]) public dividendFactory;
     mapping(uint256 => address[1_000_000_000]) public storageFactory;
+    mapping(uint256 => address[1_000_000_000]) public sentryFactory;
 
 
     event LogFallback(bytes4 selector, bytes data, bytes reason);
@@ -79,7 +80,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         uint256 _rwaType,
         uint256 _version,
         bytes memory deployData
-    ) external onlyRwaX returns(address, address, address) {
+    ) external onlyRwaX returns(address, address, address, address) {
         address tokenAddr = ICTMRWAFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
 
         require(TokenType(tokenAddr).getRWAType() == _rwaType, "CTMRWADeployer: Wrong RWA type");
@@ -87,10 +88,11 @@ contract CTMRWADeployer is Context, GovernDapp {
         
         address dividendAddr = deployDividend(_ID, tokenAddr, _rwaType, _version);
         address storageAddr = deployStorage(_ID, tokenAddr, _rwaType, _version);
+        address sentryAddr = deploySentry(_ID, tokenAddr, _rwaType, _version);
 
-        ICTMRWAMap(ctmRwaMap).attachContracts(_ID, _rwaType, _version, tokenAddr, dividendAddr, storageAddr);
+        ICTMRWAMap(ctmRwaMap).attachContracts(_ID, _rwaType, _version, tokenAddr, dividendAddr, storageAddr, sentryAddr);
 
-        return(tokenAddr, dividendAddr, storageAddr);
+        return(tokenAddr, dividendAddr, storageAddr, sentryAddr);
     }
 
     function deployDividend(
@@ -124,11 +126,28 @@ contract CTMRWADeployer is Context, GovernDapp {
                 _tokenAddr,
                 _rwaType, 
                 _version, 
-                ctmRwaMap,
-                gateway,
-                feeManager
+                ctmRwaMap
             );
             return(storageAddr);
+        }
+        else return(address(0));
+    }
+
+    function deploySentry(
+        uint256 _ID,
+        address _tokenAddr,
+        uint256 _rwaType,
+        uint256 _version
+    ) internal returns(address) {
+        if(sentryFactory[_rwaType][_version] != address(0)){
+            address sentryAddr = ICTMRWAFactory(sentryFactory[_rwaType][_version]).deploySentry(
+                _ID,
+                _tokenAddr,
+                _rwaType, 
+                _version, 
+                ctmRwaMap
+            );
+            return(sentryAddr);
         }
         else return(address(0));
     }
@@ -143,6 +162,10 @@ contract CTMRWADeployer is Context, GovernDapp {
 
     function setStorageFactory(uint256 _rwaType, uint256 _version, address _storageFactory) external onlyGov {
         storageFactory[_rwaType][_version] = _storageFactory;
+    }
+
+    function setSentryFactory(uint256 _rwaType, uint256 _version, address _sentryFactory) external onlyGov {
+        sentryFactory[_rwaType][_version] = _sentryFactory;
     }
 
     function cID() internal view returns (uint256) {

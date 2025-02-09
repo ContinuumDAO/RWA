@@ -168,6 +168,8 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
         uint256 value
     ) external payable;
 
+    function approve(address to, uint256 tokenId) external;
+
     /**
      * @notice Get the maximum value of a token that an operator is allowed to manage.
      * @param tokenId The token for which to query the allowance

@@ -17,7 +17,8 @@ interface ICTMRWAMap {
         uint256 version,
         address tokenAddr, 
         address dividendAddr, 
-        address storageAddr
+        address storageAddr,
+        address sentryAddr
     ) external;
 
     
@@ -45,13 +46,21 @@ interface ICTMRWAMap {
         uint256 _version
     ) external view returns(bool, address);
 
+    function getSentryContract(
+        uint256 _ID, 
+        uint256 _rwaType, 
+        uint256 _version
+    ) external view returns(bool, address);
+
 }
 
 interface ICTMRWAAttachment {
     function tokenAdmin() external returns(address);
     function attachDividend(address dividendAddr) external returns(bool);
     function attachStorage(address storageAddr) external returns(bool);
+    function attachSentry(address sentryAddr) external returns(bool);
     function dividendAddr() external view returns(address);
     function storageAddr() external view returns(address);
+    function sentryAddr() external view returns(address);
 }
 
