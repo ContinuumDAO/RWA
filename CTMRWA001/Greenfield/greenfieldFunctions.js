@@ -66,7 +66,8 @@ const {
 
 const rs = new ReedSolomon()
 
-const ASSETXFRONT = "::ffff:127.0.0.1"
+//const ASSETXFRONT = "::ffff:127.0.0.1"
+const ASSETXFRONTEND = "00.00.00.00"  // ipv4 for nginx/Express reverse proxy
 
 dotenv.config()
 const {abi:ctmRwaMapAbi} = require('../out/CTMRWAMap.sol/CTMRWAMap.json')
@@ -446,4 +447,3 @@ app.post("/add-bucket", async (req, res) => {
 app.listen(PORT, () => {
     console.log(`CONTINUUM-DAO Greenfield CTMRWA001 Storage service, listening on port ${PORT}...`)
 })
-

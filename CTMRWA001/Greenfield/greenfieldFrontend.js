@@ -63,9 +63,11 @@ const {
     Image,
 } = require('./storage_classes.js')
 
-const REMOTE = false
+const REMOTE = true
 
-const greenfieldServer = "http://127.0.0.1:3000"
+// const greenfieldServer = "http://127.0.0.1:3000"
+// const greenfieldServer = "http://164.68.100.146:3000/"
+const greenfieldServer = "https://storage.assetx.org"
 
 dotenv.config()
 
@@ -322,7 +324,7 @@ const getPropertyList = async(ID, signer) => {
 
         if(REMOTE) {
             res = await axios.post(greenfieldServer + '/list-objects', {ID: ID.toString(), chainIdStr: chainIdStr})
-            return {ok: true, msg: "listObjects successful", objectList: res.data.objectList}
+            return {ok: res.data.ok, msg: res.data.msg, objectList: res.data.objectList}
         } else {
             res = await getObjectList(ID, chainIdStr, signer)
             return res
@@ -457,10 +459,10 @@ const main = async () => {
         // return
 
                                             
-        // let res = await getPropertyList(ID, signer)
-        // console.log(res)
-        // console.log(res.objectList)
-        // return
+        let res = await getPropertyList(ID, signer)
+        console.log(res)
+        console.log(res.objectList)
+        return
 
         // await deleteObject(bucketName, '10', signer)
         // await deleteBucket(bucketName, tokenAdmin, signer)
