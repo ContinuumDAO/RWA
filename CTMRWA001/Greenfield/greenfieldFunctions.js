@@ -98,7 +98,8 @@ const deployGreenfield = async (ID, chainIdStr, signer) => {
 
     let res
 
-    let storageContract = await getStorageContract(ID, chainIdStr, signer)
+    let storageContractRes = await getStorageContract(ID, chainIdStr, signer)
+    let storageContract = storageContractRes.storageContract
     if(!storageContract) {
         console.error('No Storage Contract exists for this ID')
         return {ok: false, msg: "No Storage contract", bucketName: null}
@@ -106,7 +107,8 @@ const deployGreenfield = async (ID, chainIdStr, signer) => {
 
     let tokenAdmin = await getTokenAdmin(storageContract, signer)
 
-    let bucketName = await getBucketName(storageContract, signer)
+    let bucketNameRes = await getBucketName(ID, chainIdStr, signer)
+    let bucketName = bucketNameRes.bucketName
 
     if (await checkBucketExists(bucketName)) {
         console.log("Bucket already exists")
@@ -413,6 +415,7 @@ app.post("/add-bucket", async (req, res) => {
     let IDn
     let chainIdStr
     let rpcUrl
+    let signerRes
 
     if(ipAddress != ASSETXFRONT) {
         res.send(`Request from an illegal address ${ipAddress}`)
@@ -432,7 +435,8 @@ app.post("/add-bucket", async (req, res) => {
         console.log(contractRes)
         rpcUrl = contractRes.rpcUrl
 
-        signer = await connect(rpcUrl)
+        signerRes = await connect(rpcUrl)
+        signer = signerRes.signer
     
         deployRes = await deployGreenfield(IDn, chainIdStr, signer)
         let ok = deployRes.ok
