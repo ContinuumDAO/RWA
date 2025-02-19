@@ -6,6 +6,7 @@ const fs = require('fs')
 const path = require('path')
 const mimeTypes = require('mime-types')
 const axios = require('axios')
+axios.defaults.timeout = 500_000 // 500 seconds
 const {ReedSolomon} = require('@bnb-chain/reed-solomon')
 const { NodeAdapterReedSolomon } = require('@bnb-chain/reed-solomon/node.adapter')
 
@@ -430,7 +431,8 @@ const main = async () => {
     // This is just an example using one ID and on the connected chain
 
     // const ID =  31239567135746275248324166031342038860689409464370264537481584671479471970036n
-    const ID = 79495344642822556984993625903351562707720594716784940752624631275191262181962n
+    // const ID = 79495344642822556984993625903351562707720594716784940752624631275191262181962n
+    const ID = 107494044909292828468324833523775409561821626110161272708538828107075325911056n
     const rwaObject = addIssuer()  // sample rwaObject ISSUER Category
     const rwaImage = addImage("./22.png") // sample rwaObject IMAGE Category
 
@@ -477,7 +479,7 @@ const main = async () => {
         // return
 
         let storageObjectExists = false
-        const res = await createObject(ID, rwaObject, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
+        const res = await createObject(ID, rwaImage, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
         console.log(res)
         return
 

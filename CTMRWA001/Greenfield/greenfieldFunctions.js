@@ -4,6 +4,7 @@ const express = require("express")
 const cors = require("cors")
 const helmet = require("helmet")
 const rateLimit = require("express-rate-limit")
+const timeout = require('connect-timeout')
 var bodyParser = require('body-parser')
 const {ReedSolomon} = require('@bnb-chain/reed-solomon')
 
@@ -87,6 +88,7 @@ app.use(bodyParser.json({limit: '50mb'}))
 app.use(helmet({crossOriginResourcePolicy: false}))
 app.use(cors())
 app.use(express.json())
+app.use(timeout('10s'))
 
 const PORT = 3000
 

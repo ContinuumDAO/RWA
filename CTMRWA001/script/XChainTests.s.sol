@@ -95,7 +95,7 @@ contract XChainTests is Script {
         // toChainIdsStr.push("97");
         // toChainIdsStr.push("84532");
         // deployRemote(0);
-        createSlots(toChainIdsStr, 1);
+        createSlots(toChainIdsStr, 2);
         // getSlots(0,0);
 
         // mintLocalValue(0);
@@ -261,7 +261,7 @@ contract XChainTests is Script {
 
         string[] memory chainIdsStr;
 
-        uint256 IdBack = rwa001X.deployAllCTMRWA001X(true, 0, 1, 1, "Roses in Summer", "ROSE", 18, "GFLD", chainIdsStr, feeTokenStr);
+        uint256 IdBack = rwa001X.deployAllCTMRWA001X(true, 0, 1, 1, "Water Lillies", "LILLY", 18, "GFLD", chainIdsStr, feeTokenStr);
         console.log(IdBack);
 
         vm.stopBroadcast();
@@ -366,7 +366,7 @@ contract XChainTests is Script {
         bool ok = rwa001X.createNewSlot(
             ID,
             0,
-            "Pink closed from Amsterdam",
+            "Fractional painting",
             chainIdsStr,
             feeTokenStr
         );
