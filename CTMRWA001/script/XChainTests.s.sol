@@ -75,7 +75,7 @@ contract XChainTests is Script {
 
     function run() external {
 
-        loadContracts(997);
+        loadContracts(421614);
 
 
         // debugRwaXCall();
@@ -89,13 +89,13 @@ contract XChainTests is Script {
 
 
         toChainIdsStr.push("421614");
-        deployLocal();
+        // deployLocal();
 
         
         // toChainIdsStr.push("97");
         // toChainIdsStr.push("84532");
         // deployRemote(0);
-        // createSlots(toChainIdsStr, 0);
+        createSlots(toChainIdsStr, 1);
         // getSlots(0,0);
 
         // mintLocalValue(0);
@@ -113,114 +113,114 @@ contract XChainTests is Script {
         if(chainId == 421614) {   // On ARB SEPOLIA
             // c3UUIDKeeper = ;
             feeToken = 0xbF5356AdE7e5F775659F301b07c4Bc6961044b11;
-            feeManager =  0xc4eDB1cBb639143A6fAa63b7cAF194ce53D88D29;
-            gatewayAddr = 0x20A9F9D7282c6FDE913522A42c3951F5B18f62D5;
-            rwa001XAddr = 0xD5870cb8400E75F2097F3AF9fD37aF0C758707e0;
-            ctmFallbackAddr = 0x616F3ba45dBA82898A731c18707aD7b1f6945dE6;
-            ctmRwa001Map = 0x1113E64C90dab3d1c2Da5850e3eEE672D33CE1f3;
-            ctmRwaDeployer =  0xF0C7A83F1BB9cA54e7C60B4CDBC8c469Ce776A6d;
-            ctmRwaFactory = 0x168438cb394Ec49D0E5ce9Bbf3E3B5cE6dC988Cc;
-            dividendAddr = 0x07Cd14bc46381B54B9B450102A297f17B265bbC3;
-            storageManagerAddr = 0x769139881024cE730dE9de9c21E3ad6fb5a872f2;
-        } else if(chainId == 80002) {    // on POLYGON AMOY
-            feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0x4cDa22b59a1fE957D09273E533cCb7D44bdEf90C;
-            gatewayAddr = 0x114ace1c918409889464c2a714f8442a97934Ccf;
-            rwa001XAddr = 0x88a23d9ec1a9f1100d807D0E8c7a39927D4A7897;
-            ctmFallbackAddr = 0x73B4143b7cd9617F9f29452f268479Bd513e3d23;
-            ctmRwa001Map = 0x5dA80743b6FD7FEB2Bf7207aBe20E57E204e2B5b;
-            ctmRwaDeployer = 0x9aF1e5b3e863d88A4E220fb07FfB8c2e5a96dDbd;
-            ctmRwaFactory = 0x08A7Ac9982804D131b5523b6165a2EFAaF064C90;
-            dividendAddr = 0x2d7E6446fd6938e692173F88946a9DeC52442A8b;
-            storageManagerAddr = 0x95ae66aD780E73eF2D2a80611458883C950a1356;
-        } else if(chainId == 338) {    // on CRONOS
-            feeToken = 0xf6d2060494cD08e776D22a47E67d485a33C8c5d2;
-            feeManager = 0x1f8548Eb8Ec40294D7eD5e85DbF0F3BCE228C3Bc;
-            gatewayAddr = 0xAE66C08b9d76EeCaA74314c60f3305D43707ACc9;
-            rwa001XAddr = 0x176cD7aBF4919068d7FeC79935c303b32B7DabE7;
-            ctmFallbackAddr = 0xf9EDcE2638da660F51Ee08220a1a5A32fAB61d61;
-            ctmRwa001Map = 0x511A4e9af646E933c145A8892837547900078A97;
-            ctmRwaDeployer = 0x37415B746B2eF7f37608006dDaA404d377fdF633;
-            ctmRwaFactory = 0x5066e6DF1232532cEC032Ad45Cb29320f2b8D065;
-            dividendAddr = 0x4f5b13A48d4fC78e154DDa6c49E39c6d59277213;
-            storageManagerAddr = 0xb8B99101c1DBFaD6Aa418220592773be082Db804;
-         } else if(chainId == 78600) {    // on VANGUARD
-            feeToken = 0x6654D956A4487A26dF1186b01B689c26939544fC;
-            feeManager = 0xa6e0Fa5cCEEf6e87d89B4DC51053E1Ff1A557B53;
-            gatewayAddr = 0xeaDb6779c7284a7ef6f611f4535e60c3d59B321b;
-            rwa001XAddr = 0x232c61b3d1A03cC57e976cCcD0F9C9Cd33a98fe0;
-            ctmFallbackAddr = 0xEeFc94902e330CDd0f641Ac7b7E428F3a587320E;
-            ctmRwa001Map = 0x12dC185A10F894e0bc2e55CF3f899970828c9ebE;
-            ctmRwaDeployer = 0x2CD9F1d9000D8752cC7653e10f259f7D9a94A5E7;
-            ctmRwaFactory = 0x99d26Ed0E4bb6659b56eE36DD9EE1814345aE9B9;
-            dividendAddr = 0x630937764C9F8A4a08e33cE43A3f67d73752e341;
-            storageManagerAddr = 0xC33b3317912d173806D782BFadE797f262d9A4Bd;
-        } else if(chainId == 5003) {    // on MANTLE
-            feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
-            gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
-            rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
-            ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
-            ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
-            ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
-            ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
-            dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
-            storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
-         } else if(chainId == 2810) {    // on MORPH HOLESKY
-            feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
-            gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
-            rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
-            ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
-            ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
-            ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
-            ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
-            dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
-            storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
-        } else if(chainId == 168587773) {    // on BLAST
-            feeToken = 0x5d5408e949594E535d0c3d533761Cb044E11b664;
-            feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
-            gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
-            rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
-            ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
-            ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
-            ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
-            ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
-            dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
-            storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
-        } else if(chainId == 1952959480) {    // on LUMIA
-            feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0x4f5b13A48d4fC78e154DDa6c49E39c6d59277213;
-            gatewayAddr = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
-            rwa001XAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
-            ctmFallbackAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
-            ctmRwa001Map = 0x02E77B34A4d16D9b00c7B4e787776327adB1344C;
-            ctmRwaDeployer = 0xA7EC64D41f32FfE662A46B62E59D1EBFEaD52522;
-            ctmRwaFactory = 0x8641613849038f495FA8Dd313f13a3f7F2D73815;
-            dividendAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
-            storageManagerAddr = 0xde3Fdb278B0EC3254E8701c38e58CFd1168f13a5;
-        } else if(chainId == 14853) {    // on HUMANODE
-            feeToken = 0x6dD69414E074575c45D5330d2707CAf80303a85B;
-            feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
-            gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
-            rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
-            ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
-            ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
-            ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
-            ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
-            dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
-            storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
-        } else if(chainId == 997) {    // on 5IRE
-            feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0x67510816512511818B5047a4Cce6E8f2ebB15d20;
-            gatewayAddr = 0xF4e7a775c8aBC8e0B7ed11d660b0a6b2e1B7a132;
-            rwa001XAddr = 0x73943Ec95AaFBb4DD073b11F5c9701E5Bc3708A6;
-            ctmFallbackAddr = 0xcDEcbA8e8a537823733238225df54Cc212d681Cd;
-            ctmRwa001Map = 0xAc71dCF325724594525cc05552beE7D6550a80fD;
-            ctmRwaDeployer = 0x64C5734e22cf8126c6367c0230B66788fBE4AB90;
-            ctmRwaFactory = 0xa7C57315395def05F906310d590f4ea15308fe30;
-            dividendAddr = 0xce0b17dD3C7Ad94eF7B6F75d67521c8870b31282;
-            storageManagerAddr = 0x4b17E8eE1cC1814636DDe9Ac12a42472799CCB64;
+            feeManager =  0x7e61a5AF95Fc6efaC03F7d92320F42B2c2fe96f0;
+            gatewayAddr = 0xbab5Ec2802257958d3f3a34dcE2F7Aa65Eac922d;
+            rwa001XAddr = 0xDB3caaE3A1fD4846bC2a7dDBcb2B7b4dbd3484b8;
+            ctmFallbackAddr = 0x7323b2452Aa4839EB2501ACE128D710BE7e359aD;
+            ctmRwa001Map = 0xcC9AC238318d5dBe97b20957c09aC09bA73Eeb25;
+            ctmRwaDeployer =  0x13b17e90f430760eb038b83C5EBFd8082c027e00;
+            ctmRwaFactory = 0xE367E5FE0aB98d81aC9C07A5a35386A6ddc83E2e;
+            dividendAddr = 0x97161c4c66B11629f2d3211c8Bd8131705d64092;
+            storageManagerAddr = 0xfefE834c4b32BF5DA89f7F0C059590719Fe3e3eE;
+        // } else if(chainId == 80002) {    // on POLYGON AMOY
+        //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
+        //     feeManager = 0x4cDa22b59a1fE957D09273E533cCb7D44bdEf90C;
+        //     gatewayAddr = 0x114ace1c918409889464c2a714f8442a97934Ccf;
+        //     rwa001XAddr = 0x88a23d9ec1a9f1100d807D0E8c7a39927D4A7897;
+        //     ctmFallbackAddr = 0x73B4143b7cd9617F9f29452f268479Bd513e3d23;
+        //     ctmRwa001Map = 0x5dA80743b6FD7FEB2Bf7207aBe20E57E204e2B5b;
+        //     ctmRwaDeployer = 0x9aF1e5b3e863d88A4E220fb07FfB8c2e5a96dDbd;
+        //     ctmRwaFactory = 0x08A7Ac9982804D131b5523b6165a2EFAaF064C90;
+        //     dividendAddr = 0x2d7E6446fd6938e692173F88946a9DeC52442A8b;
+        //     storageManagerAddr = 0x95ae66aD780E73eF2D2a80611458883C950a1356;
+        // } else if(chainId == 338) {    // on CRONOS
+        //     feeToken = 0xf6d2060494cD08e776D22a47E67d485a33C8c5d2;
+        //     feeManager = 0x1f8548Eb8Ec40294D7eD5e85DbF0F3BCE228C3Bc;
+        //     gatewayAddr = 0xAE66C08b9d76EeCaA74314c60f3305D43707ACc9;
+        //     rwa001XAddr = 0x176cD7aBF4919068d7FeC79935c303b32B7DabE7;
+        //     ctmFallbackAddr = 0xf9EDcE2638da660F51Ee08220a1a5A32fAB61d61;
+        //     ctmRwa001Map = 0x511A4e9af646E933c145A8892837547900078A97;
+        //     ctmRwaDeployer = 0x37415B746B2eF7f37608006dDaA404d377fdF633;
+        //     ctmRwaFactory = 0x5066e6DF1232532cEC032Ad45Cb29320f2b8D065;
+        //     dividendAddr = 0x4f5b13A48d4fC78e154DDa6c49E39c6d59277213;
+        //     storageManagerAddr = 0xb8B99101c1DBFaD6Aa418220592773be082Db804;
+        //  } else if(chainId == 78600) {    // on VANGUARD
+        //     feeToken = 0x6654D956A4487A26dF1186b01B689c26939544fC;
+        //     feeManager = 0xa6e0Fa5cCEEf6e87d89B4DC51053E1Ff1A557B53;
+        //     gatewayAddr = 0xeaDb6779c7284a7ef6f611f4535e60c3d59B321b;
+        //     rwa001XAddr = 0x232c61b3d1A03cC57e976cCcD0F9C9Cd33a98fe0;
+        //     ctmFallbackAddr = 0xEeFc94902e330CDd0f641Ac7b7E428F3a587320E;
+        //     ctmRwa001Map = 0x12dC185A10F894e0bc2e55CF3f899970828c9ebE;
+        //     ctmRwaDeployer = 0x2CD9F1d9000D8752cC7653e10f259f7D9a94A5E7;
+        //     ctmRwaFactory = 0x99d26Ed0E4bb6659b56eE36DD9EE1814345aE9B9;
+        //     dividendAddr = 0x630937764C9F8A4a08e33cE43A3f67d73752e341;
+        //     storageManagerAddr = 0xC33b3317912d173806D782BFadE797f262d9A4Bd;
+        // } else if(chainId == 5003) {    // on MANTLE
+        //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
+        //     feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
+        //     gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
+        //     rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
+        //     ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
+        //     ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
+        //     ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
+        //     ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
+        //     dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
+        //     storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
+        //  } else if(chainId == 2810) {    // on MORPH HOLESKY
+        //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
+        //     feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
+        //     gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
+        //     rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
+        //     ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
+        //     ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
+        //     ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
+        //     ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
+        //     dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
+        //     storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
+        // } else if(chainId == 168587773) {    // on BLAST
+        //     feeToken = 0x5d5408e949594E535d0c3d533761Cb044E11b664;
+        //     feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
+        //     gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
+        //     rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
+        //     ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
+        //     ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
+        //     ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
+        //     ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
+        //     dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
+        //     storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
+        // } else if(chainId == 1952959480) {    // on LUMIA
+        //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
+        //     feeManager = 0x4f5b13A48d4fC78e154DDa6c49E39c6d59277213;
+        //     gatewayAddr = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
+        //     rwa001XAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
+        //     ctmFallbackAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
+        //     ctmRwa001Map = 0x02E77B34A4d16D9b00c7B4e787776327adB1344C;
+        //     ctmRwaDeployer = 0xA7EC64D41f32FfE662A46B62E59D1EBFEaD52522;
+        //     ctmRwaFactory = 0x8641613849038f495FA8Dd313f13a3f7F2D73815;
+        //     dividendAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
+        //     storageManagerAddr = 0xde3Fdb278B0EC3254E8701c38e58CFd1168f13a5;
+        // } else if(chainId == 14853) {    // on HUMANODE
+        //     feeToken = 0x6dD69414E074575c45D5330d2707CAf80303a85B;
+        //     feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
+        //     gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
+        //     rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
+        //     ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
+        //     ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
+        //     ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
+        //     ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
+        //     dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
+        //     storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
+        // } else if(chainId == 997) {    // on 5IRE
+        //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
+        //     feeManager = 0x67510816512511818B5047a4Cce6E8f2ebB15d20;
+        //     gatewayAddr = 0xF4e7a775c8aBC8e0B7ed11d660b0a6b2e1B7a132;
+        //     rwa001XAddr = 0x73943Ec95AaFBb4DD073b11F5c9701E5Bc3708A6;
+        //     ctmFallbackAddr = 0xcDEcbA8e8a537823733238225df54Cc212d681Cd;
+        //     ctmRwa001Map = 0xAc71dCF325724594525cc05552beE7D6550a80fD;
+        //     ctmRwaDeployer = 0x64C5734e22cf8126c6367c0230B66788fBE4AB90;
+        //     ctmRwaFactory = 0xa7C57315395def05F906310d590f4ea15308fe30;
+        //     dividendAddr = 0xce0b17dD3C7Ad94eF7B6F75d67521c8870b31282;
+        //     storageManagerAddr = 0x4b17E8eE1cC1814636DDe9Ac12a42472799CCB64;
         // } else if(chainId == 84532) {    // on BASE SEPOLIA
         //     feeToken = ;
         //     feeManager = ;
@@ -261,8 +261,9 @@ contract XChainTests is Script {
 
         string[] memory chainIdsStr;
 
-        uint256 IdBack = rwa001X.deployAllCTMRWA001X(true, 0, 1, 1, "Irises", "IRS", 18, "GFLD", chainIdsStr, feeTokenStr);
-    
+        uint256 IdBack = rwa001X.deployAllCTMRWA001X(true, 0, 1, 1, "Roses in Summer", "ROSE", 18, "GFLD", chainIdsStr, feeTokenStr);
+        console.log(IdBack);
+
         vm.stopBroadcast();
     }
 
@@ -364,8 +365,8 @@ contract XChainTests is Script {
 
         bool ok = rwa001X.createNewSlot(
             ID,
-            6,
-            "Another new RWA",
+            0,
+            "Pink closed from Amsterdam",
             chainIdsStr,
             feeTokenStr
         );

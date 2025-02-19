@@ -137,6 +137,7 @@ const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, o
     }
     let tokenAdmin = await getTokenAdmin(storageContract, signer)
     bucketRes = await getBucketName(ID, chainIdStr, signer)
+   
     if(!bucketRes.ok) {
         return {ok: false, msg: bucketRes.msg, objectName: null, bucketName: null}
     } else {
@@ -197,7 +198,8 @@ const createObject = async (ID, rwaObject, chainIdsStr, feeToken, feeApproval, o
         }
 
         let res = await createStorageObject(
-            ID, 
+            ID,
+            objectName,
             rwaObject, 
             hash, 
             chainIdsStr, 
@@ -383,7 +385,7 @@ const addIssuer = () => {
         "All the World is free",
         "Xanadu",
         "12345678XN",
-        "https:XanaduCompanyRegistrationOffice",
+        "https:XanaduCompanyRegistrationOffice  ",
         "abc@continuumdao.org",
         "@ContinuumDAO",
         "https://continuumdao.org",
@@ -427,7 +429,8 @@ const main = async () => {
 
     // This is just an example using one ID and on the connected chain
 
-    const ID =  52132802886920618599792052678530329303821379622883015540104134213040705464055n
+    // const ID =  31239567135746275248324166031342038860689409464370264537481584671479471970036n
+    const ID = 79495344642822556984993625903351562707720594716784940752624631275191262181962n
     const rwaObject = addIssuer()  // sample rwaObject ISSUER Category
     const rwaImage = addImage("./22.png") // sample rwaObject IMAGE Category
 
@@ -444,6 +447,7 @@ const main = async () => {
         // let bucketRes = await getBucketName(ID, chainIdStr, signer)
         // let bucketName = bucketRes.bucketName
         // console.log(bucketName)
+        // return
 
         // let singleRes = await getSingleProperty(ID, '5', signer)
         // console.log(singleRes)
@@ -459,10 +463,10 @@ const main = async () => {
         // return
 
                                             
-        let res = await getPropertyList(ID, signer)
-        console.log(res)
-        console.log(res.objectList)
-        return
+        // let res = await getPropertyList(ID, signer)
+        // console.log(res)
+        // console.log(res.objectList)
+        // return
 
         // await deleteObject(bucketName, '10', signer)
         // await deleteBucket(bucketName, tokenAdmin, signer)
@@ -472,11 +476,12 @@ const main = async () => {
         // let expectCheckSums = resChecksum.expectCheckSums
         // return
 
-        // let storageObjectExists = false
-        // const res = await createObject(ID, rwaImage, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
-        // console.log(res)
+        let storageObjectExists = false
+        const res = await createObject(ID, rwaObject, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
+        console.log(res)
+        return
 
-        let myObject = '12'
+        let myObject = '3'
         const getObjRes = await getObject(ID, myObject, chainIdStr, signer)
 
         if (getObjRes.ok) {

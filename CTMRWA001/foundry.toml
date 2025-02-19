@@ -29,7 +29,7 @@ polygonAmoy = "${POLYGON_AMOY_RPC_URL}"
 confluxEspace = "${CONFLUX_ESPACE_RPC_URL}"
 lineaSepolia = "${LINEA_SEPOLIA_RPC_URL}"
 coreTestnet = "${CORE_TESTNET_RPC_URL}"
-holeskyTestnet = "${HOLESKY_TESTNET_RPC_URL}"
+2810 = "${HOLESKY_TESTNET_RPC_URL}"
 morphHolesky = "${MORPH_HOLESKY_RPC_URL}"
 scrollSepolia = "${SCROLL_SEPOLIA_RPC_URL}"
 soneiumMinato = "${SONEIUM_MINATO_RPC_URL}"
@@ -47,6 +47,7 @@ rariTestnet = "${RARI_TESTNET_RPC_URL}"
 u2uTestnet = "${U2U_NEBULAS_TESTNET_RPC_URL}"
 sonicTestnet = "${SONIC_TESTNET_RPC_URL}"
 humanodeTestnet = "${HUMANODE_TESTNET_RPC_URL}"
+redbellyTestnet = "${REDBELLY_TESTNET_RPC_URL}"
 
 
 [etherscan]
@@ -65,5 +66,16 @@ confluxEspaceKey = { url = "https://evmapi-testnet.confluxscan.io/api", chain = 
 lineaSepoliaKey = { url = "https://api-sepolia.lineascan.build/api", chain =  59141, key = "${LINEA_API_KEY}"}
 soneiumMinatoKey = { url = "https://eth-sepolia.blockscout.com/api", chain = 1946, key = "${OPTIMISM_API_KEY}"}
 
+
+[fmt]
+  bracket_spacing = false
+  int_types = "long"
+  line_length = 100
+  multiline_func_header = "attributes_first"
+  number_underscore = "thousands"
+  quote_style = "double"
+  single_line_statement_blocks = "single"
+  tab_width = 2
+  wrap_comments = true
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
