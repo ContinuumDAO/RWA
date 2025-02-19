@@ -138,7 +138,7 @@ const getBucketName = async (ID, chainIdStr, signer) => {
     try {
         const stor = new ethers.Contract(storageContract, storageAbi, signer)
         bucketName = await stor.greenfieldBucket()
-    return {ok: true, msg: "Successfully got bucketName", bucketName: bucketName.replace('.', '-')}
+        return {ok: true, msg: "Successfully got bucketName", bucketName: bucketName.replace('.', '-')}
     } catch(err) {
         return {ok: false, msg: err.message, bucketName: null}
     }
@@ -146,13 +146,13 @@ const getBucketName = async (ID, chainIdStr, signer) => {
 
 const getBucketNameFromID = async (ID, chainIdStr, signer) => {
 
-    let bucketName
     let bucketRes = await getBucketName(ID, chainIdStr, signer)
+
     if(!bucketRes.ok) {
         return {ok: false, msg: bucketRes.msg, bucketName: null}
     } else {
-        bucketName = bucketRes.bucketName.replaceAll('.', '-')
-        return {ok: true, msg: "Successfully got bucketName", bucketName: bucketName}
+        // bucketName = bucketRes.bucketName.replaceAll('.', '-')
+        return {ok: true, msg: "Successfully got bucketName", bucketName: bucketRes.bucketName}
     }
 }
 
@@ -277,7 +277,7 @@ const deployBucket = async (bucketName, creator, signer) => {
             creator: creator,
             visibility: VisibilityType.VISIBILITY_TYPE_PUBLIC_READ,
             chargedReadQuota: Long.fromString('0'),
-            primarySpAddress: sp.operatorAddress,
+            primarySpAddress: sp.primarySpAddress,
             paymentAddress: signer.address,
         })
 
@@ -366,7 +366,8 @@ const getURIStorageData = async (ID, hash, chainIdStr, signer) => {
 }
 
 const createStorageObject = async(
-    ID, 
+    ID,
+    objectName,
     rwaObject, 
     hash, 
     chainIdsStr, 
@@ -424,8 +425,9 @@ const createStorageObject = async(
         console.log(`hash length = ${hash.length}`)
         console.log(`chainIdsStr = ${chainIdsStr}`)
         console.log(`feeToken = ${feeToken}`)
-        const tx = await ctmStorageManager.addURI(
+        const tx = await ctmStorageManager.addURI( 
             ID,
+            objectName,
             uriCategoryToInt(rwaObject.category),
             uriTypeToInt(rwaObject.type),
             rwaObject.title,
