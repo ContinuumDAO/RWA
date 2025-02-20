@@ -63,273 +63,273 @@ contract NewChainSetup is Script {
     // }
 
     constructor() {
-        // newchains.push(NewChain(    // ARB Sepolia
-        //     421614,
-        //     0xbab5Ec2802257958d3f3a34dcE2F7Aa65Eac922d,
-        //     0xDB3caaE3A1fD4846bC2a7dDBcb2B7b4dbd3484b8,
-        //     0x7e61a5AF95Fc6efaC03F7d92320F42B2c2fe96f0,
-        //     0xfefE834c4b32BF5DA89f7F0C059590719Fe3e3eE,
-        //     0x100eb51C34cc7507C201139A2D9421479ca86AD0,
-        //     0xbF5356AdE7e5F775659F301b07c4Bc6961044b11
-        // ));
-        // newchains.push(NewChain(   // POLYGON AMOY  Chain 80002
-        //     80002,
-        //     0xb1bC63301670F8ec9EE98BD501c89783d65ddC8a,
-        //     0xDf495F3724a6c705fed4aDfa7588Cd326162A39c,
-        //     0x2D2112DE9801EAf71B6D1cBf40A99E57AFc235a7,
-        //     0xA09E913fa1aA5383a90aD6d8B94BC3DaBeE90332,
-        //     0xec66EE6116CF91FFC2a7Afc0dFb1cB882caab4D0,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        newchains.push(NewChain(    // ARB Sepolia
+            421614,
+            0xbab5Ec2802257958d3f3a34dcE2F7Aa65Eac922d,
+            0xDB3caaE3A1fD4846bC2a7dDBcb2B7b4dbd3484b8,
+            0x7e61a5AF95Fc6efaC03F7d92320F42B2c2fe96f0,
+            0xfefE834c4b32BF5DA89f7F0C059590719Fe3e3eE,
+            0x100eb51C34cc7507C201139A2D9421479ca86AD0,
+            0xbF5356AdE7e5F775659F301b07c4Bc6961044b11
+        ));
+        newchains.push(NewChain(   // POLYGON AMOY  Chain 80002
+            80002,
+            0xb1bC63301670F8ec9EE98BD501c89783d65ddC8a,
+            0xDf495F3724a6c705fed4aDfa7588Cd326162A39c,
+            0x2D2112DE9801EAf71B6D1cBf40A99E57AFc235a7,
+            0xA09E913fa1aA5383a90aD6d8B94BC3DaBeE90332,
+            0xec66EE6116CF91FFC2a7Afc0dFb1cB882caab4D0,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            
+        ));
+        newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
+            84532,
+            0xe1C4c5a0e6A99bB61b842Bb78E5c66EA1256D292,
+            0x6681DB630eB117050D78E0B89eB5619b35Ea12e8,
+            0x91677ec1879987aBC3978fD2A71204640A9e9f4A,
+            0x3188f25255C22Ba3cb0339A259cDca9cB963F135,
+            0xae57e6D1CfBCE6872F7d2bebdA2E09cdE089d0bC,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            
+        ));
+        // newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
+        //     59141,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     0x6654D956A4487A26dF1186b01B689c26939544fC
             
         // ));
-        // newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
-        //     84532,
-        //     0xe1C4c5a0e6A99bB61b842Bb78E5c66EA1256D292,
-        //     0x6681DB630eB117050D78E0B89eB5619b35Ea12e8,
-        //     0x91677ec1879987aBC3978fD2A71204640A9e9f4A,
-        //     0x3188f25255C22Ba3cb0339A259cDca9cB963F135,
-        //     0xae57e6D1CfBCE6872F7d2bebdA2E09cdE089d0bC,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
-        // ));
-        // // newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
-        // //     59141,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     0x6654D956A4487A26dF1186b01B689c26939544fC
-            
-        // // ));
-        // //// newchains.push(NewChain(  // CONFLUX ESPACE  Chain 71
-        // ////     71,
+        //// newchains.push(NewChain(  // CONFLUX ESPACE  Chain 71
+        ////     71,
 
-        // ////     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        // //// ));
-        // newchains.push(NewChain(  // CORE Testnet Chain 1115
-        //     1115,
-        //     0xb849bF0a5ca08f1e6EA792bDC06ff2317bb2fB90,
-        //     0xe08C7eE637336565511eb3421DAFdf45b860F9bc,
-        //     0x5930640c1572bCD396eB410f62a6975ab9b8A148,
-        //     0x140991fF31A86D700510C1d391A0ACd48CB7AbB7,
-        //     0x0F607AF04457E86eC349FbEbb6e23B0A6A0D067F,
+        ////     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        //// ));
+        newchains.push(NewChain(  // CORE Testnet Chain 1115
+            1115,
+            0xb849bF0a5ca08f1e6EA792bDC06ff2317bb2fB90,
+            0xe08C7eE637336565511eb3421DAFdf45b860F9bc,
+            0x5930640c1572bCD396eB410f62a6975ab9b8A148,
+            0x140991fF31A86D700510C1d391A0ACd48CB7AbB7,
+            0x0F607AF04457E86eC349FbEbb6e23B0A6A0D067F,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            
+        ));
+        newchains.push(NewChain(  // HOLESKY Chain 17000
+            17000,
+            0x05a804374Bb77345854022Fd0CD2A602E00bF2E7,
+            0x16b049e17b49C5DC1D8598b53593D4497c858c9a,
+            0xe98eCde78f1E8Ca24445eCfc4b5560aF193C842F,
+            0x1e46d7f21299Ac06AAd49017A1f733Cd5e6134f3,
+            0xdbD55D95D447E363251592A8FF573bBf16c2CB68,
+            0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
+            
+        ));
+        newchains.push(NewChain(  // MORPH HOLESKY  Chain 2810
+            2810,
+            0xa3325B2fA099c81a06d9b7532317d4a4Da7F2aB7,
+            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
+            0x94C3fD7a91ee706B89214B9C2E9a505508109a3c,
+            0xF3065b38973C66a425FE7f7Ed911962CEF3a7dC1,
+            0x7478600f35CCb2421E9dADC84954290adEca1196,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            
+        ));
+        newchains.push(NewChain(  // BLAST SEPOLIA Chain 168587773
+            168587773,
+            0x74Da08aBCb64A66370E9C1609771e68aAfEDE27B,
+            0x67193A5129e506dB83f434461a839938d98b2628,
+            0xB75A2833405907508bD5f8DEa3A24FA537D9C85c,
+            0xfC2175A02c2e1e673F1Ba374A321d274Bb29bD68,
+            0x5020f191FD0ce7F9340659b2d03ea0ba5921B44A,
+            0x5d5408e949594E535d0c3d533761Cb044E11b664
+            
+        ));
+        newchains.push(NewChain(  // BITLAYER TESTNET Chain 200810
+            200810,
+            0x1e46d7f21299Ac06AAd49017A1f733Cd5e6134f3,
+            0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
+            0xb008b6Cc593fC290Ed03d5011e90f4E9d19f9a87,
+            0x8d494f8B762005cCA5BDEBb770Af3bf51E730305,
+            0x4dDcab55e1eae426a98e85f43896592Ad1dB0f84,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            
+        ));
+        newchains.push(NewChain(  // SCROLL SEPOLIA   Chain 534351
+            534351,
+            0xa3325B2fA099c81a06d9b7532317d4a4Da7F2aB7,
+            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
+            0x94C3fD7a91ee706B89214B9C2E9a505508109a3c,
+            0xF3065b38973C66a425FE7f7Ed911962CEF3a7dC1,
+            0x7478600f35CCb2421E9dADC84954290adEca1196,
+            0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
+            
+        ));
+        newchains.push(NewChain(  // MANTLE SEPOLIA Chain 5003
+            5003,
+            0x563c5c85CC7ba923c50b66479588e5b3B2C93470,
+            0x30a63CF179996ae6332C0AC3898CdFD48b105118,
+            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
+            0x7478600f35CCb2421E9dADC84954290adEca1196,
+            0xbf56d054A81583e18c3D186aBACA3302bE399F3C,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            
+        ));
+        newchains.push(NewChain(  // LUKSO TESTNET  Chain 4201
+            4201,
+            0xdbD55D95D447E363251592A8FF573bBf16c2CB68,
+            0xd6f9Cc85F5a3031D6E32a03DdB8a7aEDBeBd953E,
+            0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
+            0x4dDcab55e1eae426a98e85f43896592Ad1dB0f84,
+            0xD4fB54dC259fd95846D5569E94b91fdA08d08262,
+            0xC92291fbBe0711b6B34928cB1b09aba1f737DEfd
+            
+        ));
+        newchains.push(NewChain(  // BERA_BARTIO Chain 80084
+            80084,
+            0xbf56d054A81583e18c3D186aBACA3302bE399F3C,
+            0xeCd4b2ab820215AcC3Cd579B8e65530D44A83643,
+            0x9B0bc1e8267252B2E99fdA8c302b0713Ba3a8202,
+            0xFC63DC90296800c67cBb96330238fc17FbD674A2,
+            0xAF685f104E7428311F25526180cbd416Fa8668CD,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            
+        ));
+        newchains.push(NewChain(  // LUMIA TESTNET Chain 1952959480
+            1952959480,
+            0x052E276c0A9D2D2adf1A2AeB6D7eCaEC38ec9dE6,
+            0xDfCF0181d2c2608D6e055997D2C215811AcC2D49,
+            0x20ADAf244972bC6cB064353F3EA4893f73E85599,
+            0xF84A465ce158Aad1848B737a6eCAbE6D253D12C2,
+            0xcFF54249Dae66746377e15C07D95c42188D5d3A8,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            
+        ));
+        //// newchains.push(NewChain(  // PLUME TESTNET Chain 161221135
+        // //     161221135,
+            
+        ////     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        //// ));
+        // newchains.push(NewChain(  // VANGUARD Chain 78600
+        //     78600,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     0x6654D956A4487A26dF1186b01B689c26939544fC
+            
+        // ));
+        // newchains.push(NewChain(  // U2U NEBULAS TESTNET Chain 2484
+        //     2484,
+        //     ,
+        //     ,
+        //     ,
+        //     , 
+        //     ,
         //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
             
         // ));
-        // newchains.push(NewChain(  // HOLESKY Chain 17000
-        //     17000,
-        //     0x05a804374Bb77345854022Fd0CD2A602E00bF2E7,
-        //     0x16b049e17b49C5DC1D8598b53593D4497c858c9a,
-        //     0xe98eCde78f1E8Ca24445eCfc4b5560aF193C842F,
-        //     0x1e46d7f21299Ac06AAd49017A1f733Cd5e6134f3,
-        //     0xdbD55D95D447E363251592A8FF573bBf16c2CB68,
-        //     0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
+        newchains.push(NewChain(  // SONEIUM MINATO Chain 1946
+            1946,
+            0xF663c3De2d18920ffd7392242459275d0Dd249e4,
+            0xB75A2833405907508bD5f8DEa3A24FA537D9C85c,
+            0xB37C81d6f90A16bbD778886AF49abeBfD1AD02C7,
+            0x48F214fDA66380A454DADAd9F84eF9D11d1f1D39,
+            0xfC2175A02c2e1e673F1Ba374A321d274Bb29bD68,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+            
+        ));
+        newchains.push(NewChain(  // OPBNB TESTNET  Chain 5611
+            5611,
+            0x563c5c85CC7ba923c50b66479588e5b3B2C93470,
+            0x30a63CF179996ae6332C0AC3898CdFD48b105118,
+            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
+            0x7478600f35CCb2421E9dADC84954290adEca1196,
+            0xbf56d054A81583e18c3D186aBACA3302bE399F3C,
+            0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
+            
+        ));
+        // newchains.push(NewChain(  // SONIC TESTNET  Chain 64165
+        //     64165,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     0x1E411051A586EDB12282c08A933FB8C7699FEFB2
             
         // ));
-        // newchains.push(NewChain(  // MORPH HOLESKY  Chain 2810
-        //     2810,
-        //     0xa3325B2fA099c81a06d9b7532317d4a4Da7F2aB7,
-        //     0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-        //     0x94C3fD7a91ee706B89214B9C2E9a505508109a3c,
-        //     0xF3065b38973C66a425FE7f7Ed911962CEF3a7dC1,
-        //     0x7478600f35CCb2421E9dADC84954290adEca1196,
+        // newchains.push(NewChain(  // FIRE THUNDER  Chain 997
+        //     997,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
         //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
             
         // ));
-        // newchains.push(NewChain(  // BLAST SEPOLIA Chain 168587773
-        //     168587773,
-        //     0x74Da08aBCb64A66370E9C1609771e68aAfEDE27B,
-        //     0x67193A5129e506dB83f434461a839938d98b2628,
-        //     0xB75A2833405907508bD5f8DEa3A24FA537D9C85c,
-        //     0xfC2175A02c2e1e673F1Ba374A321d274Bb29bD68,
-        //     0x5020f191FD0ce7F9340659b2d03ea0ba5921B44A,
-        //     0x5d5408e949594E535d0c3d533761Cb044E11b664
+        // newchains.push(NewChain(  // HUMANODE TESTNET ISRAFEL  Chain 14853
+        //     14853,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     0x6dD69414E074575c45D5330d2707CAf80303a85B
             
         // ));
-        // newchains.push(NewChain(  // BITLAYER TESTNET Chain 200810
-        //     200810,
-        //     0x1e46d7f21299Ac06AAd49017A1f733Cd5e6134f3,
-        //     0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
-        //     0xb008b6Cc593fC290Ed03d5011e90f4E9d19f9a87,
-        //     0x8d494f8B762005cCA5BDEBb770Af3bf51E730305,
-        //     0x4dDcab55e1eae426a98e85f43896592Ad1dB0f84,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        // newchains.push(NewChain(   // CRONOS TESTNET   Chain 338
+        //     338,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     0xf6d2060494cD08e776D22a47E67d485a33C8c5d2
             
         // ));
-        // newchains.push(NewChain(  // SCROLL SEPOLIA   Chain 534351
-        //     534351,
-        //     0xa3325B2fA099c81a06d9b7532317d4a4Da7F2aB7,
-        //     0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-        //     0x94C3fD7a91ee706B89214B9C2E9a505508109a3c,
-        //     0xF3065b38973C66a425FE7f7Ed911962CEF3a7dC1,
-        //     0x7478600f35CCb2421E9dADC84954290adEca1196,
-        //     0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
+        newchains.push(NewChain(  //  BSC TESTNET Chain 97
+            97,
+            0xD362AFB113D7a2226aFf228F4FB161BEFd3b6BD4,
+            0x2bBA6E0eDBe1aC6794B12B960A37156d9d07f009,
+            0x7ad438D2B3AC77D55c85275fD09d51Cec9Bb2987,
+            0x66dB3f564807fdc689eC85285981eF464daeB943,
+            0x2fDbB139FB38520C2aD6CD30cF45b3C8E5633C65,
+            0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD
             
-        // ));
-        // newchains.push(NewChain(  // MANTLE SEPOLIA Chain 5003
-        //     5003,
-        //     0x563c5c85CC7ba923c50b66479588e5b3B2C93470,
-        //     0x30a63CF179996ae6332C0AC3898CdFD48b105118,
-        //     0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-        //     0x7478600f35CCb2421E9dADC84954290adEca1196,
-        //     0xbf56d054A81583e18c3D186aBACA3302bE399F3C,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        ));
+        newchains.push(NewChain(  //  SEPOLIA  Chain 11155111
+            11155111,
+            0xF8fe7804AE6DBC7306AB5A97aE2302706170530C,
+            0x1a72d73B379A2454160B395cE7326755CBc76BCe,
+            0xee53A0AD7f17715774Acc3963693B37040900019,
+            0x3C63f6f855b761793366336A0941cB9d8B21f79a,
+            0x5b1E22E2b53f673485A38A57457b00ACcd24dc07,
+            0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c
             
-        // ));
-        // newchains.push(NewChain(  // LUKSO TESTNET  Chain 4201
-        //     4201,
-        //     0xdbD55D95D447E363251592A8FF573bBf16c2CB68,
-        //     0xd6f9Cc85F5a3031D6E32a03DdB8a7aEDBeBd953E,
-        //     0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
-        //     0x4dDcab55e1eae426a98e85f43896592Ad1dB0f84,
-        //     0xD4fB54dC259fd95846D5569E94b91fdA08d08262,
-        //     0xC92291fbBe0711b6B34928cB1b09aba1f737DEfd
-            
-        // ));
-        // newchains.push(NewChain(  // BERA_BARTIO Chain 80084
-        //     80084,
-        //     0xbf56d054A81583e18c3D186aBACA3302bE399F3C,
-        //     0xeCd4b2ab820215AcC3Cd579B8e65530D44A83643,
-        //     0x9B0bc1e8267252B2E99fdA8c302b0713Ba3a8202,
-        //     0xFC63DC90296800c67cBb96330238fc17FbD674A2,
-        //     0xAF685f104E7428311F25526180cbd416Fa8668CD,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
-        // ));
-        // newchains.push(NewChain(  // LUMIA TESTNET Chain 1952959480
-        //     1952959480,
-        //     0x052E276c0A9D2D2adf1A2AeB6D7eCaEC38ec9dE6,
-        //     0xDfCF0181d2c2608D6e055997D2C215811AcC2D49,
-        //     0x20ADAf244972bC6cB064353F3EA4893f73E85599,
-        //     0xF84A465ce158Aad1848B737a6eCAbE6D253D12C2,
-        //     0xcFF54249Dae66746377e15C07D95c42188D5d3A8,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
-        // ));
-        // //// newchains.push(NewChain(  // PLUME TESTNET Chain 161221135
-        // // //     161221135,
-            
-        // ////     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        // //// ));
-        // // newchains.push(NewChain(  // VANGUARD Chain 78600
-        // //     78600,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     0x6654D956A4487A26dF1186b01B689c26939544fC
-            
-        // // ));
-        // // newchains.push(NewChain(  // U2U NEBULAS TESTNET Chain 2484
-        // //     2484,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     , 
-        // //     ,
-        // //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
-        // // ));
-        // newchains.push(NewChain(  // SONEIUM MINATO Chain 1946
-        //     1946,
-        //     0xF663c3De2d18920ffd7392242459275d0Dd249e4,
-        //     0xB75A2833405907508bD5f8DEa3A24FA537D9C85c,
-        //     0xB37C81d6f90A16bbD778886AF49abeBfD1AD02C7,
-        //     0x48F214fDA66380A454DADAd9F84eF9D11d1f1D39,
-        //     0xfC2175A02c2e1e673F1Ba374A321d274Bb29bD68,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
-        // ));
-        // newchains.push(NewChain(  // OPBNB TESTNET  Chain 5611
-        //     5611,
-        //     0x563c5c85CC7ba923c50b66479588e5b3B2C93470,
-        //     0x30a63CF179996ae6332C0AC3898CdFD48b105118,
-        //     0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-        //     0x7478600f35CCb2421E9dADC84954290adEca1196,
-        //     0xbf56d054A81583e18c3D186aBACA3302bE399F3C,
-        //     0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
-            
-        // ));
-        // // newchains.push(NewChain(  // SONIC TESTNET  Chain 64165
-        // //     64165,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     0x1E411051A586EDB12282c08A933FB8C7699FEFB2
-            
-        // // ));
-        // // newchains.push(NewChain(  // FIRE THUNDER  Chain 997
-        // //     997,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
-        // // ));
-        // // newchains.push(NewChain(  // HUMANODE TESTNET ISRAFEL  Chain 14853
-        // //     14853,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     0x6dD69414E074575c45D5330d2707CAf80303a85B
-            
-        // // ));
-        // // newchains.push(NewChain(   // CRONOS TESTNET   Chain 338
-        // //     338,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     ,
-        // //     0xf6d2060494cD08e776D22a47E67d485a33C8c5d2
-            
-        // // ));
-        // newchains.push(NewChain(  //  BSC TESTNET Chain 97
-        //     97,
-        //     0xD362AFB113D7a2226aFf228F4FB161BEFd3b6BD4,
-        //     0x2bBA6E0eDBe1aC6794B12B960A37156d9d07f009,
-        //     0x7ad438D2B3AC77D55c85275fD09d51Cec9Bb2987,
-        //     0x66dB3f564807fdc689eC85285981eF464daeB943,
-        //     0x2fDbB139FB38520C2aD6CD30cF45b3C8E5633C65,
-        //     0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD
-            
-        // ));
-        // newchains.push(NewChain(  //  SEPOLIA  Chain 11155111
-        //     11155111,
-        //     0xF8fe7804AE6DBC7306AB5A97aE2302706170530C,
-        //     0x1a72d73B379A2454160B395cE7326755CBc76BCe,
-        //     0xee53A0AD7f17715774Acc3963693B37040900019,
-        //     0x3C63f6f855b761793366336A0941cB9d8B21f79a,
-        //     0x5b1E22E2b53f673485A38A57457b00ACcd24dc07,
-        //     0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c
-            
-        // ));
-        // newchains.push(NewChain(  //  OPTIMISM SEPOLIA Chain 11155420
-        //     11155420,
-        //     0x3b44962Bf264b8CebAC13DA24722faa27fC693a1,
-        //     0x266442249F62A8Dd4e29348A52af8c806c7CB0da,
-        //     0xD8fB50721bC30bF3E4D591c078747b4e7cE46e7A,
-        //     0x62AB67F946acA3991898ac7bB59beAc125eb5902,
-        //     0x1bB2DAb2ce968db0d992a6289AcBDd8f764BE36a,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        // ));
-        // newchains.push(NewChain(  //  REDBELLY TESTNET Chain 153
-        //     153,
-        //     0xDC635161b63Ca5281F96F2d70C3f7C0060d151d3,
-        //     0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3,
-        //     0xb76428eBE853F2f6a5D74C4361B72999f55EE637,
-        //     0xE517cE19A5e7f6A81f2cA573110e963dB65c27cE,
-        //     0x4a82933a6d097a1f4c99880e4A3b4C7b7D291765,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        // ));
+        ));
+        newchains.push(NewChain(  //  OPTIMISM SEPOLIA Chain 11155420
+            11155420,
+            0x3b44962Bf264b8CebAC13DA24722faa27fC693a1,
+            0x266442249F62A8Dd4e29348A52af8c806c7CB0da,
+            0xD8fB50721bC30bF3E4D591c078747b4e7cE46e7A,
+            0x62AB67F946acA3991898ac7bB59beAc125eb5902,
+            0x1bB2DAb2ce968db0d992a6289AcBDd8f764BE36a,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        ));
+        newchains.push(NewChain(  //  REDBELLY TESTNET Chain 153
+            153,
+            0xDC635161b63Ca5281F96F2d70C3f7C0060d151d3,
+            0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3,
+            0xb76428eBE853F2f6a5D74C4361B72999f55EE637,
+            0xE517cE19A5e7f6A81f2cA573110e963dB65c27cE,
+            0x4a82933a6d097a1f4c99880e4A3b4C7b7D291765,
+            0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
+        ));
     }
     
    
