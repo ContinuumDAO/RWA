@@ -28,7 +28,7 @@ contract NewChainSetup is Script {
     uint256 rwaType = 1;
     uint256 version = 1;
 
-    uint256 chainId = 153;   // This is the chainId we are processing
+    uint256 chainId = 1952959480;   // This is the chainId we are processing
 
     string[] feeTokensStr;
     uint256[] fees;
@@ -69,7 +69,7 @@ contract NewChainSetup is Script {
             0xDB3caaE3A1fD4846bC2a7dDBcb2B7b4dbd3484b8,
             0x7e61a5AF95Fc6efaC03F7d92320F42B2c2fe96f0,
             0xfefE834c4b32BF5DA89f7F0C059590719Fe3e3eE,
-            0x100eb51C34cc7507C201139A2D9421479ca86AD0,
+            0x97161c4c66B11629f2d3211c8Bd8131705d64092,
             0xbF5356AdE7e5F775659F301b07c4Bc6961044b11
         ));
         newchains.push(NewChain(   // POLYGON AMOY  Chain 80002
@@ -78,7 +78,7 @@ contract NewChainSetup is Script {
             0xDf495F3724a6c705fed4aDfa7588Cd326162A39c,
             0x2D2112DE9801EAf71B6D1cBf40A99E57AFc235a7,
             0xA09E913fa1aA5383a90aD6d8B94BC3DaBeE90332,
-            0xec66EE6116CF91FFC2a7Afc0dFb1cB882caab4D0,
+            0xBa59F04dbdcB1B74d601fbBF3E7e1ca82081c536,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
             
         ));
@@ -88,7 +88,7 @@ contract NewChainSetup is Script {
             0x6681DB630eB117050D78E0B89eB5619b35Ea12e8,
             0x91677ec1879987aBC3978fD2A71204640A9e9f4A,
             0x3188f25255C22Ba3cb0339A259cDca9cB963F135,
-            0xae57e6D1CfBCE6872F7d2bebdA2E09cdE089d0bC,
+            0xb9297f9d00E0712BDc0734419D5bCc92A61Fec57,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
             
         ));
@@ -113,7 +113,7 @@ contract NewChainSetup is Script {
             0xe08C7eE637336565511eb3421DAFdf45b860F9bc,
             0x5930640c1572bCD396eB410f62a6975ab9b8A148,
             0x140991fF31A86D700510C1d391A0ACd48CB7AbB7,
-            0x0F607AF04457E86eC349FbEbb6e23B0A6A0D067F,
+            0xe73Fb620e57F764746Ead61319865F71f6A5CD60,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
             
         ));
@@ -123,7 +123,7 @@ contract NewChainSetup is Script {
             0x16b049e17b49C5DC1D8598b53593D4497c858c9a,
             0xe98eCde78f1E8Ca24445eCfc4b5560aF193C842F,
             0x1e46d7f21299Ac06AAd49017A1f733Cd5e6134f3,
-            0xdbD55D95D447E363251592A8FF573bBf16c2CB68,
+            0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
             0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
             
         ));
@@ -133,7 +133,7 @@ contract NewChainSetup is Script {
             0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
             0x94C3fD7a91ee706B89214B9C2E9a505508109a3c,
             0xF3065b38973C66a425FE7f7Ed911962CEF3a7dC1,
-            0x7478600f35CCb2421E9dADC84954290adEca1196,
+            0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
             
         ));
@@ -143,7 +143,7 @@ contract NewChainSetup is Script {
             0x67193A5129e506dB83f434461a839938d98b2628,
             0xB75A2833405907508bD5f8DEa3A24FA537D9C85c,
             0xfC2175A02c2e1e673F1Ba374A321d274Bb29bD68,
-            0x5020f191FD0ce7F9340659b2d03ea0ba5921B44A,
+            0xF6C7d0228d98A7ecb9C2A472182063eD84Eb6bA0,
             0x5d5408e949594E535d0c3d533761Cb044E11b664
             
         ));
@@ -153,7 +153,7 @@ contract NewChainSetup is Script {
             0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
             0xb008b6Cc593fC290Ed03d5011e90f4E9d19f9a87,
             0x8d494f8B762005cCA5BDEBb770Af3bf51E730305,
-            0x4dDcab55e1eae426a98e85f43896592Ad1dB0f84,
+            0xD523b4f68c015B472724c24e127FF1f51EeE0fbf,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
             
         ));
@@ -163,7 +163,7 @@ contract NewChainSetup is Script {
             0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
             0x94C3fD7a91ee706B89214B9C2E9a505508109a3c,
             0xF3065b38973C66a425FE7f7Ed911962CEF3a7dC1,
-            0x7478600f35CCb2421E9dADC84954290adEca1196,
+            0xef01A0adFf5a96820a7C267d6A92ba041fa0C781,
             0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
             
         ));
@@ -173,7 +173,7 @@ contract NewChainSetup is Script {
             0x30a63CF179996ae6332C0AC3898CdFD48b105118,
             0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
             0x7478600f35CCb2421E9dADC84954290adEca1196,
-            0xbf56d054A81583e18c3D186aBACA3302bE399F3C,
+            0x9B0bc1e8267252B2E99fdA8c302b0713Ba3a8202,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
             
         ));
@@ -183,7 +183,7 @@ contract NewChainSetup is Script {
             0xd6f9Cc85F5a3031D6E32a03DdB8a7aEDBeBd953E,
             0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
             0x4dDcab55e1eae426a98e85f43896592Ad1dB0f84,
-            0xD4fB54dC259fd95846D5569E94b91fdA08d08262,
+            0xdC910F7BCc6f163DFA4804eACa10891eb5B9E867,
             0xC92291fbBe0711b6B34928cB1b09aba1f737DEfd
             
         ));
@@ -193,7 +193,7 @@ contract NewChainSetup is Script {
             0xeCd4b2ab820215AcC3Cd579B8e65530D44A83643,
             0x9B0bc1e8267252B2E99fdA8c302b0713Ba3a8202,
             0xFC63DC90296800c67cBb96330238fc17FbD674A2,
-            0xAF685f104E7428311F25526180cbd416Fa8668CD,
+            0x26E5Dbf59B2f8081a9b9A0728160203C4c1AC64c,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
             
         ));
@@ -203,7 +203,7 @@ contract NewChainSetup is Script {
             0xDfCF0181d2c2608D6e055997D2C215811AcC2D49,
             0x20ADAf244972bC6cB064353F3EA4893f73E85599,
             0xF84A465ce158Aad1848B737a6eCAbE6D253D12C2,
-            0xcFF54249Dae66746377e15C07D95c42188D5d3A8,
+            0xB64A86E7f8D84B2Cd88535bDAAc6D19c87754024,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
             
         ));
@@ -238,7 +238,7 @@ contract NewChainSetup is Script {
             0xB75A2833405907508bD5f8DEa3A24FA537D9C85c,
             0xB37C81d6f90A16bbD778886AF49abeBfD1AD02C7,
             0x48F214fDA66380A454DADAd9F84eF9D11d1f1D39,
-            0xfC2175A02c2e1e673F1Ba374A321d274Bb29bD68,
+            0x44bd5B80fEd6d6574d21f9b748d0b9A1D5566312,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
             
         ));
@@ -248,7 +248,7 @@ contract NewChainSetup is Script {
             0x30a63CF179996ae6332C0AC3898CdFD48b105118,
             0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
             0x7478600f35CCb2421E9dADC84954290adEca1196,
-            0xbf56d054A81583e18c3D186aBACA3302bE399F3C,
+            0x9B0bc1e8267252B2E99fdA8c302b0713Ba3a8202,
             0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
             
         ));
@@ -298,7 +298,7 @@ contract NewChainSetup is Script {
             0x2bBA6E0eDBe1aC6794B12B960A37156d9d07f009,
             0x7ad438D2B3AC77D55c85275fD09d51Cec9Bb2987,
             0x66dB3f564807fdc689eC85285981eF464daeB943,
-            0x2fDbB139FB38520C2aD6CD30cF45b3C8E5633C65,
+            0x2dA1B2763cF56b9DF5CbBB5A996C7e8836d8C6D8,
             0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD
             
         ));
@@ -308,7 +308,7 @@ contract NewChainSetup is Script {
             0x1a72d73B379A2454160B395cE7326755CBc76BCe,
             0xee53A0AD7f17715774Acc3963693B37040900019,
             0x3C63f6f855b761793366336A0941cB9d8B21f79a,
-            0x5b1E22E2b53f673485A38A57457b00ACcd24dc07,
+            0xcb3CdBbb8966FAaF90De6f4b6b6935B38C703225,
             0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c
             
         ));
@@ -318,7 +318,7 @@ contract NewChainSetup is Script {
             0x266442249F62A8Dd4e29348A52af8c806c7CB0da,
             0xD8fB50721bC30bF3E4D591c078747b4e7cE46e7A,
             0x62AB67F946acA3991898ac7bB59beAc125eb5902,
-            0x1bB2DAb2ce968db0d992a6289AcBDd8f764BE36a,
+            0x92B85e231A224edEDc9DC0B77E9EDF2B1C7eeE40,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         ));
         newchains.push(NewChain(  //  REDBELLY TESTNET Chain 153
@@ -327,7 +327,7 @@ contract NewChainSetup is Script {
             0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3,
             0xb76428eBE853F2f6a5D74C4361B72999f55EE637,
             0xE517cE19A5e7f6A81f2cA573110e963dB65c27cE,
-            0x4a82933a6d097a1f4c99880e4A3b4C7b7D291765,
+            0x77aBD89181775355f39a2dfb74fB233499Fc4500,
             0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
         ));
     }

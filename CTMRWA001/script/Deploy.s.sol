@@ -139,9 +139,9 @@ contract Deploy is Script {
         console.log("CTM Storage Manager");
         console.log(ctmStorage);
         console.log("Dividend Factory");
-        console.log(ctmSentry);
-        console.log("Sentry Factory");
         console.log(ctmDividend);
+        console.log("Sentry Factory");
+        console.log(ctmSentry);
         console.log("CTMRWA001Factory");
         console.log(ctmRWA001Factory);
 

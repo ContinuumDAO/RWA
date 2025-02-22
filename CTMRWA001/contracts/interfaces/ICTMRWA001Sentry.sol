@@ -8,6 +8,7 @@ interface ICTMRWA001Sentry {
     function tokenAdmin() external returns(address);
     function setTokenAdmin(address _tokenAdmin) external returns(bool);
     function ctmWhitelist() external returns(string[] memory);
+    function countryList() external returns(string[] memory);
 
     function setSentryOptionsFlag() external;
     function sentryOptionsSet() external returns(bool);
