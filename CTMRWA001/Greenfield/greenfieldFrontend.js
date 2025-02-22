@@ -339,11 +339,11 @@ const getPropertyList = async(ID, signer) => {
 }
 
 const addImage = (filePath) => {
-    const rwaTitle = "# Image of the product"
-    const rwaType = "CONTRACT"
+    const rwaTitle = "# Image of the products"
+    const rwaType = "SLOT"
     const slot = 0
     const rwaCategory = "IMAGE"
-    const rwaText = "## Close up of product detail"
+    const rwaText = "## Close up of product detailing"
 
     const fileBuffer = fs.readFileSync(filePath)
     const extname = path.extname(filePath)
@@ -382,7 +382,7 @@ const addIssuer = () => {
         "Selqui",
         "CTM",
         "Co-Founder",
-        "Continuum DAO",
+        "ContinuumDAO",
         "All the World is free",
         "Xanadu",
         "12345678XN",
@@ -465,10 +465,10 @@ const main = async () => {
         // return
 
                                             
-        // let res = await getPropertyList(ID, signer)
-        // console.log(res)
-        // console.log(res.objectList)
-        // return
+        let res = await getPropertyList(ID, signer)
+        console.log(res)
+        console.log(res.objectList)
+        return
 
         // await deleteObject(bucketName, '10', signer)
         // await deleteBucket(bucketName, tokenAdmin, signer)
@@ -478,10 +478,10 @@ const main = async () => {
         // let expectCheckSums = resChecksum.expectCheckSums
         // return
 
-        let storageObjectExists = false
-        const res = await createObject(ID, rwaImage, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
-        console.log(res)
-        return
+        // let storageObjectExists = false
+        // const res = await createObject(ID, rwaImage, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
+        // console.log(res)
+        // return
 
         let myObject = '3'
         const getObjRes = await getObject(ID, myObject, chainIdStr, signer)

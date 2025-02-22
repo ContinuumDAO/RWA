@@ -136,7 +136,9 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         titleLength = bytes(_title).length;
         require(!ICTMRWA001Storage(storageAddr).existObjectName(_objectName), "CTMRWA001StorageManager: Object already exists in Storage");
         require(titleLength >= 10 && titleLength <= 256, "CTMRWA001StorageManager: The title parameter must be between 10 and 256 characters");
-            
+        
+         // TODO Add check that slot exists if URIType = SLOT
+
         fee = _individualFee(_uriCategory, _feeTokenStr, _chainIdsStr, false);
 
         _payFee(fee, _feeTokenStr);

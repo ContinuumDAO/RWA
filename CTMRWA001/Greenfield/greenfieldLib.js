@@ -169,9 +169,9 @@ const getNextObjectName = async (uriType, slot, ID, chainIdStr, signer) => {
     }
 
     const stor = new ethers.Contract(storageContract, storageAbi, signer)
-    objectName = await stor.greenfieldObject(uriTypeToInt(uriType), uriSlotToInt(slot))
+    objectName = (await stor.nonce()).toString()
    
-    return{ok: true, msg: "Successfully got objectName", objectName: objectName.replaceAll('.', '-')}
+    return{ok: true, msg: "Successfully got objectName", objectName: objectName}
 }
 
 const uriTypeToInt = (uriType) => {
