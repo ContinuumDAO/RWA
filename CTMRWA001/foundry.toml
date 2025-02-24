@@ -8,7 +8,7 @@ via_ir = true
 solc = "0.8.27"
 
 remappings = [
-    "@openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts",
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
     "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
     "@openzeppelin/foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src",
     "ds-test/=lib/forge-std/lib/ds-test/src/",
@@ -26,7 +26,7 @@ seiAtlantic = "${SEI_ATLANTIC_RPC_URL}"
 bitlayerTestnet = "${BITLAYER_TESTNET_RPC_URL}"
 avaxFuji = "${AVAX_FUJI_RPC_URL}"
 polygonAmoy = "${POLYGON_AMOY_RPC_URL}"
-confluxEspace = "${CONFLUX_ESPACE_RPC_URL}"
+C3_DEPLOY_CONFLUX_ESPACE = "${CONFLUX_ESPACE_RPC_URL}"
 lineaSepolia = "${LINEA_SEPOLIA_RPC_URL}"
 coreTestnet = "${CORE_TESTNET_RPC_URL}"
 holeskyTestnet = "${HOLESKY_TESTNET_RPC_URL}"

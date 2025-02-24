@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.19;
 
 import "./C3GovClient.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";

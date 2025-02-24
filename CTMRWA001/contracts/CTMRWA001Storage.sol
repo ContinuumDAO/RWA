@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.19;
 
 // import "forge-std/console.sol";
 
@@ -90,6 +90,7 @@ contract CTMRWA001Storage is Context {
                 : "";
     }
 
+    // TODO remove this obsolete function
     function greenfieldObject(URIType _uriType,  uint256 _slot) public view returns (string memory) {
         if(_uriType == URIType.CONTRACT) {
             return(nonce.toString());
@@ -210,6 +211,7 @@ contract CTMRWA001Storage is Context {
         return(false);
     }
 
+    // TODO remove this obsolete function - objectname is always the same as nonce.toString() now
     function getObjectNonce(string memory _objectName) public view returns(uint256) {
         return(uriDataIndex[_objectName]);
     }
@@ -222,6 +224,7 @@ contract CTMRWA001Storage is Context {
         }
     }
 
+    // TODO test this - it seems not to work
     function getURIHashByObjectName(string memory _objectName) public view returns(URIData memory) {
         uint256 indx = uriDataIndex[_objectName];
         return(uriData[indx]);

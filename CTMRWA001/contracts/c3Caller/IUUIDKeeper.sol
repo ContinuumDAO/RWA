@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.19;
 
 interface IUUIDKeeper {
     function registerUUID(bytes32 uuid) external;

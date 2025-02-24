@@ -1,5 +1,4 @@
 
-
 const getRwaContracts = (chainIdStr) => {
     let rpcUrl
     let ctmRwaMap
@@ -157,7 +156,31 @@ const getRwaContracts = (chainIdStr) => {
         feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    } else {
+    } else if (chainIdStr == "59141") {  // LINEA SEPOLIA Chain 59141
+
+        rpcUrl = "https://linea-sepolia-rpc.publicnode.com"
+        ctmRwaMap = "0xe5AF1a54B2b8cA3091edD229329B60A82b7A04E8"
+        storageManager = "0x20B88eBa092c4CEb11E88F92abE1c01BC7Fe7234"
+        feeToken = "0x6654D956A4487A26dF1186b01B689c26939544fC"
+        
+        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    } else if (chainIdStr == "78600") {  // VANGUARD Chain 78600
+
+        rpcUrl = "https://rpc-vanguard.vanarchain.com"
+        ctmRwaMap = "0x779f7FfdD1157935E1cD6344A6D7a9047736EBc1"
+        storageManager = "0x8393181277c8a85ec0468B3f1ee61Bbfd78E62b4"
+        feeToken = "0x6654D956A4487A26dF1186b01B689c26939544fC"
+        
+        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    }  else if (chainIdStr == "2484") {  // U2U NEBULAS TESTNET Chain 2484
+
+        rpcUrl = "https://rpc-nebulas-testnet.uniultra.xyz"
+        ctmRwaMap = "0xEd3c7279F4175F88Ab6bBcd16c8B8214387725e7"
+        storageManager = "0xc74D2556d610F886B55653FAfFddF4bd0c1605B6"
+        feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
+        
+        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    }else {
         return {ok: false, rpcUrl: null, ctmRwaMap: null, storageManager: null, feeToken: null}
     }
 }

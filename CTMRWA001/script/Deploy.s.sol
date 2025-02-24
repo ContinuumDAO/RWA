@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.19;
 
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
@@ -53,7 +53,7 @@ contract Deploy is Script {
         console.log(deployer);
 
         // env variables (changes based on deployment chain, edit in .env)
-        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_FIRE_THUNDER");
+        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_PLUME_TESTNET");
         address govAddr = deployer;
         uint256 dappID1 = vm.envUint("DAPP_ID1");
         uint256 dappID2 = vm.envUint("DAPP_ID2");

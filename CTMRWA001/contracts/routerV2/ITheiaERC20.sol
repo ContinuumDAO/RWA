@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 interface ITheiaERC20 {
     function symbol() external view returns (string memory);

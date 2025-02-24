@@ -12,6 +12,7 @@ CTMRWA001/broadcast/**/dry-run/
 CTMRWA001/flattened
 CTMRWA001/Greenfield/node_modules/
 CTMRWA001/Greenfield/.env
+CTMRWA001/saved-libs
 
 # Docs
 CTMRWA001/docs

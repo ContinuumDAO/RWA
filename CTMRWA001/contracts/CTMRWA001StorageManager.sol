@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.19;
 
 // import "forge-std/console.sol";
 
@@ -474,6 +474,8 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         bytes calldata _reason) internal override returns (bool) {
 
         lastReason = _reason;
+
+        // TODO if fallback from addURI, remove the hash from the local chain
 
         emit LogFallback(_selector, _data, _reason);
         return true;

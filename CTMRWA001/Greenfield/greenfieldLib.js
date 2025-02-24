@@ -169,7 +169,8 @@ const getNextObjectName = async (uriType, slot, ID, chainIdStr, signer) => {
     }
 
     const stor = new ethers.Contract(storageContract, storageAbi, signer)
-    objectName = (await stor.nonce()).toString()
+    let objectNum = await stor.nonce()
+    objectName = objectNum.toString()
    
     return{ok: true, msg: "Successfully got objectName", objectName: objectName}
 }

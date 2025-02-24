@@ -64,7 +64,7 @@ const {
     Image,
 } = require('./storage_classes.js')
 
-const REMOTE = true
+const REMOTE = false
 
 // const greenfieldServer = "http://127.0.0.1:3000"
 // const greenfieldServer = "http://164.68.100.146:3000/"
@@ -343,7 +343,7 @@ const addImage = (filePath) => {
     const rwaType = "SLOT"
     const slot = 0
     const rwaCategory = "IMAGE"
-    const rwaText = "## Close up of product detailing"
+    const rwaText = "## Close up of the product and its detailing"
 
     const fileBuffer = fs.readFileSync(filePath)
     const extname = path.extname(filePath)
@@ -381,7 +381,7 @@ const addIssuer = () => {
     const rwaIssuer = new Issuer(
         "Selqui",
         "CTM",
-        "Co-Founder",
+        "Co Founder",
         "ContinuumDAO",
         "All the World is free",
         "Xanadu",
@@ -430,9 +430,8 @@ const main = async () => {
 
     // This is just an example using one ID and on the connected chain
 
-    // const ID =  31239567135746275248324166031342038860689409464370264537481584671479471970036n
-    // const ID = 79495344642822556984993625903351562707720594716784940752624631275191262181962n
-    const ID = 107494044909292828468324833523775409561821626110161272708538828107075325911056n
+    // const ID = 107494044909292828468324833523775409561821626110161272708538828107075325911056n
+    const ID = 31239567135746275248324166031342038860689409464370264537481584671479471970036n
     const rwaObject = addIssuer()  // sample rwaObject ISSUER Category
     const rwaImage = addImage("./22.png") // sample rwaObject IMAGE Category
 
@@ -479,7 +478,7 @@ const main = async () => {
         // return
 
         // let storageObjectExists = false
-        // const res = await createObject(ID, rwaImage, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
+        // const res = await createObject(ID, rwaObject, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
         // console.log(res)
         // return
 
