@@ -180,7 +180,15 @@ const getRwaContracts = (chainIdStr) => {
         feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    }else {
+    }   else if (chainIdStr == "1952959480") {  // LUMIA TESTNET Chain 1952959480
+
+        rpcUrl = "https://testnet-rpc.lumia.org"
+        ctmRwaMap = "0xc04058E417De221448D4140FC1622dE24121C5e3"
+        storageManager = "0xF84A465ce158Aad1848B737a6eCAbE6D253D12C2"
+        feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
+        
+        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    } else {
         return {ok: false, rpcUrl: null, ctmRwaMap: null, storageManager: null, feeToken: null}
     }
 }
