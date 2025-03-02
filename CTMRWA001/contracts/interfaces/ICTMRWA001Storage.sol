@@ -41,6 +41,8 @@ struct URIData {
 interface ICTMRWA001Storage {
     function ID() external returns(uint256);
     function nonce() external returns(uint256);
+    function uriData() external returns(URIData[] memory);
+    function popURILocal(uint256 toPop) external;
 
     function setTokenAdmin(address _tokenAdmin) external returns(bool);
 
@@ -58,6 +60,8 @@ interface ICTMRWA001Storage {
         bytes32 uriDataHash
     ) external;
 
+    function setNonce(uint256 val) external;
+
     function getAllURIData() external view returns(
         URICategory[] memory uriCategory,
         URIType[] memory uriType,
@@ -71,7 +75,6 @@ interface ICTMRWA001Storage {
     function getURIHashCount(URICategory uriCat, URIType uriTyp) external view returns(uint256);
     function getURIHash(bytes32 _hash) external view returns(URIData memory);
     function existURIHash(bytes32 uriHash) external view returns(bool);
-    function getObjectNonce(string memory _objectName) external view returns(uint256);
     function existObjectName(string memory objectName) external view returns(bool);
     function getURIHashByObjectName(string memory objectName) external view returns(URIData memory);
 }

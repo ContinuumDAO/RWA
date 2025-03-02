@@ -26,12 +26,6 @@ interface TokenID {
     function ID() external view returns(uint256);
 }
 
-// struct URIData {
-//     URICategory uriCategory;
-//     URIType uriType;
-//     uint256 slot;
-//     bytes32 uriHash;
-// }
 
 contract CTMRWA001StorageManager is Context, GovernDapp {
     using Strings for *;
@@ -52,6 +46,14 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     }
 
     event LogFallback(bytes4 selector, bytes data, bytes reason);
+
+    bytes4 public AddURIX =
+        bytes4(
+            keccak256(
+                "addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])"
+            )
+        );
+
 
     constructor(
         address _gov,
@@ -143,7 +145,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
         _payFee(fee, _feeTokenStr);
 
-        uint256 startNonce = ICTMRWA001Storage(storageAddr).getObjectNonce(_objectName);
+        uint256 startNonce = ICTMRWA001Storage(storageAddr).nonce();
 
         for(uint256 i=0; i<_chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
@@ -216,7 +218,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
         _payFee(fee, _feeTokenStr);
 
-        uint256 startNonce = ICTMRWA001Storage(storageAddr).getObjectNonce(objectName[0]);
+        uint256 startNonce = ICTMRWA001Storage(storageAddr).nonce();
 
         for(uint256 i=0; i<_chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
@@ -475,7 +477,27 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
         lastReason = _reason;
 
-        // TODO if fallback from addURI, remove the hash from the local chain
+        if(_selector == AddURIX) {
+
+            uint256 ID;
+            uint256 startNonce;
+            string[] memory objectName;
+            
+            (
+                ID,
+                startNonce,
+                objectName,,,,,,
+            ) = abi.decode(_data,
+                (uint256,uint256,string[],URICategory[],URIType[],string[],uint256[],uint256[],bytes32[])
+            );
+
+            (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(ID, rwaType, version);
+            require(ok, "CTMRWA001StorageManager: Could not find _ID or its storage address");
+            (address ctmRwa001Addr, ) = _getTokenAddr(ID);
+
+            ICTMRWA001Storage(storageAddr).popURILocal(objectName.length);
+            ICTMRWA001Storage(storageAddr).setNonce(startNonce);
+        }
 
         emit LogFallback(_selector, _data, _reason);
         return true;

@@ -95,7 +95,7 @@ contract XChainTests is Script {
         // toChainIdsStr.push("97");
         // toChainIdsStr.push("84532");
         // deployRemote(0);
-        createSlots(toChainIdsStr, 2);
+        // createSlots(toChainIdsStr, 2);
         // getSlots(0,0);
 
         // mintLocalValue(0);
@@ -105,6 +105,10 @@ contract XChainTests is Script {
         // this.transferValueWholeTokenToAddress();
 
         // addURI(toChainIdsStr);
+
+        toChainIdsStr.push("59141");
+        uint256 ID = 79495344642822556984993625903351562707720594716784940752624631275191262181962;
+        lockRwa(ID);
 
 
     }
@@ -557,6 +561,31 @@ contract XChainTests is Script {
         bool hashExists = ICTMRWA001Storage(stor).existURIHash(junkHash);
         console.log("junkhash exists = ");
         console.log(hashExists);
+
+        vm.stopBroadcast();
+
+    }
+
+    function lockRwa(uint256 _ID) public {
+
+        vm.startBroadcast(senderPrivateKey);
+
+        IERC20(feeToken).approve(storageManagerAddr, 1000*10**ITheiaERC20(feeToken).decimals());
+
+        // function changeTokenAdmin(
+        //     string memory _newAdminStr,
+        //     string[] memory _toChainIdsStr,
+        //     uint256 _ID,
+        //     string memory _feeTokenStr
+        // ) public returns(bool) {
+
+        rwa001X.changeTokenAdmin(
+            address(0).toHexString(),
+            toChainIdsStr,
+            _ID,
+            feeTokenStr
+        );
+
 
         vm.stopBroadcast();
 

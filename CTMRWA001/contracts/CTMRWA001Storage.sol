@@ -34,7 +34,7 @@ contract CTMRWA001Storage is Context {
 
     mapping(string => uint256) public uriDataIndex; // objectName => uriData index
 
-    URIData[] uriData;
+    URIData[] public uriData;
 
     event NewURI(URICategory uriCategory, URIType uriType, uint256 slot, bytes32 uriDataHash);
 
@@ -114,6 +114,11 @@ contract CTMRWA001Storage is Context {
 
         require(!existURIHash(_uriDataHash), "CTMRWA001Storage: Hash already exists");
 
+        if(_uriType == URIType.SLOT) {
+            (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+            require(ok && ICTMRWA001(tokenAddr).slotExists(_slot), "CTMRWA001Storage: Slot does not exist");
+        }
+
         if(_uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER) {
             require(getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0, 
             "CTMRWA001Storage: Type CONTRACT and CATEGORY ISSUER must be the first stored element");
@@ -126,6 +131,20 @@ contract CTMRWA001Storage is Context {
 
         emit NewURI(_uriCategory, _uriType, _slot, _uriDataHash);
 
+    }
+
+    function popURILocal(
+        uint256 _toPop
+    ) external onlyStorageManager {
+        require(_toPop <= uriData.length, "CTMRWA001Storage: Cannot pop this number of uriData");
+
+        for(uint256 i=0; i<_toPop; i++){
+            uriData.pop();
+        }    
+    }
+
+    function setNonce(uint256 _val) external onlyStorageManager {
+        nonce = _val;
     }
 
 
@@ -209,11 +228,6 @@ contract CTMRWA001Storage is Context {
             if(uriData[i].uriHash == uriHash) return(true);
         }
         return(false);
-    }
-
-    // TODO remove this obsolete function - objectname is always the same as nonce.toString() now
-    function getObjectNonce(string memory _objectName) public view returns(uint256) {
-        return(uriDataIndex[_objectName]);
     }
 
     function existObjectName(string memory _objectName) public view returns(bool) {
