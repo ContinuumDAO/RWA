@@ -15,6 +15,8 @@ import {ICTMRWA001, SlotData} from "../contracts/interfaces/ICTMRWA001.sol";
 import {ICTMRWAGateway} from "../contracts/interfaces/ICTMRWAGateway.sol";
 import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
 import {ICTMRWA001StorageManager} from "../contracts/interfaces/ICTMRWA001StorageManager.sol";
+import {ICTMRWA001SentryManager} from "../contracts/interfaces/ICTMRWA001SentryManager.sol";
+import {ICTMRWA001Sentry} from "../contracts/interfaces/ICTMRWA001Sentry.sol";
 import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
 import {ICTMRWADeployer} from "../contracts/interfaces/ICTMRWADeployer.sol";
 import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
@@ -61,6 +63,7 @@ contract XChainTests is Script {
     address ctmRwaFactory;
     address dividendAddr;
     address storageManagerAddr;
+    address sentryManagerAddr;
 
     ICTMRWAGateway gateway;
     ICTMRWA001X rwa001X;
@@ -88,17 +91,22 @@ contract XChainTests is Script {
         // checkDeployData();
 
 
-        toChainIdsStr.push("421614");
+        // toChainIdsStr.push("421614");
         // deployLocal();
 
-        
-        // toChainIdsStr.push("97");
-        // toChainIdsStr.push("84532");
+        toChainIdsStr.push("421614");
+        toChainIdsStr.push("84532");
+        toChainIdsStr.push("59141");
         // deployRemote(0);
         // createSlots(toChainIdsStr, 2);
         // getSlots(0,0);
 
         // mintLocalValue(0);
+
+        uint256 ID = 41748960953154113435248253677282593175634077667749657380215180930414676331302;
+        string memory newAddrStr = "0xb5981FADCD79992f580ccFdB981d9D850b27DC37";
+        // activateWhitelist(ID);
+        addToWhitelist(ID, newAddrStr);
 
         // transferValueTokenToAddress();
 
@@ -106,9 +114,9 @@ contract XChainTests is Script {
 
         // addURI(toChainIdsStr);
 
-        toChainIdsStr.push("59141");
-        uint256 ID = 79495344642822556984993625903351562707720594716784940752624631275191262181962;
-        lockRwa(ID);
+        // toChainIdsStr.push("59141");
+        // uint256 ID = 79495344642822556984993625903351562707720594716784940752624631275191262181962;
+        // lockRwa(ID);
 
 
     }
@@ -126,6 +134,7 @@ contract XChainTests is Script {
             ctmRwaFactory = 0xE367E5FE0aB98d81aC9C07A5a35386A6ddc83E2e;
             dividendAddr = 0x97161c4c66B11629f2d3211c8Bd8131705d64092;
             storageManagerAddr = 0xfefE834c4b32BF5DA89f7F0C059590719Fe3e3eE;
+            sentryManagerAddr = 0x97161c4c66B11629f2d3211c8Bd8131705d64092;
         // } else if(chainId == 80002) {    // on POLYGON AMOY
         //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
         //     feeManager = 0x4cDa22b59a1fE957D09273E533cCb7D44bdEf90C;
@@ -226,6 +235,17 @@ contract XChainTests is Script {
         //     dividendAddr = 0xce0b17dD3C7Ad94eF7B6F75d67521c8870b31282;
         //     storageManagerAddr = 0x4b17E8eE1cC1814636DDe9Ac12a42472799CCB64;
         // } else if(chainId == 84532) {    // on BASE SEPOLIA
+        //     feeToken = ;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
+        // } else if(chainId == 59141) {    // on LINEA SEPOLIA
         //     feeToken = ;
         //     feeManager = ;
         //     gatewayAddr = ;
@@ -415,6 +435,80 @@ contract XChainTests is Script {
         uint256 newTokenId = rwa001X.mintNewTokenValueLocal(senderAccount, 0, 6, 1450, ID);
         console.log("newTokenId = ");
         console.log(newTokenId);
+
+        vm.stopBroadcast();
+
+    }
+
+    function activateWhitelist(uint256 _ID) public {
+        vm.startBroadcast(senderPrivateKey);
+
+        IERC20(feeToken).approve(sentryManagerAddr, 10000*10**ITheiaERC20(feeToken).decimals());
+
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, 1, 1);
+        console.log("Sentry contract");
+        console.logAddress(sentryAddr);
+
+        bool wl = ICTMRWA001Sentry(sentryAddr).whitelistSwitch();
+        console.log("Before Whitelist, switch = ");
+        console.logBool(wl);
+
+        bool whitelistOnly = true;
+
+        ICTMRWA001SentryManager(sentryManagerAddr).setSentryOptions(
+            _ID, 
+            whitelistOnly, 
+            false, 
+            false, 
+            false, 
+            false, 
+            false, 
+            false, 
+            toChainIdsStr, 
+            feeTokenStr
+        );
+
+        wl = ICTMRWA001Sentry(sentryAddr).whitelistSwitch();
+        console.log("After Whitelist, switch = ");
+        console.logBool(wl);
+
+
+        vm.stopBroadcast();
+
+    }
+
+    function addToWhitelist(uint256 _ID, string memory _newAddrStr) public {
+        vm.startBroadcast(senderPrivateKey);
+
+        IERC20(feeToken).approve(sentryManagerAddr, 10000*10**ITheiaERC20(feeToken).decimals());
+
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, 1, 1);
+        console.log("Sentry contract");
+        console.logAddress(sentryAddr);
+
+        bool wl = ICTMRWA001Sentry(sentryAddr).whitelistSwitch();
+        console.log("Before Whitelist, switch = ");
+        console.logBool(wl);
+
+        // function addWhitelist(
+        //     uint256 _ID,
+        //     string[] memory _wallets,
+        //     bool[] memory _choices,
+        //     string[] memory _chainIdsStr,
+        //     string memory _feeTokenStr
+        // ) public {
+
+
+
+        ICTMRWA001SentryManager(sentryManagerAddr).addWhitelist(
+            _ID,
+            _stringToArray(_newAddrStr),
+            _boolToArray(true),
+            toChainIdsStr,
+            feeTokenStr
+        );
+
+
 
         vm.stopBroadcast();
 
@@ -644,6 +738,12 @@ contract XChainTests is Script {
         return address(uint160(bytes20(addrBytes)));
     }
 
+    function _boolToArray(bool _bool) internal pure returns(bool[] memory) {
+        bool[] memory boolArray = new bool[](1);
+        boolArray[0] = _bool;
+        return(boolArray);
+    }
+
     function hexCharToByte(bytes1 char) internal pure returns (uint8) {
         uint8 byteValue = uint8(char);
         if (
@@ -660,6 +760,12 @@ contract XChainTests is Script {
             return 10 + byteValue - uint8(bytes1("A"));
         }
         revert("Invalid hex character");
+    }
+
+    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
+        string[] memory strArray = new string[](1);
+        strArray[0] = _string;
+        return(strArray);
     }
 
     function decodeXChain() public {

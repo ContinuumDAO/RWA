@@ -21,4 +21,5 @@ interface ICTMRWADeployer {
     function setTokenFactory(uint256 rwaType, uint256 version, address tokenFactory) external;
     function setDividendFactory(uint256 rwaType, uint256 version, address dividendFactory) external;
     function setStorageFactory(uint256 rwaType, uint256 version, address storageFactory) external;
+    function setSentryFactory(uint256 rwaType, uint256 version, address storageFactory) external;
 }

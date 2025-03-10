@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "./IC3Caller.sol";
 import "./IUUIDKeeper.sol";
 import "./C3GovClient.sol";
-//import "@openzeppelin/contracts/security/Pausable.sol";
+// import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
@@ -63,6 +63,7 @@ contract C3Caller is IC3Caller, C3GovClient, Pausable {
 
     constructor(address _swapIDKeeper) {
         initGov(msg.sender);
+        // initGov();
         uuidKeeper = _swapIDKeeper;
     }
 

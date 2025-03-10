@@ -6,10 +6,15 @@ import {URICategory, URIType} from "./ICTMRWA001Storage.sol";
 
 interface ICTMRWA001StorageManager {
 
+    function ctmRwaDeployer() external returns(address);
+    function ctmRwa001Map() external returns(address);
+    function utilsAddr() external returns(address);
+
     function setGateway(address gateway) external;
     function setFeeManager(address feeManager) external;
     function setCtmRwaDeployer(address deployer) external;
     function setCtmRwaMap(address map) external;
+    function setStorageUtils(address utilsAddr) external;
     function getLastReason() external view returns(string memory);
 
     function addURI(

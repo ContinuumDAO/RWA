@@ -414,11 +414,13 @@ const main = async () => {
 
     // This is an example - we are on Arbitrum Sepolia
     chainIdStr = "421614"
+    // chainIdStr = "84532"
 
     const contractRes = getRwaContracts(chainIdStr)
     let rpcUrl = contractRes.rpcUrl
     ctmRwaMap = contractRes.ctmRwaMap
     storageManager = contractRes.storageManager
+    console.log("storageManager = ",storageManager)
     feeToken = contractRes.feeToken
 
     const connectRes = await connect(rpcUrl)
@@ -430,8 +432,7 @@ const main = async () => {
 
     // This is just an example using one ID and on the connected chain
 
-    // const ID = 107494044909292828468324833523775409561821626110161272708538828107075325911056n
-    const ID = 31239567135746275248324166031342038860689409464370264537481584671479471970036n
+    const ID = 104600993401199155849089318777377772088909687553402561208934457544734608055465n
     const rwaObject = addIssuer()  // sample rwaObject ISSUER Category
     const rwaImage = addImage("./22.png") // sample rwaObject IMAGE Category
 
@@ -442,6 +443,7 @@ const main = async () => {
 
     // const chainIdsStr = ["421614", "84532", "97"]
     const chainIdsStr = ["421614"]
+    // const chainIdsStr = ["84532"]
 
     try {
 
@@ -478,7 +480,7 @@ const main = async () => {
         // return
 
         // let storageObjectExists = false
-        // const res = await createObject(ID, rwaObject, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
+        // const res = await createObject(ID, rwaImage, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
         // console.log(res)
         // return
 

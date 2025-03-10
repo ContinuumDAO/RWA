@@ -41,6 +41,10 @@ struct URIData {
 interface ICTMRWA001Storage {
     function ID() external returns(uint256);
     function nonce() external returns(uint256);
+    function tokenAdmin() external returns(address);
+    function ctmRwa001X() external returns(address);
+    function ctmRwa001Map() external returns(address);
+    function storageManagerAddr() external returns(address);
     function uriData() external returns(URIData[] memory);
     function popURILocal(uint256 toPop) external;
 

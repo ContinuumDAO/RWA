@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.19;
 
 // import "forge-std/console.sol";
 
@@ -18,8 +18,8 @@ import {ICTMRWA001, TokenContract, ITokenContract} from "./interfaces/ICTMRWA001
 
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {ITokenContract} from "./interfaces/ICTMRWA001.sol";
+import {ICTMRWA001SentryUtils} from "./interfaces/ICTMRWA001SentryUtils.sol";
 
-import {CTMRWA001Sentry} from "./CTMRWA001Sentry.sol";
 import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
 
 
@@ -30,20 +30,19 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
 
     address public ctmRwaDeployer;
     address public ctmRwa001Map;
+    address public utilsAddr;
     uint256 public rwaType;
     uint256 public version;
     address gateway;
     address feeManager;
     address polygonId;
     string cIdStr;
-    string public lastReason;
     
+
     modifier onlyDeployer {
         require(msg.sender == ctmRwaDeployer, "CTMRWA001SentryManager: onlyDeployer function");
         _;
     }
-
-    event LogFallback(bytes4 selector, bytes data, bytes reason);
 
     constructor(
         address _gov,
@@ -80,6 +79,11 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         ctmRwa001Map = _map;
     }
 
+    function setSentryUtils(address _utilsAddr) external onlyGov {
+        utilsAddr = _utilsAddr;
+    }
+
+
     function setPolygonId(address _polygonId) external onlyGov {
         polygonId = _polygonId;
     }
@@ -92,9 +96,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         address _map
     ) external onlyDeployer returns(address) {
 
-        CTMRWA001Sentry ctmRwa001Sentry = new CTMRWA001Sentry{
-            salt: bytes32(_ID) 
-        }(
+       address sentryAddr = ICTMRWA001SentryUtils(utilsAddr).deploySentry(
             _ID,
             _tokenAddr,
             _rwaType,
@@ -102,12 +104,12 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
             _map
         );
 
-        return(address(ctmRwa001Sentry));
+        return(sentryAddr);
     }
 
     function setSentryOptions(
         uint256 _ID,
-        bool _whitelistOnly,
+        bool _whitelist,
         bool _kyc,
         bool _kyb,
         bool _over18,
@@ -127,11 +129,8 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         bool sentryOptionsSet = ICTMRWA001Sentry(sentryAddr).sentryOptionsSet();
         require(!sentryOptionsSet, "CTMRWA001SentryManager: Error. setSentryOptions has already been called");
 
-        if (_whitelistOnly && _kyc) {
-            revert("CTMRWA001SentryManager: Can only set one of whitelist or KYC");
-        }
 
-        if (!_whitelistOnly && !_kyc){
+        if (!_whitelist && !_kyc){
             revert("CTMRWA001SentryManager: Must set either whitelist or KYC");
         }
 
@@ -165,7 +164,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
             if(stringsEqual(chainIdStr, cIdStr)) {
                 ICTMRWA001Sentry(sentryAddr).setSentryOptionsLocal(
                     _ID,
-                    _whitelistOnly,
+                    _whitelist,
                     _kyc,
                     _kyb,
                     _over18,
@@ -180,7 +179,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
                 bytes memory callData = abi.encodeWithSignature(
                     funcCall,
                     _ID,
-                    _whitelistOnly,
+                    _whitelist,
                     _kyc,
                     _kyb,
                     _over18,
@@ -261,7 +260,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
 
     function setSentryOptionsX(
         uint256 _ID,
-        bool _whitelistOnly,
+        bool _whitelist,
         bool _kyc,
         bool _kyb,
         bool _over18,
@@ -275,7 +274,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
 
         ICTMRWA001Sentry(sentryAddr).setSentryOptionsLocal(
             _ID,
-            _whitelistOnly,
+            _whitelist,
             _kyc,
             _kyb,
             _over18,
@@ -439,11 +438,16 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         string memory _feeTokenStr
     ) internal view returns(uint256) {
 
-        bool includeLocal = true;
+        bool includeLocal = false; // local chain is already included in _toChainIdsStr
         
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, includeLocal, _feeType, _feeTokenStr);
  
         return(fee * _nItems);
+    }
+
+    function getLastReason() public view returns(string memory) {
+        string memory lastReason = ICTMRWA001SentryUtils(utilsAddr).getLastReason();
+        return(lastReason);
     }
 
 
@@ -569,10 +573,12 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         bytes calldata _data,
         bytes calldata _reason) internal override returns (bool) {
 
-        lastReason = string(_reason);
-
-        emit LogFallback(_selector, _data, _reason);
-        return true;
+        bool ok = ICTMRWA001SentryUtils(utilsAddr).sentryC3Fallback(
+            _selector,
+            _data,
+            _reason
+        );
+        return ok;
     }
 
 

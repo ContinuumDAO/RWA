@@ -16,12 +16,8 @@ import {Script} from "forge-std/Script.sol";
 // import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
 
 import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
-import {CTMRWAMap} from "../flattened/CTMRWAMap.sol";
 import {CTMRWA001TokenFactory} from "../flattened/CTMRWA001TokenFactory.sol";
 import {CTMRWA001XFallback} from "../flattened/CTMRWA001XFallback.sol";
-import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
-import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
-import {CTMRWA001SentryManager} from "../flattened/CTMRWA001SentryManager.sol";
 import {FeeManager} from "../flattened/FeeManager.sol";
 import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
 import {CTMRWA001X} from "../flattened/CTMRWA001X.sol";
@@ -29,18 +25,15 @@ import {CTMRWA001X} from "../flattened/CTMRWA001X.sol";
 
 
 
+
 contract DeployPart1 is Script {
 
     CTMRWADeployer ctmRwaDeployer;
-    CTMRWAMap ctmRwaMap;
     CTMRWAGateway gateway;
     FeeManager feeManager;
     CTMRWA001X ctmRwa001X;
     CTMRWA001TokenFactory tokenFactory;
     CTMRWA001XFallback ctmRwaFallback;
-    CTMRWA001StorageManager storageManager;
-    CTMRWA001SentryManager sentryManager;
-    CTMRWA001DividendFactory dividendFactory;
 
     address feeManagerAddr;
 
@@ -52,7 +45,7 @@ contract DeployPart1 is Script {
         console.log(deployer);
 
         // env variables (changes based on deployment chain, edit in .env)
-        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_CONFLUX_ESPACE");
+        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_BERA_BARTIO");
         address govAddr = deployer;
         uint256 dappID1 = vm.envUint("DAPP_ID1");
         uint256 dappID2 = vm.envUint("DAPP_ID2");

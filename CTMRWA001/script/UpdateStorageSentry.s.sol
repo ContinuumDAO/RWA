@@ -9,13 +9,17 @@ import {Script} from "forge-std/Script.sol";
 import {ICTMRWADeployer} from "../contracts/interfaces/ICTMRWADeployer.sol";
 
 import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
+import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
 import {CTMRWA001SentryManager} from "../flattened/CTMRWA001SentryManager.sol";
+import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
 
 
 
 contract UpdateStorageSentry is Script {
 
     CTMRWA001StorageManager storageManager;
+    CTMRWA001StorageUtils storageUtils;
+    CTMRWA001SentryUtils sentryUtils;
     CTMRWA001SentryManager sentryManager;
 
     uint256 chainId;
@@ -27,6 +31,9 @@ contract UpdateStorageSentry is Script {
     address deployerAddr;
     address mapAddr;
 
+    bool STORAGE = true;
+    bool SENTRY = true;
+
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -34,7 +41,8 @@ contract UpdateStorageSentry is Script {
         console.log("Wallet of deployer");
         console.log(deployer);
 
-        chainId = 11155420;
+        chainId = 421614;
+
 
         if (chainId == 421614) {
             c3callerProxyAddr = vm.envAddress("C3_DEPLOY_ARB_SEPOLIA");
@@ -182,23 +190,26 @@ contract UpdateStorageSentry is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        //vm.setNonce(govAddr, 306);
         
         (
-            address ctmStorage
-            // address ctmSentry
+            address ctmStorage,
+            address ctmSentry
         ) = deployCTMRWADeployer(
             1,
             1,
             govAddr,
-            dappID5  // Storage
-            // dappID6  // Sentry
+            dappID5,  // Storage
+            dappID6  // Sentry
         );
 
-        console.log("CTM Storage Manager");
-        console.log(ctmStorage);
-        // console.log("Sentry Factory");
-        // console.log(ctmSentry);
+        if (STORAGE) {
+            console.log("CTM Storage Manager");
+            console.log(ctmStorage);
+        }
+        if (SENTRY) {
+            console.log("CTM Sentry Factory");
+            console.log(ctmSentry);
+        }
 
         vm.stopBroadcast();
     }
@@ -207,47 +218,73 @@ contract UpdateStorageSentry is Script {
         uint256 _rwaType,
         uint256 _version,
         address _gov,
-        uint256 _dappIDStorageManager
-        // uint256 _dappIDSentryManager
-    ) internal returns(address) {
+        uint256 _dappIDStorageManager,
+        uint256 _dappIDSentryManager
+    ) internal returns(address,address) {
 
-        storageManager = new CTMRWA001StorageManager(
-            _gov,
-            _rwaType,
-            _version,
-            c3callerProxyAddr,
-            txSender,
-            _dappIDStorageManager,
-            deployerAddr,
-            gatewayAddr,
-            feeManagerAddr
-        );
+        if (STORAGE) {
+            storageManager = new CTMRWA001StorageManager(
+                _gov,
+                _rwaType,
+                _version,
+                c3callerProxyAddr,
+                txSender,
+                _dappIDStorageManager,
+                deployerAddr,
+                gatewayAddr,
+                feeManagerAddr
+            );
 
-        address storageManagerAddr = address(storageManager);
+            address storageManagerAddr = address(storageManager);
 
-        // sentryManager = new CTMRWA001SentryManager(
-        //     _gov,
-        //     _rwaType,
-        //     _version,
-        //     _c3callerProxy,
-        //     _txSender,
-        //     _dappIDSentryManager,
-        //     deployerAddr,
-        //     gatewayAddr,
-        //     feeManagerAddr
-        // );
+            storageUtils = new CTMRWA001StorageUtils(
+                _rwaType,
+                _version,
+                mapAddr,
+                storageManagerAddr
+            );
 
-        storageManager.setCtmRwaDeployer(deployerAddr);
-        storageManager.setCtmRwaMap(mapAddr);
-        // sentryManager.setCtmRwaDeployer(deployerAddr);
-        // sentryManager.setCtmRwaMap(mapAddr);
+            storageManager.setStorageUtils(address(storageUtils));
 
-        ICTMRWADeployer(deployerAddr).setStorageFactory(_rwaType, _version, storageManagerAddr);
-        // ICTMRWADeployer(deployerAddr).setSentryFactory(_rwaType, _version, address(sentryManager));
+            storageManager.setCtmRwaDeployer(deployerAddr);
+            storageManager.setCtmRwaMap(mapAddr);
+
+            ICTMRWADeployer(deployerAddr).setStorageFactory(_rwaType, _version, storageManagerAddr);
+        }
+
+        if (SENTRY) {
+            sentryManager = new CTMRWA001SentryManager(
+                _gov,
+                _rwaType,
+                _version,
+                c3callerProxyAddr,
+                txSender,
+                _dappIDSentryManager,
+                deployerAddr,
+                gatewayAddr,
+                feeManagerAddr
+            );
+
+            address sentryManagerAddr = address(sentryManager);
+
+            sentryUtils = new CTMRWA001SentryUtils(
+                _rwaType,
+                _version,
+                mapAddr,
+                sentryManagerAddr
+            );
+
+            sentryManager.setSentryUtils(address(sentryUtils));
+
+            sentryManager.setCtmRwaDeployer(deployerAddr);
+            sentryManager.setCtmRwaMap(mapAddr);
+
+            ICTMRWADeployer(deployerAddr).setSentryFactory(_rwaType, _version, address(sentryManager));
+        }
 
         return(
-            address(storageManager)
-            // address(sentryManager)
+            address(storageManager),
+            address(sentryManager)
         );
     }
 

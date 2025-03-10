@@ -21,6 +21,7 @@ contract C3CallerProxy is
         c3caller = _c3caller;
         __UUPSUpgradeable_init();
         __Ownable_init(msg.sender);
+        // __Ownable_init();
         transferOwnership(msg.sender);
     }
 

@@ -18,8 +18,9 @@ import {ICTMRWA001, TokenContract, ITokenContract} from "./interfaces/ICTMRWA001
 import {ICTMRWA001Storage, URICategory, URIType, URIData} from "./interfaces/ICTMRWA001Storage.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {ITokenContract} from "./interfaces/ICTMRWA001.sol";
+import {ICTMRWA001StorageUtils} from "./interfaces/ICTMRWA001StorageUtils.sol";
 
-import {CTMRWA001Storage} from "./CTMRWA001Storage.sol";
+// import {CTMRWA001Storage} from "./CTMRWA001Storage.sol";
 
 
 interface TokenID {
@@ -33,26 +34,18 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
     address public ctmRwaDeployer;
     address public ctmRwa001Map;
+    address public utilsAddr;
     uint256 public rwaType;
     uint256 public version;
     address gateway;
     address feeManager;
     string cIdStr;
-    bytes public lastReason;
     
     modifier onlyDeployer {
         require(msg.sender == ctmRwaDeployer, "CTMRWA001StorageManager: onlyDeployer function");
         _;
     }
 
-    event LogFallback(bytes4 selector, bytes data, bytes reason);
-
-    bytes4 public AddURIX =
-        bytes4(
-            keccak256(
-                "addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])"
-            )
-        );
 
 
     constructor(
@@ -90,6 +83,10 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         ctmRwa001Map = _map;
     }
 
+    function setStorageUtils(address _utilsAddr) external onlyGov {
+        utilsAddr = _utilsAddr;
+    }
+
 
     function deployStorage(
         uint256 _ID,
@@ -99,9 +96,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         address _map
     ) external onlyDeployer returns(address) {
 
-        CTMRWA001Storage ctmRwa001Storage = new CTMRWA001Storage{
-            salt: bytes32(_ID) 
-        }(
+        address storageAddr = ICTMRWA001StorageUtils(utilsAddr).deployStorage(
             _ID,
             _tokenAddr,
             _rwaType,
@@ -109,7 +104,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
             _map
         );
 
-        return(address(ctmRwa001Storage));
+        return(storageAddr);
     }
 
     
@@ -139,8 +134,6 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         require(!ICTMRWA001Storage(storageAddr).existObjectName(_objectName), "CTMRWA001StorageManager: Object already exists in Storage");
         require(titleLength >= 10 && titleLength <= 256, "CTMRWA001StorageManager: The title parameter must be between 10 and 256 characters");
         
-         // TODO Add check that slot exists if URIType = SLOT
-
         fee = _individualFee(_uriCategory, _feeTokenStr, _chainIdsStr, false);
 
         _payFee(fee, _feeTokenStr);
@@ -261,7 +254,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     ) external onlyCaller returns(bool) {
 
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
-        require(ok, "CTMRWA0CTMRWA001StorageManager: Could not find _ID or its storage address");
+        require(ok, "CTMRWA001StorageManager: Could not find _ID or its storage address");
 
         uint256 currentNonce = ICTMRWA001Storage(storageAddr).nonce();
         require(_startNonce == currentNonce,
@@ -355,33 +348,14 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     }
 
     function getLastReason() public view returns(string memory) {
-        return(string(lastReason));
+        string memory lastReason = ICTMRWA001StorageUtils(utilsAddr).getLastReason();
+        return(lastReason);
     }
 
     function cID() internal view returns (uint256) {
         return block.chainid;
     }
 
-    function strToUint(
-        string memory _str
-    ) internal pure returns (uint256 res, bool err) {
-        if (bytes(_str).length == 0) {
-            return (0, true);
-        }
-        for (uint256 i = 0; i < bytes(_str).length; i++) {
-            if (
-                (uint8(bytes(_str)[i]) - 48) < 0 ||
-                (uint8(bytes(_str)[i]) - 48) > 9
-            ) {
-                return (0, false);
-            }
-            res +=
-                (uint8(bytes(_str)[i]) - 48) *
-                10 ** (bytes(_str).length - i - 1);
-        }
-
-        return (res, true);
-    }
 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
@@ -475,31 +449,12 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         bytes calldata _data,
         bytes calldata _reason) internal override returns (bool) {
 
-        lastReason = _reason;
 
-        if(_selector == AddURIX) {
-
-            uint256 ID;
-            uint256 startNonce;
-            string[] memory objectName;
-            
-            (
-                ID,
-                startNonce,
-                objectName,,,,,,
-            ) = abi.decode(_data,
-                (uint256,uint256,string[],URICategory[],URIType[],string[],uint256[],uint256[],bytes32[])
-            );
-
-            (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(ID, rwaType, version);
-            require(ok, "CTMRWA001StorageManager: Could not find _ID or its storage address");
-            (address ctmRwa001Addr, ) = _getTokenAddr(ID);
-
-            ICTMRWA001Storage(storageAddr).popURILocal(objectName.length);
-            ICTMRWA001Storage(storageAddr).setNonce(startNonce);
-        }
-
-        emit LogFallback(_selector, _data, _reason);
-        return true;
+        bool ok = ICTMRWA001StorageUtils(utilsAddr).smC3Fallback(
+            _selector,
+            _data,
+            _reason
+        );
+        return ok;
     }
 }

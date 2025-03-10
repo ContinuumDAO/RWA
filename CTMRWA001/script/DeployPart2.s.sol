@@ -30,6 +30,7 @@ import {CTMRWA001X} from "../flattened/CTMRWA001X.sol";
 import {ICTMRWAGateway} from "../contracts/interfaces/ICTMRWAGateway.sol";
 import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
 
+import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
 
 
 
@@ -43,6 +44,7 @@ contract DeployPart2 is Script {
     CTMRWA001TokenFactory tokenFactory;
     CTMRWA001XFallback ctmRwaFallback;
     CTMRWA001StorageManager storageManager;
+    CTMRWA001StorageUtils storageUtils;
     CTMRWA001SentryManager sentryManager;
     CTMRWA001DividendFactory dividendFactory;
 
@@ -205,6 +207,17 @@ contract DeployPart2 is Script {
             feeManagerAddr
         );
 
+        address storageManagerAddr = address(storageManager);
+
+        storageUtils = new CTMRWA001StorageUtils(
+            _rwaType,
+            _version,
+            _ctmRwa001Map,
+            storageManagerAddr
+        );
+
+        storageManager.setStorageUtils(address(storageUtils));
+
          sentryManager = new CTMRWA001SentryManager(
             _gov,
             _rwaType,
@@ -223,7 +236,7 @@ contract DeployPart2 is Script {
         sentryManager.setCtmRwaDeployer(address(ctmRwaDeployer));
         sentryManager.setCtmRwaMap(_ctmRwa001Map);
 
-        ctmRwaDeployer.setStorageFactory(_rwaType, _version, address(storageManager));
+        ctmRwaDeployer.setStorageFactory(_rwaType, _version, storageManagerAddr);
         ctmRwaDeployer.setSentryFactory(_rwaType, _version, address(sentryManager));
         ctmRwaDeployer.setDividendFactory(_rwaType, _version, address(dividendFactory));
 

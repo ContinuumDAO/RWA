@@ -9,8 +9,10 @@ interface ICTMRWA001SentryManager {
     function setFeeManager(address feeManager) external;
     function setCtmRwaDeployer(address deployer) external;
     function setCtmRwaMap(address map) external;
+    function setSentryUtils(address utilsAddr) external;
+    function utilsAddr() external returns(address);
 
-    function lastReason() external;
+    function getLastReason() external view returns(string memory);
 
     function deploySentry(
         uint256 ID,

@@ -201,6 +201,7 @@ contract CTMRWA001PolygonId is Context, GovernDapp {
             (publicInputs[i + 1],) = strToUint(countryList[i]);
         }
         
+        // TODO publicInputs??
         verifier.submitZKPResponse(
             countryRequestId,
             inputs,
@@ -263,6 +264,7 @@ contract CTMRWA001PolygonId is Context, GovernDapp {
         return verifier.getProofStatus(_wallet, over18RequestId).isVerified;
     }
 
+    // TODO enforce accreditation per country and possibly only for 12 months
     function isAccreditedPerson(address _wallet) public view returns (bool) {
         require(accreditedRequestId != 0, "CTMRWA001PolygonId: accreditedRequestId has not been set");
         return verifier.getProofStatus(_wallet, accreditedRequestId).isVerified;

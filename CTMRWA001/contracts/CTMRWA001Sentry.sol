@@ -67,6 +67,7 @@ contract CTMRWA001Sentry is Context {
         address _tokenAddr,
         uint256 _rwaType,
         uint256 _version,
+        address _sentryManager,
         address _map
     ) {
         ID = _ID;
@@ -79,7 +80,7 @@ contract CTMRWA001Sentry is Context {
         tokenAdmin = ICTMRWA001(tokenAddr).tokenAdmin();
         ctmRwa001X = ICTMRWA001(tokenAddr).ctmRwa001X();
         
-        sentryManagerAddr = _msgSender();
+        sentryManagerAddr = _sentryManager;
 
         ctmWhitelist.push("0xffffffffffffffffffffffffffffffffffffffff"); // indx 0 is no go
         _setWhitelist(_stringToArray(tokenAdmin.toHexString()), _boolToArray(true));
@@ -104,7 +105,7 @@ contract CTMRWA001Sentry is Context {
 
     function setSentryOptionsLocal(
         uint256 _ID,
-        bool _whitelistOnly,
+        bool _whitelist,
         bool _kyc,
         bool _kyb,
         bool _over18,
@@ -115,28 +116,29 @@ contract CTMRWA001Sentry is Context {
 
         require(_ID == ID, "CTMRWA001Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
 
-        if (_whitelistOnly) {
-            _setWhitelistFlag();
-        } else if (_kyc) {
-            _setKycFlag();
+        if (_whitelist) {
+            whitelistSwitch = true;
+        }
+
+        if (_kyc) {
+            kycSwitch = true;
         } 
         
         if (_kyb && _kyc) {
-            _setKybFlag();
+            kybSwitch = true;
         }
         
         if (_over18 && _kyc) {
-            _setOver18Flag();
-        }
-
-        if ( _kyc) {
-            _setAccreditedFlag(_accredited);
+            age18Switch = true;
         }
 
         if (_countryWL && _kyc) {
-            _setCountryWLFlag();
+            countryWLSwitch = true;
+            if ( _accredited) {
+                accreditedSwitch = true;
+            }
         } else if (_countryBL && _kyc) {
-            _setCountryBLFlag();
+            countryBLSwitch = true;
         }
 
         sentryOptionsSet = true;
@@ -232,7 +234,7 @@ contract CTMRWA001Sentry is Context {
     }
 
     function isAllowableTransfer(string memory _user) public view returns(bool) {
-        if (!whitelistSwitch) {
+        if (!whitelistSwitch || stringToAddress(_user) == address(0)) {
             return(true);
         } else {
             string memory walletStr = _toLower(_user);
@@ -257,39 +259,6 @@ contract CTMRWA001Sentry is Context {
             return(true);
         }
     }
-
-    function _setSentryOptionsFlag() internal {
-        sentryOptionsSet = true;
-    }
-
-    function _setWhitelistFlag() internal {
-        whitelistSwitch = true;
-    }
-
-    function _setKycFlag() internal {
-        kycSwitch = true;
-    }
-
-    function _setKybFlag() internal {
-        kybSwitch = true;
-    }
-
-    function _setAccreditedFlag(bool _option) internal {
-        accreditedSwitch = _option;
-    }
-
-    function _setOver18Flag() internal {
-        age18Switch = true;
-    }
-
-    function _setCountryWLFlag() internal {
-        countryWLSwitch = true;
-    }
-
-    function _setCountryBLFlag() internal {
-        countryBLSwitch = true;
-    }
-
 
 
      function cID() internal view returns (uint256) {

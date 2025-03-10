@@ -21,7 +21,7 @@ contract CTMRWA001Storage is Context {
     uint256 public ID;
     uint256 rwaType;
     uint256 version;
-    address storageManagerAddr;
+    address public storageManagerAddr;
     address public tokenAdmin;
     address public ctmRwa001X;
     address public ctmRwa001Map;
@@ -60,6 +60,7 @@ contract CTMRWA001Storage is Context {
         address _tokenAddr,
         uint256 _rwaType,
         uint256 _version,
+        address _storageManagerAddr,
         address _map
     ) {
         ID = _ID;
@@ -73,7 +74,7 @@ contract CTMRWA001Storage is Context {
         tokenAdmin = ICTMRWA001(tokenAddr).tokenAdmin();
         ctmRwa001X = ICTMRWA001(tokenAddr).ctmRwa001X();
         
-        storageManagerAddr = _msgSender();
+        storageManagerAddr = _storageManagerAddr;
 
         baseURI = ICTMRWA001(tokenAddr).baseURI();
     }
@@ -88,15 +89,6 @@ contract CTMRWA001Storage is Context {
             stringsEqual(baseURI, "GFLD")
                 ? string.concat(TYPE, idStr)
                 : "";
-    }
-
-    // TODO remove this obsolete function
-    function greenfieldObject(URIType _uriType,  uint256 _slot) public view returns (string memory) {
-        if(_uriType == URIType.CONTRACT) {
-            return(nonce.toString());
-        } else {
-            return(string.concat("s-", _slot.toString(), "-", nonce.toString()));
-        }
     }
 
 
