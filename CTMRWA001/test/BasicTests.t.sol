@@ -26,7 +26,9 @@ import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
 import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
 import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
 import {CTMRWA001StorageManager} from "../contracts/CTMRWA001StorageManager.sol";
+import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
 import {CTMRWA001SentryManager} from "../contracts/CTMRWA001SentryManager.sol";
+import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
 
 import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
 import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
@@ -130,7 +132,9 @@ contract SetUp is Test {
     CTMRWA001XFallback rwa001XFallback;
     CTMRWA001DividendFactory dividendFactory;
     CTMRWA001StorageManager storageManager;
+    CTMRWA001StorageUtils storageUtils;
     CTMRWA001SentryManager sentryManager;
+    CTMRWA001SentryUtils sentryUtils;
 
 
     function setUp() public virtual {
@@ -336,6 +340,7 @@ contract SetUp is Test {
 
         tokenFactory = new CTMRWA001TokenFactory(_map, address(deployer));
         deployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
+        address deployerAddr = address(deployer);
         dividendFactory = new CTMRWA001DividendFactory(address(deployer));
         ctmDividend = address(dividendFactory);
         deployer.setDividendFactory(_rwaType, _version, address(dividendFactory));
@@ -350,9 +355,24 @@ contract SetUp is Test {
             address(gateway),
             address(feeManager)
         );
+
+        address storageManagerAddr = address(storageManager);
+
+        storageUtils = new CTMRWA001StorageUtils(
+            _rwaType,
+            _version,
+            _map,
+            storageManagerAddr
+        );
+
+        storageManager.setStorageUtils(address(storageUtils));
+
+        storageManager.setCtmRwaDeployer(deployerAddr);
+        storageManager.setCtmRwaMap(_map);
        
-        deployer.setStorageFactory(_rwaType, _version, address(storageManager));
-        ICTMRWAFactory(address(storageManager)).setCtmRwaDeployer(address(deployer));
+        deployer.setStorageFactory(_rwaType, _version, storageManagerAddr);
+        
+        // ICTMRWAFactory(address(storageManager)).setCtmRwaDeployer(address(deployer));
 
         sentryManager = new CTMRWA001SentryManager(
             _gov,
@@ -365,7 +385,23 @@ contract SetUp is Test {
             address(gateway),
             address(feeManager)
         );
-        deployer.setSentryFactory(_rwaType, _version, address(sentryManager));
+
+        address sentryManagerAddr = address(sentryManager);
+
+        deployer.setSentryFactory(_rwaType, _version, sentryManagerAddr);
+
+        sentryUtils = new CTMRWA001SentryUtils(
+            _rwaType,
+            _version,
+            _map,
+            sentryManagerAddr
+        );
+
+        sentryManager.setSentryUtils(address(sentryUtils));
+
+        sentryManager.setCtmRwaDeployer(deployerAddr);
+        sentryManager.setCtmRwaMap(_map);
+
         ICTMRWAFactory(address(sentryManager)).setCtmRwaDeployer(address(deployer));
 
     }
@@ -505,6 +541,36 @@ contract SetUp is Test {
         bool[] memory boolArray = new bool[](1);
         boolArray[0] = _bool;
         return(boolArray);
+    }
+
+     function _uint256ToArray(uint256 _myUint256) internal pure returns(uint256[] memory) {
+        uint256[] memory uintArray = new uint256[](1);
+        uintArray[0] = _myUint256;
+        return(uintArray);
+    }
+
+    function _uint8ToArray(uint8 _myUint8) internal pure returns(uint8[] memory) {
+        uint8[] memory uintArray = new uint8[](1);
+        uintArray[0] = _myUint8;
+        return(uintArray);
+    }
+
+    function _uriCategoryToArray(URICategory _myCat) internal pure returns(URICategory[] memory) {
+        URICategory[] memory uriCatArray = new URICategory[](1);
+        uriCatArray[0] = _myCat;
+        return(uriCatArray);
+    }
+
+    function _uriTypeToArray(URIType _myType) internal pure returns(URIType[] memory) {
+        URIType[] memory uriTypeArray = new URIType[](1);
+        uriTypeArray[0] = _myType;
+        return(uriTypeArray);
+    }
+
+    function _bytes32ToArray(bytes32 _myBytes32) internal pure returns(bytes32[] memory) {
+        bytes32[] memory bytes32Array = new bytes32[](1);
+        bytes32Array[0] = _myBytes32;
+        return(bytes32Array);
     }
 
     function CTMRWA001Deploy() public returns(uint256, address) {
@@ -842,6 +908,56 @@ contract TestBasicToken is SetUp {
 
     }
 
+    function test_addURIX() public {
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
+        createSomeSlots(ID);
+
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+
+        URICategory _uriCategory = URICategory.ISSUER;
+        URIType _uriType = URIType.CONTRACT;
+
+        string memory randomData = "this is any old data";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+
+        vm.expectRevert("CTMRWA0CTMRWA001StorageManager: addURI Starting nonce mismatch");
+        storageManager.addURIX(
+            ID,
+            2,  // incorrect nonce
+            _stringToArray("1"),
+            _uint8ToArray(uint8(_uriCategory)),
+            _uint8ToArray(uint8(_uriType)),
+            _stringToArray("A Title"),
+            _uint256ToArray(0),
+            _uint256ToArray(block.timestamp),
+            _bytes32ToArray(junkHash)
+        );
+
+        storageManager.addURIX(
+            ID,
+            1,
+            _stringToArray("1"),
+            _uint8ToArray(uint8(_uriCategory)),
+            _uint8ToArray(uint8(_uriType)),
+            _stringToArray("A Title"),
+            _uint256ToArray(0),
+            _uint256ToArray(block.timestamp),
+            _bytes32ToArray(junkHash)
+        );
+
+        (bool ok, address thisStorage) = map.getStorageContract(ID, rwaType, version);
+
+        uint256 newNonce = ICTMRWA001Storage(thisStorage).nonce();
+        assertEq(newNonce,2);
+
+        bool exists = ICTMRWA001Storage(thisStorage).existObjectName("1");
+        assertEq(exists, true);
+
+        URIData memory uri = ICTMRWA001Storage(thisStorage).getURIHash(junkHash);
+        assertEq(stringsEqual(uri.title, "A Title"), true);
+
+    }
+
     function test_getTokenList() public {
         vm.startPrank(admin);
         (, address ctmRwaAddr) = CTMRWA001Deploy();
@@ -975,20 +1091,6 @@ contract TestBasicToken is SetUp {
 
         vm.startPrank(admin);
 
-        vm.expectRevert("CTMRWA001SentryManager: Can only set one of whitelist or KYC");
-        sentryManager.setSentryOptions(
-            ID,
-            true,  // whitelistSwitch
-            true,  // kycSwitch
-            false, // KYB
-            false, // over18
-            false, // accredited
-            false, // country WL
-            false, // country BL
-            _stringToArray(cIdStr),
-            tokenStr
-        );
-
         vm.expectRevert("CTMRWA001SentryManager: Must set either whitelist or KYC");
         sentryManager.setSentryOptions(
             ID,
@@ -1087,6 +1189,7 @@ contract TestBasicToken is SetUp {
             tokenStr
         );
 
+        vm.expectRevert("CTMRWA001SentryManager: Must set Country white lists to use Accredited");
         sentryManager.setSentryOptions(
             ID,
             false,  // whitelistSwitch
@@ -1100,13 +1203,29 @@ contract TestBasicToken is SetUp {
             tokenStr
         );
 
+        sentryManager.setSentryOptions(
+            ID,
+            false,  // whitelistSwitch
+            true,  // kycSwitch
+            false,  // kybSwitch
+            true,  // over18Switch
+            true,  // accreditedSwitch
+            true,  // countryWLSwitch
+            false,   // countryBLSwitch
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        bool newAccredited = ICTMRWA001Sentry(sentry).accreditedSwitch();
+        assertEq(newAccredited, true);
+
         sentryManager.goPublic(
             ID,
             _stringToArray(cIdStr),
             tokenStr
         );
 
-        bool newAccredited = ICTMRWA001Sentry(sentry).accreditedSwitch();
+        newAccredited = ICTMRWA001Sentry(sentry).accreditedSwitch();
         assertEq(newAccredited, false);
 
         vm.expectRevert("CTMRWA001SentryManager: Error. setSentryOptions has already been called");
@@ -1136,6 +1255,44 @@ contract TestBasicToken is SetUp {
             _stringToArray("1"), // extend to another chain
             tokenStr
         );
+
+        vm.stopPrank();
+
+    }
+
+    function test_setSentryOptionsX() public {
+
+        // function setSentryOptionsX(
+        //     uint256 _ID,
+        //     bool _whitelist,
+        //     bool _kyc,
+        //     bool _kyb,
+        //     bool _over18,
+        //     bool _accredited,
+        //     bool _countryWL,
+        //     bool _countryBL
+        // ) external onlyCaller returns(bool) {
+
+        vm.startPrank(admin);  // this CTMRWA001 has an admin of admin
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
+
+        sentryManager.setSentryOptionsX(
+            ID,
+            true,  // whitelistSwitch
+            true,  // kycSwitch
+            false,  // kybSwitch
+            true,  // over18Switch
+            false,  // accreditedSwitch
+            false,  // countryWLSwitch
+            false   // countryBLSwitch
+        );
+
+        (bool ok, address sentry) = map.getSentryContract(ID, rwaType, version);
+
+        bool whitelistSwitch = ICTMRWA001Sentry(sentry).whitelistSwitch();
+        assertEq(whitelistSwitch, true);
+        bool kycSwitch = ICTMRWA001Sentry(sentry).kycSwitch();
+        assertEq(kycSwitch, true);
 
         vm.stopPrank();
 

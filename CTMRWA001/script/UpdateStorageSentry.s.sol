@@ -13,6 +13,8 @@ import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
 import {CTMRWA001SentryManager} from "../flattened/CTMRWA001SentryManager.sol";
 import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
 
+import {ICTMRWA001StorageManager} from "../contracts/interfaces/ICTMRWA001StorageManager.sol";
+
 
 
 contract UpdateStorageSentry is Script {
@@ -31,7 +33,7 @@ contract UpdateStorageSentry is Script {
     address deployerAddr;
     address mapAddr;
 
-    bool STORAGE = true;
+    bool STORAGE = false;
     bool SENTRY = true;
 
 
@@ -41,7 +43,7 @@ contract UpdateStorageSentry is Script {
         console.log("Wallet of deployer");
         console.log(deployer);
 
-        chainId = 421614;
+        chainId = 153;
 
 
         if (chainId == 421614) {
@@ -236,6 +238,7 @@ contract UpdateStorageSentry is Script {
             );
 
             address storageManagerAddr = address(storageManager);
+            // address storageManagerAddr = 0xFA1e6C9B7464668a0001309c0969b0f6Fa893E8f;
 
             storageUtils = new CTMRWA001StorageUtils(
                 _rwaType,
@@ -244,8 +247,9 @@ contract UpdateStorageSentry is Script {
                 storageManagerAddr
             );
 
-            storageManager.setStorageUtils(address(storageUtils));
 
+            // ICTMRWA001StorageManager(storageManagerAddr).setStorageUtils(address(storageUtils));
+            storageManager.setStorageUtils(address(storageUtils));
             storageManager.setCtmRwaDeployer(deployerAddr);
             storageManager.setCtmRwaMap(mapAddr);
 
@@ -275,7 +279,6 @@ contract UpdateStorageSentry is Script {
             );
 
             sentryManager.setSentryUtils(address(sentryUtils));
-
             sentryManager.setCtmRwaDeployer(deployerAddr);
             sentryManager.setCtmRwaMap(mapAddr);
 

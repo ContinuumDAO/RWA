@@ -11,6 +11,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {ICTMRWA001, ITokenContract} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
+import {ICTMRWA001StorageManager} from "./interfaces/ICTMRWA001StorageManager.sol";
 import {URIData, URIType, URICategory} from "./interfaces/ICTMRWA001Storage.sol";
 
 
@@ -22,6 +23,7 @@ contract CTMRWA001Storage is Context {
     uint256 rwaType;
     uint256 version;
     address public storageManagerAddr;
+    address public storageUtilsAddr;
     address public tokenAdmin;
     address public ctmRwa001X;
     address public ctmRwa001Map;
@@ -48,7 +50,7 @@ contract CTMRWA001Storage is Context {
 
     modifier onlyStorageManager() {
         require(
-            _msgSender() == storageManagerAddr,
+            _msgSender() == storageManagerAddr ||_msgSender() ==  storageUtilsAddr,
             "CTMRWA001Storage: onlyStorageManager function"
         );
         _;
@@ -75,6 +77,7 @@ contract CTMRWA001Storage is Context {
         ctmRwa001X = ICTMRWA001(tokenAddr).ctmRwa001X();
         
         storageManagerAddr = _storageManagerAddr;
+        storageUtilsAddr = ICTMRWA001StorageManager(storageManagerAddr).utilsAddr();
 
         baseURI = ICTMRWA001(tokenAddr).baseURI();
     }
@@ -141,8 +144,8 @@ contract CTMRWA001Storage is Context {
 
 
     function getAllURIData() public view returns(
-        URICategory[] memory,
-        URIType[] memory,
+        uint8[] memory,
+        uint8[] memory,
         string[] memory,
         uint256[] memory,
         string[] memory,
@@ -152,8 +155,8 @@ contract CTMRWA001Storage is Context {
 
         uint256 len = uriData.length;
 
-        URICategory[] memory uriCategory = new URICategory[](len);
-        URIType[] memory uriType = new URIType[](len);
+        uint8[] memory uriCategory = new uint8[](len);
+        uint8[] memory uriType = new uint8[](len);
         string[] memory title = new string[](len);
         uint256[] memory slot = new uint256[](len);
         string[] memory objectName = new string[](len);
@@ -161,8 +164,8 @@ contract CTMRWA001Storage is Context {
         uint256[] memory timestamp = new uint256[](len);
 
         for(uint256 i=0; i<len; i++) {
-            uriCategory[i] = uriData[i].uriCategory;
-            uriType[i] = uriData[i].uriType;
+            uriCategory[i] = uint8(uriData[i].uriCategory);
+            uriType[i] = uint8(uriData[i].uriType);
             title[i] = uriData[i].title;
             slot[i] = uriData[i].slot;
             objectName[i] = uriData[i].objectName;

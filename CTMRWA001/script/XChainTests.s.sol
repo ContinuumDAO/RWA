@@ -37,6 +37,9 @@ contract XChainTests is Script {
     address gov = admin;
     address feeToken;
     string feeTokenStr;
+
+    uint256 rwaType = 1;
+    uint256 version = 1;
     
     
     string[] toChainIdsStr;
@@ -68,6 +71,7 @@ contract XChainTests is Script {
     ICTMRWAGateway gateway;
     ICTMRWA001X rwa001X;
     ICTMRWA001StorageManager storageManager;
+    ICTMRWA001SentryManager sentryManager;
     ICTMRWA001XFallback ctmFallback;
     ICTMRWA001Dividend dividend;
 
@@ -80,6 +84,8 @@ contract XChainTests is Script {
 
         loadContracts(421614);
 
+        uint256 ID = 44495882205963484806878880776999637603640957207416685949220386720418677836790;
+
 
         // debugRwaXCall();
 
@@ -91,31 +97,30 @@ contract XChainTests is Script {
         // checkDeployData();
 
 
-        // toChainIdsStr.push("421614");
-        // deployLocal();
+        // uint256 idBack = deployLocal();
 
-        toChainIdsStr.push("421614");
+        // toChainIdsStr.push("421614");
         toChainIdsStr.push("84532");
-        toChainIdsStr.push("59141");
-        // deployRemote(0);
-        // createSlots(toChainIdsStr, 2);
-        // getSlots(0,0);
+        // toChainIdsStr.push("59141");
+        deployRemote(ID);
+        // createSlots(ID, toChainIdsStr);
+        // getSlots(ID,0);
 
         // mintLocalValue(0);
 
-        uint256 ID = 41748960953154113435248253677282593175634077667749657380215180930414676331302;
-        string memory newAddrStr = "0xb5981FADCD79992f580ccFdB981d9D850b27DC37";
+        
+        // string memory newAddrStr = "0xb5981FADCD79992f580ccFdB981d9D850b27DC37";
+        // toChainIdsStr.push("421614");
         // activateWhitelist(ID);
-        addToWhitelist(ID, newAddrStr);
+        // addToWhitelist(ID, newAddrStr);
 
-        // transferValueTokenToAddress();
+        // transferValueTokenToAddress(ID);
 
-        // this.transferValueWholeTokenToAddress();
+        // transferValueWholeTokenToAddress(ID);
 
-        // addURI(toChainIdsStr);
+        // addURI(ID, toChainIdsStr);
 
         // toChainIdsStr.push("59141");
-        // uint256 ID = 79495344642822556984993625903351562707720594716784940752624631275191262181962;
         // lockRwa(ID);
 
 
@@ -133,109 +138,88 @@ contract XChainTests is Script {
             ctmRwaDeployer =  0x13b17e90f430760eb038b83C5EBFd8082c027e00;
             ctmRwaFactory = 0xE367E5FE0aB98d81aC9C07A5a35386A6ddc83E2e;
             dividendAddr = 0x97161c4c66B11629f2d3211c8Bd8131705d64092;
-            storageManagerAddr = 0xfefE834c4b32BF5DA89f7F0C059590719Fe3e3eE;
-            sentryManagerAddr = 0x97161c4c66B11629f2d3211c8Bd8131705d64092;
-        // } else if(chainId == 80002) {    // on POLYGON AMOY
-        //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-        //     feeManager = 0x4cDa22b59a1fE957D09273E533cCb7D44bdEf90C;
-        //     gatewayAddr = 0x114ace1c918409889464c2a714f8442a97934Ccf;
-        //     rwa001XAddr = 0x88a23d9ec1a9f1100d807D0E8c7a39927D4A7897;
-        //     ctmFallbackAddr = 0x73B4143b7cd9617F9f29452f268479Bd513e3d23;
-        //     ctmRwa001Map = 0x5dA80743b6FD7FEB2Bf7207aBe20E57E204e2B5b;
-        //     ctmRwaDeployer = 0x9aF1e5b3e863d88A4E220fb07FfB8c2e5a96dDbd;
-        //     ctmRwaFactory = 0x08A7Ac9982804D131b5523b6165a2EFAaF064C90;
-        //     dividendAddr = 0x2d7E6446fd6938e692173F88946a9DeC52442A8b;
-        //     storageManagerAddr = 0x95ae66aD780E73eF2D2a80611458883C950a1356;
+            storageManagerAddr = 0xf55fB33d9BD6Bb47461d68890bc8F951480211FC;
+            sentryManagerAddr = 0x998f9E69CF313d06b1D4BA22FeCE9c23D0D0Ca31;
+        } else if(chainId == 80002) {    // on POLYGON AMOY
+            feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
+            feeManager = 0x2D2112DE9801EAf71B6D1cBf40A99E57AFc235a7;
+            gatewayAddr = 0xb1bC63301670F8ec9EE98BD501c89783d65ddC8a;
+            rwa001XAddr = 0xDf495F3724a6c705fed4aDfa7588Cd326162A39c;
+            ctmFallbackAddr = 0x3672eB3780De1e08548CB3E2bB5DF05900063370;
+            ctmRwa001Map = 0x18433A774aF5d473191903A5AF156f3Eb205bBA4;
+            ctmRwaDeployer = 0x77Aa59Ba778C00946122E43702509c87b81604F5;
+            ctmRwaFactory = 0x9BFaB09e477e0e931F292C8132F2579883C6921A;
+            dividendAddr = 0xec66EE6116CF91FFC2a7Afc0dFb1cB882caab4D0;
+            storageManagerAddr = 0xad49cabD336f943a9c350b9ED60680c54fa2c3d1;
+            sentryManagerAddr = 0xC7a339588569Da96def78A96732eE20c3446BF11;
         // } else if(chainId == 338) {    // on CRONOS
         //     feeToken = 0xf6d2060494cD08e776D22a47E67d485a33C8c5d2;
-        //     feeManager = 0x1f8548Eb8Ec40294D7eD5e85DbF0F3BCE228C3Bc;
-        //     gatewayAddr = 0xAE66C08b9d76EeCaA74314c60f3305D43707ACc9;
-        //     rwa001XAddr = 0x176cD7aBF4919068d7FeC79935c303b32B7DabE7;
-        //     ctmFallbackAddr = 0xf9EDcE2638da660F51Ee08220a1a5A32fAB61d61;
-        //     ctmRwa001Map = 0x511A4e9af646E933c145A8892837547900078A97;
-        //     ctmRwaDeployer = 0x37415B746B2eF7f37608006dDaA404d377fdF633;
-        //     ctmRwaFactory = 0x5066e6DF1232532cEC032Ad45Cb29320f2b8D065;
-        //     dividendAddr = 0x4f5b13A48d4fC78e154DDa6c49E39c6d59277213;
-        //     storageManagerAddr = 0xb8B99101c1DBFaD6Aa418220592773be082Db804;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
         //  } else if(chainId == 78600) {    // on VANGUARD
         //     feeToken = 0x6654D956A4487A26dF1186b01B689c26939544fC;
-        //     feeManager = 0xa6e0Fa5cCEEf6e87d89B4DC51053E1Ff1A557B53;
-        //     gatewayAddr = 0xeaDb6779c7284a7ef6f611f4535e60c3d59B321b;
-        //     rwa001XAddr = 0x232c61b3d1A03cC57e976cCcD0F9C9Cd33a98fe0;
-        //     ctmFallbackAddr = 0xEeFc94902e330CDd0f641Ac7b7E428F3a587320E;
-        //     ctmRwa001Map = 0x12dC185A10F894e0bc2e55CF3f899970828c9ebE;
-        //     ctmRwaDeployer = 0x2CD9F1d9000D8752cC7653e10f259f7D9a94A5E7;
-        //     ctmRwaFactory = 0x99d26Ed0E4bb6659b56eE36DD9EE1814345aE9B9;
-        //     dividendAddr = 0x630937764C9F8A4a08e33cE43A3f67d73752e341;
-        //     storageManagerAddr = 0xC33b3317912d173806D782BFadE797f262d9A4Bd;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
         // } else if(chainId == 5003) {    // on MANTLE
         //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-        //     feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
-        //     gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
-        //     rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
-        //     ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
-        //     ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
-        //     ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
-        //     ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
-        //     dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
-        //     storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
         //  } else if(chainId == 2810) {    // on MORPH HOLESKY
         //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-        //     feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
-        //     gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
-        //     rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
-        //     ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
-        //     ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
-        //     ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
-        //     ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
-        //     dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
-        //     storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
         // } else if(chainId == 168587773) {    // on BLAST
         //     feeToken = 0x5d5408e949594E535d0c3d533761Cb044E11b664;
-        //     feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
-        //     gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
-        //     rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
-        //     ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
-        //     ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
-        //     ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
-        //     ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
-        //     dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
-        //     storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
         // } else if(chainId == 1952959480) {    // on LUMIA
         //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
         //     feeManager = 0x4f5b13A48d4fC78e154DDa6c49E39c6d59277213;
-        //     gatewayAddr = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
-        //     rwa001XAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
-        //     ctmFallbackAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
-        //     ctmRwa001Map = 0x02E77B34A4d16D9b00c7B4e787776327adB1344C;
-        //     ctmRwaDeployer = 0xA7EC64D41f32FfE662A46B62E59D1EBFEaD52522;
-        //     ctmRwaFactory = 0x8641613849038f495FA8Dd313f13a3f7F2D73815;
-        //     dividendAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
-        //     storageManagerAddr = 0xde3Fdb278B0EC3254E8701c38e58CFd1168f13a5;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
         // } else if(chainId == 14853) {    // on HUMANODE
         //     feeToken = 0x6dD69414E074575c45D5330d2707CAf80303a85B;
-        //     feeManager = 0xd1F0743C665d80D6BDaf1b4B8C9E82bfd1aE1994;
-        //     gatewayAddr = 0x9266e8bf4943f2b366F2be89688a8622084DB8B9;
-        //     rwa001XAddr = 0xB5638019CBfC1B523d5167a269E755b05BF24fD9;
-        //     ctmFallbackAddr = 0xBa1DCBCF5885BE9946286c965279BD426975B7f2;
-        //     ctmRwa001Map = 0x59cBB22fbcBA3Df213f317A506dDeDBa5FCf9404;
-        //     ctmRwaDeployer = 0x5a7Be43D528D75Ed78aAA16A9e3BF6A20a23B8A3;
-        //     ctmRwaFactory = 0x4E3ab9d7871fba13dF6d45075B9141EAA18aD339;
-        //     dividendAddr = 0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed;
-        //     storageManagerAddr = 0xa240B0714712e2927Ec055CEAa8e031AC671a55F;
-        // } else if(chainId == 997) {    // on 5IRE
-        //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-        //     feeManager = 0x67510816512511818B5047a4Cce6E8f2ebB15d20;
-        //     gatewayAddr = 0xF4e7a775c8aBC8e0B7ed11d660b0a6b2e1B7a132;
-        //     rwa001XAddr = 0x73943Ec95AaFBb4DD073b11F5c9701E5Bc3708A6;
-        //     ctmFallbackAddr = 0xcDEcbA8e8a537823733238225df54Cc212d681Cd;
-        //     ctmRwa001Map = 0xAc71dCF325724594525cc05552beE7D6550a80fD;
-        //     ctmRwaDeployer = 0x64C5734e22cf8126c6367c0230B66788fBE4AB90;
-        //     ctmRwaFactory = 0xa7C57315395def05F906310d590f4ea15308fe30;
-        //     dividendAddr = 0xce0b17dD3C7Ad94eF7B6F75d67521c8870b31282;
-        //     storageManagerAddr = 0x4b17E8eE1cC1814636DDe9Ac12a42472799CCB64;
-        // } else if(chainId == 84532) {    // on BASE SEPOLIA
-        //     feeToken = ;
         //     feeManager = ;
         //     gatewayAddr = ;
         //     rwa001XAddr = ;
@@ -245,39 +229,54 @@ contract XChainTests is Script {
         //     ctmRwaFactory = ;
         //     dividendAddr = ;
         //     storageManagerAddr = ;
-        // } else if(chainId == 59141) {    // on LINEA SEPOLIA
-        //     feeToken = ;
-        //     feeManager = ;
-        //     gatewayAddr = ;
-        //     rwa001XAddr = ;
-        //     ctmFallbackAddr = ;
-        //     ctmRwa001Map = ;
-        //     ctmRwaDeployer = ;
-        //     ctmRwaFactory = ;
-        //     dividendAddr = ;
-        //     storageManagerAddr = ;
-        // } else if(chainId == 97) {  // BSC TESTNET
-        //     feeToken = ;
-        //     feeManager = ;
-        //     gatewayAddr = ;
-        //     rwa001XAddr = ;
-        //     ctmFallbackAddr = ;
-        //     ctmRwa001Map = ;
-        //     ctmRwaDeployer = ;
-        //     ctmRwaFactory = ;
-        //     dividendAddr = ;
-        //     storageManagerAddr = ;
+        } else if(chainId == 153) {    // on REDBELLY
+            feeToken = 0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58;
+            feeManager = 0xb76428eBE853F2f6a5D74C4361B72999f55EE637;
+            gatewayAddr = 0xDC635161b63Ca5281F96F2d70C3f7C0060d151d3;
+            rwa001XAddr = 0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3;
+            ctmFallbackAddr = 0xD52966352E5A15DCB05CdfB4D8f54F565d487210;
+            ctmRwa001Map = 0xf7Ed4f388e07Ab2B9138D1f7CF2F0Cf6B23820aF;
+            ctmRwaDeployer = 0xE305d37aDBE6F7c987108F537dc247F8Df5C1F24;
+            ctmRwaFactory = 0xc55A8332086781225EF371DEf7ED4F05C9F03B9e;
+            dividendAddr = 0x4a82933a6d097a1f4c99880e4A3b4C7b7D291765;
+            storageManagerAddr = 0x8641613849038f495FA8Dd313f13a3f7F2D73815;
+            sentryManagerAddr =  0xA4dAb6Df348B312a5a0320D08ebEF76441178CFe;
+        } else if(chainId == 84532) {    // on BASE SEPOLIA *
+            feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
+            feeManager = 0x91677ec1879987aBC3978fD2A71204640A9e9f4A;
+            gatewayAddr = 0xe1C4c5a0e6A99bB61b842Bb78E5c66EA1256D292;
+            rwa001XAddr = 0x6681DB630eB117050D78E0B89eB5619b35Ea12e8;
+            ctmFallbackAddr = 0x64c90B0E66c665128cBA3f2D9c03f962bc340ECa;
+            ctmRwa001Map = 0xCf46f23D86a672AF5614FBa6A7505031805EF5e2;
+            ctmRwaDeployer = 0x11D5B22218A54981D27E0B6a6439Fd61589bf02a;
+            ctmRwaFactory = 0x4cc54eb029f61C5dFBa1BA9F6EcBE01386B4D3A2;
+            dividendAddr = 0xae57e6D1CfBCE6872F7d2bebdA2E09cdE089d0bC;
+            storageManagerAddr = 0xE6d89DBE4113BDDc79c4D8256C3604d9Db291fEa;
+            sentryManagerAddr = 0x0dB39536F72E19edFfd45e318b1Da9A3684679a2;
+        } else if(chainId == 97) {  // BSC TESTNET
+            feeToken = 0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD;
+            feeManager = 0x7ad438D2B3AC77D55c85275fD09d51Cec9Bb2987;
+            gatewayAddr = 0xD362AFB113D7a2226aFf228F4FB161BEFd3b6BD4;
+            rwa001XAddr = 0x2bBA6E0eDBe1aC6794B12B960A37156d9d07f009;
+            ctmFallbackAddr = 0xC466f37824268183508f4DE28af274C84B70C986;
+            ctmRwa001Map = 0x5F0C4a82BDE669347Add86CD13587ba40d29dAd6;
+            ctmRwaDeployer = 0xd09A46f3a221a5595f4a71a24296787235bBb895;
+            ctmRwaFactory = 0x001204b6e9A8B478cC6c08F74e5Ad56fd35a27AA;
+            dividendAddr = 0x2fDbB139FB38520C2aD6CD30cF45b3C8E5633C65;
+            storageManagerAddr = 0x0f92c2F73498BF195c6129b2528c64f3D0BED434;
+            sentryManagerAddr = 0x2AD99B7D982B119848a647676C02663018A1928a;
         }
 
         gateway = ICTMRWAGateway(gatewayAddr);
         rwa001X = ICTMRWA001X(rwa001XAddr);
         storageManager = ICTMRWA001StorageManager(storageManagerAddr);
+        sentryManager = ICTMRWA001SentryManager(sentryManagerAddr);
         ctmFallback = ICTMRWA001XFallback(ctmFallbackAddr);
         dividend = ICTMRWA001Dividend(dividendAddr);
         feeTokenStr = feeToken.toHexString();
     }
 
-    function deployLocal() public {
+    function deployLocal() public returns(uint256) {
 
         vm.startBroadcast(senderPrivateKey);
 
@@ -285,39 +284,27 @@ contract XChainTests is Script {
 
         string[] memory chainIdsStr;
 
-        uint256 IdBack = rwa001X.deployAllCTMRWA001X(true, 0, 1, 1, "Water Lillies", "LILLY", 18, "GFLD", chainIdsStr, feeTokenStr);
+        uint256 IdBack = rwa001X.deployAllCTMRWA001X(true, 0, 1, 1, "Closed Roses", "ROSE", 18, "GFLD", chainIdsStr, feeTokenStr);
         console.log(IdBack);
 
         vm.stopBroadcast();
+
+        return(IdBack);
+       
     }
 
-    function deployRemote(uint256 indx) public {
+    function deployRemote(uint256 _ID) public {
 
         vm.startBroadcast(senderPrivateKey);
 
         IERC20(feeToken).approve(rwa001XAddr, 1000*10**ITheiaERC20(feeToken).decimals());
 
+        (bool ok, address ctmRwa001) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
 
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log("First admin token address");
-        console.log(adminTokens[indx]);
-
-        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(adminTokens[indx].toHexString(), 1, 1);
-        console.log("ID");
-        console.log(ID);
-
-        // address[] memory nRWA001 = rwa001X.getAllTokensByOwnerAddress(admin);
-
-        // uint256 newTokenId = rwa001X.mintNewTokenValueLocal(senderAccount, 0, 0, 1450, ID);
-
-        // uint256 tokenId = ICTMRWA001(adminTokens[indx]).tokenOfOwnerByIndex(admin, 0);
-        // console.log("tokenId");
-        // console.log(tokenId);
-
-        string memory tokenName = ICTMRWA001(adminTokens[indx]).name();
-        string memory symbol = ICTMRWA001(adminTokens[indx]).symbol();
-        uint8 decimals = ICTMRWA001(adminTokens[indx]).valueDecimals();
-        string memory baseURI = ICTMRWA001(adminTokens[indx]).baseURI();
+        string memory tokenName = ICTMRWA001(ctmRwa001).name();
+        string memory symbol = ICTMRWA001(ctmRwa001).symbol();
+        uint8 decimals = ICTMRWA001(ctmRwa001).valueDecimals();
+        string memory baseURI = ICTMRWA001(ctmRwa001).baseURI();
 
 
         // function deployAllCTMRWA001X(
@@ -333,7 +320,7 @@ contract XChainTests is Script {
         //     string memory _feeTokenStr
         // ) public returns(uint256) {
 
-        uint256 IdBack = rwa001X.deployAllCTMRWA001X(false, ID, 1, 1, tokenName, symbol, decimals, baseURI, toChainIdsStr, feeTokenStr);
+        uint256 IdBack = rwa001X.deployAllCTMRWA001X(false, _ID, 1, 1, tokenName, symbol, decimals, baseURI, toChainIdsStr, feeTokenStr);
 
         console.log("IdBack");
         console.log(IdBack);
@@ -363,18 +350,8 @@ contract XChainTests is Script {
 
     }
 
-    function createSlots(string[] memory chainIdsStr, uint256 indx) public {
+    function createSlots(uint256 _ID, string[] memory chainIdsStr) public {
         vm.startBroadcast(senderPrivateKey);
-
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log("admin token address");
-        console.log(adminTokens[indx]);
-
-        address tokenAddr = adminTokens[indx];
-
-        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(tokenAddr.toHexString(), 1, 1);
-        console.log("ID");
-        console.log(ID);
 
         IERC20(feeToken).approve(rwa001XAddr, 10000*10**ITheiaERC20(feeToken).decimals());
 
@@ -388,7 +365,7 @@ contract XChainTests is Script {
         // ) public returns(bool) 
 
         bool ok = rwa001X.createNewSlot(
-            ID,
+            _ID,
             0,
             "Fractional painting",
             chainIdsStr,
@@ -398,15 +375,11 @@ contract XChainTests is Script {
         vm.stopBroadcast();
     }
 
-    function getSlots(uint256 tokenIndx, uint256 slotIndx) public {
+    function getSlots(uint256 _ID, uint256 slotIndx) public view {
 
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log("admin token address");
-        console.log(adminTokens[tokenIndx]);
+       (, address ctmRwa001) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
 
-        address tokenAddr = adminTokens[tokenIndx];
-
-        (uint256[] memory slotNumbers, string[] memory slotNames) = ICTMRWA001(tokenAddr).getAllSlots();
+        (uint256[] memory slotNumbers, string[] memory slotNames) = ICTMRWA001(ctmRwa001).getAllSlots();
 
         console.log("SlotData - slot");
         console.log(slotNumbers[slotIndx]);
@@ -415,24 +388,13 @@ contract XChainTests is Script {
 
     }
 
-    function mintLocalValue(uint256 indx) public {
+    function mintLocalValue(uint256 _ID) public {
 
         vm.startBroadcast(senderPrivateKey);
 
         IERC20(feeToken).approve(rwa001XAddr, 10000*10**ITheiaERC20(feeToken).decimals());
 
-
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log("First admin token address");
-        console.log(adminTokens[indx]);
-
-        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(adminTokens[indx].toHexString(), 1, 1);
-        console.log("ID");
-        console.log(ID);
-
-        address[] memory nRWA001 = rwa001X.getAllTokensByOwnerAddress(admin);
-
-        uint256 newTokenId = rwa001X.mintNewTokenValueLocal(senderAccount, 0, 6, 1450, ID);
+        uint256 newTokenId = rwa001X.mintNewTokenValueLocal(senderAccount, 0, 6, 1450, _ID);
         console.log("newTokenId = ");
         console.log(newTokenId);
 
@@ -514,27 +476,19 @@ contract XChainTests is Script {
 
     }
    
-    function transferValueTokenToAddress() public {
+    function transferValueTokenToAddress(uint256 _ID) public {
 
         vm.startBroadcast(senderPrivateKey);
 
         IERC20(feeToken).approve(rwa001XAddr, 10000*10**ITheiaERC20(feeToken).decimals());
 
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log("First admin token address");
-        console.log(adminTokens[0]);
+        (, address ctmRwa001) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
 
-        address firstTokenAddr = adminTokens[0];
-
-        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(firstTokenAddr.toHexString(), 1, 1);
-        console.log("ID");
-        console.log(ID);
-
-        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 0);
+        uint256 tokenId = ICTMRWA001(ctmRwa001).tokenOfOwnerByIndex(admin, 0);
         console.log("tokenId");
         console.log(tokenId);
         console.log("with slot =");
-        console.log(ICTMRWA001(firstTokenAddr).slotOf(tokenId));
+        console.log(ICTMRWA001(ctmRwa001).slotOf(tokenId));
 
         // function transferPartialTokenX(
         //     uint256 _fromTokenId,
@@ -550,7 +504,7 @@ contract XChainTests is Script {
             admin.toHexString(),
             "84532",
             50,
-            ID,
+            _ID,
             feeTokenStr
         );
 
@@ -558,27 +512,19 @@ contract XChainTests is Script {
 
 
 
-    function transferValueWholeTokenToAddress() public {
+    function transferValueWholeTokenToAddress(uint256 _ID) public {
         vm.startBroadcast(senderPrivateKey);
 
         IERC20(feeToken).approve(rwa001XAddr, 10000*10**ITheiaERC20(feeToken).decimals());
 
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log("First admin token address");
-        console.log(adminTokens[0]);
+        (bool ok, address ctmRwa001) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
 
-        address firstTokenAddr = adminTokens[0];
-
-        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(firstTokenAddr.toHexString(), 1, 1);
-        console.log("ID");
-        console.log(ID);
-
-        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 2);
+        uint256 tokenId = ICTMRWA001(ctmRwa001).tokenOfOwnerByIndex(admin, 2);
         console.log("second tokenId");
         console.log(tokenId);
 
         console.log("with slot");
-        console.log(ICTMRWA001(firstTokenAddr).slotOf(tokenId));
+        console.log(ICTMRWA001(ctmRwa001).slotOf(tokenId));
 
         // function transferWholeTokenX(
         //     string memory _toAddressStr,
@@ -593,7 +539,7 @@ contract XChainTests is Script {
             admin.toHexString(),
             "97",
             tokenId,
-            ID,
+            _ID,
             feeTokenStr
         );
 
@@ -602,35 +548,26 @@ contract XChainTests is Script {
     }
 
 
-    function addURI(string[] memory chainIdsStr) public {
+    function addURI(uint256 _ID, string[] memory chainIdsStr) public {
 
         vm.startBroadcast(senderPrivateKey);
 
         IERC20(feeToken).approve(storageManagerAddr, 1000*10**ITheiaERC20(feeToken).decimals());
 
-       
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
-        console.log("First admin token address");
-        console.log(adminTokens[0]);
+        (, address ctmRwa001) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
 
-        address firstTokenAddr = adminTokens[0];
-
-        (, uint256 ID) = ICTMRWAMap(ctmRwa001Map).getTokenId(firstTokenAddr.toHexString(), 1, 1);
-        console.log("ID");
-        console.log(ID);
-
-        (bool ok, address stor) = ICTMRWAMap(ctmRwa001Map).getStorageContract(ID, 1, 1);
+        (bool ok, address stor) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, 1, 1);
         console.log("Storage contract for ID = ");
         console.log(stor);
 
-        uint256 tokenId = ICTMRWA001(firstTokenAddr).tokenOfOwnerByIndex(admin, 0);
-        console.log("first tokenId");
-        console.log(tokenId);
+        // uint256 tokenId = ICTMRWA001(ctmRwa001).tokenOfOwnerByIndex(admin, 0);
+        // console.log("first tokenId");
+        // console.log(tokenId);
 
-        uint256 slot = ICTMRWA001(firstTokenAddr).slotOf(tokenId);
+        // uint256 slot = ICTMRWA001(ctmRwa001).slotOf(tokenId);
 
-        console.log("with slot");
-        console.log(slot);
+        // console.log("with slot");
+        // console.log(slot);
 
         // string memory randomData = "this is any old data";
         // bytes32 junkHash = keccak256(abi.encode(randomData));
@@ -641,7 +578,7 @@ contract XChainTests is Script {
 
 
         storageManager.addURI(
-            ID,
+            _ID,
             "1",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -658,6 +595,10 @@ contract XChainTests is Script {
 
         vm.stopBroadcast();
 
+    }
+
+    function addURIX(uint256 _ID) public {
+        
     }
 
     function lockRwa(uint256 _ID) public {

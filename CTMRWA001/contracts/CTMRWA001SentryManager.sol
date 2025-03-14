@@ -146,11 +146,15 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
             revert("CTMRWA001SentryManager: Must set KYC to use Accredited flag");
         }
 
+        if (_accredited && !_countryWL) {
+            revert("CTMRWA001SentryManager: Must set Country white lists to use Accredited");
+        }
+
         if ((_countryWL || _countryBL) && !_kyc) {
             revert("CTMRWA001SentryManager: Must set KYC to use Country black or white lists");
         }
 
-        if ((_countryWL && _countryBL) && _kyc) {
+        if (_countryWL && _countryBL) {
             revert("CTMRWA001SentryManager: Cannot set Country blacklist and Country whitelist together");
         }
 

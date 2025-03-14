@@ -163,8 +163,8 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
                     _ID,
                     startNonce,
                     _stringToArray(_objectName),
-                    _uriCategoryToArray(_uriCategory),
-                    _uriTypeToArray(_uriType),
+                    _uint8ToArray(uint8(_uriCategory)),
+                    _uint8ToArray(uint8(_uriType)),
                     _stringToArray(_title),
                     _uint256ToArray(_slot),
                     _uint256ToArray(block.timestamp),
@@ -192,8 +192,8 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
 
         (
-            URICategory[] memory uriCategory,
-            URIType[] memory uriType,
+            uint8[] memory uriCategory,
+            uint8[] memory uriType,
             string[] memory title,
             uint256[] memory slot,
             string[] memory objectName,
@@ -206,7 +206,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         uint256 fee;
 
         for (uint256 i=0; i<len; i++) {
-            fee = fee + _individualFee(uriCategory[i], _feeTokenStr, _chainIdsStr, false);
+            fee = fee + _individualFee(_uToCat(uriCategory[i]), _feeTokenStr, _chainIdsStr, false);
         }
 
         _payFee(fee, _feeTokenStr);
@@ -241,12 +241,13 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     }
 
 
+
     function addURIX(
         uint256 _ID,
         uint256 _startNonce,
         string[] memory _objectName,
-        URICategory[] memory _uriCategory,
-        URIType[] memory _uriType,
+        uint8[] memory _uriCategory,
+        uint8[] memory _uriType,
         string[] memory _title,
         uint256[] memory _slot,
         uint256[] memory _timestamp,
@@ -264,7 +265,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         uint256 len =_objectName.length;
 
         for(uint256 i=0; i<len; i++) {
-            ICTMRWA001Storage(storageAddr).addURILocal(_ID, _objectName[i], _uriCategory[i], _uriType[i], _title[i], _slot[i], _timestamp[i], _uriDataHash[i]);
+            ICTMRWA001Storage(storageAddr).addURILocal(_ID, _objectName[i], _uToCat(_uriCategory[i]), _uToType(_uriType[i]), _title[i], _slot[i], _timestamp[i], _uriDataHash[i]);
         }
 
         return(true);
@@ -327,6 +328,39 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, feeType, _feeTokenStr);
  
         return(fee);
+    }
+
+    function _uToCat(uint8 _cat) internal pure returns(URICategory) {
+        URICategory uriCategory;
+
+        if(_cat == 0) uriCategory = URICategory.ISSUER;
+        else if(_cat == 1) uriCategory = URICategory.PROVENANCE;
+        else if(_cat == 2) uriCategory = URICategory.VALUATION;
+        else if(_cat == 3) uriCategory = URICategory.PROSPECTUS;
+        else if(_cat == 4) uriCategory = URICategory.RATING;
+        else if(_cat == 5) uriCategory = URICategory.LEGAL;
+        else if(_cat == 6) uriCategory = URICategory.FINANCIAL;
+        else if(_cat == 7) uriCategory = URICategory.LICENSE;
+        else if(_cat == 8) uriCategory = URICategory.DUEDILIGENCE;
+        else if(_cat == 9) uriCategory = URICategory.NOTICE;
+        else if(_cat == 10) uriCategory = URICategory.DIVIDEND;
+        else if(_cat == 11) uriCategory = URICategory.REDEMPTION;
+        else if(_cat == 12) uriCategory = URICategory.WHOCANINVEST;
+        else if(_cat == 13) uriCategory = URICategory.IMAGE;
+        else if(_cat == 14) uriCategory = URICategory.VIDEO;
+        else if(_cat == 15) uriCategory = URICategory.ICON;
+
+        return uriCategory;
+
+    }
+
+    function _uToType(uint8 _type) internal pure returns(URIType) {
+        URIType uriType;
+
+        if(_type == 0) uriType = URIType.CONTRACT;
+        else if(_type == 1) uriType = URIType.SLOT;
+
+        return uriType;
     }
 
     function _payFee(
@@ -427,17 +461,23 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(uintArray);
     }
 
-    function _uriCategoryToArray(URICategory _myCat) internal pure returns(URICategory[] memory) {
-        URICategory[] memory uriCatArray = new URICategory[](1);
-        uriCatArray[0] = _myCat;
-        return(uriCatArray);
+    function _uint8ToArray(uint8 _myUint8) internal pure returns(uint8[] memory) {
+        uint8[] memory uintArray = new uint8[](1);
+        uintArray[0] = _myUint8;
+        return(uintArray);
     }
 
-    function _uriTypeToArray(URIType _myType) internal pure returns(URIType[] memory) {
-        URIType[] memory uriTypeArray = new URIType[](1);
-        uriTypeArray[0] = _myType;
-        return(uriTypeArray);
-    }
+    // function _uriCategoryToArray(URICategory _myCat) internal pure returns(URICategory[] memory) {
+    //     URICategory[] memory uriCatArray = new URICategory[](1);
+    //     uriCatArray[0] = _myCat;
+    //     return(uriCatArray);
+    // }
+
+    // function _uriTypeToArray(URIType _myType) internal pure returns(URIType[] memory) {
+    //     URIType[] memory uriTypeArray = new URIType[](1);
+    //     uriTypeArray[0] = _myType;
+    //     return(uriTypeArray);
+    // }
 
     function _bytes32ToArray(bytes32 _myBytes32) internal pure returns(bytes32[] memory) {
         bytes32[] memory bytes32Array = new bytes32[](1);

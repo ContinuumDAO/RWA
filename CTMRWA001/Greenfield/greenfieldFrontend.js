@@ -432,7 +432,7 @@ const main = async () => {
 
     // This is just an example using one ID and on the connected chain
 
-    const ID = 104600993401199155849089318777377772088909687553402561208934457544734608055465n
+    const ID = 44495882205963484806878880776999637603640957207416685949220386720418677836790n
     const rwaObject = addIssuer()  // sample rwaObject ISSUER Category
     const rwaImage = addImage("./22.png") // sample rwaObject IMAGE Category
 
@@ -441,8 +441,8 @@ const main = async () => {
    
     let tokenAdmin = await getTokenAdmin(storageContract, signer)
 
-    // const chainIdsStr = ["421614", "84532", "97"]
-    const chainIdsStr = ["421614"]
+    const chainIdsStr = ["421614", "84532"]
+    // const chainIdsStr = ["421614"]
     // const chainIdsStr = ["84532"]
 
     try {
@@ -466,10 +466,10 @@ const main = async () => {
         // return
 
                                             
-        let res = await getPropertyList(ID, signer)
-        console.log(res)
-        console.log(res.objectList)
-        return
+        // let res = await getPropertyList(ID, signer)
+        // console.log(res)
+        // console.log(res.objectList)
+        // return
 
         // await deleteObject(bucketName, '10', signer)
         // await deleteBucket(bucketName, tokenAdmin, signer)
@@ -479,10 +479,10 @@ const main = async () => {
         // let expectCheckSums = resChecksum.expectCheckSums
         // return
 
-        // let storageObjectExists = false
-        // const res = await createObject(ID, rwaImage, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
-        // console.log(res)
-        // return
+        let storageObjectExists = false
+        const res = await createObject(ID, rwaObject, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
+        console.log(res)
+        return
 
         let myObject = '3'
         const getObjRes = await getObject(ID, myObject, chainIdStr, signer)

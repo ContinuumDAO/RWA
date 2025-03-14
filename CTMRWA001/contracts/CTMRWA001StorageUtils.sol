@@ -19,7 +19,6 @@ contract CTMRWA001StorageUtils is Context {
     uint256 version;
     address public ctmRwa001Map;
     address public storageManager;
-
     bytes4 public lastSelector;
     bytes public lastData;
     bytes public lastReason;
@@ -50,6 +49,8 @@ contract CTMRWA001StorageUtils is Context {
         version = _version;
         ctmRwa001Map = _map;
         storageManager = _storageManager;
+
+
     }
 
     function deployStorage(
@@ -59,6 +60,7 @@ contract CTMRWA001StorageUtils is Context {
         uint256 _version,
         address _map
     ) external onlyStorageManager returns(address) {
+        
 
         CTMRWA001Storage ctmRwa001Storage = new CTMRWA001Storage{
             salt: bytes32(_ID) 
@@ -100,7 +102,7 @@ contract CTMRWA001StorageUtils is Context {
                 startNonce,
                 objectName,,,,,,
             ) = abi.decode(_data,
-                (uint256,uint256,string[],URICategory[],URIType[],string[],uint256[],uint256[],bytes32[])
+                (uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])
             );
 
             (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(ID, rwaType, version);

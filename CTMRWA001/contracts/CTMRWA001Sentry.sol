@@ -134,9 +134,7 @@ contract CTMRWA001Sentry is Context {
 
         if (_countryWL && _kyc) {
             countryWLSwitch = true;
-            if ( _accredited) {
-                accreditedSwitch = true;
-            }
+            accreditedSwitch = _accredited;
         } else if (_countryBL && _kyc) {
             countryBLSwitch = true;
         }

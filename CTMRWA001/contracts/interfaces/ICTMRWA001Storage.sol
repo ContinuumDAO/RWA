@@ -67,8 +67,8 @@ interface ICTMRWA001Storage {
     function setNonce(uint256 val) external;
 
     function getAllURIData() external view returns(
-        URICategory[] memory uriCategory,
-        URIType[] memory uriType,
+        uint8[] memory uriCategory,
+        uint8[] memory uriType,
         string[] memory title,
         uint256[] memory slot,
         string[] memory objectName,
