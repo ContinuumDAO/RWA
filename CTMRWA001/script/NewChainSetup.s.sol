@@ -28,7 +28,7 @@ contract NewChainSetup is Script {
     uint256 rwaType = 1;
     uint256 version = 1;
 
-    uint256 chainId = 153;   // This is the chainId we are processing
+    uint256 chainId = 1952959480;   // This is the chainId we are processing
 
     string[] feeTokensStr;
     uint256[] fees;

@@ -22,7 +22,9 @@ import {CTMRWA001TokenFactory} from "../flattened/CTMRWA001TokenFactory.sol";
 import {CTMRWA001XFallback} from "../flattened/CTMRWA001XFallback.sol";
 import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
 import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
+import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
 import {CTMRWA001SentryManager} from "../flattened/CTMRWA001SentryManager.sol";
+import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
 import {FeeManager} from "../flattened/FeeManager.sol";
 import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
 import {CTMRWA001X} from "../flattened/CTMRWA001X.sol";
@@ -41,6 +43,8 @@ contract Deploy is Script {
     CTMRWA001XFallback ctmRwaFallback;
     CTMRWA001StorageManager storageManager;
     CTMRWA001SentryManager sentryManager;
+    CTMRWA001StorageUtils storageUtils;
+    CTMRWA001SentryUtils sentryUtils;
     CTMRWA001DividendFactory dividendFactory;
 
     address feeManagerAddr;
@@ -53,14 +57,14 @@ contract Deploy is Script {
         console.log(deployer);
 
         // env variables (changes based on deployment chain, edit in .env)
-        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_HUMANODE_TESTNET");
+        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_U2U_NEBULAS_TESTNET");
         address govAddr = deployer;
-        uint256 dappID1 = vm.envUint("DAPP_ID1");
-        uint256 dappID2 = vm.envUint("DAPP_ID2");
-        uint256 dappID3 = vm.envUint("DAPP_ID3");
-        uint256 dappID4 = vm.envUint("DAPP_ID4");
-        uint256 dappID5 = vm.envUint("DAPP_ID5");
-        uint256 dappID6 = vm.envUint("DAPP_ID6");
+        uint256 dappID1 = vm.envUint("DAPP_ID1");  // Gateway
+        uint256 dappID2 = vm.envUint("DAPP_ID2");  // FeeManager
+        uint256 dappID3 = vm.envUint("DAPP_ID3");  // CTMRWAX
+        uint256 dappID4 = vm.envUint("DAPP_ID4");  // CTMRWADEPLOYER
+        uint256 dappID5 = vm.envUint("DAPP_ID5");  // CTMRWASTORAGE
+        uint256 dappID6 = vm.envUint("DAPP_ID6");  // CTMRWASENTRY
         
 
         address txSender = deployer;
@@ -68,7 +72,7 @@ contract Deploy is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // deploy fee manager
-        feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID1);
+        feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID2);
         feeManagerAddr = address(feeManager);
 
         console.log("feeManager");
@@ -80,7 +84,7 @@ contract Deploy is Script {
             govAddr, 
             c3callerProxyAddr, 
             txSender,
-            dappID4
+            dappID1
         );
 
         console.log("gateway address");
@@ -94,7 +98,7 @@ contract Deploy is Script {
             govAddr,
             c3callerProxyAddr,
             txSender,
-            dappID2
+            dappID3
         );
 
         console.log("ctmRwa001X address");
@@ -129,7 +133,7 @@ contract Deploy is Script {
             ctmRwa001Map,
             c3callerProxyAddr,
             txSender,
-            dappID3,
+            dappID4,
             dappID5,
             dappID6
         );
@@ -191,7 +195,17 @@ contract Deploy is Script {
             feeManagerAddr
         );
 
-         sentryManager = new CTMRWA001SentryManager(
+        address storageManagerAddr = address(storageManager);
+
+        storageUtils = new CTMRWA001StorageUtils(
+            _rwaType,
+            _version,
+            _ctmRwa001Map,
+            storageManagerAddr
+        );
+
+
+        sentryManager = new CTMRWA001SentryManager(
             _gov,
             _rwaType,
             _version,
@@ -203,9 +217,22 @@ contract Deploy is Script {
             feeManagerAddr
         );
 
+        address sentryManagerAddr = address(sentryManager);
+
+        sentryUtils = new CTMRWA001SentryUtils(
+            _rwaType,
+            _version,
+            _ctmRwa001Map,
+            sentryManagerAddr
+        );
+
         dividendFactory = new CTMRWA001DividendFactory(address(ctmRwaDeployer));
+
+        storageManager.setStorageUtils(address(storageUtils));
         storageManager.setCtmRwaDeployer(address(ctmRwaDeployer));
         storageManager.setCtmRwaMap(_ctmRwa001Map);
+        
+        sentryManager.setSentryUtils(address(sentryUtils));
         sentryManager.setCtmRwaDeployer(address(ctmRwaDeployer));
         sentryManager.setCtmRwaMap(_ctmRwa001Map);
 

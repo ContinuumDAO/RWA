@@ -47,15 +47,15 @@ contract DappConfig is Script {
     // }
 
     constructor() {
-        // newchains.push(NewChain(    // ARB Sepolia
-        //     421614,
-        //     0xbab5Ec2802257958d3f3a34dcE2F7Aa65Eac922d,
-        //     0xDB3caaE3A1fD4846bC2a7dDBcb2B7b4dbd3484b8,
-        //     0x7e61a5AF95Fc6efaC03F7d92320F42B2c2fe96f0,
-        //     0xf55fB33d9BD6Bb47461d68890bc8F951480211FC,
-        //     0x998f9E69CF313d06b1D4BA22FeCE9c23D0D0Ca31,
-        //     0x13b17e90f430760eb038b83C5EBFd8082c027e00
-        // ));
+        newchains.push(NewChain(    // ARB Sepolia
+            421614,
+            0xbab5Ec2802257958d3f3a34dcE2F7Aa65Eac922d,
+            0xDB3caaE3A1fD4846bC2a7dDBcb2B7b4dbd3484b8,
+            0x7e61a5AF95Fc6efaC03F7d92320F42B2c2fe96f0,
+            0xf55fB33d9BD6Bb47461d68890bc8F951480211FC,
+            0x998f9E69CF313d06b1D4BA22FeCE9c23D0D0Ca31,
+            0x13b17e90f430760eb038b83C5EBFd8082c027e00
+        ));
         newchains.push(NewChain(   // POLYGON AMOY  Chain 80002
             80002,
             0xb1bC63301670F8ec9EE98BD501c89783d65ddC8a,
@@ -65,16 +65,16 @@ contract DappConfig is Script {
             0xC7a339588569Da96def78A96732eE20c3446BF11,
             0x77Aa59Ba778C00946122E43702509c87b81604F5
         ));
-        // newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
-        //     84532,
-        //     0xe1C4c5a0e6A99bB61b842Bb78E5c66EA1256D292,
-        //     0x6681DB630eB117050D78E0B89eB5619b35Ea12e8,
-        //     0x91677ec1879987aBC3978fD2A71204640A9e9f4A,
-        //     0xE6d89DBE4113BDDc79c4D8256C3604d9Db291fEa,
-        //     0x0dB39536F72E19edFfd45e318b1Da9A3684679a2,
-        //     0x11D5B22218A54981D27E0B6a6439Fd61589bf02a
+        newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
+            84532,
+            0xe1C4c5a0e6A99bB61b842Bb78E5c66EA1256D292,
+            0x6681DB630eB117050D78E0B89eB5619b35Ea12e8,
+            0x91677ec1879987aBC3978fD2A71204640A9e9f4A,
+            0xE6d89DBE4113BDDc79c4D8256C3604d9Db291fEa,
+            0x0dB39536F72E19edFfd45e318b1Da9A3684679a2,
+            0x11D5B22218A54981D27E0B6a6439Fd61589bf02a
         
-        // ));
+        ));
         // newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
         //     59141,
         //     0x41543A4C6423E2546FC58AC63117B5692D68c323,
@@ -292,8 +292,8 @@ contract DappConfig is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        // addDappWhitelist(44);
-        addSingle(58,1);
+        addDappWhitelist(58);
+        // addSingle(58,19);
 
         vm.stopBroadcast();
 
@@ -303,6 +303,8 @@ contract DappConfig is Script {
     function addDappWhitelist(uint256 dappID) public {
         require(block.chainid == 421614, "Should be chainId for ARBITRUM SEPOLIA");
 
+        address thisAddress;
+
         uint256 len = newchains.length;
 
         for(uint256 i=0; i<len; i++) {
@@ -310,20 +312,36 @@ contract DappConfig is Script {
             console.log(newchains[i].chainId);
 
             if(dappID == 44) {  // FeeManager
-                wList.push(newchains[i].feeManager.toHexString());
+                thisAddress = newchains[i].feeManager;
+                wList = _stringToArray(newchains[i].feeManager.toHexString());
             } else if(dappID == 45) {  // CTMRWA001X
-                wList.push(newchains[i].rwaX.toHexString());
+                thisAddress = newchains[i].rwaX;
+                wList = _stringToArray(newchains[i].rwaX.toHexString());
             } else if(dappID == 46) {  // CTMRWADeployer
-                wList.push(newchains[i].deployer.toHexString());
+                thisAddress = newchains[i].deployer;
+                wList = _stringToArray(newchains[i].deployer.toHexString());
             } else if(dappID == 47) {  // CTMRWAGateway
-                wList.push(newchains[i].gateway.toHexString());
+                thisAddress = newchains[i].gateway;
+                wList = _stringToArray(newchains[i].gateway.toHexString());
             } else if(dappID == 48) {  // CTMRWA001Storage
-                wList.push(newchains[i].storageManager.toHexString());
+                thisAddress = newchains[i].storageManager;
+                wList = _stringToArray(newchains[i].storageManager.toHexString());
             } else if(dappID == 58) {  // CTMRWA001Sentry
-                wList.push(newchains[i].sentryManager.toHexString());
+                thisAddress = newchains[i].sentryManager;
+                wList = _stringToArray(newchains[i].sentryManager.toHexString());
+            }
+
+            if (
+                1 == 1
+            ) {
+                try IDapp(dappContract).addDappAddr(dappID, wList) {
+
+                } catch {
+
+                }
             }
         }
-        IDapp(dappContract).addDappAddr(dappID, wList);
+        
         
         return;
     }
@@ -331,7 +349,7 @@ contract DappConfig is Script {
     function addSingle(uint256 dappID, uint256 indx) public {
 
         if(dappID == 44) {  // FeeManager
-                wList.push(newchains[indx].feeManager.toHexString());
+            wList.push(newchains[indx].feeManager.toHexString());
         } else if(dappID == 45) {  // CTMRWA001X
             wList.push(newchains[indx].rwaX.toHexString());
         } else if(dappID == 46) {  // CTMRWADeployer
@@ -347,6 +365,12 @@ contract DappConfig is Script {
         IDapp(dappContract).addDappAddr(dappID, wList);
         
         return;
+    }
+
+    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
+        string[] memory strArray = new string[](1);
+        strArray[0] = _string;
+        return(strArray);
     }
 
 }    

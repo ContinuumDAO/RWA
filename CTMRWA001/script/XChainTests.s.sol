@@ -84,7 +84,7 @@ contract XChainTests is Script {
 
         loadContracts(421614);
 
-        uint256 ID = 44495882205963484806878880776999637603640957207416685949220386720418677836790;
+        uint256 ID = 26654037064898864838309145093493456113595369659210875061410208439006009189861;
 
 
         // debugRwaXCall();
@@ -99,8 +99,9 @@ contract XChainTests is Script {
 
         // uint256 idBack = deployLocal();
 
-        // toChainIdsStr.push("421614");
-        toChainIdsStr.push("84532");
+        
+        toChainIdsStr.push("97");
+        // toChainIdsStr.push("84532");
         // toChainIdsStr.push("59141");
         deployRemote(ID);
         // createSlots(ID, toChainIdsStr);
