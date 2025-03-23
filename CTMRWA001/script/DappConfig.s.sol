@@ -49,40 +49,40 @@ contract DappConfig is Script {
     constructor() {
         newchains.push(NewChain(    // ARB Sepolia
             421614,
-            0xbab5Ec2802257958d3f3a34dcE2F7Aa65Eac922d,
-            0xDB3caaE3A1fD4846bC2a7dDBcb2B7b4dbd3484b8,
-            0x7e61a5AF95Fc6efaC03F7d92320F42B2c2fe96f0,
-            0xf55fB33d9BD6Bb47461d68890bc8F951480211FC,
-            0x998f9E69CF313d06b1D4BA22FeCE9c23D0D0Ca31,
-            0x13b17e90f430760eb038b83C5EBFd8082c027e00
+            0x15E8BBa5f3F0118C357E74D86a65f46977D58053,
+            0xb866653913aE6aCb12e9aa33D6d45651cDFEB78B,
+            0x8e1fc60c90Aff208023735c9eE54Ff6315D13182,
+            0x3804bD72656E086166f2d64E7C78f2F9CD2735b8,
+            0x9cEB3f7ddcEe31eB8aC66D51838999709B1d4e4F,
+            0x3637d9Bc1A0e819c9d637aFb582c7B3011fCD9Ba
         ));
         newchains.push(NewChain(   // POLYGON AMOY  Chain 80002
             80002,
-            0xb1bC63301670F8ec9EE98BD501c89783d65ddC8a,
-            0xDf495F3724a6c705fed4aDfa7588Cd326162A39c,
-            0x2D2112DE9801EAf71B6D1cBf40A99E57AFc235a7,
-            0xad49cabD336f943a9c350b9ED60680c54fa2c3d1,
-            0xC7a339588569Da96def78A96732eE20c3446BF11,
-            0x77Aa59Ba778C00946122E43702509c87b81604F5
+            0x6f013Ad0b507590dcB26E674199ba99d613e9dFD,
+            0x68CE4a4a6F6EbF5Ba25791Ea5385080e57A5BE82,
+            0x5Cc4E3125B75284246Ffd677eC53553f1d78b825,
+            0xE5b921BD326efa802e3dc20Fb3502559f59fd8AA,
+            0xe5f1354ad39be96a3d2566b27dBc12Dd1Af1b9dB,
+            0x971C8BDd123aA0c864480419f378fB135f7CaBC1
         ));
         newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
             84532,
-            0xe1C4c5a0e6A99bB61b842Bb78E5c66EA1256D292,
-            0x6681DB630eB117050D78E0B89eB5619b35Ea12e8,
-            0x91677ec1879987aBC3978fD2A71204640A9e9f4A,
-            0xE6d89DBE4113BDDc79c4D8256C3604d9Db291fEa,
-            0x0dB39536F72E19edFfd45e318b1Da9A3684679a2,
-            0x11D5B22218A54981D27E0B6a6439Fd61589bf02a
+            0x808490311dEbe8818cdfFe1FAae436cb84fAa906,
+            0xB3672d1bBd1bADbbBf6b327C2ad7785534aF2E7F,
+            0xD3ee2E923723D2e634219797512bD768d5973020,
+            0x1481875CA0EcD0ACdEb79d3d57FB76EAE726d128,
+            0x3bFF2A879a92e2125cDe895FA20BA3A4AEb2D4D7,
+            0xfFFDFD7bBd2D957dd12EA30Ce24852dc26F8b453
         
         ));
         // newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
         //     59141,
-        //     0x41543A4C6423E2546FC58AC63117B5692D68c323,
-        //     0x969035b34B913c507b87FD805Fff608FB1fE13f0,
-        //     0x0c4AedfD2Aef21B742c29F061CA80Cc79D64A106,
-        //     0x20B88eBa092c4CEb11E88F92abE1c01BC7Fe7234,
-        //     0xE569c146B0d4c1c941607b5c6A648b5877AE29EF,
-        //     0xDbBbbbd746F539d8C82aea9d4F776e5BA0F4e1a1
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     
         // ));
         // newchains.push(NewChain(  // CONFLUX ESPACE  Chain 71
         //     71,
@@ -90,84 +90,84 @@ contract DappConfig is Script {
         // ));
         newchains.push(NewChain(  // CORE Testnet Chain 1115
             1115,
-            0xb849bF0a5ca08f1e6EA792bDC06ff2317bb2fB90,
-            0xe08C7eE637336565511eb3421DAFdf45b860F9bc,
-            0x5930640c1572bCD396eB410f62a6975ab9b8A148,
-            0x533A9CeCcBa37453337e28DCB3EC4705d5d22260,
-            0x604643F60B3bF7eE767a998e35Fe0B9c6356223a,
-            0xF813DdCDd690aCB06ddbFeb395Cf65D18Efe74A7
+            0xf3F62dAF8f096e5e1e8626cF2F35d816d454bC93,
+            0x4f91E4166D76b9BD900b6cCD44C5E6A370ECcD6f,
+            0x1ef34A3344CEAbA7A772EFD8B2d55EB52D15215a,
+            0x730e8b2D89bA0D3403bb3d8C9929A9f0da61E051,
+            0x63c159E655481C4bde8D2340448b57089E10D967,
+            0xA05eE9f49a37c117051c808a8d802aeC90916731
         ));
         newchains.push(NewChain(  // HOLESKY Chain 17000
             17000,
-            0xa3325B2fA099c81a06d9b7532317d4a4Da7F2aB7,
-            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-            0x94C3fD7a91ee706B89214B9C2E9a505508109a3c,
-            0xa74Af157716e604042cF835Bd3a3F3A85C1c0959,
-            0xCa19ddc73718512B968B2cb838b1408885D74A05,
-            0xfC2175A02c2e1e673F1Ba374A321d274Bb29bD68
+            0xeFbd6990A5C4ABFA30b91409aA3d9A0e7C8Bb77b,
+            0x43B8494f3C645c8CBA2B0D13C7Bd948D9877620c,
+            0xd13779b354c3C72c9B438ABe7Db3086098778A7a,
+            0xe5AF1a54B2b8cA3091edD229329B60A82b7A04E8,
+            0xDbBbbbd746F539d8C82aea9d4F776e5BA0F4e1a1,
+            0x41543A4C6423E2546FC58AC63117B5692D68c323
         ));
         newchains.push(NewChain(  // MORPH HOLESKY  Chain 2810
             2810,
-            0xa3325B2fA099c81a06d9b7532317d4a4Da7F2aB7,
-            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-            0x94C3fD7a91ee706B89214B9C2E9a505508109a3c,
-            0xB128Ee08fb55a9Ae0b18d753a093Bf40EBC1d804,
-            0xe0F2017BC8206Ffc8D563a6c0C9Fb52c0189a5a6,
-            0xfC2175A02c2e1e673F1Ba374A321d274Bb29bD68
+            0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2,
+            0x45cddE4bdAbC97b3ec02B1271432ceeBc04d4c53,
+            0x9E2F5D1228b02C2FbF3168Db1162e7461574eBB9,
+            0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9,
+            0xDFe447a7F6780dD40D3eA4CF3F132c1F3b50BfF7,
+            0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D
         ));
         newchains.push(NewChain(  // BLAST SEPOLIA Chain 168587773
             168587773,
-            0x74Da08aBCb64A66370E9C1609771e68aAfEDE27B,
-            0x67193A5129e506dB83f434461a839938d98b2628,
-            0xB75A2833405907508bD5f8DEa3A24FA537D9C85c,
-            0x93aE0e18578828631489c6CB8f8045eBe8D4599f,
-            0x3912670e1A1b6183c89a2079AAa3299ce585296a,
-            0x563c5c85CC7ba923c50b66479588e5b3B2C93470
+            0x4218C42503FBB0CC65cbDf507B7ce64F0C52BC32,
+            0xC230C289328a86d2daC10Db25E91f516aD7D0D3f,
+            0x610D47b471Ca1BA509F752AFAD8E391664bF4deC,
+            0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a,
+            0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D,
+            0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2
         ));
         newchains.push(NewChain(  // BITLAYER TESTNET Chain 200810
             200810,
-            0x1e46d7f21299Ac06AAd49017A1f733Cd5e6134f3,
-            0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
-            0xb008b6Cc593fC290Ed03d5011e90f4E9d19f9a87,
-            0x3CB56e6E5917a2a8924BC2A5C1f0ecc90b585e74,
-            0xeFbd6990A5C4ABFA30b91409aA3d9A0e7C8Bb77b,
-            0x1eE4bA474da815f728dF08F0147DeFac07F0BAb3
+            0x5Fb1394608Ce2Ef7092A642d6c5D3b2325300bFD,
+            0xe5AF1a54B2b8cA3091edD229329B60A82b7A04E8,
+            0x66b719C489193594c617801e67119959CD15b63A,
+            0xC5E7f5e1BABBF45e3F1e0764B48736C19A122383,
+            0x0A576aB9704438ef4eF94C50c6bD0F13eFE12b06,
+            0xa78f13ddB2538e76ed0EB66F3B0c36d77c237Ab8
         ));
         newchains.push(NewChain(  // SCROLL SEPOLIA   Chain 534351
             534351,
-            0xa3325B2fA099c81a06d9b7532317d4a4Da7F2aB7,
-            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-            0x94C3fD7a91ee706B89214B9C2E9a505508109a3c,
-            0xB128Ee08fb55a9Ae0b18d753a093Bf40EBC1d804,
-            0xe0F2017BC8206Ffc8D563a6c0C9Fb52c0189a5a6,
-            0xfC2175A02c2e1e673F1Ba374A321d274Bb29bD68
+            0xD55F76833388137FB1ECFc0dE1e6982716A19640,
+            0x9E2F5D1228b02C2FbF3168Db1162e7461574eBB9,
+            0x7ED4D0234E6c0F6704463E9A62A33AB7B7846A09,
+            0x0A0C882706544F37377e9bb7976E0805cd29a94F,
+            0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9,
+            0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a
         ));
         newchains.push(NewChain(  // MANTLE SEPOLIA Chain 5003
             5003,
-            0x563c5c85CC7ba923c50b66479588e5b3B2C93470,
-            0x30a63CF179996ae6332C0AC3898CdFD48b105118,
-            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-            0x3912670e1A1b6183c89a2079AAa3299ce585296a,
-            0xf7548cB35188aa7DaC8423fAA2ACe3855634e40C,
-            0x5020f191FD0ce7F9340659b2d03ea0ba5921B44A
+            0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2,
+            0x45cddE4bdAbC97b3ec02B1271432ceeBc04d4c53,
+            0x9E2F5D1228b02C2FbF3168Db1162e7461574eBB9,
+            0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9,
+            0xDFe447a7F6780dD40D3eA4CF3F132c1F3b50BfF7,
+            0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D
         ));
         newchains.push(NewChain(  // LUKSO TESTNET  Chain 4201
             4201,
-            0xdbD55D95D447E363251592A8FF573bBf16c2CB68,
-            0xd6f9Cc85F5a3031D6E32a03DdB8a7aEDBeBd953E,
-            0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
-            0x95574b1a28865A81D2df36683d027A9D7603aFC7,
-            0x7AEECCcafb96e53460B5b633Fc668adf14ed8419,
-            0xD4bD9BBA2fb97C36Bbd619303cAB636F476f8904
+            0xDbBbbbd746F539d8C82aea9d4F776e5BA0F4e1a1,
+            0x766061Cd28592Fd2503cAA3E4772C1215192cD3d,
+            0xe96270a4DeFb602d8C7E5aDB7f090EAC5291A641,
+            0xFA633c1aB4Ed7d8aa032f50219c6065189D13bd0,
+            0xd6374b3842652fc5Fc963c069ce05f1A48f965ce,
+            0x208a83079E25e17fe5dC64BbB77e388FEe725A99
         ));
         newchains.push(NewChain(  // LUMIA TESTNET Chain 1952959480
             1952959480,
-            0x052E276c0A9D2D2adf1A2AeB6D7eCaEC38ec9dE6,
-            0xDfCF0181d2c2608D6e055997D2C215811AcC2D49,
-            0x20ADAf244972bC6cB064353F3EA4893f73E85599,
-            0xE91ABb1F959C96a91674B0923478860eACd653D2,
-            0xC98984dAe5EF66e702Fe16D1B69b043BC163435C,
-            0xD455BB0f664Ac8241b505729C3116f1ACC441be4
+            0x1b34e36f4A7B083b153803946C68F8567b4Fe021,
+            0x0EeA0C2FB4122e8193E26B06358E384b2b909848,
+            0x68A5Ec275ade39a59B058ABA931E6D41bc39F833,
+            0x672472B8E2FdFEFA99653d562Afe042500f8CF58,
+            0x020119205333c7cae5a5aac190092558C1C61281,
+            0x890205BF3Ad9737AFaF27cc8bb51291E6A135f48
         ));
         // newchains.push(NewChain(  // PLUME TESTNET Chain 161221135
         //     161221135,
@@ -175,39 +175,39 @@ contract DappConfig is Script {
         // ));
         newchains.push(NewChain(  // VANGUARD Chain 78600
             78600,
-            0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed,
-            0x282EccB80074e9aB23ea5d28bd795C0BBA3726A6,
-            0xa240B0714712e2927Ec055CEAa8e031AC671a55F,
-            0x094bd93DF885D063e89B61702AaD4463dE313ebE,
-            0xdbD55D95D447E363251592A8FF573bBf16c2CB68,
-            0x67510816512511818B5047a4Cce6E8f2ebB15d20
+            0xD523b4f68c015B472724c24e127FF1f51EeE0fbf,
+            0x4dDcab55e1eae426a98e85f43896592Ad1dB0f84,
+            0x8d494f8B762005cCA5BDEBb770Af3bf51E730305,
+            0x89c8CC177f04CC8209B93e42d81a780c3A685dD4,
+            0xDD15811D29A330AD2850A994f6AAEcFfA68A5c12,
+            0x24DA0F2114B682D01234bC9E103ff7eEbF86aE6A
         ));
         newchains.push(NewChain(  // U2U NEBULAS TESTNET Chain 2484
             2484,
-            0x16b049e17b49C5DC1D8598b53593D4497c858c9a,
-            0xFC63DC90296800c67cBb96330238fc17FbD674A2,
-            0x05a804374Bb77345854022Fd0CD2A602E00bF2E7,
-            0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2,
-            0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D,
-            0x1EB65ef07b5a3B8f89FD851E078194E5d9e85F4b
+            0x3CB56e6E5917a2a8924BC2A5C1f0ecc90b585e74,
+            0x1F652e2D8A9FCa346A0F45D59a67FB998999e454,
+            0xa3bae05aA45bcC739258b124FACE332043D3B1dA,
+            0xA33cfD901896C775c5a6d62e94081b4Fdd1B09BC,
+            0x41543A4C6423E2546FC58AC63117B5692D68c323,
+            0xeFbd6990A5C4ABFA30b91409aA3d9A0e7C8Bb77b
         ));
         newchains.push(NewChain(  // SONEIUM MINATO Chain 1946
             1946,
-            0xF663c3De2d18920ffd7392242459275d0Dd249e4,
-            0xB75A2833405907508bD5f8DEa3A24FA537D9C85c,
-            0xB37C81d6f90A16bbD778886AF49abeBfD1AD02C7,
-            0x652003e2253e9200D7779D4bc8b962cD1F8D604b,
-            0xB128Ee08fb55a9Ae0b18d753a093Bf40EBC1d804,
-            0xa3325B2fA099c81a06d9b7532317d4a4Da7F2aB7
+            0x654Ad7D43857b354079caD2d668bFA1eF2a01Fcf,
+            0x610D47b471Ca1BA509F752AFAD8E391664bF4deC,
+            0xf7548cB35188aa7DaC8423fAA2ACe3855634e40C,
+            0x80f1BB2DF520e3e091C79AebE81f46136A8fBCb5,
+            0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a,
+            0xD55F76833388137FB1ECFc0dE1e6982716A19640
         ));
         newchains.push(NewChain(  // OPBNB TESTNET  Chain 5611
             5611,
-            0x563c5c85CC7ba923c50b66479588e5b3B2C93470,
-            0x30a63CF179996ae6332C0AC3898CdFD48b105118,
-            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-            0xC230C289328a86d2daC10Db25E91f516aD7D0D3f,
-            0x45cddE4bdAbC97b3ec02B1271432ceeBc04d4c53,
-            0x5020f191FD0ce7F9340659b2d03ea0ba5921B44A
+            0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9,
+            0xCa19ddc73718512B968B2cb838b1408885D74A05,
+            0x4596F5bFba6cB5ebdb23a0d118434b43Ad9Be3B7,
+            0xd13779b354c3C72c9B438ABe7Db3086098778A7a,
+            0x43B8494f3C645c8CBA2B0D13C7Bd948D9877620c,
+            0x1F652e2D8A9FCa346A0F45D59a67FB998999e454
         ));
         // newchains.push(NewChain(  // SONIC TESTNET  Chain 64165
         //     64165,
@@ -247,39 +247,39 @@ contract DappConfig is Script {
         // ));
         newchains.push(NewChain(  //  BSC TESTNET Chain 97
             97,
-            0xD362AFB113D7a2226aFf228F4FB161BEFd3b6BD4,
-            0x2bBA6E0eDBe1aC6794B12B960A37156d9d07f009,
-            0x7ad438D2B3AC77D55c85275fD09d51Cec9Bb2987,
-            0x0f92c2F73498BF195c6129b2528c64f3D0BED434,
-            0x2AD99B7D982B119848a647676C02663018A1928a,
-            0xd09A46f3a221a5595f4a71a24296787235bBb895
+            0x4146FE54Fd379fd095C227ea012a50387674766D,
+            0xC5A13F8750f362AA8e8Ace59f261268295923190,
+            0x20D5CdE9700144ED0Da22754D89f3379916c99Fa,
+            0x188af80a2ea153bc43dD448434d753C05D3C93f3,
+            0x39446dF8f82282Aebcb0EdDc61D6B716C188Ee85,
+            0x3e15986e2fCbc9A636Ddf2eA798Ae6C162200144
         ));
         newchains.push(NewChain(  //  SEPOLIA  Chain 11155111
             11155111,
-            0xF8fe7804AE6DBC7306AB5A97aE2302706170530C,
-            0x1a72d73B379A2454160B395cE7326755CBc76BCe,
-            0xee53A0AD7f17715774Acc3963693B37040900019,
-            0x5438B4f84152061E3717350721F00eE9c6151baF,
-            0xe831D6DCAF9F45089eb82DcddA8014355273F1dC,
-            0x0A91De653d4c09E7bC757eD794a03e4b40A1D057
+            0xBB348A6f2227E56a210097f808025Ca3635BEE1d,
+            0x3D9aD7fb378BCeb18C47e01AF6e60679B6CAa8A9,
+            0x06c067f00F946ecaA23C5b253fFf4B91a5869F10,
+            0xDC44569f688a91ba3517C292de75E30EA284eeA0,
+            0x636D43798340603707c936c1A93597Dc44Effbee,
+            0x8ebc3d6994b3cA9052095dBcE3803dBf5ffeD062
         ));
         newchains.push(NewChain(  //  REDBELLY  Chain 153
             153,
-            0xDC635161b63Ca5281F96F2d70C3f7C0060d151d3,
-            0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3,
-            0xb76428eBE853F2f6a5D74C4361B72999f55EE637,
-            0x8641613849038f495FA8Dd313f13a3f7F2D73815,
-            0x0000000000000000000000000000000000000000,
-            0xE305d37aDBE6F7c987108F537dc247F8Df5C1F24
+            0xAc71dCF325724594525cc05552beE7D6550a80fD,
+            0xEb28C8e7Cc2d8a8d361Cb41EC0937ac11c0c0A1F,
+            0x8393181277c8a85ec0468B3f1ee61Bbfd78E62b4,
+            0xF1a79c24efF78FfFfbd4f8Df0Ce31aDEc284b9Cf,
+            0x048A5cefCDF0faeB734bc4A941E0de44d8c49f55,
+            0x4b17E8eE1cC1814636DDe9Ac12a42472799CCB64
         ));
          newchains.push(NewChain(  //  OPTIMISM  Chain 11155420
             11155420,
-            0x3b44962Bf264b8CebAC13DA24722faa27fC693a1,
-            0x266442249F62A8Dd4e29348A52af8c806c7CB0da,
-            0xD8fB50721bC30bF3E4D591c078747b4e7cE46e7A,
-            0xA7EC64D41f32FfE662A46B62E59D1EBFEaD52522,
-            0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed,
-            0xCFC2D5Fa55534019b3406257723506a3AB5e2Eed
+            0xcDEcbA8e8a537823733238225df54Cc212d681Cd,
+            0x8393181277c8a85ec0468B3f1ee61Bbfd78E62b4,
+            0x73943Ec95AaFBb4DD073b11F5c9701E5Bc3708A6,
+            0xc3dC6a3EdC40460BAa684F45E9e377B7e42009b1,
+            0xF1a79c24efF78FfFfbd4f8Df0Ce31aDEc284b9Cf,
+            0xa7C57315395def05F906310d590f4ea15308fe30
         ));
     }
 
@@ -292,7 +292,9 @@ contract DappConfig is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        addDappWhitelist(58);
+        // addDappWhitelist(65);
+        address toAdd = 0xF53fb9bb64AB9d3D78F976735762c5af9B5fF341;
+        addOneAddress(65,toAdd);
         // addSingle(58,19);
 
         vm.stopBroadcast();
@@ -311,28 +313,66 @@ contract DappConfig is Script {
             console.log("Processing blockchain = ");
             console.log(newchains[i].chainId);
 
-            if(dappID == 44) {  // FeeManager
+            if(dappID == 61) {  // FeeManager
                 thisAddress = newchains[i].feeManager;
                 wList = _stringToArray(newchains[i].feeManager.toHexString());
-            } else if(dappID == 45) {  // CTMRWA001X
+            } else if(dappID == 62) {  // CTMRWA001X
                 thisAddress = newchains[i].rwaX;
                 wList = _stringToArray(newchains[i].rwaX.toHexString());
-            } else if(dappID == 46) {  // CTMRWADeployer
+            } else if(dappID == 63) {  // CTMRWADeployer
                 thisAddress = newchains[i].deployer;
                 wList = _stringToArray(newchains[i].deployer.toHexString());
-            } else if(dappID == 47) {  // CTMRWAGateway
+            } else if(dappID == 60) {  // CTMRWAGateway
                 thisAddress = newchains[i].gateway;
                 wList = _stringToArray(newchains[i].gateway.toHexString());
-            } else if(dappID == 48) {  // CTMRWA001Storage
+            } else if(dappID == 64) {  // CTMRWA001Storage
                 thisAddress = newchains[i].storageManager;
                 wList = _stringToArray(newchains[i].storageManager.toHexString());
-            } else if(dappID == 58) {  // CTMRWA001Sentry
+            } else if(dappID == 65) {  // CTMRWA001Sentry
                 thisAddress = newchains[i].sentryManager;
                 wList = _stringToArray(newchains[i].sentryManager.toHexString());
             }
 
             if (
                 1 == 1
+                // DappID 60
+                // thisAddress != 0xeFbd6990A5C4ABFA30b91409aA3d9A0e7C8Bb77b &&
+                // thisAddress != 0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2 &&
+                // thisAddress != 0x3CB56e6E5917a2a8924BC2A5C1f0ecc90b585e74
+
+                // DappID 61
+                // thisAddress != 0x9E2F5D1228b02C2FbF3168Db1162e7461574eBB9 &&
+                // thisAddress != 0xf7548cB35188aa7DaC8423fAA2ACe3855634e40C
+
+                // DappID 62
+                // thisAddress != 0x45cddE4bdAbC97b3ec02B1271432ceeBc04d4c53 &&
+                // thisAddress != 0xC230C289328a86d2daC10Db25E91f516aD7D0D3f &&
+                // thisAddress != 0x610D47b471Ca1BA509F752AFAD8E391664bF4deC &&
+                // thisAddress != 0xCa19ddc73718512B968B2cb838b1408885D74A05 &&
+                // thisAddress != 0x8393181277c8a85ec0468B3f1ee61Bbfd78E62b4
+
+                // DappID 63
+                // thisAddress != 0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D &&
+                // thisAddress != 0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2 &&
+                // thisAddress != 0xeFbd6990A5C4ABFA30b91409aA3d9A0e7C8Bb77b &&
+                // thisAddress != 0xD55F76833388137FB1ECFc0dE1e6982716A19640 &&
+                // thisAddress != 0x1F652e2D8A9FCa346A0F45D59a67FB998999e454
+
+                // DappID 64
+                // thisAddress != 0xe5AF1a54B2b8cA3091edD229329B60A82b7A04E8 &&
+                // thisAddress != 0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9 &&
+                // thisAddress != 0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a &&
+                // thisAddress != 0xd13779b354c3C72c9B438ABe7Db3086098778A7a
+
+                // DappID 65
+                // thisAddress != 0xDbBbbbd746F539d8C82aea9d4F776e5BA0F4e1a1 &&
+                // thisAddress != 0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D &&
+                // thisAddress != 0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9 &&
+                // thisAddress != 0xDFe447a7F6780dD40D3eA4CF3F132c1F3b50BfF7 &&
+                // thisAddress != 0x41543A4C6423E2546FC58AC63117B5692D68c323 &&
+                // thisAddress != 0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a &&
+                // thisAddress != 0x43B8494f3C645c8CBA2B0D13C7Bd948D9877620c &&
+                // thisAddress != 0xF1a79c24efF78FfFfbd4f8Df0Ce31aDEc284b9Cf
             ) {
                 try IDapp(dappContract).addDappAddr(dappID, wList) {
 
@@ -344,6 +384,10 @@ contract DappConfig is Script {
         
         
         return;
+    }
+
+    function addOneAddress(uint256 dappID, address c3Address) public {
+        IDapp(dappContract).addDappAddr(dappID, _stringToArray(c3Address.toHexString()));
     }
 
     function addSingle(uint256 dappID, uint256 indx) public {

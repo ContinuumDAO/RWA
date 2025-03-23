@@ -48,6 +48,7 @@ u2uTestnet = "${U2U_NEBULAS_TESTNET_RPC_URL}"
 sonicTestnet = "${SONIC_TESTNET_RPC_URL}"
 humanodeTestnet = "${HUMANODE_TESTNET_RPC_URL}"
 redbellyTestnet = "${REDBELLY_TESTNET_RPC_URL}"
+mantaPacific = "${MANTA_PACIFIC_RPC_URL}"
 
 
 [etherscan]

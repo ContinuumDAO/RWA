@@ -45,12 +45,12 @@ contract DeployPart1 is Script {
         console.log(deployer);
 
         // env variables (changes based on deployment chain, edit in .env)
-        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_BERA_BARTIO");
+        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_CORE_TESTNET");
         address govAddr = deployer;
         uint256 dappID1 = vm.envUint("DAPP_ID1");
         uint256 dappID2 = vm.envUint("DAPP_ID2");
-        // uint256 dappID3 = vm.envUint("DAPP_ID3");
-        uint256 dappID4 = vm.envUint("DAPP_ID4");
+        uint256 dappID3 = vm.envUint("DAPP_ID3");
+        // uint256 dappID4 = vm.envUint("DAPP_ID4");
         // uint256 dappID5 = vm.envUint("DAPP_ID5");
         // uint256 dappID6 = vm.envUint("DAPP_ID6");
         
@@ -60,7 +60,7 @@ contract DeployPart1 is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // deploy fee manager
-        feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID1);
+        feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID2);
         feeManagerAddr = address(feeManager);
 
         console.log("feeManager");
@@ -72,7 +72,7 @@ contract DeployPart1 is Script {
             govAddr, 
             c3callerProxyAddr, 
             txSender,
-            dappID4
+            dappID1
         );
 
         console.log("gateway address");
@@ -86,7 +86,7 @@ contract DeployPart1 is Script {
             govAddr,
             c3callerProxyAddr,
             txSender,
-            dappID2
+            dappID3
         );
 
         console.log("ctmRwa001X address");

@@ -28,7 +28,9 @@ contract NewChainSetup is Script {
     uint256 rwaType = 1;
     uint256 version = 1;
 
-    uint256 chainId = 1952959480;   // This is the chainId we are processing
+    uint256 chainId = 3441006;   // This is the chainId we are processing
+
+    bool COMPLETE = true;
 
     string[] feeTokensStr;
     uint256[] fees;
@@ -65,138 +67,127 @@ contract NewChainSetup is Script {
     constructor() {
         newchains.push(NewChain(    // ARB Sepolia *
             421614,
-            0xbab5Ec2802257958d3f3a34dcE2F7Aa65Eac922d,
-            0xDB3caaE3A1fD4846bC2a7dDBcb2B7b4dbd3484b8,
-            0x7e61a5AF95Fc6efaC03F7d92320F42B2c2fe96f0,
-            0xf55fB33d9BD6Bb47461d68890bc8F951480211FC,
-            0x998f9E69CF313d06b1D4BA22FeCE9c23D0D0Ca31,
+            0x15E8BBa5f3F0118C357E74D86a65f46977D58053,
+            0xb866653913aE6aCb12e9aa33D6d45651cDFEB78B,
+            0x8e1fc60c90Aff208023735c9eE54Ff6315D13182,
+            0x3804bD72656E086166f2d64E7C78f2F9CD2735b8,
+            0x9cEB3f7ddcEe31eB8aC66D51838999709B1d4e4F,
             0xbF5356AdE7e5F775659F301b07c4Bc6961044b11
         ));
         newchains.push(NewChain(   // POLYGON AMOY  Chain 80002 *
             80002,
-            0xb1bC63301670F8ec9EE98BD501c89783d65ddC8a,
-            0xDf495F3724a6c705fed4aDfa7588Cd326162A39c,
-            0x2D2112DE9801EAf71B6D1cBf40A99E57AFc235a7,
-            0xad49cabD336f943a9c350b9ED60680c54fa2c3d1,
-            0xC7a339588569Da96def78A96732eE20c3446BF11,
+            0x6f013Ad0b507590dcB26E674199ba99d613e9dFD,
+            0x68CE4a4a6F6EbF5Ba25791Ea5385080e57A5BE82,
+            0x5Cc4E3125B75284246Ffd677eC53553f1d78b825,
+            0xE5b921BD326efa802e3dc20Fb3502559f59fd8AA,
+            0xe5f1354ad39be96a3d2566b27dBc12Dd1Af1b9dB,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
         ));
         newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
             84532,
-            0xe1C4c5a0e6A99bB61b842Bb78E5c66EA1256D292,
-            0x6681DB630eB117050D78E0B89eB5619b35Ea12e8,
-            0x91677ec1879987aBC3978fD2A71204640A9e9f4A,
-            0xE6d89DBE4113BDDc79c4D8256C3604d9Db291fEa,
-            0x0dB39536F72E19edFfd45e318b1Da9A3684679a2,
+            0x808490311dEbe8818cdfFe1FAae436cb84fAa906,
+            0xB3672d1bBd1bADbbBf6b327C2ad7785534aF2E7F,
+            0xD3ee2E923723D2e634219797512bD768d5973020,
+            0x1481875CA0EcD0ACdEb79d3d57FB76EAE726d128,
+            0x3bFF2A879a92e2125cDe895FA20BA3A4AEb2D4D7,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
         ));
-        // newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
-        //     59141,
-        //     0x41543A4C6423E2546FC58AC63117B5692D68c323,
-        //     0x969035b34B913c507b87FD805Fff608FB1fE13f0,
-        //     0x0c4AedfD2Aef21B742c29F061CA80Cc79D64A106,
-        //     0x208Ec1Ca3B07a50151c5741bc0E05C61beddad90,
-        //     ,
-        //     0x6654D956A4487A26dF1186b01B689c26939544fC
-            
-        // ));
+        newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
+            59141,
+            0x5Bd9BE690c9DA2Afb3E50eC6B73ae6EaA66d5d30,
+            0xdfa830314001a2dc761c0564D61962a57b7A5B89,
+            0x6a61BDf8faaE1614701674dB133A0bd1414E88Dc,
+            0x73B4143b7cd9617F9f29452f268479Bd513e3d23,
+            0x5dA80743b6FD7FEB2Bf7207aBe20E57E204e2B5b,
+            0x6654D956A4487A26dF1186b01B689c26939544fC
+        ));
         // newchains.push(NewChain(  // CONFLUX ESPACE  Chain 71
         //     71,
 
         //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         // ));
-        newchains.push(NewChain(  // CORE Testnet Chain 1115
+        newchains.push(NewChain(  // CORE Testnet Chain 1115  With Solidity 0.8.22
             1115,
-            0xb849bF0a5ca08f1e6EA792bDC06ff2317bb2fB90,
-            0xe08C7eE637336565511eb3421DAFdf45b860F9bc,
-            0x5930640c1572bCD396eB410f62a6975ab9b8A148,
-            0x533A9CeCcBa37453337e28DCB3EC4705d5d22260,
-            0x604643F60B3bF7eE767a998e35Fe0B9c6356223a,
+            0xF3A991cB19949cB6aBD9E416F0408C648B6c36Fa,
+            0xb5d1f61f6B9f0CA2B89eb9D693e8cD737076846A,
+            0x5b4d2c1b2e918fF1b0DE85803F5A737E5f816eCb,
+            0xf9229aCEba228fdbb757A637EeeBadB46FDb617e,
+            0x971C8BDd123aA0c864480419f378fB135f7CaBC1,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
         ));
         newchains.push(NewChain(  // HOLESKY Chain 17000
             17000,
-            0x05a804374Bb77345854022Fd0CD2A602E00bF2E7,
-            0x16b049e17b49C5DC1D8598b53593D4497c858c9a,
-            0xe98eCde78f1E8Ca24445eCfc4b5560aF193C842F,
-            0xa74Af157716e604042cF835Bd3a3F3A85C1c0959,
-            0xCa19ddc73718512B968B2cb838b1408885D74A05,
+            0xeFbd6990A5C4ABFA30b91409aA3d9A0e7C8Bb77b,
+            0x43B8494f3C645c8CBA2B0D13C7Bd948D9877620c,
+            0xd13779b354c3C72c9B438ABe7Db3086098778A7a,
+            0xe5AF1a54B2b8cA3091edD229329B60A82b7A04E8,
+            0xDbBbbbd746F539d8C82aea9d4F776e5BA0F4e1a1,
             0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
-            
         ));
         newchains.push(NewChain(  // MORPH HOLESKY  Chain 2810
             2810,
-            0xa3325B2fA099c81a06d9b7532317d4a4Da7F2aB7,
-            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-            0x94C3fD7a91ee706B89214B9C2E9a505508109a3c,
-            0xB128Ee08fb55a9Ae0b18d753a093Bf40EBC1d804,
-            0xe0F2017BC8206Ffc8D563a6c0C9Fb52c0189a5a6,
+            0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2,
+            0x45cddE4bdAbC97b3ec02B1271432ceeBc04d4c53,
+            0x9E2F5D1228b02C2FbF3168Db1162e7461574eBB9,
+            0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9,
+            0xDFe447a7F6780dD40D3eA4CF3F132c1F3b50BfF7,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
         ));
         newchains.push(NewChain(  // BLAST SEPOLIA Chain 168587773
             168587773,
-            0x74Da08aBCb64A66370E9C1609771e68aAfEDE27B,
-            0x67193A5129e506dB83f434461a839938d98b2628,
-            0xB75A2833405907508bD5f8DEa3A24FA537D9C85c,
-            0x93aE0e18578828631489c6CB8f8045eBe8D4599f,
-            0x3912670e1A1b6183c89a2079AAa3299ce585296a,
+            0x4218C42503FBB0CC65cbDf507B7ce64F0C52BC32,
+            0xC230C289328a86d2daC10Db25E91f516aD7D0D3f,
+            0x610D47b471Ca1BA509F752AFAD8E391664bF4deC,
+            0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a,
+            0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D,
             0x5d5408e949594E535d0c3d533761Cb044E11b664
-            
         ));
         newchains.push(NewChain(  // BITLAYER TESTNET Chain 200810
             200810,
-            0x1e46d7f21299Ac06AAd49017A1f733Cd5e6134f3,
-            0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
-            0xb008b6Cc593fC290Ed03d5011e90f4E9d19f9a87,
-            0x3CB56e6E5917a2a8924BC2A5C1f0ecc90b585e74,
-            0xeFbd6990A5C4ABFA30b91409aA3d9A0e7C8Bb77b,
+            0x5Fb1394608Ce2Ef7092A642d6c5D3b2325300bFD,
+            0xe5AF1a54B2b8cA3091edD229329B60A82b7A04E8,
+            0x66b719C489193594c617801e67119959CD15b63A,
+            0xC5E7f5e1BABBF45e3F1e0764B48736C19A122383,
+            0x0A576aB9704438ef4eF94C50c6bD0F13eFE12b06,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
         ));
         newchains.push(NewChain(  // SCROLL SEPOLIA   Chain 534351
             534351,
-            0xa3325B2fA099c81a06d9b7532317d4a4Da7F2aB7,
-            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-            0x94C3fD7a91ee706B89214B9C2E9a505508109a3c,
-            0xB128Ee08fb55a9Ae0b18d753a093Bf40EBC1d804,
-            0xe0F2017BC8206Ffc8D563a6c0C9Fb52c0189a5a6,
+            0xD55F76833388137FB1ECFc0dE1e6982716A19640,
+            0x9E2F5D1228b02C2FbF3168Db1162e7461574eBB9,
+            0x7ED4D0234E6c0F6704463E9A62A33AB7B7846A09,
+            0x0A0C882706544F37377e9bb7976E0805cd29a94F,
+            0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9,
             0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
-            
         ));
-        newchains.push(NewChain(  // MANTLE SEPOLIA Chain 5003
+        newchains.push(NewChain(  // MANTLE SEPOLIA Chain 5003 solidity 0.8.22
             5003,
-            0x563c5c85CC7ba923c50b66479588e5b3B2C93470,
-            0x30a63CF179996ae6332C0AC3898CdFD48b105118,
-            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-            0x3912670e1A1b6183c89a2079AAa3299ce585296a,
-            0xf7548cB35188aa7DaC8423fAA2ACe3855634e40C,
+            0x00d850114aC97754eCf9611Bb0dA99BbFC21BC4C,
+            0x69a68786C9A1088f7121633b5c390F3007EAEBbe,
+            0x0156a74FD9432446030f47f7c55f4d1FbfdF5E9a,
+            0xA365a4Ea68929C6297ef32Da2c21BDBfd1d354f0,
+            0x6F86E2fEeC756591A65D10158aca89DEc2e5eB51,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
         ));
-        newchains.push(NewChain(  // LUKSO TESTNET  Chain 4201
-            4201,
-            0xdbD55D95D447E363251592A8FF573bBf16c2CB68,
-            0xd6f9Cc85F5a3031D6E32a03DdB8a7aEDBeBd953E,
-            0xc74D2556d610F886B55653FAfFddF4bd0c1605B6,
-            0x95574b1a28865A81D2df36683d027A9D7603aFC7,
-            0x7AEECCcafb96e53460B5b633Fc668adf14ed8419,
-            0xC92291fbBe0711b6B34928cB1b09aba1f737DEfd
+        // newchains.push(NewChain(  // LUKSO TESTNET  Chain 4201
+        //     4201,
+        //     0xDbBbbbd746F539d8C82aea9d4F776e5BA0F4e1a1,
+        //     0x766061Cd28592Fd2503cAA3E4772C1215192cD3d,
+        //     0xe96270a4DeFb602d8C7E5aDB7f090EAC5291A641,
+        //     0xFA633c1aB4Ed7d8aa032f50219c6065189D13bd0,
+        //     0xd6374b3842652fc5Fc963c069ce05f1A48f965ce,
+        //     0xC92291fbBe0711b6B34928cB1b09aba1f737DEfd
             
-        ));
-        newchains.push(NewChain(  // LUMIA TESTNET Chain 1952959480
-            1952959480,
-            0x052E276c0A9D2D2adf1A2AeB6D7eCaEC38ec9dE6,
-            0xDfCF0181d2c2608D6e055997D2C215811AcC2D49,
-            0x20ADAf244972bC6cB064353F3EA4893f73E85599,
-            0xE91ABb1F959C96a91674B0923478860eACd653D2,
-            0xC98984dAe5EF66e702Fe16D1B69b043BC163435C,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
-        ));
+        // ));
+        // newchains.push(NewChain(  // LUMIA TESTNET Chain 1952959480 Solidity 0.8.22
+        //     1952959480,
+        //     0x0632cB03145500fe2E9CF44f59FC020910Dd79aD,
+        //     0xce2dAd6e634a28e75C6dD96AE1fd3624AB20AA2f,
+        //     0x1a18668aFa9f8E5Eb1fD0616926311e854723b5a,
+        //     0x49653d473B80Bed6e159D8Be4710b5d31875fBee,
+        //     0x81aA882dcCB2772ce63CF6b54C5e1B6b4aDa34eF,
+        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        // ));
         // newchains.push(NewChain(  // PLUME TESTNET Chain 161221135
         //     161221135,
             
@@ -204,43 +195,39 @@ contract NewChainSetup is Script {
         // ));
         newchains.push(NewChain(  // VANGUARD Chain 78600
             78600,
-            0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed,
-            0x282EccB80074e9aB23ea5d28bd795C0BBA3726A6,
-            0xa240B0714712e2927Ec055CEAa8e031AC671a55F,
-            0x094bd93DF885D063e89B61702AaD4463dE313ebE,
-            0xdbD55D95D447E363251592A8FF573bBf16c2CB68,
+            0xD523b4f68c015B472724c24e127FF1f51EeE0fbf,
+            0x4dDcab55e1eae426a98e85f43896592Ad1dB0f84,
+            0x8d494f8B762005cCA5BDEBb770Af3bf51E730305,
+            0x89c8CC177f04CC8209B93e42d81a780c3A685dD4,
+            0xDD15811D29A330AD2850A994f6AAEcFfA68A5c12,
             0x6654D956A4487A26dF1186b01B689c26939544fC
-            
         ));
         newchains.push(NewChain(  // U2U NEBULAS TESTNET Chain 2484
             2484,
-            0x16b049e17b49C5DC1D8598b53593D4497c858c9a,
-            0xFC63DC90296800c67cBb96330238fc17FbD674A2,
-            0x05a804374Bb77345854022Fd0CD2A602E00bF2E7,
-            0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2, 
-            0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D,
+            0x3CB56e6E5917a2a8924BC2A5C1f0ecc90b585e74,
+            0x1F652e2D8A9FCa346A0F45D59a67FB998999e454,
+            0xa3bae05aA45bcC739258b124FACE332043D3B1dA,
+            0xA33cfD901896C775c5a6d62e94081b4Fdd1B09BC, 
+            0x41543A4C6423E2546FC58AC63117B5692D68c323,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
         ));
         newchains.push(NewChain(  // SONEIUM MINATO Chain 1946
             1946,
-            0xF663c3De2d18920ffd7392242459275d0Dd249e4,
-            0xB75A2833405907508bD5f8DEa3A24FA537D9C85c,
-            0xB37C81d6f90A16bbD778886AF49abeBfD1AD02C7,
-            0x652003e2253e9200D7779D4bc8b962cD1F8D604b,
-            0xB128Ee08fb55a9Ae0b18d753a093Bf40EBC1d804,
+            0x654Ad7D43857b354079caD2d668bFA1eF2a01Fcf,
+            0x610D47b471Ca1BA509F752AFAD8E391664bF4deC,
+            0xf7548cB35188aa7DaC8423fAA2ACe3855634e40C,
+            0x80f1BB2DF520e3e091C79AebE81f46136A8fBCb5,
+            0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-            
         ));
         newchains.push(NewChain(  // OPBNB TESTNET  Chain 5611
             5611,
-            0x563c5c85CC7ba923c50b66479588e5b3B2C93470,
-            0x30a63CF179996ae6332C0AC3898CdFD48b105118,
-            0x63135C26Ad4a67D9D5dCfbCCDc94F11de83eB2Ca,
-            0xC230C289328a86d2daC10Db25E91f516aD7D0D3f,
-            0x45cddE4bdAbC97b3ec02B1271432ceeBc04d4c53,
+            0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9,
+            0xCa19ddc73718512B968B2cb838b1408885D74A05,
+            0x4596F5bFba6cB5ebdb23a0d118434b43Ad9Be3B7,
+            0xd13779b354c3C72c9B438ABe7Db3086098778A7a,
+            0x43B8494f3C645c8CBA2B0D13C7Bd948D9877620c,
             0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
-            
         ));
         // newchains.push(NewChain(  // SONIC TESTNET  Chain 64165
         //     64165,
@@ -284,41 +271,57 @@ contract NewChainSetup is Script {
         // ));
         newchains.push(NewChain(  //  BSC TESTNET Chain 97
             97,
-            0xD362AFB113D7a2226aFf228F4FB161BEFd3b6BD4,
-            0x2bBA6E0eDBe1aC6794B12B960A37156d9d07f009,
-            0x7ad438D2B3AC77D55c85275fD09d51Cec9Bb2987,
-            0x0f92c2F73498BF195c6129b2528c64f3D0BED434,
-            0x2AD99B7D982B119848a647676C02663018A1928a,
+            0x4146FE54Fd379fd095C227ea012a50387674766D,
+            0xC5A13F8750f362AA8e8Ace59f261268295923190,
+            0x20D5CdE9700144ED0Da22754D89f3379916c99Fa,
+            0x188af80a2ea153bc43dD448434d753C05D3C93f3,
+            0x39446dF8f82282Aebcb0EdDc61D6B716C188Ee85,
             0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD
-            
         ));
         newchains.push(NewChain(  //  SEPOLIA  Chain 11155111
             11155111,
-            0xF8fe7804AE6DBC7306AB5A97aE2302706170530C,
-            0x1a72d73B379A2454160B395cE7326755CBc76BCe,
-            0xee53A0AD7f17715774Acc3963693B37040900019,
-            0x5438B4f84152061E3717350721F00eE9c6151baF,
-            0xe831D6DCAF9F45089eb82DcddA8014355273F1dC,
+            0xBB348A6f2227E56a210097f808025Ca3635BEE1d,
+            0x3D9aD7fb378BCeb18C47e01AF6e60679B6CAa8A9,
+            0x06c067f00F946ecaA23C5b253fFf4B91a5869F10,
+            0xDC44569f688a91ba3517C292de75E30EA284eeA0,
+            0x636D43798340603707c936c1A93597Dc44Effbee,
             0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c
-            
         ));
         newchains.push(NewChain(  //  OPTIMISM SEPOLIA Chain 11155420
             11155420,
-            0x3b44962Bf264b8CebAC13DA24722faa27fC693a1,
-            0x266442249F62A8Dd4e29348A52af8c806c7CB0da,
-            0xD8fB50721bC30bF3E4D591c078747b4e7cE46e7A,
-            0xA7EC64D41f32FfE662A46B62E59D1EBFEaD52522,
-            0x06edC167555ceb6038E2C6b3bED7A47C628F2Eed,
+            0xcDEcbA8e8a537823733238225df54Cc212d681Cd,
+            0x8393181277c8a85ec0468B3f1ee61Bbfd78E62b4,
+            0x73943Ec95AaFBb4DD073b11F5c9701E5Bc3708A6,
+            0xc3dC6a3EdC40460BAa684F45E9e377B7e42009b1,
+            0xF1a79c24efF78FfFfbd4f8Df0Ce31aDEc284b9Cf,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         ));
-        newchains.push(NewChain(  //  REDBELLY TESTNET Chain 153
+        newchains.push(NewChain(  //  REDBELLY TESTNET Chain 153 Solidity 0.8.22
             153,
-            0xDC635161b63Ca5281F96F2d70C3f7C0060d151d3,
-            0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3,
-            0xb76428eBE853F2f6a5D74C4361B72999f55EE637,
-            0x8641613849038f495FA8Dd313f13a3f7F2D73815,
-            0xA4dAb6Df348B312a5a0320D08ebEF76441178CFe,
+            0xeA5c4FBEFFDfe9173bE7dC8c94eD6288A1D8f85E,
+            0x8d494f8B762005cCA5BDEBb770Af3bf51E730305,
+            0xD4bD9BBA2fb97C36Bbd619303cAB636F476f8904,
+            0x52661DbA4F88FeD997164ff2C453A2339216592C,
+            0x89c8CC177f04CC8209B93e42d81a780c3A685dD4,
             0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
+        ));
+        newchains.push(NewChain(  //  MANTA PACIFIC Chain 3441006 Solidity 0.8.27
+            3441006,
+            0x005c5Fd1585A73817107bFd3929f7e559750ceEd,
+            0xDef5D31e4b2E0BF38Af3E8092a5ABF51Db484Eec,
+            0x6EE5C158882857c7F52b37FCe37B1CF39944f22E,
+            0xcAcF2003d4bC2e19C865e65Ebb9D57C440217f0F,
+            0xF53fb9bb64AB9d3D78F976735762c5af9B5fF341,
+            0x20cEfCf72622156987f82E1B54E94Dbc0848De9C
+        ));
+        newchains.push(NewChain(  //  AVALANCHE FUJI Chain 43113 Solidity 0.8.27
+            43113,
+            0x005c5Fd1585A73817107bFd3929f7e559750ceEd,
+            0xDef5D31e4b2E0BF38Af3E8092a5ABF51Db484Eec,
+            0x6EE5C158882857c7F52b37FCe37B1CF39944f22E,
+            0xcAcF2003d4bC2e19C865e65Ebb9D57C440217f0F,
+            0xF53fb9bb64AB9d3D78F976735762c5af9B5fF341,
+            0x15A1ED0815ECeD97E46967179846c72BA21DABAd
         ));
     }
     
@@ -341,92 +344,96 @@ contract NewChainSetup is Script {
             if(newchains[i].chainId == chainId) {
                 string memory chainIdStr = chainId.toString();
                 thisGway = newchains[i].gateway;
-                // thisRwaX = newchains[i].rwaX;
-                // string memory rwaXStr = thisRwaX.toHexString();
+                thisRwaX = newchains[i].rwaX;
+                string memory rwaXStr = thisRwaX.toHexString();
                 thisStorageManager = newchains[i].storageManager;
                 thisSentryManager = newchains[i].sentryManager;
                 string memory storageManagerStr = thisStorageManager.toHexString();
                 string memory sentryManagerStr = thisSentryManager.toHexString();
-                // thisFeeManager = newchains[i].feeManager;
-                // thisFeeToken = newchains[i].feeToken;
-                // thisFeeTokenStr = thisFeeToken.toHexString();
+                thisFeeManager = newchains[i].feeManager;
+                thisFeeToken = newchains[i].feeToken;
+                thisFeeTokenStr = thisFeeToken.toHexString();
 
-                // if(IFeeManager(thisFeeManager).getFeeTokenList().length == 0) {  // Allow just one fee token for now
-                //     ok = IFeeManager(thisFeeManager).addFeeToken(thisFeeTokenStr);
-                //     require(ok, "NewChainSetup: Could not add fee token");
-                // }
+                if (COMPLETE) {
+
+                    if(IFeeManager(thisFeeManager).getFeeTokenList().length == 0) {  // Allow just one fee token for now
+                        ok = IFeeManager(thisFeeManager).addFeeToken(thisFeeTokenStr);
+                        require(ok, "NewChainSetup: Could not add fee token");
+                    }
 
 
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.ADMIN, 2);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.DEPLOY, 10);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.TX, 1);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.MINT, 4);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.BURN, 4);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.ISSUER, 4);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.PROVENANCE, 8);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.VALUATION, 4);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.PROSPECTUS, 10);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.RATING, 8);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.LEGAL, 8);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.FINANCIAL, 8);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.LICENSE, 20);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.DUEDILIGENCE, 8);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.NOTICE, 4);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.DIVIDEND, 4);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.REDEMPTION, 4);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.WHOCANINVEST, 4);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.IMAGE, 2);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.VIDEO, 20);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.ICON, 2);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.WHITELIST, 1);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.COUNTRY, 1);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
-                // ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.KYC, 5);
-                // require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.ADMIN, 2);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.DEPLOY, 10);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.TX, 1);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.MINT, 4);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.BURN, 4);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.ISSUER, 4);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.PROVENANCE, 8);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.VALUATION, 4);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.PROSPECTUS, 10);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.RATING, 8);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.LEGAL, 8);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.FINANCIAL, 8);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.LICENSE, 20);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.DUEDILIGENCE, 8);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.NOTICE, 4);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.DIVIDEND, 4);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.REDEMPTION, 4);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.WHOCANINVEST, 4);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.IMAGE, 2);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.VIDEO, 20);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.ICON, 2);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.WHITELIST, 1);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.COUNTRY, 1);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.KYC, 5);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
 
-                if(!stringsEqual(_toLower(ICTMRWAGateway(thisGway).getChainContract(chainIdStr)), thisGway.toHexString())) {
-                    chainIdContractsStr.push(chainIdStr);
-                    gwaysStr.push(thisGway.toHexString());
-                }
+                    if(!stringsEqual(_toLower(ICTMRWAGateway(thisGway).getChainContract(chainIdStr)), thisGway.toHexString())) {
+                        chainIdContractsStr.push(chainIdStr);
+                        gwaysStr.push(thisGway.toHexString());
+                    }
 
-                // (, string memory rwax) = ICTMRWAGateway(thisGway).getAttachedRWAX(rwaType, version, chainIdStr);
-                // if(!stringsEqual(rwax, _toLower(rwaXStr))) {
-                //     chainIdRwaXsStr.push(chainIdStr);
-                //     rwaXsStr.push(rwaXStr);
-                // }
+                    (, string memory rwax) = ICTMRWAGateway(thisGway).getAttachedRWAX(rwaType, version, chainIdStr);
+                    if(!stringsEqual(rwax, _toLower(rwaXStr))) {
+                        chainIdRwaXsStr.push(chainIdStr);
+                        rwaXsStr.push(rwaXStr);
+                    }
 
-                (, string memory stor) = ICTMRWAGateway(thisGway).getAttachedStorageManager(rwaType, version, chainIdStr);
-                if(!stringsEqual(stor, _toLower(storageManagerStr))) {
-                    chainIdStorsStr.push(chainIdStr);
-                    storageManagersStr.push(storageManagerStr);
-                }
+                    (, string memory stor) = ICTMRWAGateway(thisGway).getAttachedStorageManager(rwaType, version, chainIdStr);
+                    if(!stringsEqual(stor, _toLower(storageManagerStr))) {
+                        chainIdStorsStr.push(chainIdStr);
+                        storageManagersStr.push(storageManagerStr);
+                    }
 
-                (, string memory sentry) = ICTMRWAGateway(thisGway).getAttachedSentryManager(rwaType, version, chainIdStr);
-                if(!stringsEqual(sentry, _toLower(sentryManagerStr))) {
-                    chainIdSentryStr.push(chainIdStr);
-                    sentryManagersStr.push(sentryManagerStr);
+                    (, string memory sentry) = ICTMRWAGateway(thisGway).getAttachedSentryManager(rwaType, version, chainIdStr);
+                    if(!stringsEqual(sentry, _toLower(sentryManagerStr))) {
+                        chainIdSentryStr.push(chainIdStr);
+                        sentryManagersStr.push(sentryManagerStr);
+                    }
+
                 }
 
             }
@@ -435,14 +442,22 @@ contract NewChainSetup is Script {
     
         console.log("thisGway");
         console.log(thisGway);
-        // console.log("thisRwaX");
-        // console.log(thisRwaX);
+        console.log("thisRwaX");
+        console.log(thisRwaX);
         console.log("thisStorageManager");
         console.log(thisStorageManager);
         console.log("thisSentryManager");
         console.log(thisSentryManager);
-        // console.log("thisFeeManager");
-        // console.log(thisFeeManager);
+        console.log("thisFeeManager");
+        console.log(thisFeeManager);
+
+        // thisGway = 0xAc71dCF325724594525cc05552beE7D6550a80fD;
+        // thisRwaX = 0xEb28C8e7Cc2d8a8d361Cb41EC0937ac11c0c0A1F;
+        // thisStorageManager = 0xF1a79c24efF78FfFfbd4f8Df0Ce31aDEc284b9Cf;
+        // thisSentryManager = 0x048A5cefCDF0faeB734bc4A941E0de44d8c49f55;
+        // thisFeeManager = 0x8393181277c8a85ec0468B3f1ee61Bbfd78E62b4;
+        // thisFeeToken = 0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58;
+        // thisFeeTokenStr = thisFeeToken.toHexString();
 
         // revert("debug exit");
 
@@ -452,15 +467,15 @@ contract NewChainSetup is Script {
             console.log("Processing chainIdStr");
             console.log(chainIdStr); 
             string memory gwayStr = gway.toHexString();
-            // address rwaX = newchains[i].rwaX;
-            // string memory rwaXStr = rwaX.toHexString();
+            address rwaX = newchains[i].rwaX;
+            string memory rwaXStr = rwaX.toHexString();
             address storageManager = newchains[i].storageManager;
             string memory storageManagerStr = storageManager.toHexString();
             address sentryManager = newchains[i].sentryManager;
             string memory sentryManagerStr = sentryManager.toHexString();
-            // address feeManager = newchains[i].feeManager;
-            // address feeToken = newchains[i].feeToken;
-            // string memory feeTokenStr = feeToken.toHexString();
+            address feeManager = newchains[i].feeManager;
+            address feeToken = newchains[i].feeToken;
+            string memory feeTokenStr = feeToken.toHexString();
 
             if(newchains[i].chainId == chainId) {
                 string memory storedContract = ICTMRWAGateway(thisGway).getChainContract(chainIdStr);
@@ -473,41 +488,42 @@ contract NewChainSetup is Script {
                 console.log("Adding");
                 console.log(newchains[i].chainId);
 
-                // if(!stringsEqual(_toLower(ICTMRWAGateway(thisGway).getChainContract(chainIdStr)), gwayStr)) {
-                //     chainIdContractsStr.push(chainIdStr);
-                //     gwaysStr.push(gwayStr);
-                // }
+                if(!stringsEqual(_toLower(ICTMRWAGateway(thisGway).getChainContract(chainIdStr)), gwayStr)) {
+                    chainIdContractsStr.push(chainIdStr);
+                    gwaysStr.push(gwayStr);
+                    // ok = ICTMRWAGateway(thisGway).addChainContract(_stringToArray(chainIdStr), _stringToArray(gwayStr));
+                }
 
-                // (, string memory rwax) = ICTMRWAGateway(thisGway).getAttachedRWAX(rwaType, version, chainIdStr);
-                // if(!stringsEqual(rwax, _toLower(rwaXStr))) {
-                //     chainIdRwaXsStr.push(chainIdStr);
-                //     rwaXsStr.push(rwaXStr);
-                // }
+                (, string memory rwax) = ICTMRWAGateway(thisGway).getAttachedRWAX(rwaType, version, chainIdStr);
+                if(!stringsEqual(rwax, _toLower(rwaXStr))) {
+                    chainIdRwaXsStr.push(chainIdStr);
+                    rwaXsStr.push(rwaXStr);
+                    // ok = ICTMRWAGateway(thisGway).attachRWAX(rwaType, version, _stringToArray(chainIdStr), _stringToArray(rwaXStr));
+                }
 
                 (, string memory stor) = ICTMRWAGateway(thisGway).getAttachedStorageManager(rwaType, version, chainIdStr);
                 if(!stringsEqual(stor, _toLower(storageManagerStr))) {
                     chainIdStorsStr.push(chainIdStr);
                     storageManagersStr.push(storageManagerStr);
+                    // ok = ICTMRWAGateway(thisGway).attachStorageManager(rwaType, version, _stringToArray(chainIdStr), _stringToArray(storageManagerStr));
                 }
 
                 (, string memory sentry) = ICTMRWAGateway(thisGway).getAttachedSentryManager(rwaType, version, chainIdStr);
                 if(!stringsEqual(sentry, _toLower(sentryManagerStr))) {
                     chainIdSentryStr.push(chainIdStr);
                     sentryManagersStr.push(sentryManagerStr);
+                    // ok = ICTMRWAGateway(thisGway).attachSentryManager(rwaType, version, _stringToArray(chainIdStr), _stringToArray(sentryManagerStr));
                 }
 
             }
 
-            // feeTokensStr.push(thisFeeTokenStr);
-            // fees.push(100);  // Base fee = 1 token (e.g. USDT)
-            // IFeeManager(thisFeeManager).addFeeToken(chainIdStr, feeTokensStr, fees);
-            // feeTokensStr.pop();
-            // fees.pop();
-            
+            if (COMPLETE) {
+                IFeeManager(thisFeeManager).addFeeToken(chainIdStr, _stringToArray(thisFeeTokenStr), _uint256ToArray(100));
+            }
         }
 
-        // ok = ICTMRWAGateway(thisGway).addChainContract(chainIdContractsStr, gwaysStr);
-        // ok = ICTMRWAGateway(thisGway).attachRWAX(rwaType, version, chainIdRwaXsStr, rwaXsStr);
+        ok = ICTMRWAGateway(thisGway).addChainContract(chainIdContractsStr, gwaysStr);
+        ok = ICTMRWAGateway(thisGway).attachRWAX(rwaType, version, chainIdRwaXsStr, rwaXsStr);
         ok = ICTMRWAGateway(thisGway).attachStorageManager(rwaType, version, chainIdStorsStr, storageManagersStr);
         ok = ICTMRWAGateway(thisGway).attachSentryManager(rwaType, version, chainIdSentryStr, sentryManagersStr);
 
@@ -604,5 +620,10 @@ contract NewChainSetup is Script {
         return(strArray);
     }
 
+    function _uint256ToArray(uint256 _myUint256) internal pure returns(uint256[] memory) {
+        uint256[] memory uintArray = new uint256[](1);
+        uintArray[0] = _myUint256;
+        return(uintArray);
+    }
 
 }
