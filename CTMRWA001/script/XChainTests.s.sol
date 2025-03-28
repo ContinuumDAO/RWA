@@ -82,9 +82,9 @@ contract XChainTests is Script {
 
     function run() external {
 
-        loadContracts(421614);
+        loadContracts(153);
 
-        uint256 ID = 70754967339914680257804728297836580739943633158567818391146504074652219566760;
+        uint256 ID = 97242864839343996293486045633451726263558902585987751085988176512193216604394;
 
 
         // debugRwaXCall();
@@ -102,8 +102,8 @@ contract XChainTests is Script {
         
         // toChainIdsStr.push("421614");
         // toChainIdsStr.push("84532");
-        toChainIdsStr.push("80002");
-        deployRemote(ID);
+        // toChainIdsStr.push("78600");
+        // deployRemote(ID);
         // createSlots(ID, toChainIdsStr);
         // getSlots(ID,0);
 
@@ -121,8 +121,8 @@ contract XChainTests is Script {
 
         // addURI(ID, toChainIdsStr);
 
-        // toChainIdsStr.push("59141");
-        // lockRwa(ID);
+        // toChainIdsStr.push("5611");
+        lockRwa(ID);
 
 
     }
@@ -153,6 +153,18 @@ contract XChainTests is Script {
             dividendAddr = 0xBA08c3b81ed1A13e7A3457b6ab5DDdBa2DF34df4;
             storageManagerAddr = 0xE5b921BD326efa802e3dc20Fb3502559f59fd8AA;
             sentryManagerAddr = 0xe5f1354ad39be96a3d2566b27dBc12Dd1Af1b9dB;
+        } else if(chainId == 43113) {    // on AVALANCHE FUJI
+            feeToken = 0x15A1ED0815ECeD97E46967179846c72BA21DABAd;
+            feeManager = 0x6EE5C158882857c7F52b37FCe37B1CF39944f22E;
+            gatewayAddr = 0x005c5Fd1585A73817107bFd3929f7e559750ceEd;
+            rwa001XAddr = 0xDef5D31e4b2E0BF38Af3E8092a5ABF51Db484Eec;
+            ctmFallbackAddr = 0xb76428eBE853F2f6a5D74C4361B72999f55EE637;
+            ctmRwa001Map = 0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3;
+            ctmRwaDeployer = 0x7dAbce18C66b5c857355A815b6c1e926C701C23F;
+            ctmRwaFactory = 0xaD2E580C931861360C998db3F0B090A5391DA58e;
+            dividendAddr = 0x77aBD89181775355f39a2dfb74fB233499Fc4500;
+            storageManagerAddr = 0xcAcF2003d4bC2e19C865e65Ebb9D57C440217f0F;
+            sentryManagerAddr = 0xF53fb9bb64AB9d3D78F976735762c5af9B5fF341;
         // } else if(chainId == 338) {    // on CRONOS
         //     feeToken = 0xf6d2060494cD08e776D22a47E67d485a33C8c5d2;
         //     feeManager = ;
@@ -366,6 +378,18 @@ contract XChainTests is Script {
             dividendAddr = 0x823329dd3F730031E95338Ce59f5Fcb3BE6486B4;
             storageManagerAddr = 0x188af80a2ea153bc43dD448434d753C05D3C93f3;
             sentryManagerAddr = 0x39446dF8f82282Aebcb0EdDc61D6B716C188Ee85;
+        } else if(chainId == 5611) {  // OPBNB TESTNET  Chain 5611
+            feeToken = 0x108642B1b2390AC3f54E3B45369B7c660aeFffAD;
+            feeManager = 0x4596F5bFba6cB5ebdb23a0d118434b43Ad9Be3B7;
+            gatewayAddr = 0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9;
+            rwa001XAddr = 0xCa19ddc73718512B968B2cb838b1408885D74A05;
+            ctmFallbackAddr = 0xDFe447a7F6780dD40D3eA4CF3F132c1F3b50BfF7;
+            ctmRwa001Map = 0xa3bae05aA45bcC739258b124FACE332043D3B1dA;
+            ctmRwaDeployer = 0x1F652e2D8A9FCa346A0F45D59a67FB998999e454;
+            ctmRwaFactory = 0x22D305a430b57a12D569f1e578B9F2f7613f92F8;
+            dividendAddr = 0xa99eED86A083074bE196578f8a1c7B7B22015082;
+            storageManagerAddr = 0xd13779b354c3C72c9B438ABe7Db3086098778A7a;
+            sentryManagerAddr = 0x43B8494f3C645c8CBA2B0D13C7Bd948D9877620c;
         }
 
         gateway = ICTMRWAGateway(gatewayAddr);
@@ -706,7 +730,7 @@ contract XChainTests is Script {
 
         vm.startBroadcast(senderPrivateKey);
 
-        IERC20(feeToken).approve(storageManagerAddr, 1000*10**ITheiaERC20(feeToken).decimals());
+        IERC20(feeToken).approve(rwa001XAddr, 1000*10**ITheiaERC20(feeToken).decimals());
 
         // function changeTokenAdmin(
         //     string memory _newAdminStr,

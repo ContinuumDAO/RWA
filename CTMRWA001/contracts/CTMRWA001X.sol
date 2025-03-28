@@ -354,6 +354,7 @@ contract CTMRWA001X is Context, GovernDapp {
         (address currentAdmin, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
         address newAdmin = stringToAddress(_newAdminStr);
 
+        // TODO set includeLocal = false
         _payFee(FeeType.ADMIN, _feeTokenStr, _toChainIdsStr, true);
 
         for(uint256 i=0; i<_toChainIdsStr.length; i++) {
@@ -411,10 +412,13 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 slot_,
         uint256 value_,
         uint256 _ID
+        // string memory _feeTokenStr  // TODO Add
     ) public returns(uint256) {
 
         (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa001Addr);
+
+        // TODO add _payFee(FeeType.MINT, _feeTokenStr, _stringToArray(cIDStr), false);
 
         if(toTokenId_>0) {
             ICTMRWA001(ctmRwa001Addr).mintValueX(toTokenId_, slot_, value_);
@@ -721,6 +725,8 @@ contract CTMRWA001X is Context, GovernDapp {
     ) internal returns(bool) {
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, _feeType, _feeTokenStr);
         
+        // TODO Remove hardcoded multiplier 10**2
+
         if(fee>0) {
             address feeToken = stringToAddress(_feeTokenStr);
             uint256 feeWei = fee*10**(IERC20Extended(feeToken).decimals()-2);

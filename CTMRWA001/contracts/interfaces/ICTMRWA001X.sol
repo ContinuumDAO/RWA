@@ -74,6 +74,7 @@ interface ICTMRWA001X {
         uint256 slot,
         uint256 value,
         uint256 ID
+        // string feeTokenStr  // TODO Add
     ) external returns(uint256);
 
 

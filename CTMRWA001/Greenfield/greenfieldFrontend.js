@@ -372,28 +372,28 @@ const addImage = (filePath) => {
 
 const addIssuer = () => {
 
-    const rwaTitle = "# ISSUER DETAILS"
+    const rwaTitle = "Apartment Rents Investment Income"
     const rwaType = "CONTRACT"
     const slot = 0
     const rwaCategory = "ISSUER"
-    const rwaText = "## Sellers of the finest assets\n Do yourself a favour and buy some now"
+    const rwaText = "London rentals offers the opportunity to invest in the rental sector"
 
     const rwaIssuer = new Issuer(
-        "Selqui",
-        "CTM",
-        "Co Founder",
-        "ContinuumDAO",
-        "All the World is free",
-        "Xanadu",
+        "John",
+        "Doe",
+        "CEO",
+        "London Rentals Ltd.",
+        "5 Church St, Islington, London",
+        "UK",
         "12345678XN",
-        "https:XanaduCompanyRegistrationOffice  ",
-        "abc@continuumdao.org",
-        "@ContinuumDAO",
-        "https://continuumdao.org",
-        "https://x.com/ContinuumDAO",
-        "+555",
+        "https:CompanyRegistrationOffice.co.uk",
+        "john.doe@londonrentals.co.uk",
+        "@LondonRentlas",
+        "https://londonrentals.co.uk",
+        "https://x.com/londonrentals",
+        "+44",
         "55555555",
-        "https://somelawfirm.com/lawracle/continuumdao/1/"
+        "https://somelawfirm.com/lawtruth/1/"
     )
 
     const newRwaURI = new Rwa(
@@ -414,10 +414,11 @@ const main = async () => {
 
     // This is an example - we are on Arbitrum Sepolia
     chainIdStr = "421614"
-    // chainIdStr = "84532"
+    // chainIdStr = "5611"
 
     const contractRes = getRwaContracts(chainIdStr)
     let rpcUrl = contractRes.rpcUrl
+    // console.log(rpcUrl)
     ctmRwaMap = contractRes.ctmRwaMap
     storageManager = contractRes.storageManager
     console.log("storageManager = ",storageManager)
@@ -432,7 +433,7 @@ const main = async () => {
 
     // This is just an example using one ID and on the connected chain
 
-    const ID = 44495882205963484806878880776999637603640957207416685949220386720418677836790n
+    const ID = 100378939522858631234443358884388513329252401371060324643700462511137992733692n
     const rwaObject = addIssuer()  // sample rwaObject ISSUER Category
     const rwaImage = addImage("./22.png") // sample rwaObject IMAGE Category
 
@@ -441,15 +442,15 @@ const main = async () => {
    
     let tokenAdmin = await getTokenAdmin(storageContract, signer)
 
-    const chainIdsStr = ["421614", "84532"]
+    const chainIdsStr = ["421614", "97"]
     // const chainIdsStr = ["421614"]
-    // const chainIdsStr = ["84532"]
+    // const chainIdsStr = ["5611"]
 
     try {
 
-        // let bucketRes = await getBucketName(ID, chainIdStr, signer)
-        // let bucketName = bucketRes.bucketName
-        // console.log(bucketName)
+        let bucketRes = await getBucketName(ID, chainIdStr, signer)
+        let bucketName = bucketRes.bucketName
+        console.log(bucketName)
         // return
 
         // let singleRes = await getSingleProperty(ID, '5', signer)
@@ -471,7 +472,7 @@ const main = async () => {
         // console.log(res.objectList)
         // return
 
-        // await deleteObject(bucketName, '10', signer)
+        // await deleteObject(bucketName, '2', signer)
         // await deleteBucket(bucketName, tokenAdmin, signer)
         // return
 
@@ -484,8 +485,9 @@ const main = async () => {
         console.log(res)
         return
 
-        let myObject = '3'
+        let myObject = '1'
         const getObjRes = await getObject(ID, myObject, chainIdStr, signer)
+        console.log(getObjRes)
 
         if (getObjRes.ok) {
             console.log(getObjRes.msg)
@@ -498,7 +500,7 @@ const main = async () => {
             console.log(`JSON file written: ${fname}`)
 
             let rwaProp = rwaObject.properties
-            // console.log(rwaProp)
+            console.log(rwaProp)
 
             // Procedure to download the image/video file, if required (only for node.js)
             let rwaCategory = getObjRes.rwaObject.category
