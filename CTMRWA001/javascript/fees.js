@@ -96,6 +96,52 @@ const transferURIFee = async(ID, feeTokenStr, toChainIdsStr) => {
 }
 
 
+const setSentryOptionsFee = async(feeTokenStr, toChainIdsStr) => {
+    feeType = 0 // FeeType.ADMIN
+    const includeLocal = false
+
+    const fee = await feeManager.getXChainFee(toChainIdsStr, includeLocal, feeType, feeTokenStr)
+    const feeWei = fee*10n**(decimals - baseOrder)
+
+    return feeWei
+}
+
+
+const addWhitelistFee = async(nWallets, feeTokenStr, toChainIdsStr) => {
+    feeType = 21 // FeeType.WHITELIST
+    const includeLocal = false
+
+    const fee = await feeManager.getXChainFee(toChainIdsStr, includeLocal, feeType, feeTokenStr)
+    const feeWei = fee*10n**(decimals - baseOrder) * nWallets
+
+    return feeWei
+}
+
+
+const addCountrylistFee = async(nCountries, feeTokenStr, toChainIdsStr) => {
+    feeType = 22 // FeeType.COUNTRY
+    const includeLocal = false
+
+    const fee = await feeManager.getXChainFee(toChainIdsStr, includeLocal, feeType, feeTokenStr)
+    const feeWei = fee*10n**(decimals - baseOrder) * nCountries
+
+    return feeWei
+}
+
+const verifyPersonFee = async(feeTokenStr, toChainIdsStr) => {
+    feeType = 23 // FeeType.KYC
+    const includeLocal = false
+
+    const fee = await feeManager.getXChainFee(toChainIdsStr, includeLocal, feeType, feeTokenStr)
+    const feeWei = fee*10n**(decimals - baseOrder)
+
+    return feeWei
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 const connect = async (rpcUrl) => {
     const provider = new ethers.JsonRpcProvider(rpcUrl)
 
@@ -191,6 +237,8 @@ const main = async () => {
 
     // Some example values
 
+    //////////////  Functions in CTMRWA001X  //////////////////////////////
+
     // deployAllCTMRWA001X
     toChainIdsStr = ["97", "11155111"] // not including local chain
     let includeLocal = true
@@ -218,6 +266,8 @@ const main = async () => {
     feeWei = await mintFee(feeTokenStr, toChainIdsStr)
     console.log('Mint token fee = ', feeWei);
 
+    ////////////////  Functions in CTMRWA001StorageManager ///////////////////////
+
     // addURI
     toChainIdsStr = ["421614", "97", "11155111"] // including local chain this time
     uriCategory = 13  // Example here is for URICategory.IMAGE
@@ -230,6 +280,34 @@ const main = async () => {
     toChainIdsStr = ["421614", "97", "11155111"] // including local chain this time
     feeWei = await transferURIFee(ID, feeTokenStr, toChainIdsStr)
     console.log('transferURI fee = ', feeWei)
+    
+
+    ////////////////  Functions in CTMRWA001SentryManager  //////////////////////
+
+    // setSentryOptions AND goPublic
+    toChainIdsStr = ["421614", "97", "11155111"] // including local chain this time
+    feeWei = await setSentryOptionsFee(feeTokenStr, toChainIdsStr)
+    console.log('setSentryOptions fee = ', feeWei)
+
+    // addWhitelist
+    toChainIdsStr = ["421614", "97", "11155111"] // including local chain this time
+    let nWallets = 15n  // The number of wallets being added to the whitelist
+    feeWei = await addWhitelistFee(nWallets, feeTokenStr, toChainIdsStr)
+    console.log('addWhitelist fee = ', feeWei)
+
+    // addCountrylist
+    toChainIdsStr = ["421614", "97", "11155111"] // including local chain this time
+    let nCountries = 15n  // The number of wallets being added to the whitelist
+    feeWei = await addCountrylistFee(nCountries, feeTokenStr, toChainIdsStr)
+    console.log('addCountrylist fee = ', feeWei)
+
+
+    //////////////// Functions in CTMRWA001PolygonId  ////////////////////////////
+
+    // verifyPerson
+    toChainIdsStr = ["421614", "97", "11155111"] // including local chain this time
+    feeWei = await verifyPersonFee(feeTokenStr, toChainIdsStr)
+    console.log('verifyPerson fee = ', feeWei)
 
 }
 

@@ -301,6 +301,7 @@ contract CTMRWA001PolygonId is Context, GovernDapp {
         string memory _feeTokenStr
     ) internal view returns(uint256) {
 
+        // TODO chnage this to false
         bool includeLocal = true;
         
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, includeLocal, _feeType, _feeTokenStr);
