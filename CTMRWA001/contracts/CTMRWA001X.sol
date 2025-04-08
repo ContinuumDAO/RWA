@@ -19,7 +19,7 @@ import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {URICategory, URIType, ICTMRWA001Storage} from "./interfaces/ICTMRWA001Storage.sol";
 import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
 import {ICTMRWA001XFallback} from "./interfaces/ICTMRWA001XFallback.sol";
-import {ICTMRWA001Token} from "./interfaces/ICTMRWA001Token.sol";
+import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
 
 
 contract CTMRWA001X is Context, GovernDapp {
@@ -31,9 +31,10 @@ contract CTMRWA001X is Context, GovernDapp {
     uint256 version;
     address public feeManager;
     address public ctmRwaDeployer;
+    address public erc20Deployer;
     address public ctmRwa001Map;
     address public fallbackAddr;
-    string public cIDStr;
+    string cIDStr;
 
     mapping(address => bool) public isMinter; // which routers can use bridge tokens
     mapping(address => address[]) public adminTokens;  // tokenAdmin address => array of CTMRWA001 contracts
@@ -80,8 +81,9 @@ contract CTMRWA001X is Context, GovernDapp {
         ctmRwa001Map = _map;
     }
 
-    function setCtmRwaDeployer(address _deployer) external onlyGov {
+    function setCtmRwaDeployer(address _deployer, address _erc20Deployer) external onlyGov {
         ctmRwaDeployer = _deployer;
+        erc20Deployer = _erc20Deployer;
     }
 
     function setFallback(address _fallbackAddr) external onlyGov {
@@ -521,6 +523,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "CTMRWA001X: Not approved or owner of tokenId");
+        // TODO just do the claim tx instead of prevent the transfer
         require(ICTMRWA001(ctmRwa001Addr).dividendUnclaimedOf(_fromTokenId) == 0, "CTMRWA001X: TokenId has unclaimed dividend");
 
         if(stringsEqual(toChainIdStr, cIDStr)) {
@@ -574,6 +577,7 @@ contract CTMRWA001X is Context, GovernDapp {
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         address fromAddr = stringToAddress(_fromAddrStr);
         require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "CTMRWA001X: transfer caller is not owner nor approved");
+         // TODO just do the claim tx instead of prevent the transfer
         require(ICTMRWA001(ctmRwa001Addr).dividendUnclaimedOf(_fromTokenId) == 0, "CTMRWA001X: TokenId has unclaimed dividend");
 
 

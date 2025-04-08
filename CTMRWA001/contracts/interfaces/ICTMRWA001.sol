@@ -31,6 +31,8 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
 
     function ID() external view returns(uint256);
     function tokenAdmin() external returns(address);
+    function rwaType() external returns(uint256);
+    function version() external returns(uint256);
     function ctmRwa001X() external returns(address);
     function changeAdmin(address _admin) external returns(bool);
     function attachId(uint256 nextID, address tokenAdmin) external returns(bool);
@@ -51,6 +53,7 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
     function balanceOf(uint256 _tokenId) external view returns (uint256);
    
     function baseURI() external view returns(string memory);
+    function getErc20(uint256 _slot) external view returns(address);
     
     function balanceOf(address user) external view returns (uint256);
     function dividendUnclaimedOf(uint256 tokenId) external view returns (uint256);
@@ -92,6 +95,7 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
     function requireMinted(uint256 tokenId) external view returns(bool);
     function isApprovedOrOwner(address operator, uint256 tokenId) external view returns(bool);
     function getApproved(uint256 tokenId) external view returns (address);
+    // function setApprovalForAll(address operator_, bool approved_) external;
 
    
     function dividendAddr() external view returns(address);
@@ -100,6 +104,14 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
     function changeDividendRate(uint256 slot, uint256 dividend) external returns(bool);
     function incrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
     function decrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
+
+    function createOriginalTokenId() external returns(uint256);
+
+    function deployErc20(
+        uint256 _slot,
+        string memory _erc20Name,
+        address _feeToken
+    ) external;
 
 
     event Approval(address from, address to, uint256 tokenId);

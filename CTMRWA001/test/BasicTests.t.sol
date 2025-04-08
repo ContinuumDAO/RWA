@@ -15,6 +15,9 @@ import {C3CallerProxy} from "../contracts/c3Caller/C3CallerProxy.sol";
 import {C3CallerProxyERC1967} from "../contracts/c3Caller/C3CallerProxyERC1967.sol";
 import {C3GovClient} from "../contracts/c3Caller/C3GovClient.sol";
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 import {TestERC20} from "../contracts/mocks/TestERC20.sol";
 
 import {FeeManager} from "../contracts/FeeManager.sol";
@@ -27,6 +30,7 @@ import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
 import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
 import {CTMRWA001StorageManager} from "../contracts/CTMRWA001StorageManager.sol";
 import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
+import {CTMRWAERC20Deployer} from "../contracts/CTMRWAERC20Deployer.sol";
 import {CTMRWA001SentryManager} from "../contracts/CTMRWA001SentryManager.sol";
 import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
 
@@ -39,12 +43,13 @@ import {ICTMRWADeployer} from "../contracts/interfaces/ICTMRWADeployer.sol";
 import {ICTMRWAFactory} from "../contracts/interfaces/ICTMRWAFactory.sol";
 import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
 import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
-import {ICTMRWA001Token} from "../contracts/interfaces/ICTMRWA001Token.sol";
 import {ICTMRWA001XFallback} from "../contracts/interfaces/ICTMRWA001XFallback.sol";
 import {ICTMRWA001Dividend} from "../contracts/interfaces/ICTMRWA001Dividend.sol";
 import {URIType, URICategory, URIData, ICTMRWA001Storage} from "../contracts/interfaces/ICTMRWA001Storage.sol";
 import {ICTMRWA001Sentry} from "../contracts/interfaces/ICTMRWA001Sentry.sol";
 import {ICTMRWA001SentryManager} from "../contracts/interfaces/ICTMRWA001SentryManager.sol";
+
+import {ICTMRWAERC20} from "../contracts/interfaces/ICTMRWAERC20.sol";
 
 import {C3CallerStructLib, IC3GovClient} from "../contracts/c3Caller/IC3Caller.sol";
 
@@ -78,6 +83,7 @@ contract SetUp is Test {
     address treasury;
     address ctmDividend;
     address ctmRwaDeployer;
+    address ctmRwaErc20DeployerAddr;
     address ctmRwa001Map;
 
     string  cIdStr;
@@ -130,6 +136,7 @@ contract SetUp is Test {
     CTMRWAGateway gateway;
     CTMRWA001X rwa001X;
     CTMRWA001XFallback rwa001XFallback;
+    CTMRWAERC20Deployer ctmRwaErc20Deployer;
     CTMRWA001DividendFactory dividendFactory;
     CTMRWA001StorageManager storageManager;
     CTMRWA001StorageUtils storageUtils;
@@ -190,8 +197,8 @@ contract SetUp is Test {
         rwaXsStr.push(address(rwa001X).toHexString());
 
         bool ok = gateway.attachRWAX(
-            1,
-            1,
+            rwaType,
+            version,
             chainIdsStr,
             rwaXsStr
         );
@@ -245,8 +252,9 @@ contract SetUp is Test {
         
 
         ctmRwaDeployer = address(deployer);
+        ctmRwaErc20DeployerAddr = address(ctmRwaErc20Deployer);
 
-        rwa001X.setCtmRwaDeployer(ctmRwaDeployer);
+        rwa001X.setCtmRwaDeployer(ctmRwaDeployer, ctmRwaErc20DeployerAddr);
         map.setCtmRwaDeployer(ctmRwaDeployer);
 
         chainIdsStr.push("1");
@@ -335,6 +343,12 @@ contract SetUp is Test {
             _c3callerProxy,
             _txSender,
             _dappIDDeployer
+        );
+
+        ctmRwaErc20Deployer = new CTMRWAERC20Deployer(
+            _rwa001X,
+            _map,
+            address(feeManager)
         );
 
 
@@ -795,10 +809,10 @@ contract TestBasicToken is SetUp {
         console.log(ctmRwaAddr);
         assertEq(ok, true);
 
-        uint256 tokenType = ICTMRWA001Token(ctmRwaAddr).getRWAType();
+        uint256 tokenType = ICTMRWA001(ctmRwaAddr).rwaType();
         assertEq(tokenType, rwaType);
 
-        uint256 deployedVersion = ICTMRWA001Token(ctmRwaAddr).getVersion();
+        uint256 deployedVersion = ICTMRWA001(ctmRwaAddr).version();
         assertEq(deployedVersion, version);
 
         address[] memory aTokens = rwa001X.getAllTokensByAdminAddress(admin);
@@ -846,6 +860,140 @@ contract TestBasicToken is SetUp {
         exists = ICTMRWA001(ctmRwaAddr).requireMinted(tokenId);
         assertEq(exists, false);
         vm.stopPrank();
+    }
+
+    function test_deployErc20() public {
+
+        vm.startPrank(tokenAdmin);
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
+        createSomeSlots(ID);
+
+        uint256 slot = 1;
+        string memory name = "Basic Stuff";
+
+        ICTMRWA001(ctmRwaAddr).deployErc20(slot, name, address(usdc));
+
+        address newErc20 = ICTMRWA001(ctmRwaAddr).getErc20(slot);
+
+        // console.log(newErc20);
+        string memory newName = ICTMRWAERC20(newErc20).name();
+        string memory newSymbol = ICTMRWAERC20(newErc20).symbol();
+        uint8 newDecimals = ICTMRWAERC20(newErc20).decimals();
+        uint256 ts = ICTMRWAERC20(newErc20).totalSupply();
+
+        assertEq(stringsEqual(newName, "slot 1| Basic Stuff"), true);
+        // console.log(newName);
+        assertEq(stringsEqual(newSymbol, "SFTX"),true);
+        assertEq(newDecimals, 18);
+        assertEq(ts, 0);
+
+        vm.expectRevert("CTMRWA001: ERC20 for this slot already exists");
+        ICTMRWA001(ctmRwaAddr).deployErc20(slot, name, address(usdc));
+
+        vm.expectRevert("CTMRWA001: Slot does not exist");
+        ICTMRWA001(ctmRwaAddr).deployErc20(99, name, address(usdc));
+
+        uint256 tokenId1User1 = rwa001X.mintNewTokenValueLocal(
+            user1,
+            0,
+            slot,
+            2000,
+            ID
+        );
+
+        uint256 balUser1 = ICTMRWAERC20(newErc20).balanceOf(user1);
+        assertEq(balUser1, 2000);
+
+        ts = ICTMRWAERC20(newErc20).totalSupply();
+        assertEq(ts, 2000);
+
+        uint256 tokenId1User2 = rwa001X.mintNewTokenValueLocal(
+            user2,
+            0,
+            slot,
+            3000,
+            ID
+        );
+
+        ts = ICTMRWAERC20(newErc20).totalSupply();
+        assertEq(ts, 5000);
+
+        uint256 tokenId2User2 = rwa001X.mintNewTokenValueLocal(
+            user2,
+            0,
+            slot,
+            4000,
+            ID
+        );
+
+        uint256 balUser2 = ICTMRWAERC20(newErc20).balanceOf(user2);
+        assertEq(balUser2, 7000);
+
+        ts = ICTMRWAERC20(newErc20).totalSupply();
+        assertEq(ts, 9000);
+
+        vm.stopPrank();
+
+
+        vm.startPrank(user1);
+        ICTMRWAERC20(newErc20).transfer(user2, 1000);
+        uint256 balUser1After = ICTMRWAERC20(newErc20).balanceOf(user1);
+        uint256 balUser2After = ICTMRWAERC20(newErc20).balanceOf(user2);
+        assertEq(balUser1After, balUser1-1000);
+        assertEq(balUser2After, balUser2+1000);
+        assertEq(ts, ICTMRWAERC20(newErc20).totalSupply());
+
+        vm.expectRevert();
+        ICTMRWAERC20(newErc20).transfer(user2, balUser1After + 1);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), balUser1After);
+
+        vm.stopPrank();
+
+        vm.startPrank(tokenAdmin);
+        uint256 tokenId2User1 = rwa001X.mintNewTokenValueLocal(  // adding an extra tokenId
+            user1,
+            0,
+            slot,
+            3000,
+            ID
+        );
+        vm.stopPrank();
+        
+        vm.startPrank(user1);
+        uint256 balTokenId2 = ICTMRWA001(ctmRwaAddr).balanceOf(tokenId2User1);
+        assertEq(balTokenId2, 3000);
+        ICTMRWAERC20(newErc20).transfer(user2, 2000);
+        assertEq(ICTMRWA001(ctmRwaAddr).balanceOf(tokenId1User1), 0); // 1000 - 1000
+        assertEq(ICTMRWA001(ctmRwaAddr).balanceOf(tokenId2User1), 2000); // 3000 - 1000
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 2000); // 4000 => 2000
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 10000); // 3000 + 4000 + 1000 + 2000
+        assertEq(ts + 3000, ICTMRWAERC20(newErc20).totalSupply());
+        vm.stopPrank();
+
+        vm.startPrank(user2);
+        assertEq(ICTMRWAERC20(newErc20).allowance(user2, admin), 0);
+        ICTMRWAERC20(newErc20).approve(admin, 9000);
+        assertEq(ICTMRWAERC20(newErc20).allowance(user2, admin), 9000);
+        vm.stopPrank();
+
+        vm.startPrank(admin);
+        ICTMRWAERC20(newErc20).transferFrom(user2, user1, 4000);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 6000);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 6000);
+        assertEq(ICTMRWAERC20(newErc20).allowance(user2, admin), 5000);
+
+        vm.expectRevert();
+        ICTMRWAERC20(newErc20).transferFrom(user2, user1, 5001);
+
+        ICTMRWAERC20(newErc20).transferFrom(user2, user1, 5000);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 11000);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 1000);
+
+        vm.expectRevert();
+        ICTMRWAERC20(newErc20).transferFrom(user1, user2, 2000);
+
+        vm.stopPrank();
+
     }
 
     function test_addURI() public {
@@ -1616,8 +1764,8 @@ contract TestBasicToken is SetUp {
         assertEq(ok, true);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
-        uint256 rwaType = ICTMRWA001Token(ctmRwaAddr).getRWAType();
-        uint256 version = ICTMRWA001Token(ctmRwaAddr).getVersion();
+        uint256 rwaType = ICTMRWA001(ctmRwaAddr).rwaType();
+        uint256 version = ICTMRWA001(ctmRwaAddr).version();
 
         string memory sig = "deployCTMRWA001(string,uint256,uint256,uint256,string,string,uint8,string,string)";
 

@@ -9,6 +9,7 @@ import {ICTMRWA001, SlotData} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
 
 import {ICTMRWA001X} from "./interfaces/ICTMRWA001X.sol";
+import {ICTMRWAERC20Deployer} from "./interfaces/ICTMRWAERC20Deployer.sol";
 import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
 
 
@@ -29,6 +30,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     address public dividendAddr;
     address public storageAddr;
     address public sentryAddr;
+    address public erc20Deployer;
 
     uint256[] slotNumbers;
     string[] slotNames;
@@ -82,6 +84,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     mapping(address => AddressData) private _addressData;
 
+    mapping(address => bool) private _erc20s;
+    mapping(uint256 => address) private _erc20Slots;
+
 
     constructor(
         address _tokenAdmin,
@@ -101,6 +106,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         baseURI = baseURI_;
         ctmRwa001X = _ctmRwa001X;
         rwa001XFallback = ICTMRWA001X(ctmRwa001X).fallbackAddr();
+        erc20Deployer = ICTMRWA001X(ctmRwa001X).erc20Deployer();
         ctmRwaDeployer = _msgSender();
 
     }
@@ -121,17 +127,29 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     modifier onlyRwa001X() {
-        require(_msgSender() == ctmRwa001X || _msgSender() == rwa001XFallback, "CTMRWA001: This can only be called by CTMRWA001X");
+        require(
+            _msgSender() == ctmRwa001X || 
+            _msgSender() == rwa001XFallback ||
+            _erc20s[_msgSender()], 
+            "CTMRWA001: This can only be called by CTMRWA001X/CTMRWAERC20");
         _;
     }
 
     modifier onlyMinter() {
-        require(ICTMRWA001X(ctmRwa001X).isMinter(_msgSender()), "CTMRWA001: This is an onlyMinter function");
+        require(
+            ICTMRWA001X(ctmRwa001X).isMinter(_msgSender()) ||
+            _erc20s[_msgSender()],
+            "CTMRWA001: This is an onlyMinter function");
         _;
     }
 
     modifier onlyDividend() {
         require(_msgSender() == dividendAddr, "CTMRWA001: This can only be called by Dividend contract");
+        _;
+    }
+
+    modifier onlyERC20() {
+        require(_erc20s[_msgSender()], "CTMRWA001: Not a valid CTMRWAERC20");
         _;
     }
     
@@ -257,6 +275,30 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return(_allTokens[_tokenId].dividendUnclaimed);
     }
 
+    function deployErc20(
+        uint256 _slot,
+        string memory _erc20Name,
+        address _feeToken
+    ) public onlyTokenAdmin {
+        require(slotExists(_slot), "CTMRWA001: Slot does not exist");
+        require(_erc20Slots[_slot] == address(0), "CTMRWA001: ERC20 for this slot already exists");
+        address newErc20 = ICTMRWAERC20Deployer(erc20Deployer).deployERC20(
+            ID,
+            _slot,
+            _erc20Name,
+            _symbol,
+            _decimals,
+            _feeToken
+        );
+
+        _erc20s[newErc20] = true;
+        _erc20Slots[_slot] = newErc20;
+    }
+
+
+    function getErc20(uint256 _slot) public view returns(address) {
+        return(_erc20Slots[_slot]);
+    }
 
    
     function approve(uint256 tokenId_, address to_, uint256 value_) public payable virtual override {
@@ -292,7 +334,12 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         uint256 fromTokenId_,
         uint256 toTokenId_,
         uint256 value_
-    ) public virtual override returns(address) {
+    ) public override returns(address) {
+
+        // TODO do the dividend claim if dividendUnclaimedOf > 0
+        // if (dividendUnclaimedOf(fromTokenId_) > 0) {
+        //     ICTMRWA001Dividend(dividendAddr).claimDividend(fromTokenId_);
+        // }
         spendAllowance(_msgSender(), fromTokenId_, value_);
         _transferValue(fromTokenId_, toTokenId_, value_);
 
@@ -321,9 +368,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _allTokens[_allTokensIndex[tokenId_]].approved;
     }
 
-    function setApprovalForAll(address operator_, bool approved_) public virtual {
-        _setApprovalForAll(_msgSender(), operator_, approved_);
-    }
+    // function setApprovalForAll(address operator_, bool approved_) external onlyERC20() {
+    //     _setApprovalForAll(_msgSender(), operator_, approved_);
+    // }
 
     function isApprovedForAll(address owner_, address operator_) public view virtual returns (bool) {
         return _addressData[owner_].approvals[operator_];
@@ -343,17 +390,17 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _addressData[owner_].ownedTokens[index_];
     }
 
-    function _setApprovalForAll(
-        address owner_,
-        address operator_,
-        bool approved_
-    ) internal virtual {
-        require(owner_ != operator_, "CTMRWA001: approve to caller");
+    // function _setApprovalForAll(
+    //     address owner_,
+    //     address operator_,
+    //     bool approved_
+    // ) internal virtual {
+    //     require(owner_ != operator_, "CTMRWA001: approve to caller");
 
-        _addressData[owner_].approvals[operator_] = approved_;
+    //     _addressData[owner_].approvals[operator_] = approved_;
 
-        emit ApprovalForAll(owner_, operator_, approved_);
-    }
+    //     emit ApprovalForAll(owner_, operator_, approved_);
+    // }
 
     function spendAllowance(address operator_, uint256 tokenId_, uint256 value_) public virtual {
         uint256 currentAllowance = CTMRWA001.allowance(tokenId_, operator_);
@@ -664,6 +711,10 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _afterValueTransfer(from_, to_, tokenId_, tokenId_, slot, value);
     }
 
+    function createOriginalTokenId() external onlyERC20 returns(uint256) {
+        return(_createOriginalTokenId());
+    }
+
     function _checkOnCTMRWA001Received( 
         uint256 fromTokenId_, 
         uint256 toTokenId_, 
@@ -776,7 +827,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             operator_ == owner ||
             getApproved(tokenId_) == operator_ ||
             CTMRWA001.isApprovedForAll(owner, operator_) ||
-            isApprovedForSlot(owner, slot, operator_)
+            isApprovedForSlot(owner, slot, operator_) ||
+            _erc20s[operator_]
         );
     }
 

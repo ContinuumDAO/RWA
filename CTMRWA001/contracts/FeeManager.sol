@@ -19,7 +19,7 @@ contract FeeManager is GovernDapp, IFeeManager {
     address[] public feeTokenList;
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
-    uint256[24] public feeMultiplier;
+    uint256[25] public feeMultiplier;
 
     mapping(address => FeeParams) public feeParams;
 
@@ -203,6 +203,9 @@ contract FeeManager is GovernDapp, IFeeManager {
         } else if (_feeType == FeeType.KYC) {
             feeMultiplier[23] = _multiplier;
             return(true);
+        } else if (_feeType == FeeType.ERC20) {
+            feeMultiplier[24] = _multiplier;
+            return(true);
         } else {
             return(false);
         }
@@ -258,6 +261,8 @@ contract FeeManager is GovernDapp, IFeeManager {
             return(feeMultiplier[22]);
         } else if (_feeType == FeeType.KYC) {
             return(feeMultiplier[23]);
+        } else if (_feeType == FeeType.ERC20) {
+            return(feeMultiplier[24]);
         } else {
             revert("FeeManager: Bad FeeType");
         }
@@ -269,7 +274,7 @@ contract FeeManager is GovernDapp, IFeeManager {
         FeeType _feeType,
         string memory _feeTokenStr
     ) public view returns (uint256) {
-        //
+        
         require(isValidFeeToken(_feeTokenStr), "FeeManager: Not a valid fee token");
         uint256 baseFee;
 
@@ -286,6 +291,7 @@ contract FeeManager is GovernDapp, IFeeManager {
         
         return fee;
     }
+
 
     function payFee(uint256 fee, string memory feeTokenStr) external returns (uint256) {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");

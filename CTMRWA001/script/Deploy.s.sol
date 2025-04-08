@@ -23,6 +23,7 @@ import {CTMRWA001XFallback} from "../flattened/CTMRWA001XFallback.sol";
 import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
 import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
 import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
+import {CTMRWAERC20Deployer} from "../contracts/CTMRWAERC20Deployer.sol";
 import {CTMRWA001SentryManager} from "../flattened/CTMRWA001SentryManager.sol";
 import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
 import {FeeManager} from "../flattened/FeeManager.sol";
@@ -41,6 +42,7 @@ contract Deploy is Script {
     CTMRWA001X ctmRwa001X;
     CTMRWA001TokenFactory tokenFactory;
     CTMRWA001XFallback ctmRwaFallback;
+    CTMRWAERC20Deployer ctmRwaErc20Deployer;
     CTMRWA001StorageManager storageManager;
     CTMRWA001SentryManager sentryManager;
     CTMRWA001StorageUtils storageUtils;
@@ -177,7 +179,13 @@ contract Deploy is Script {
             _dappIDDeployer
         );
 
-        ctmRwa001X.setCtmRwaDeployer(address(ctmRwaDeployer));
+        ctmRwaErc20Deployer = new CTMRWAERC20Deployer(
+            _rwa001X,
+            _ctmRwa001Map,
+            feeManagerAddr
+        );
+
+        ctmRwa001X.setCtmRwaDeployer(address(ctmRwaDeployer), address(ctmRwaErc20Deployer));
 
         tokenFactory = new CTMRWA001TokenFactory(_ctmRwa001Map, address(ctmRwaDeployer));
 

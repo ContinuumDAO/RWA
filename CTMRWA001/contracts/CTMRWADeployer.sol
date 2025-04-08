@@ -16,11 +16,6 @@ import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWAFactory} from "./interfaces/ICTMRWAFactory.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 
-interface TokenType {
-    function getRWAType() external returns(uint256);
-    function getVersion() external returns(uint256);
-}
-
 
 contract CTMRWADeployer is Context, GovernDapp {
     using Strings for *;
@@ -83,8 +78,8 @@ contract CTMRWADeployer is Context, GovernDapp {
     ) external onlyRwaX returns(address, address, address, address) {
         address tokenAddr = ICTMRWAFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
 
-        require(TokenType(tokenAddr).getRWAType() == _rwaType, "CTMRWADeployer: Wrong RWA type");
-        require(TokenType(tokenAddr).getVersion() == _version, "CTMRWADeployer: Wrong RWA version");
+        require(ICTMRWA001(tokenAddr).rwaType() == _rwaType, "CTMRWADeployer: Wrong RWA type");
+        require(ICTMRWA001(tokenAddr).version() == _version, "CTMRWADeployer: Wrong RWA version");
         
         address dividendAddr = deployDividend(_ID, tokenAddr, _rwaType, _version);
         address storageAddr = deployStorage(_ID, tokenAddr, _rwaType, _version);

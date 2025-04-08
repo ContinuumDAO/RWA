@@ -2,9 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-// import "forge-std/console.sol";
-
-import "./CTMRWA001Token.sol";
+import "./CTMRWA001.sol";
 import {SlotData, ICTMRWA001} from "./interfaces/ICTMRWA001.sol"; 
 
 contract CTMRWA001TokenFactory {
@@ -41,7 +39,7 @@ contract CTMRWA001TokenFactory {
             address ctmRwa001X
         ) = abi.decode(_deployData, (uint256, address, string, string, uint8, string, uint256[], string[], address));
 
-        CTMRWA001Token ctmRwa001Token = new CTMRWA001Token{
+        CTMRWA001 ctmRwa001Token = new CTMRWA001{
             salt: bytes32(ID) 
         }(
             admin,

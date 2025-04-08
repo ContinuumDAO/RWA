@@ -25,7 +25,8 @@ enum FeeType {
     ICON,
     WHITELIST,
     COUNTRY,
-    KYC
+    KYC,
+    ERC20
 }
 
 

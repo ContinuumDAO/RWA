@@ -20,8 +20,9 @@ interface ICTMRWA001X {
     function setGateway(address _gateway) external;
     function setFallback(address _fallbackAddr) external;
     function setCtmRwaMap(address ctmRwaMap) external;
-    function setCtmRwaDeployer(address _deployer) external;
+    function setCtmRwaDeployer(address _deployer, address _erc20Deployer) external;
     function fallbackAddr() external returns(address);
+    function erc20Deployer() external returns(address);
     function gateway() external returns(address);
     function feeManager() external returns(address);
     function ctmRwaDeployer() external returns(address);

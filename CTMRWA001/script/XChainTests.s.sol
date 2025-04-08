@@ -20,7 +20,6 @@ import {ICTMRWA001Sentry} from "../contracts/interfaces/ICTMRWA001Sentry.sol";
 import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
 import {ICTMRWADeployer} from "../contracts/interfaces/ICTMRWADeployer.sol";
 import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
-import {ICTMRWA001Token} from "../contracts/interfaces/ICTMRWA001Token.sol";
 import {ICTMRWA001XFallback} from "../contracts/interfaces/ICTMRWA001XFallback.sol";
 import {ICTMRWA001Dividend} from "../contracts/interfaces/ICTMRWA001Dividend.sol";
 import {URICategory, URIType} from "../contracts/interfaces/ICTMRWA001Storage.sol";
@@ -82,9 +81,9 @@ contract XChainTests is Script {
 
     function run() external {
 
-        loadContracts(153);
+        loadContracts(168587773);
 
-        uint256 ID = 97242864839343996293486045633451726263558902585987751085988176512193216604394;
+        // uint256 ID = ;
 
 
         // debugRwaXCall();
@@ -97,12 +96,14 @@ contract XChainTests is Script {
         // checkDeployData();
 
 
-        // uint256 idBack = deployLocal();
+        uint256 idBack = deployLocal();
 
         
         // toChainIdsStr.push("421614");
         // toChainIdsStr.push("84532");
-        // toChainIdsStr.push("78600");
+        // toChainIdsStr.push("78600"); // Vanguard
+        // toChainIdsStr.push("534351"); // Scroll
+        // toChainIdsStr.push("5003");
         // deployRemote(ID);
         // createSlots(ID, toChainIdsStr);
         // getSlots(ID,0);
@@ -122,7 +123,7 @@ contract XChainTests is Script {
         // addURI(ID, toChainIdsStr);
 
         // toChainIdsStr.push("5611");
-        lockRwa(ID);
+        // lockRwa(ID);
 
 
     }

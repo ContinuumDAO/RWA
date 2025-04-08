@@ -18,6 +18,7 @@ contract DeployDebugRwaX is Script {
 
     address gatewayAddr;
     address feeManagerAddr;
+    address erc20DeployerAddr;
 
 
     function run() external {
@@ -38,6 +39,8 @@ contract DeployDebugRwaX is Script {
 
         gatewayAddr = address(0x291E038Ef58dcFDF020e0BBEA0C9a36713dB7966);
         feeManagerAddr = address(0xBCe6B1Ab3790BCe90E2299cc9C46f6D2bCB56324);
+
+        
 
      
 
@@ -64,7 +67,7 @@ contract DeployDebugRwaX is Script {
         ctmRwa001X.setCtmRwaMap(ctmRwa001MapAddr);
 
         address ctmRwaDeployerAddr = address(0x038a39974a702ada213a318c855792244884EDCC);
-        ctmRwa001X.setCtmRwaDeployer(ctmRwaDeployerAddr);
+        ctmRwa001X.setCtmRwaDeployer(ctmRwaDeployerAddr, erc20DeployerAddr);
 
         // ICTMRWADeployer(ctmRwaDeployerAddr).setRwaX(address(ctmRwa001X));  // MUST CHANGE BACK
 

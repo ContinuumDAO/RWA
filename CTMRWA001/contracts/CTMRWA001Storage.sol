@@ -138,6 +138,7 @@ contract CTMRWA001Storage is Context {
         }    
     }
 
+    // TODO make this function accessible to tokenAdmin (for emergencies)
     function setNonce(uint256 _val) external onlyStorageManager {
         nonce = _val;
     }
