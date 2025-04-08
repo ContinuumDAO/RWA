@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
-
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -164,25 +162,6 @@ contract CTMRWAERC20 is Context, ERC20 {
 
     function allowance(address _owner, address _spender) public view override returns (uint256) {
         return super.allowance(_owner, _spender);
-        // bool approved = ICTMRWA001(ctmRwaToken).isApprovedForSlot(_owner, slot, _spender);
-        // if(approved) {
-        //     return type(uint256).max;
-        // } else {
-        //     uint256 tokenId;
-        //     uint256 allowanceSoFar;
-
-        //     uint256 len = ICTMRWA001(ctmRwaToken).balanceOf(_owner);
-
-        //     for(uint256 i=0; i<len; i++) {
-        //         tokenId = ICTMRWA001(ctmRwaToken).tokenOfOwnerByIndex(_owner, i);
-
-        //         if(ICTMRWA001(ctmRwaToken).slotOf(tokenId) == slot) {
-        //             allowanceSoFar += ICTMRWA001(ctmRwaToken).allowance(tokenId, _spender);
-        //         }
-        //     }
-
-        //     return allowanceSoFar;
-        // }
     }
 
     function approve(address _spender, uint256 _value) public override returns (bool) {
@@ -203,50 +182,14 @@ contract CTMRWAERC20 is Context, ERC20 {
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public override returns (bool) {
-        // ICTMRWA001(ctmRwaToken).setApprovalForAll(address(this), true);
         _spendAllowance(_from, _msgSender(), _value);
         _transfer(_from, _to, _value);
-        // ICTMRWA001(ctmRwaToken).setApprovalForAll(address(this), false);
 
         return true;
     }
 
     function _approve(address _owner, address _spender, uint256 _value, bool _emitEvent) internal override {
-        
         super._approve(_owner, _spender, _value, _emitEvent);
-        // if (_owner == address(0)) {
-        //     revert ERC20InvalidApprover(address(0));
-        // }
-        // if (_spender == address(0)) {
-        //     revert ERC20InvalidSpender(address(0));
-        // }
-        
-        // uint256 tokenId;
-        // uint256 tokenIdBal;
-        // uint256 valRemaining = _value;
-
-        // uint256 len = ICTMRWA001(ctmRwaToken).balanceOf(_owner);
-
-        // for(uint256 i=0; i<len; i++) {
-        //     tokenId = ICTMRWA001(ctmRwaToken).tokenOfOwnerByIndex(_msgSender(), i);
-
-        //     if(ICTMRWA001(ctmRwaToken).slotOf(tokenId) == slot) {
-        //         tokenIdBal = ICTMRWA001(ctmRwaToken).balanceOf(tokenId);
-        //         if(valRemaining == 0) { // clear remaining approvals
-        //             ICTMRWA001(ctmRwaToken).approve(tokenId, _spender, 0);
-        //         } else if(tokenIdBal >= valRemaining) {
-        //             ICTMRWA001(ctmRwaToken).approve(tokenId, _spender, valRemaining);
-        //             valRemaining = 0;
-        //         } else {
-        //             ICTMRWA001(ctmRwaToken).approve(tokenId, _spender, tokenIdBal);
-        //             valRemaining -= tokenIdBal;
-        //         }
-        //     }
-        // }
-
-        // if (_emitEvent) {
-        //     emit Approval(_owner, _spender, _value);
-        // }
     }
 
 
