@@ -42,7 +42,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         uint256 slot;
         uint256 balance;
         address owner;
-        uint256 dividendUnclaimed;
         address approved;
         address[] valueApprovals;
     }
@@ -215,11 +214,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _allTokens[_allTokensIndex[tokenId_]].balance;
     }
 
-    function dividendUnclaimedOf(uint256 tokenId_) public view virtual returns (uint256) {
-       requireMinted(tokenId_);
-        return _allTokens[_allTokensIndex[tokenId_]].dividendUnclaimed;
-    }
-
     function ownerOf(uint256 tokenId_) public view virtual returns (address owner_) {
         requireMinted(tokenId_);
         owner_ = _allTokens[_allTokensIndex[tokenId_]].owner;
@@ -263,17 +257,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return(_allSlots[_allSlotsIndex[_slot]].dividendRate);
     }
 
-    function incrementDividend(uint256 _tokenId, uint256 _dividend) external onlyDividend returns(uint256) {
-        requireMinted(_tokenId);
-        _allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed += _dividend;
-        return(_allTokens[_allTokensIndex[_tokenId]].dividendUnclaimed);
-    }
-
-    function decrementDividend(uint256 _tokenId, uint256 _dividend) external onlyDividend returns(uint256) {
-        requireMinted(_tokenId);
-        _allTokens[_tokenId].dividendUnclaimed -= _dividend;
-        return(_allTokens[_tokenId].dividendUnclaimed);
-    }
 
     function deployErc20(
         uint256 _slot,
@@ -336,10 +319,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         uint256 value_
     ) public override returns(address) {
 
-        // TODO do the dividend claim if dividendUnclaimedOf > 0
-        // if (dividendUnclaimedOf(fromTokenId_) > 0) {
-        //     ICTMRWA001Dividend(dividendAddr).claimDividend(fromTokenId_);
-        // }
         spendAllowance(_msgSender(), fromTokenId_, value_);
         _transferValue(fromTokenId_, toTokenId_, value_);
 
@@ -357,7 +336,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         uint256 tokenId_
     ) public onlyRwa001X {
         require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
-        require(dividendUnclaimedOf(tokenId_) == 0, "CTMRWA001: TokenId has unclaimed dividend");
         _transferTokenId(from_, to_, tokenId_);
 
     }
@@ -462,7 +440,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             slot: slot_,
             balance: 0,
             owner: to_,
-            dividendUnclaimed: 0,
+            // dividendUnclaimed: 0,
             approved: address(0),
             valueApprovals: new address[](0)
         });
@@ -675,9 +653,12 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     function mintValueX(uint256 toTokenId_, uint256 slot_, uint256 value_) external onlyMinter returns(bool) {
         require(_exists(toTokenId_), "CTMRWA001: transfer to invalid token ID");
         string memory toAddressStr = ownerOf(toTokenId_).toHexString();
-        require(ICTMRWA001Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
-            "CTMRWA001: Transfer of value to this address is not allowable"
-        );
+
+        if(sentryAddr != address(0)) {
+            require(ICTMRWA001Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
+                "CTMRWA001: Transfer of value to this address is not allowable"
+            );
+        }
 
         TokenData storage toTokenData = _allTokens[_allTokensIndex[toTokenId_]];
         require(toTokenData.slot == slot_, "CTMRWA001: Destination slot is not the same as source slot");
@@ -932,12 +913,14 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             _createSlot(_slot, _slotName);
         }
 
-        string memory toAddressStr = _to.toHexString();
-        require(ICTMRWA001Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
-            "CTMRWA001: Transfer of the token to this address is not allowable"
-        );
+        if(sentryAddr != address(0)) {
+            string memory toAddressStr = _to.toHexString();
+            require(ICTMRWA001Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
+                "CTMRWA001: Transfer of the token to this address is not allowable"
+            );
+        }
 
-        //Shh - currently unused
+        //currently unused
         _toTokenId;
         _value;
     }
@@ -956,7 +939,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             _removeTokenFromSlotEnumeration(slot_, fromTokenId_);
         }
 
-        //Shh - currently unused
+        //currently unused
         value_;
     }
 
