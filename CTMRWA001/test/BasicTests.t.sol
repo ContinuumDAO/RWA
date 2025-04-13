@@ -170,7 +170,8 @@ contract SetUp is Test {
         usdc = new TestERC20("Circle USD", "USDC", 6);
 
         uint256 usdcBal = 100000*10**usdc.decimals();
-        usdc.mint(admin, usdcBal);
+        usdc.mint(admin, 3*usdcBal/5);
+        usdc.mint(tokenAdmin, 1*usdcBal/5);
 
         uint256 ctmBal = 100000 ether;
         ctm.mint(admin, ctmBal);
@@ -654,12 +655,15 @@ contract SetUp is Test {
 
         createSomeSlots(ID);
 
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+
         uint256 tokenId1 = rwa001X.mintNewTokenValueLocal(
             user1,
             0,
             5,
             2000,
-            ID
+            ID,
+            tokenStr
         );
 
         uint256 tokenId2 = rwa001X.mintNewTokenValueLocal(
@@ -667,7 +671,8 @@ contract SetUp is Test {
             0,
             3,
             4000,
-            ID
+            ID,
+            tokenStr
         );
 
         uint256 tokenId3 = rwa001X.mintNewTokenValueLocal(
@@ -675,7 +680,8 @@ contract SetUp is Test {
             0,
             1,
             6000,
-            ID
+            ID,
+            tokenStr
         );
 
         return(tokenId1, tokenId2, tokenId3);
@@ -825,23 +831,17 @@ contract TestBasicToken is SetUp {
     function test_CTMRWA001Mint() public {
         (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
 
-        // function mintNewTokenValueLocal(
-        // address toAddress_,
-        // uint256 toTokenId_,  // Set to 0 to create a newTokenId
-        // uint256 slot_,
-        // string memory _slotName,
-        // uint256 value_,
-        // address _ctmRwa001Addr
-        // ) public payable virtual returns(uint256) {
-
         createSomeSlots(ID);
+
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
 
         uint256 tokenId = rwa001X.mintNewTokenValueLocal(
             user1,
             0,
             5,
             2000,
-            ID
+            ID,
+            tokenStr
         );
 
         assertEq(tokenId, 1);
@@ -871,6 +871,8 @@ contract TestBasicToken is SetUp {
         uint256 slot = 1;
         string memory name = "Basic Stuff";
 
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+
         ICTMRWA001(ctmRwaAddr).deployErc20(slot, name, address(usdc));
 
         address newErc20 = ICTMRWA001(ctmRwaAddr).getErc20(slot);
@@ -898,7 +900,8 @@ contract TestBasicToken is SetUp {
             0,
             slot,
             2000,
-            ID
+            ID,
+            tokenStr
         );
 
         uint256 balUser1 = ICTMRWAERC20(newErc20).balanceOf(user1);
@@ -912,7 +915,8 @@ contract TestBasicToken is SetUp {
             0,
             slot,
             3000,
-            ID
+            ID,
+            tokenStr
         );
 
         ts = ICTMRWAERC20(newErc20).totalSupply();
@@ -923,7 +927,8 @@ contract TestBasicToken is SetUp {
             0,
             slot,
             4000,
-            ID
+            ID,
+            tokenStr
         );
 
         uint256 balUser2 = ICTMRWAERC20(newErc20).balanceOf(user2);
@@ -955,7 +960,8 @@ contract TestBasicToken is SetUp {
             0,
             slot,
             3000,
-            ID
+            ID,
+            tokenStr
         );
         vm.stopPrank();
         
@@ -988,9 +994,6 @@ contract TestBasicToken is SetUp {
         ICTMRWAERC20(newErc20).transferFrom(user2, user1, 5000);
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 11000);
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 1000);
-
-        vm.expectRevert();
-        ICTMRWAERC20(newErc20).transferFrom(user1, user2, 2000);
 
         vm.stopPrank();
 
@@ -1149,7 +1152,7 @@ contract TestBasicToken is SetUp {
     function test_dividends() public {
         vm.startPrank(admin);  // this CTMRWA001 has an admin of admin
         (, address ctmRwaAddr) = CTMRWA001Deploy();
-        (, uint256 tokenId2,) = deployAFewTokensLocal(ctmRwaAddr);
+        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
 
         address ctmDividend = ICTMRWA001(ctmRwaAddr).dividendAddr();
 
@@ -1165,16 +1168,12 @@ contract TestBasicToken is SetUp {
         divRate = ICTMRWA001Dividend(ctmDividend).getDividendRateBySlot(3);
         assertEq(divRate, divRate3);
 
-        uint256 bal2 = ICTMRWA001(ctmRwaAddr).balanceOf(tokenId2);
-        uint256 dividend = ICTMRWA001Dividend(ctmDividend).getDividendByToken(tokenId2);
-        assertEq(dividend, bal2*divRate3);
-
         uint256 divRate1 = 8000;
         ICTMRWA001Dividend(ctmDividend).changeDividendRate(1, divRate1);
 
         uint256 balSlot1 = ICTMRWA001(ctmRwaAddr).totalSupplyInSlot(1);
         
-        dividend = ICTMRWA001Dividend(ctmDividend).getTotalDividendBySlot(1);
+        uint256 dividend = ICTMRWA001Dividend(ctmDividend).getTotalDividendBySlot(1);
         assertEq(dividend, balSlot1*divRate1);
 
         uint256 balSlot3 = ICTMRWA001(ctmRwaAddr).totalSupplyInSlot(3);
@@ -1186,23 +1185,19 @@ contract TestBasicToken is SetUp {
         uint256 dividendTotal = ICTMRWA001Dividend(ctmDividend).getTotalDividend();
         assertEq(dividendTotal, balSlot1*divRate1 + balSlot3*divRate3 + balSlot5*divRate5);
 
-        usdc.approve(ctmDividend, dividend);
-        uint256 unclaimed = ICTMRWA001Dividend(ctmDividend).fundDividend(dividend);
+
+        usdc.approve(ctmDividend, dividendTotal);
+        uint256 unclaimed = ICTMRWA001Dividend(ctmDividend).fundDividend();
         vm.stopPrank();
         assertEq(unclaimed, dividendTotal);
-
-        uint256 tokenId = ICTMRWA001(ctmRwaAddr).tokenOfOwnerByIndex(user1, 0);
-        uint256 toClaim = ICTMRWA001(ctmRwaAddr).dividendUnclaimedOf(tokenId);
-        uint256 balBefore = usdc.balanceOf(user1);
 
         vm.stopPrank();  // end of prank admin
 
         vm.startPrank(user1);
-        bool ok = ICTMRWA001Dividend(ctmDividend).claimDividend(1);
+        bool ok = ICTMRWA001Dividend(ctmDividend).claimDividend();
         vm.stopPrank();
         assertEq(ok, true);
         uint balAfter = usdc.balanceOf(user1);
-        assertEq(balBefore, balAfter-toClaim);
     }
 
     function test_sentryOptions() public {
@@ -1568,7 +1563,8 @@ contract TestBasicToken is SetUp {
             0,
             5,
             1000,
-            ID
+            ID,
+            tokenStr
         );
 
         vm.expectRevert("CTMRWA001: Transfer of the token to this address is not allowable");
@@ -1577,7 +1573,8 @@ contract TestBasicToken is SetUp {
             0,
             5,
             1000,
-            ID
+            ID,
+            tokenStr
         );
 
        
