@@ -356,8 +356,8 @@ contract CTMRWA001X is Context, GovernDapp {
         (address currentAdmin, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
         address newAdmin = stringToAddress(_newAdminStr);
 
-        // TODO set includeLocal = false
-        _payFee(FeeType.ADMIN, _feeTokenStr, _toChainIdsStr, true);
+        bool includeLocal = false;
+        _payFee(FeeType.ADMIN, _feeTokenStr, _toChainIdsStr, includeLocal);
 
         for(uint256 i=0; i<_toChainIdsStr.length; i++) {
             toChainIdStr = _toLower(_toChainIdsStr[i]);
@@ -413,14 +413,14 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 toTokenId_,  // Set to 0 to create a newTokenId
         uint256 slot_,
         uint256 value_,
-        uint256 _ID
-        // string memory _feeTokenStr  // TODO Add
+        uint256 _ID,
+        string memory _feeTokenStr
     ) public returns(uint256) {
 
         (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa001Addr);
 
-        // TODO add _payFee(FeeType.MINT, _feeTokenStr, _stringToArray(cIDStr), false);
+        _payFee(FeeType.MINT, _feeTokenStr, _stringToArray(cIDStr), false);
 
         if(toTokenId_>0) {
             ICTMRWA001(ctmRwa001Addr).mintValueX(toTokenId_, slot_, value_);
@@ -523,8 +523,6 @@ contract CTMRWA001X is Context, GovernDapp {
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "CTMRWA001X: Not approved or owner of tokenId");
-        // TODO just do the claim tx instead of prevent the transfer
-        require(ICTMRWA001(ctmRwa001Addr).dividendUnclaimedOf(_fromTokenId) == 0, "CTMRWA001X: TokenId has unclaimed dividend");
 
         if(stringsEqual(toChainIdStr, cIDStr)) {
             address toAddr = stringToAddress(_toAddressStr);
@@ -577,9 +575,6 @@ contract CTMRWA001X is Context, GovernDapp {
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         address fromAddr = stringToAddress(_fromAddrStr);
         require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "CTMRWA001X: transfer caller is not owner nor approved");
-         // TODO just do the claim tx instead of prevent the transfer
-        require(ICTMRWA001(ctmRwa001Addr).dividendUnclaimedOf(_fromTokenId) == 0, "CTMRWA001X: TokenId has unclaimed dividend");
-
 
         if(stringsEqual(toChainIdStr, cIDStr)) {
             address toAddr = stringToAddress(_toAddressStr);
