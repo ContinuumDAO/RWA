@@ -74,8 +74,8 @@ interface ICTMRWA001X {
         uint256 toTokenId,  // Set to 0 to create a newTokenId
         uint256 slot,
         uint256 value,
-        uint256 ID
-        // string feeTokenStr  // TODO Add
+        uint256 ID,
+        string memory feeTokenStr
     ) external returns(uint256);
 
 

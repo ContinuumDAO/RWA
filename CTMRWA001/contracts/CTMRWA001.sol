@@ -49,7 +49,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     struct AddressData {
         uint256[] ownedTokens;
         mapping(uint256 => uint256) ownedTokensIndex;
-        mapping(address => bool) approvals;
     }
 
     
@@ -346,14 +345,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _allTokens[_allTokensIndex[tokenId_]].approved;
     }
 
-    // function setApprovalForAll(address operator_, bool approved_) external onlyERC20() {
-    //     _setApprovalForAll(_msgSender(), operator_, approved_);
-    // }
-
-    function isApprovedForAll(address owner_, address operator_) public view virtual returns (bool) {
-        return _addressData[owner_].approvals[operator_];
-    }
-
     function totalSupply() external view virtual returns (uint256) {
         return _allTokens.length;
     }
@@ -367,18 +358,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         require(index_ < CTMRWA001.balanceOf(owner_), "CTMRWA001: owner index out of bounds");
         return _addressData[owner_].ownedTokens[index_];
     }
-
-    // function _setApprovalForAll(
-    //     address owner_,
-    //     address operator_,
-    //     bool approved_
-    // ) internal virtual {
-    //     require(owner_ != operator_, "CTMRWA001: approve to caller");
-
-    //     _addressData[owner_].approvals[operator_] = approved_;
-
-    //     emit ApprovalForAll(owner_, operator_, approved_);
-    // }
 
     function spendAllowance(address operator_, uint256 tokenId_, uint256 value_) public virtual {
         uint256 currentAllowance = CTMRWA001.allowance(tokenId_, operator_);
@@ -440,7 +419,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             slot: slot_,
             balance: 0,
             owner: to_,
-            // dividendUnclaimed: 0,
             approved: address(0),
             valueApprovals: new address[](0)
         });
@@ -762,7 +740,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         address operator_,
         bool approved_
     ) public virtual override {
-        require(_msgSender() == owner_ || isApprovedForAll(owner_, _msgSender()), "CTMRWA001: caller is not owner nor approved for all");
+        require(_msgSender() == owner_, "CTMRWA001: caller is not owner nor approved for all");
         _setApprovalForSlot(owner_, slot_, operator_, approved_);
     }
 
@@ -781,9 +759,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
         require(
             _msgSender() == owner || 
-            isApprovedForAll(owner, _msgSender()) ||
             isApprovedForSlot(owner, slot, _msgSender()),
-            "CTMRWA001: approve caller is not owner nor approved for all/slot"
+            "CTMRWA001: approve caller is not owner nor approved for slot"
         );
 
         _approve(to_, tokenId_);
@@ -807,7 +784,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return (
             operator_ == owner ||
             getApproved(tokenId_) == operator_ ||
-            CTMRWA001.isApprovedForAll(owner, operator_) ||
             isApprovedForSlot(owner, slot, operator_) ||
             _erc20s[operator_]
         );

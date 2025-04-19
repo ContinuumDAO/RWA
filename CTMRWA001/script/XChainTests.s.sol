@@ -81,7 +81,7 @@ contract XChainTests is Script {
 
     function run() external {
 
-        loadContracts(168587773);
+        loadContracts(1115);
 
         // uint256 ID = ;
 
@@ -520,7 +520,7 @@ contract XChainTests is Script {
 
         IERC20(feeToken).approve(rwa001XAddr, 10000*10**ITheiaERC20(feeToken).decimals());
 
-        uint256 newTokenId = rwa001X.mintNewTokenValueLocal(senderAccount, 0, 6, 1450, _ID);
+        uint256 newTokenId = rwa001X.mintNewTokenValueLocal(senderAccount, 0, 6, 1450, _ID, feeTokenStr);
         console.log("newTokenId = ");
         console.log(newTokenId);
 

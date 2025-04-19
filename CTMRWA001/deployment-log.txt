@@ -402,7 +402,7 @@ FEE TOKEN USDT 0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
 
 
 CORE Testnet Chain 1115   *  Solidity 0.8.22
---gas-estimate-multiplier=300
+--gas-estimate-multiplier=1000
 
 FEE TOKEN USDT 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
 

@@ -56,7 +56,7 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
     function getErc20(uint256 _slot) external view returns(address);
     
     function balanceOf(address user) external view returns (uint256);
-    function dividendUnclaimedOf(uint256 tokenId) external view returns (uint256);
+    // function dividendUnclaimedOf(uint256 tokenId) external view returns (uint256);
     function tokenOfOwnerByIndex(address owner, uint256 index_) external view returns (uint256);
     function totalSupply() external view returns (uint256);
     function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);
@@ -102,8 +102,8 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
     function storageAddr() external view returns(address);
     function getDividendRateBySlot(uint256 _slot) external view returns(uint256);
     function changeDividendRate(uint256 slot, uint256 dividend) external returns(bool);
-    function incrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
-    function decrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
+    // function incrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
+    // function decrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
 
     function createOriginalTokenId() external returns(uint256);
 

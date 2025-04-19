@@ -110,7 +110,7 @@ contract CTMRWA001Storage is Context {
         require(!existURIHash(_uriDataHash), "CTMRWA001Storage: Hash already exists");
 
         if(_uriType == URIType.SLOT) {
-            (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+            (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
             require(ok && ICTMRWA001(tokenAddr).slotExists(_slot), "CTMRWA001Storage: Slot does not exist");
         }
 
@@ -138,7 +138,11 @@ contract CTMRWA001Storage is Context {
         }    
     }
 
-    // TODO make this function accessible to tokenAdmin (for emergencies)
+    function increaseNonce(uint256 _val) public onlyTokenAdmin {
+        require(_val > nonce, "CTMRWA001Storage: Can only increase the nonce value");
+        nonce = _val;
+    }
+
     function setNonce(uint256 _val) external onlyStorageManager {
         nonce = _val;
     }

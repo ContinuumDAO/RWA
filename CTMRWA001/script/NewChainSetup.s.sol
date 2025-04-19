@@ -28,7 +28,7 @@ contract NewChainSetup is Script {
     uint256 rwaType = 1;
     uint256 version = 1;
 
-    uint256 chainId = 3441006;   // This is the chainId we are processing
+    uint256 chainId = 4201;   // This is the chainId we are processing
 
     bool COMPLETE = true;
 
@@ -410,6 +410,7 @@ contract NewChainSetup is Script {
                     require(ok, "NewChainSetup: Could not set fee multiplier");
                     ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.KYC, 5);
                     require(ok, "NewChainSetup: Could not set fee multiplier");
+                    
 
                     if(!stringsEqual(_toLower(ICTMRWAGateway(thisGway).getChainContract(chainIdStr)), thisGway.toHexString())) {
                         chainIdContractsStr.push(chainIdStr);
