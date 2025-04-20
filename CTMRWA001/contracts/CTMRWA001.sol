@@ -152,6 +152,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     
     function changeAdmin(address _tokenAdmin) public onlyRwa001X returns(bool) {
         tokenAdmin = _tokenAdmin;
+        overrideWallet = address(0);
         return true;
     }
 
