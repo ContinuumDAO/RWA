@@ -27,6 +27,7 @@ contract CTMRWA001Storage is Context {
     address public tokenAdmin;
     address public ctmRwa001X;
     address public ctmRwa001Map;
+    address public regulatorWallet;
     string baseURI;
 
     string idStr;
@@ -115,7 +116,7 @@ contract CTMRWA001Storage is Context {
         }
 
         if(_uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER) {
-            require(getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0, 
+            require(this.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0, 
             "CTMRWA001Storage: Type CONTRACT and CATEGORY ISSUER must be the first stored element");
         }
 
@@ -145,6 +146,14 @@ contract CTMRWA001Storage is Context {
 
     function setNonce(uint256 _val) external onlyStorageManager {
         nonce = _val;
+    }
+
+
+    function createSecurity(address _regulatorWallet) public onlyTokenAdmin {
+        uint256 securityURICount = this.getURIHashCount(URICategory.LICENSE, URIType.CONTRACT);
+        require(securityURICount > 0, "CTMRWA001Storage: No description of the Security is present");
+
+        regulatorWallet = _regulatorWallet;
     }
 
 
@@ -204,7 +213,7 @@ contract CTMRWA001Storage is Context {
         return(bytes32(0), "");
     }
 
-    function getURIHashCount(URICategory uriCat, URIType uriTyp) public view returns(uint256) {
+    function getURIHashCount(URICategory uriCat, URIType uriTyp) external view returns(uint256) {
         uint256 count;
         for(uint256 i=0; i<uriData.length; i++) {
             if(uriData[i].uriType == uriTyp && uriData[i].uriCategory == uriCat) {

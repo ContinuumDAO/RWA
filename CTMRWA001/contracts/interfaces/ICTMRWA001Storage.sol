@@ -40,6 +40,7 @@ struct URIData {
 
 interface ICTMRWA001Storage {
     function ID() external returns(uint256);
+    function regulatorWallet() external returns(address);
     function nonce() external returns(uint256);
     function tokenAdmin() external returns(address);
     function ctmRwa001X() external returns(address);
@@ -66,6 +67,8 @@ interface ICTMRWA001Storage {
 
     function setNonce(uint256 val) external;
     function increaseNonce(uint256 val) external;
+
+    function createSecurity(address regulatorWallet) external;
 
     function getAllURIData() external view returns(
         uint8[] memory uriCategory,
