@@ -165,14 +165,8 @@ contract CTMRWAERC20 is Context, ERC20 {
     }
 
     function approve(address _spender, uint256 _value) public override returns (bool) {
-        bool approved = ICTMRWA001(ctmRwaToken).isApprovedForSlot(_msgSender(), slot, _spender);
-        if(approved) {
-            _approve(_msgSender(), _spender, type(uint256).max, true);
-            return true;
-        } else {
-            _approve(_msgSender(), _spender, _value, true);
-            return true;
-        }
+        _approve(_msgSender(), _spender, _value, true);
+        return true;
     }
 
     function transfer(address _to, uint256 _value) public override returns (bool) {
@@ -249,19 +243,14 @@ contract CTMRWAERC20 is Context, ERC20 {
     }
 
     function _spendAllowance(address _owner, address _spender, uint256 _value) internal override {
-        bool approved = ICTMRWA001(ctmRwaToken).isApprovedForSlot(_owner, slot, _spender);
-        if(approved) {
-            _approve(_owner, _spender, type(uint256).max, false);
-        } else {
-            uint256 currentAllowance = allowance(_owner, _spender);
-            
-            if (currentAllowance != type(uint256).max) {
-                if(currentAllowance < _value) {
-                    revert ERC20InsufficientAllowance(_spender, currentAllowance, _value);
-                }
-                unchecked {
-                    _approve(_owner, _spender, currentAllowance - _value, false);
-                }
+        uint256 currentAllowance = allowance(_owner, _spender);
+        
+        if (currentAllowance != type(uint256).max) {
+            if(currentAllowance < _value) {
+                revert ERC20InsufficientAllowance(_spender, currentAllowance, _value);
+            }
+            unchecked {
+                _approve(_owner, _spender, currentAllowance - _value, false);
             }
         }
     }

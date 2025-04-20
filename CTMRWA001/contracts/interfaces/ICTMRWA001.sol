@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.19;
 
-import {ICTMRWA001SlotApprovable} from "../extensions/ICTMRWA001SlotApprovable.sol";
-
 /**
  * @title CTMRWA001 Semi-Fungible Token Standard
  * @dev See https://docs.continuumdao.org
@@ -27,10 +25,11 @@ interface ITokenContract {
     function tokenChainIdStrs() external returns(string[] memory);
 }
 
-interface ICTMRWA001 is ICTMRWA001SlotApprovable {
+interface ICTMRWA001 {
 
     function ID() external view returns(uint256);
     function tokenAdmin() external returns(address);
+    function overrideWallet() external returns(address);
     function rwaType() external returns(uint256);
     function version() external returns(uint256);
     function ctmRwa001X() external returns(address);
@@ -56,7 +55,6 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
     function getErc20(uint256 _slot) external view returns(address);
     
     function balanceOf(address user) external view returns (uint256);
-    // function dividendUnclaimedOf(uint256 tokenId) external view returns (uint256);
     function tokenOfOwnerByIndex(address owner, uint256 index_) external view returns (uint256);
     function totalSupply() external view returns (uint256);
     function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);
@@ -76,12 +74,6 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
 
     function approveFromX(address to_, uint256 tokenId_) external;
     function clearApprovedValues(uint256 tokenId_) external;
-    function setApprovalForSlot(
-        address owner,
-        uint256 slot,
-        address operator,
-        bool approved
-    ) external;
     function removeTokenFromOwnerEnumeration(address from, uint256 tokenId) external;
 
     function burn(uint256 tokenId) external;
@@ -95,15 +87,12 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
     function requireMinted(uint256 tokenId) external view returns(bool);
     function isApprovedOrOwner(address operator, uint256 tokenId) external view returns(bool);
     function getApproved(uint256 tokenId) external view returns (address);
-    // function setApprovalForAll(address operator_, bool approved_) external;
 
    
     function dividendAddr() external view returns(address);
     function storageAddr() external view returns(address);
     function getDividendRateBySlot(uint256 _slot) external view returns(uint256);
     function changeDividendRate(uint256 slot, uint256 dividend) external returns(bool);
-    // function incrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
-    // function decrementDividend(uint256 tokenId, uint256 dividend) external returns(uint256);
 
     function createOriginalTokenId() external returns(uint256);
 
@@ -231,6 +220,6 @@ interface ICTMRWA001 is ICTMRWA001SlotApprovable {
     ) external returns (uint256);
 
     function transferFrom(address fromAddr, address toAddr,  uint256 fromTokenId) external;
-    
+    function forceTransfer(address from, address to, uint256 tokenId) external returns(bool);
 }
 

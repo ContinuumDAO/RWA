@@ -10,6 +10,7 @@ import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
 
 import {ICTMRWA001X} from "./interfaces/ICTMRWA001X.sol";
 import {ICTMRWAERC20Deployer} from "./interfaces/ICTMRWAERC20Deployer.sol";
+import {ICTMRWA001Storage} from "./interfaces/ICTMRWA001Storage.sol";
 import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
 
 
@@ -24,6 +25,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     address public ctmRwaDeployer;
     address public tokenAdmin;
+    address public overrideWallet;
     address ctmRwaMap;
     address public ctmRwa001X;
     address public rwa001XFallback;
@@ -71,9 +73,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     // id => (approval => allowance)
     // @dev _approvedValues cannot be defined within TokenData, cause struct containing mappings cannot be constructed.
     mapping(uint256 => mapping(address => uint256)) private _approvedValues;
-
-    // @dev owner => slot => operator => approved
-    mapping(address => mapping(uint256 => mapping(address => bool))) private _slotApprovals;
 
     TokenData[] private _allTokens;
 
@@ -154,6 +153,11 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     function changeAdmin(address _tokenAdmin) public onlyRwa001X returns(bool) {
         tokenAdmin = _tokenAdmin;
         return true;
+    }
+
+    function setOverrideWallet(address _overrideWallet) public onlyTokenAdmin {
+        require(ICTMRWA001Storage(storageAddr).regulatorWallet() != address(0), "CTMRWA001: Token is not a Security");
+        overrideWallet = _overrideWallet;
     }
 
     /**
@@ -337,6 +341,13 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         require(isApprovedOrOwner(_msgSender(), tokenId_), "CTMRWA001: transfer caller is not owner nor approved");
         _transferTokenId(from_, to_, tokenId_);
 
+    }
+
+    function forceTransfer(address _from, address _to, uint256 _tokenId) public returns(bool) {
+        require(overrideWallet != address(0), "CTMRWA001: Licensed Security override not set up");
+        _transferTokenId(_from, _to, _tokenId);
+
+        return true;
     }
 
 
@@ -734,57 +745,24 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return string(bLower);
     }
 
-    function setApprovalForSlot(
-        address owner_,
-        uint256 slot_,
-        address operator_,
-        bool approved_
-    ) public virtual override {
-        require(_msgSender() == owner_, "CTMRWA001: caller is not owner nor approved for all");
-        _setApprovalForSlot(owner_, slot_, operator_, approved_);
-    }
-
-    function isApprovedForSlot(
-        address owner_,
-        uint256 slot_,
-        address operator_
-    ) public view virtual override returns (bool) {
-        return _slotApprovals[owner_][slot_][operator_];
-    }
-
     function approve(address to_, uint256 tokenId_) public virtual override {
         address owner = ownerOf(tokenId_);
-        uint256 slot = slotOf(tokenId_);
         require(to_ != owner, "CTMRWA001: approval to current owner");
 
         require(
-            _msgSender() == owner || 
-            isApprovedForSlot(owner, slot, _msgSender()),
-            "CTMRWA001: approve caller is not owner nor approved for slot"
+            _msgSender() == owner, 
+            "CTMRWA001: approve caller is not owner"
         );
 
         _approve(to_, tokenId_);
     }
 
-    function _setApprovalForSlot(
-        address owner_,
-        uint256 slot_,
-        address operator_,
-        bool approved_
-    ) internal virtual {
-        require(owner_ != operator_, "CTMRWA001: approve to owner");
-        _slotApprovals[owner_][slot_][operator_] = approved_;
-        emit ApprovalForSlot(owner_, slot_, operator_, approved_);
-    }
-
     function isApprovedOrOwner(address operator_, uint256 tokenId_) public view virtual returns (bool) {
         requireMinted(tokenId_);
         address owner = CTMRWA001.ownerOf(tokenId_);
-        uint256 slot = CTMRWA001.slotOf(tokenId_);
         return (
             operator_ == owner ||
             getApproved(tokenId_) == operator_ ||
-            isApprovedForSlot(owner, slot, operator_) ||
             _erc20s[operator_]
         );
     }
