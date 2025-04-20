@@ -76,6 +76,7 @@ contract CTMRWA001StorageUtils is Context {
         return(address(ctmRwa001Storage));
     }
 
+
     function getLastReason() public view returns(string memory) {
         return(string(lastReason));
     }
