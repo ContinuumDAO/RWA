@@ -999,6 +999,114 @@ contract TestBasicToken is SetUp {
 
     }
 
+    function test_forceTransfer() public {
+        vm.startPrank(tokenAdmin);
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
+        createSomeSlots(ID);
+
+        uint256 slot = 1;
+        string memory name = "Basic Stuff";
+
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+
+        uint256 tokenId1User1 = rwa001X.mintNewTokenValueLocal(
+            user1,
+            0,
+            slot,
+            2000,
+            ID,
+            tokenStr
+        );
+
+        uint256 tokenId2User1 = rwa001X.mintNewTokenValueLocal(
+            user1,
+            0,
+            slot,
+            1000,
+            ID,
+            tokenStr
+        );
+
+        vm.expectRevert("CTMRWA001: Licensed Security override not set up");
+        ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
+
+        string memory randomData = "this is any old data";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+
+        storageManager.addURI(
+            ID,
+            "2",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Basic RWA for testing",
+            0, // dummy
+            junkHash,
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        (, address stor) = map.getStorageContract(ID, rwaType, version);
+
+        // Attempt to set admin as the Regulator's wallet
+        vm.expectRevert("CTMRWA001Storage: No description of the Security is present");
+        ICTMRWA001Storage(stor).createSecurity(admin);
+
+        randomData = "this is a dummy security";
+        junkHash = keccak256(abi.encode(randomData));
+
+        storageManager.addURI(
+            ID,
+            "1",
+            URICategory.LICENSE,
+            URIType.CONTRACT,
+            "Dummy security",
+            0, // dummy
+            junkHash,
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        vm.expectRevert("CTMRWA001: Licensed Security override not set up");
+        ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
+
+
+        // set admin as the Regulator's wallet
+        ICTMRWA001Storage(stor).createSecurity(admin);
+        assertEq(ICTMRWA001Storage(stor).regulatorWallet(), admin);
+
+        vm.expectRevert("CTMRWA001: Licensed Security override not set up");
+        ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
+
+        ICTMRWA001(ctmRwaAddr).setOverrideWallet(tokenAdmin2);
+        assertEq(ICTMRWA001(ctmRwaAddr).overrideWallet(), tokenAdmin2);
+
+        vm.expectRevert("CTMRWA001: Not authorized to force a transfer");
+        ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
+
+        vm.stopPrank();
+
+        vm.startPrank(tokenAdmin2);  // tokenAdmin2 is the override wallet
+        ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
+        assertEq(ICTMRWA001(ctmRwaAddr).ownerOf(tokenId1User1), user2); // successful forceTransfer
+        vm.stopPrank();
+
+        vm.startPrank(user2);
+        vm.expectRevert("CTMRWA001: Not authorized to force a transfer");
+        ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId2User1);
+
+        vm.stopPrank();
+
+        vm.startPrank(tokenAdmin);
+        rwa001X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), ID, tokenStr);
+        vm.stopPrank();
+
+        vm.startPrank(tokenAdmin2);
+        vm.expectRevert("CTMRWA001: Licensed Security override not set up"); // Must re-setup override wallet if tokenAdmin has changed
+        ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId2User1);
+        vm.stopPrank();
+
+    }
+
     function test_addURI() public {
         (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
         createSomeSlots(ID);

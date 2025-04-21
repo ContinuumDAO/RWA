@@ -346,6 +346,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     function forceTransfer(address _from, address _to, uint256 _tokenId) public returns(bool) {
         require(overrideWallet != address(0), "CTMRWA001: Licensed Security override not set up");
+        require(_msgSender() == overrideWallet, "CTMRWA001: Not authorized to force a transfer");
         _transferTokenId(_from, _to, _tokenId);
 
         return true;

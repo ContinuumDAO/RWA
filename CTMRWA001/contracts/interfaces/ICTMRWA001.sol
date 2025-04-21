@@ -29,6 +29,7 @@ interface ICTMRWA001 {
 
     function ID() external view returns(uint256);
     function tokenAdmin() external returns(address);
+    function setOverrideWallet(address overrideWallet) external;
     function overrideWallet() external returns(address);
     function rwaType() external returns(uint256);
     function version() external returns(uint256);
