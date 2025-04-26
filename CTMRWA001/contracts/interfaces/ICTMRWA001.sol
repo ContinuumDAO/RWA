@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 pragma solidity ^0.8.19;
 
@@ -51,11 +51,11 @@ interface ICTMRWA001 {
     );
     function slotNameOf(uint256 _tokenId) external view returns(string memory);
     function balanceOf(uint256 _tokenId) external view returns (uint256);
+    function balanceOf(address user) external view returns (uint256);
    
     function baseURI() external view returns(string memory);
     function getErc20(uint256 _slot) external view returns(address);
     
-    function balanceOf(address user) external view returns (uint256);
     function tokenOfOwnerByIndex(address owner, uint256 index_) external view returns (uint256);
     function totalSupply() external view returns (uint256);
     function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);
@@ -134,36 +134,9 @@ interface ICTMRWA001 {
      */ 
     event SlotChanged(uint256 indexed tokenId, uint256 indexed oldSlot, uint256 indexed newSlot);
 
-    /**
-     * @notice Get the number of decimals the token uses for value - e.g. 6, means the user
-     *  representation of the value of a token can be calculated by dividing it by 1,000,000.
-     *  Considering the compatibility with third-party wallets, this function is defined as
-     *  `valueDecimals()` instead of `decimals()` to avoid conflict with ERC20 tokens.
-     * @return The number of decimals for value
-     */
-
-    /**
-     * @notice Get the value of a token.
-     * @param tokenId The token for which to query the balance
-     * @return The value of `_tokenId`
-     */
-
-    /**
-     * @notice Get the slot of a token.
-     * @param tokenId The identifier for a token
-     * @return The slot of the token
-     */
+   
     function slotOf(uint256 tokenId) external view returns (uint256);
 
-    /**
-     * @notice Allow an operator to manage the value of a token, up to the `_value` amount.
-     * @dev MUST revert unless caller is the current owner, an authorized operator, or the approved
-     *  address for `_tokenId`.
-     *  MUST emit ApprovalValue event.
-     * @param tokenId The token to approve
-     * @param operator The operator to be approved
-     * @param value The maximum value of `_toTokenId` that `_operator` is allowed to manage
-     */
     function approve(
         uint256 tokenId,
         address operator,
@@ -172,48 +145,14 @@ interface ICTMRWA001 {
 
     function approve(address to, uint256 tokenId) external;
 
-    /**
-     * @notice Get the maximum value of a token that an operator is allowed to manage.
-     * @param tokenId The token for which to query the allowance
-     * @param operator The address of an operator
-     * @return The current approval value of `_tokenId` that `_operator` is allowed to manage
-     */
     function allowance(uint256 tokenId, address operator) external view returns (uint256);
 
-    /**
-     * @notice Transfer value from a specified token to another specified token with the same slot.
-     * @dev Caller MUST be the current owner, an authorized operator or an operator who has been
-     *  approved the whole `_fromTokenId` or part of it.
-     *  MUST revert if `_fromTokenId` or `_toTokenId` is zero token id or does not exist.
-     *  MUST revert if slots of `_fromTokenId` and `_toTokenId` do not match.
-     *  MUST revert if `_value` exceeds the balance of `_fromTokenId` or its allowance to the
-     *  operator.
-     *  MUST emit `TransferValue` event.
-     * @param fromTokenId The token to transfer value from
-     * @param toTokenId The token to transfer value to
-     * @param value The transferred value
-     */
     function transferFrom(
         uint256 fromTokenId,
         uint256 toTokenId,
         uint256 value
     ) external returns(address);
 
-    /**
-     * @notice Transfer value from a specified token to an address. The caller should confirm that
-     *  `_to` is capable of receiving CTMRWA001 tokens.
-     * @dev This function MUST create a new CTMRWA001 token with the same slot for `_to` to receive
-     *  the transferred value.
-     *  MUST revert if `_fromTokenId` is zero token id or does not exist.
-     *  MUST revert if `_to` is zero address.
-     *  MUST revert if `_value` exceeds the balance of `_fromTokenId` or its allowance to the
-     *  operator.
-     *  MUST emit `Transfer` and `TransferValue` events.
-     * @param fromTokenId The token to transfer value from
-     * @param to The address to transfer value to
-     * @param value The transferred value
-     * @return ID of the new token created for `_to` which receives the transferred value
-     */
     function transferFrom(
         uint256 fromTokenId,
         address to,
