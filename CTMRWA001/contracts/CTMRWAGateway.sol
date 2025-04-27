@@ -10,23 +10,40 @@ import {ChainContract} from "./interfaces/ICTMRWAGateway.sol";
 
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
 
-
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract is the gateway between any blockchain that can have an RWA deployed
+ * to it. It stores the contract addresses of CTMRWAGateway contracts on other chians, as well
+ * as the contract addresses of CTMRWA001X, CTMRWA001StorageManager and CTMRWA001SentryMananager
+ * contracts. This enables c3calls to be made between all the c3Caller dApps that make up AssetX
+ *
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA001 contract interactions
+ */
 
 contract CTMRWAGateway is Context, GovernDapp {
     using Strings for *;
 
     string public cIdStr;
 
-    mapping(uint256 => mapping(uint256 => ChainContract[])) rwaX; // rwaType => version => ChainContract
-    mapping(uint256 => mapping(uint256 => string[])) rwaXChains; // rwaType => version => chainStr array
+    /// @dev rwaType => version => ChainContract. Addresses of other CTMRWAGateway contracts
+    mapping(uint256 => mapping(uint256 => ChainContract[])) rwaX;
+
+    /// @dev rwaType => version => chainStr array. ChainIds of other CTMRWA001X contracts
+    mapping(uint256 => mapping(uint256 => string[])) rwaXChains;
+
+    /// @dev rwaType => version => chainStr array. Addresses of other CTMRWA001StorageManager contracts
     mapping(uint256 => mapping(uint256 => ChainContract[])) storageManager;
+
+    /// @dev rwaType => version => chainStr array. Addresses of other CTMRWA001SentryManager contracts
     mapping(uint256 => mapping(uint256 => ChainContract[])) sentryManager;
 
-    event SetChainContract(string[] chainIdsStr, string[] contractAddrsStr, string fromContractStr, string fromChainIdStr);
+    /// @dev Record that a c3Caller cross-chain transfer failed with fallback
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
     
-    //  This array holds ChainContract structs for all chains
+    /// @dev  This array holds ChainContract structs for all chains
     ChainContract[] public chainContract;
 
     constructor(
@@ -39,6 +56,7 @@ contract CTMRWAGateway is Context, GovernDapp {
         _addChainContract(cID(), address(this));
     }
 
+    /// @dev Adds the address of a CTMRWAGateway contract on another chainId
     function _addChainContract(uint256 _chainId, address _contractAddr) internal  {
         string memory newChainIdStr = _chainId.toString();
         string memory contractStr = _toLower(_contractAddr.toHexString());
@@ -46,6 +64,10 @@ contract CTMRWAGateway is Context, GovernDapp {
         chainContract.push(ChainContract(newChainIdStr, contractStr));
     }
 
+    /**
+     * @notice Governor function to add addresses of CTMRWAGateway contracts on other chains.
+     * @dev All input address are arrays of strings
+     */
     function addChainContract(string[] memory _newChainIdsStr, string[] memory _contractAddrsStr) external onlyGov returns (bool) {
         require(_newChainIdsStr.length == _contractAddrsStr.length, "CTMRWAGateway: Argument lengths not equal");
 
@@ -71,6 +93,10 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(true);
     }
 
+    /**
+     * @notice Get the address string for a CTMRWAGateway contract on another chainId
+     * @param _chainIdStr The chainId converted to a string
+     */
     function getChainContract(string memory _chainIdStr) external view returns(string memory) {
         for(uint256 i=0; i<chainContract.length; i++) {
             if(stringsEqual(chainContract[i].chainIdStr, _toLower(_chainIdStr))) {
@@ -80,14 +106,24 @@ contract CTMRWAGateway is Context, GovernDapp {
         return("");
     }
 
+    /**
+     * @notice Get the chainId and address of a CTMRWAGateway contract at an index _pos
+     * @param _pos The index into the stored array
+     */
     function getChainContract(uint256 _pos) public view returns(string memory, string memory) {
         return(chainContract[_pos].chainIdStr, chainContract[_pos].contractStr);
     }
 
+    /// @notice Get the number of stored chainIds and CTMRWAGateway pairs stored
     function getChainCount() public view returns(uint256) {
         return(chainContract.length);
     }
 
+    /**
+     * @notice Get all the chainIds of all CTMRWA001X contracts
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     */
     function getAllRwaXChains(
         uint256 _rwaType,
         uint256 _version
@@ -95,6 +131,12 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(rwaXChains[_rwaType][_version]);
     }
 
+    /**
+     * @notice Check the existence of a stored CTMRWA001X contract on chainId _chainIdStr
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     * @param _chainIdStr The chainId converted to a string to check for
+     */
     function existRwaXChain(uint256 _rwaType, uint256 _version, string memory _chainIdStr) public view returns(bool) {
         for(uint256 i=0; i < rwaXChains[_rwaType][_version].length; i++) {
             if(stringsEqual(rwaXChains[_rwaType][_version][i], _toLower(_chainIdStr))) return(true);
@@ -102,6 +144,13 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(false);
     }
 
+    /**
+     * @notice Return all chainIds as an array and the corresponding CTMRWA001X contract addresses
+     * as another array at an index position
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     * @param _indx The index position to return data from
+     */
     function getAttachedRWAX(
         uint256 _rwaType,
         uint256 _version,
@@ -113,6 +162,11 @@ contract CTMRWAGateway is Context, GovernDapp {
         );
     }
 
+    /**
+     * @notice get the total number of stored CTMRWA001X contracts for all chainIds (including this one)
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     */
     function getRWAXCount(
         uint256 _rwaType,
         uint256 _version
@@ -120,7 +174,12 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(rwaX[_rwaType][_version].length);
     }
         
-
+    /**
+     * @notice Get the attached CTMRWA001X contract address for chainId _chainIdStr as a string
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     * @param _chainIdStr The chainId (as a string) being examined
+     */
     function getAttachedRWAX(
         uint256 _rwaType,
         uint256 _version,
@@ -136,6 +195,13 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(false, "0");
     }
 
+    /**
+     * @notice Return all chainIds as an array and the corresponding CTMRWA001StorageManager
+     * contract addresses as another array at an index position
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     * @param _indx The index position to return data from
+     */
     function getAttachedStorageManager(
         uint256 _rwaType,
         uint256 _version,
@@ -147,6 +213,12 @@ contract CTMRWAGateway is Context, GovernDapp {
         );
     }
 
+    /**
+     * @notice get the total number of stored CTMRWA001StorageManager contracts for all
+     * chainIds (including this one)
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     */
     function getStorageManagerCount(
         uint256 _rwaType,
         uint256 _version
@@ -154,6 +226,13 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(storageManager[_rwaType][_version].length);
     }
 
+    /**
+     * @notice Get the attached CTMRWA001StorageManager contract address for chainId _chainIdStr
+     * as a string
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     * @param _chainIdStr The chainId (as a string) being examined
+     */
     function getAttachedStorageManager(
         uint256 _rwaType,
         uint256 _version,
@@ -169,7 +248,13 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(false, "0");
     }
 
-
+    /**
+     * @notice Return all chainIds as an array and the corresponding CTMRWA001SentryManager
+     * contract addresses as another array at an index position
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     * @param _indx The index position to return data from
+     */
     function getAttachedSentryManager(
         uint256 _rwaType,
         uint256 _version,
@@ -181,6 +266,12 @@ contract CTMRWAGateway is Context, GovernDapp {
         );
     }
 
+    /**
+     * @notice get the total number of stored CTMRWA001SentryManager contracts for all
+     * chainIds (including this one)
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     */
     function getSentryManagerCount(
         uint256 _rwaType,
         uint256 _version
@@ -188,6 +279,13 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(sentryManager[_rwaType][_version].length);
     }
 
+    /**
+     * @notice Get the attached CTMRWA001SentryManager contract address for chainId _chainIdStr
+     * as a string
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     * @param _chainIdStr The chainId (as a string) being examined
+     */
     function getAttachedSentryManager(
         uint256 _rwaType,
         uint256 _version,
@@ -203,7 +301,13 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(false, "0");
     }
 
-    // Keeps a record of RWA contracts on this chain on other chains.
+    /**
+     * @notice Governor function. Attach new CTMRWA001X contracts for chainIds
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     * @param _chainIdsStr Array of chainIds converted to strings
+     * @param _rwaXAddrsStr Array of the CTMRWA001X contract addresses converted to strings
+     */
     function attachRWAX (
         uint256 _rwaType,
         uint256 _version,
@@ -239,6 +343,14 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(true);
     }
 
+    /**
+     * @notice Governor function. Attach new CTMRWA001StorageManager contracts for chainIds
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     * @param _chainIdsStr Array of chainIds converted to strings
+     * @param _storageManagerAddrsStr Array of the CTMRWA001StorageManager contract addresses 
+     * converted to strings
+     */
     function attachStorageManager (
         uint256 _rwaType,
         uint256 _version,
@@ -272,6 +384,14 @@ contract CTMRWAGateway is Context, GovernDapp {
         return(true);
     }
 
+    /**
+     * @notice Governor function. Attach new CTMRWA001SentryManager contracts for chainIds
+     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _version The version of this RWA type. Currently only 1 is in use
+     * @param _chainIdsStr Array of chainIds converted to strings
+     * @param _sentryManagerAddrsStr Array of the CTMRWA001SentryManager contract addresses 
+     * converted to strings
+     */
     function attachSentryManager (
         uint256 _rwaType,
         uint256 _version,
@@ -309,27 +429,7 @@ contract CTMRWAGateway is Context, GovernDapp {
         return block.chainid;
     }
 
-    function strToUint(
-        string memory _str
-    ) internal pure returns (uint256 res, bool err) {
-        if (bytes(_str).length == 0) {
-            return (0, true);
-        }
-        for (uint256 i = 0; i < bytes(_str).length; i++) {
-            if (
-                (uint8(bytes(_str)[i]) - 48) < 0 ||
-                (uint8(bytes(_str)[i]) - 48) > 9
-            ) {
-                return (0, false);
-            }
-            res +=
-                (uint8(bytes(_str)[i]) - 48) *
-                10 ** (bytes(_str).length - i - 1);
-        }
-
-        return (res, true);
-    }
-
+    /// @dev Convert a string to an EVM address. Also checks the string length
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
@@ -364,6 +464,7 @@ contract CTMRWAGateway is Context, GovernDapp {
         revert("Invalid hex character");
     }
 
+    /// @dev Check if two strings are equal (in fact if their hashes are equal)
     function stringsEqual(
         string memory a,
         string memory b
@@ -373,6 +474,7 @@ contract CTMRWAGateway is Context, GovernDapp {
         return (ka == kb);
     }
 
+    /// @dev Convert a string to lower case
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
         bytes memory bLower = new bytes(bStr.length);
@@ -388,12 +490,7 @@ contract CTMRWAGateway is Context, GovernDapp {
         return string(bLower);
     }
     
-    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return(strArray);
-    }
-
+    /// @dev Fallback function for a failed c3call. Only logs an event at present
     function _c3Fallback(bytes4 _selector,
         bytes calldata _data,
         bytes calldata _reason) internal override returns (bool) {

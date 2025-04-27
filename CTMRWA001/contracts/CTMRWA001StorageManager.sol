@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.19;
 
-// import "forge-std/console.sol";
-
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -20,25 +18,49 @@ import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {ITokenContract} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWA001StorageUtils} from "./interfaces/ICTMRWA001StorageUtils.sol";
 
-// import {CTMRWA001Storage} from "./CTMRWA001Storage.sol";
-
 
 interface TokenID {
     function ID() external view returns(uint256);
 }
 
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract handles the cross-chain interactions for decentralized storage of data
+ * relating to the RWA, updating the CTMRWA001Storage contract for each ID with checksum and other data
+ * and ensuring that the CTMRWA001Storage for every RWA with the same ID on each chain stores the 
+ * exact same information.
+ *
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA001 contract interactions
+ */
 
 contract CTMRWA001StorageManager is Context, GovernDapp {
     using Strings for *;
     using SafeERC20 for IERC20;
 
+    /// @dev The address of the CTMRWADeployer contract on this chain
     address public ctmRwaDeployer;
+
+    /// @dev The address of the CTMRWAMap contract
     address public ctmRwa001Map;
+
+    /// @dev The address of the CTMRWA001StorageUtils contract on this chain
     address public utilsAddr;
+
+    /// @dev rwaType is the RWA type defining CTMRWA001
     uint256 public rwaType;
+
+    /// @dev version is the single integer version of this RWA type
     uint256 public version;
+
+    /// @dev The address of the CTMRWAGateway contract
     address gateway;
+
+    /// @dev The address of the FeeManager contract
     address feeManager;
+
+    /// @dev string representation of the chainID
     string cIdStr;
     
     modifier onlyDeployer {
@@ -67,27 +89,50 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         cIdStr = cID().toString();
     }
 
+     /**
+     * @notice Governance can change to a new CTMRWAGateway contract
+     * @param _gateway address of the new CTMRWAGateway contract
+     */
     function setGateway(address _gateway) external onlyGov {
         gateway = _gateway;
     }
 
+    /**
+     * @notice Governance can change to a new FeeManager contract
+     * @param _feeManager address of the new FeeManager contract
+     */
     function setFeeManager(address _feeManager) external onlyGov {
         feeManager = _feeManager;
     }
 
+    /**
+     * @notice Governance can change to a new CTMRWADeployer and CTMRWAERC20Deployer contracts
+     * @param _deployer address of the new CTMRWADeployer contract
+     */
     function setCtmRwaDeployer(address _deployer) external onlyGov {
         ctmRwaDeployer = _deployer;
     }
 
+    /**
+     * @notice Governance can change to a new CTMRWAMap contract
+     * @param _map address of the new CTMRWAMap contract
+     */
     function setCtmRwaMap(address _map) external onlyGov {
         ctmRwa001Map = _map;
     }
 
+    /**
+     * @notice Governance can change to a new CTMRWA001StorageUtils contract
+     * @param _utilsAddr address of the new CTMRWA001StorageUtils contract
+     */
     function setStorageUtils(address _utilsAddr) external onlyGov {
         utilsAddr = _utilsAddr;
     }
 
-
+    /**
+     * @dev This function is called by CTMRWADeployer, allowing CTMRWA001StorageUtils to 
+     * deploy a CTMRWA001Storage contract with the same ID as for the CTMRWA001 contract
+     */
     function deployStorage(
         uint256 _ID,
         address _tokenAddr,
@@ -107,7 +152,35 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(storageAddr);
     }
 
-    
+    /**
+     * @notice Add a data storage record to the RWA's CTMRWA001Storage contract on this chain and
+     * identically on every other chain that the RWA is deployed to. The bulk of the data is stored
+     * in an object in decentralized storage (e.g. BNB Greenfield) in an object with name _objectName.
+     * Also stored in the CTMRWA001Storage are the title of the record, the type of information, the
+     * Asset Class (slot) and a hash of the checksum of the stored data.
+     * @param _ID The ID of the RWA
+     * @param _objectName The name of the object stored in decentralized storage (e.g. BNB Greenfield)
+     * It should be identical to the string version of the nonce() in the RWA's CTMRWA001Storage contract.
+     * @param _uriCategory The category type of the data being stored. The allowable values are the enums
+     * in URICategory defined in ICTMRWA001Storage
+     * @param _uriType The type of storage information. It can either relate the the entire RWA
+     * (URIType.CONTRACT), or to an individual Asset Class (URIType.SLOT)
+     * @param _title The title of this storage record. It has to be between 10 and 256 charcters in length.
+     * @param _slot The Asset Class (slot) for this storage record if URIType.SLOT, otherwise set to zero.
+     * @param _uriDataHash The hash of the checksum of the storage record as a bytes32.
+     * NOTE _uriDataHash has to be unique.
+     * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
+     * NOTE For EVM chains, you must convert the integer chainID values to strings. Include the local chainID too.
+     * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
+     * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
+     * NOTE For EVM chains, the address of the fee token must be converted to a string
+     *
+     * NOTE The very first storage object MUST be URICategory.ISSUER and URIType.CONTRACT describing the 
+     * Issuer of the RWA
+     * NOTE The tokenAdmin (Issuer) of the RWA must register the RWA as a Security and add a 
+     * URICategory.LICENSE record before they can create a wallet address able to forceTransfer value
+     * in CTMRWA001.
+     */
     function addURI(
         uint256 _ID,
         string memory _objectName, 
@@ -176,7 +249,18 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         }
     }
 
-
+    /**
+     * @notice When new chains are added to the RWA with _ID, this function transfers all the existing storage
+     * data from the CTMRWA001Storage contract for the ID on the local chain to the newly added chains.
+     * In this way, the storage data is synced on all chains of the RWA for this ID, all pointing to the same 
+     * decentralized storage objects on e.g. BNB Greenfield.
+     * @param _ID The ID of this RWA
+     * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
+     * NOTE For EVM chains, you must convert the integer chainID values to strings. Include the local chainID too.
+     * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
+     * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
+     * NOTE For EVM chains, the address of the fee token must be converted to a string
+     */
     function transferURI(
         uint256 _ID,
         string[] memory _chainIdsStr,
@@ -240,8 +324,11 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         }
     }
 
-
-
+    /**
+     * @dev Adds the storage information for a storage object to the CTMRWA001Storage
+     * contract on this chain, being a copy of that on the source chain. This function 
+     * can only be called by the MPC network.
+     */
     function addURIX(
         uint256 _ID,
         uint256 _startNonce,
@@ -271,6 +358,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(true);
     }
 
+    /// @dev Get the address of the CTMRWA001 corresponding to the _ID
     function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA001StorageManager: The requested tokenID does not exist");
@@ -279,6 +367,10 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(tokenAddr, tokenAddrStr);
     }
 
+    /**
+     * @dev  Get the address of the corresponding CTMRWA001StorageManager contract on another chain
+     * with chainID (converted to a string) of _toChainIdStr
+     */
     function _getSM(string memory _toChainIdStr) internal view returns(string memory, string memory) {
         require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA001StorageManager: Not a cross-chain tokenAdmin change");
 
@@ -290,6 +382,10 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(fromAddressStr, toSMStr);
     }
 
+    /**
+     * @dev Return the tokenAdmin address for a CTMRWA001 with address _tokenAddr and
+     * check that the msg.sender is the tokenAdmin and revert if not so.
+     */
     function _checkTokenAdmin(address _tokenAddr) internal returns(address, string memory) {
         address currentAdmin = ICTMRWA001(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = _toLower(currentAdmin.toHexString());
@@ -299,6 +395,10 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(currentAdmin, currentAdminStr);
     }
 
+    /**
+     * @dev Get the fee for an individual URICategory to the chains _toChainIdsStr
+     * _includeLocal, if TRUE means to include the fee for the local chain too.
+     */
     function _individualFee(
         URICategory _uriCategory, 
         string memory _feeTokenStr, 
@@ -330,6 +430,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(fee);
     }
 
+    /// @dev Convert uint8 to the enum URICategory
     function _uToCat(uint8 _cat) internal pure returns(URICategory) {
         URICategory uriCategory;
 
@@ -354,6 +455,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
     }
 
+    /// @dev Convert uint8 to to the enum URIType
     function _uToType(uint8 _type) internal pure returns(URIType) {
         URIType uriType;
 
@@ -363,6 +465,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return uriType;
     }
 
+    /// @dev Pay a fee, calculated by the feeType, the fee token and the chains in question
     function _payFee(
         uint256 _fee,
         string memory _feeTokenStr
@@ -381,6 +484,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(true);
     }
 
+    /// @dev Get the last revert string from a cross-chain c3Fallback
     function getLastReason() public view returns(string memory) {
         string memory lastReason = ICTMRWA001StorageUtils(utilsAddr).getLastReason();
         return(lastReason);
@@ -390,7 +494,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return block.chainid;
     }
 
-
+    /// @dev Convert a string to an EVM address. Also checks the string length
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         require(strBytes.length == 42, "CTMRWA001StorageManager: Invalid address length");
@@ -425,6 +529,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         revert("Invalid hex character");
     }
 
+    /// @dev Check if two strings are equal (in fact if their hashes are equal)
     function stringsEqual(
         string memory a,
         string memory b
@@ -434,6 +539,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return (ka == kb);
     }
 
+    /// @dev Convert a string to lower case
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
         bytes memory bLower = new bytes(bStr.length);
@@ -449,42 +555,35 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return string(bLower);
     }
     
+    /// @dev Convert an individual string to an array with a single value
     function _stringToArray(string memory _string) internal pure returns(string[] memory) {
         string[] memory strArray = new string[](1);
         strArray[0] = _string;
         return(strArray);
     }
 
+    /// @dev Convert an individual uint256 to an array with a single value
     function _uint256ToArray(uint256 _myUint256) internal pure returns(uint256[] memory) {
         uint256[] memory uintArray = new uint256[](1);
         uintArray[0] = _myUint256;
         return(uintArray);
     }
 
+    /// @dev Convert an individual uint8 to an array with a single value
     function _uint8ToArray(uint8 _myUint8) internal pure returns(uint8[] memory) {
         uint8[] memory uintArray = new uint8[](1);
         uintArray[0] = _myUint8;
         return(uintArray);
     }
 
-    // function _uriCategoryToArray(URICategory _myCat) internal pure returns(URICategory[] memory) {
-    //     URICategory[] memory uriCatArray = new URICategory[](1);
-    //     uriCatArray[0] = _myCat;
-    //     return(uriCatArray);
-    // }
-
-    // function _uriTypeToArray(URIType _myType) internal pure returns(URIType[] memory) {
-    //     URIType[] memory uriTypeArray = new URIType[](1);
-    //     uriTypeArray[0] = _myType;
-    //     return(uriTypeArray);
-    // }
-
+    /// @dev Convert an individual bytes32 to an array with a single value
     function _bytes32ToArray(bytes32 _myBytes32) internal pure returns(bytes32[] memory) {
         bytes32[] memory bytes32Array = new bytes32[](1);
         bytes32Array[0] = _myBytes32;
         return(bytes32Array);
     }
 
+    /// @dev Manage a cross0chain fallback from c3Caller. See CTMRWA001StorageUtils
     function _c3Fallback(bytes4 _selector,
         bytes calldata _data,
         bytes calldata _reason) internal override returns (bool) {
