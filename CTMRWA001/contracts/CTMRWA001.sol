@@ -13,11 +13,17 @@ import {ICTMRWAERC20Deployer} from "./interfaces/ICTMRWAERC20Deployer.sol";
 import {ICTMRWA001Storage} from "./interfaces/ICTMRWA001Storage.sol";
 import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
 
-/// @title Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
-/// @author @Selqui ContinuumDAO
-/// @notice The basic functionality relating to the Semi Fungible Token is derived from ERC3525 
-/// @notice https://eips.ethereum.org/EIPS/eip-3525
-/// @notice CTMRWA001 is NOT ERC3525 compliant
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice The basic functionality relating to the Semi Fungible Token is derived from ERC3525
+ *  https://eips.ethereum.org/EIPS/eip-3525
+ *
+ * CTMRWA001 is NOT ERC3525 compliant
+ *
+ * This token can be deployed many times and on multiple chains from CTMRWA001X
+ */
 
 contract CTMRWA001 is Context, ICTMRWA001 {
     using Strings for *;
@@ -251,6 +257,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @dev Sets the ID for this new CTMRWA001 after it has been deployed
      * @param nextID The ID for this CTMRWA001
      * @param _tokenAdmin The address requesting the setting of the ID
+     * NOTE Only callable from CTMRWA001X
      */
     function attachId(uint256 nextID, address _tokenAdmin) external onlyRwa001X returns(bool) {
         require(_tokenAdmin == tokenAdmin, "CTMRWA001: attachId is an AdminOnly function");

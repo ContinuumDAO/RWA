@@ -6,6 +6,14 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
 
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract is a helper contract for CTMRWA001X. It manages any cross-chain call failures
+ *
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA001 contract interactions
+ */
 
 contract CTMRWA001XFallback is Context {
 
@@ -38,10 +46,20 @@ contract CTMRWA001XFallback is Context {
         rwa001X = _rwa001X;
     }
 
+    /// @dev Returns the last revert string after c3Fallback from another chain
     function getLastReason() public view returns(string memory) {
         return(string(lastReason));
     }
 
+    /**
+     * @dev Manage a failure in a cross-chain call with c3Caller
+     * @param _selector is the function selector called by c3Caller's execute on the destination
+     * @param _data is the abi encoded data sent to the destinatin chain
+     * @param _reason is the revert string from the destination chain
+     * @dev If the failing function was mintX (used for transferFrom), then this function will mint the fungible 
+     * balance in the CTMRWA001 with ID, as a new tokenId, effectively replacing the value that was
+     * burned. 
+     */
     function rwa001XC3Fallback(
         bytes4 _selector,
         bytes calldata _data,
@@ -90,6 +108,7 @@ contract CTMRWA001XFallback is Context {
         return(true);
     }
 
+    /// @dev Convert a string to an EVM address. Also checks the string length 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
