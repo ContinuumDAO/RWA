@@ -16,18 +16,47 @@ import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWAFactory} from "./interfaces/ICTMRWAFactory.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice The deploy function in this contract is called by CTMRWA001X on each chain that an 
+ * RWA is deployed to. It calls other contracts that use CREATE2 to deploy the suite of contracts for the RWA.
+ * These are CTMRWA001TokenFactory to deploy CTMRWA001, CTMRWA001StorageManager to deploy CTMRWA001Storage,
+ * CTMRWA001DividendFactory to deploy CTMRWA001Dividend and CTMRWA001SentryManager to deploy CTMRWA001Sentry.
+ * This unique set of contracts is deployed for every ID and then the contract addresses are stored in CTMRWAMap.
+ * The contracts that do the deployment can be updated by Governance, with different addresses dependent on
+ * the rwaType and version. The data passed to CTMRWA001TokenFactory is abi encoded deployData for maximum
+ * flexibility for future types of RWA.
+ *
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA001 contract interactions
+ */
 
 contract CTMRWADeployer is Context, GovernDapp {
     using Strings for *;
 
+    /// @dev The address of the CTMRWAGateway contract
     address gateway;
+
+    /// @dev The address the FeeManager contract
     address feeManager;
+
+    /// @dev The address of the CTMRWA001X contract
     address public rwaX;
+
+    /// @dev The address of the CTMRWAMap contract
     address public ctmRwaMap;
 
+    /// @dev Storage for the addresses of the CTMRWA001TokenFactory contracts
     mapping(uint256 => address[1_000_000_000]) public tokenFactory;
+
+    /// @dev Storage for the addresses of the CTMRWA001DividendFactory addresses
     mapping(uint256 => address[1_000_000_000]) public dividendFactory;
+
+    /// @dev Storage for the addresses of the CTMRWA001StorageManager addresses
     mapping(uint256 => address[1_000_000_000]) public storageFactory;
+
+    /// @dev Storage for the addresses of the CTMRWA001SentryManager addresses
     mapping(uint256 => address[1_000_000_000]) public sentryFactory;
 
 
@@ -54,22 +83,27 @@ contract CTMRWADeployer is Context, GovernDapp {
         ctmRwaMap = _map;
     }
 
+    /// @notice Governance function to change the CTMRWAGateway contract address
     function setGateway(address _gateway) external onlyGov {
         gateway = _gateway;
     }
 
+    /// @notice Governance function to change the FeeManager contract address
     function setFeeManager(address _feeManager) external onlyGov {
         feeManager = _feeManager;
     }
 
+    /// @notice Governance function to change the CTMRWA001X contract address
     function setRwaX(address _rwaX) external onlyGov {
         rwaX = _rwaX;
     }
 
+    /// @notice Governance function to change the CTMRWAMap contract address
     function setMap(address _map) external onlyGov {
         ctmRwaMap = _map;
     }
 
+    /// @dev The main deploy function that calls the various deploy functions that call CREATE2 for this ID
     function deploy(
         uint256 _ID,
         uint256 _rwaType,
@@ -90,6 +124,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         return(tokenAddr, dividendAddr, storageAddr, sentryAddr);
     }
 
+    /// @dev Calls the contract function to deploy the CTMRWA001Dividend for this _ID
     function deployDividend(
         uint256 _ID,
         address _tokenAddr,
@@ -109,6 +144,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         else return(address(0));
     }
 
+    /// @dev Calls the contract function to deploy the CTMRWA001Storage for this _ID
     function deployStorage(
         uint256 _ID,
         address _tokenAddr,
@@ -128,6 +164,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         else return(address(0));
     }
 
+    /// @notice Governance function to change the CTMRWA001Sentry contract address
     function deploySentry(
         uint256 _ID,
         address _tokenAddr,
@@ -147,18 +184,22 @@ contract CTMRWADeployer is Context, GovernDapp {
         else return(address(0));
     }
 
+    /// @dev Governance function to set a new CTMRWA001TokenFactory
     function setTokenFactory(uint256 _rwaType, uint256 _version, address _tokenFactory) external onlyGov {
         tokenFactory[_rwaType][_version] = _tokenFactory;
     }
 
+    /// @dev Governance function to set a new CTMRWA001DividendFactory
     function setDividendFactory(uint256 _rwaType, uint256 _version, address _dividendFactory) external onlyGov {
         dividendFactory[_rwaType][_version] = _dividendFactory;
     }
 
+    /// @dev Governance function to set a new CTMRWA001StorageManager
     function setStorageFactory(uint256 _rwaType, uint256 _version, address _storageFactory) external onlyGov {
         storageFactory[_rwaType][_version] = _storageFactory;
     }
 
+    /// @dev Governance function to set a new CTMRWA001SentryManager
     function setSentryFactory(uint256 _rwaType, uint256 _version, address _sentryFactory) external onlyGov {
         sentryFactory[_rwaType][_version] = _sentryFactory;
     }
@@ -167,27 +208,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         return block.chainid;
     }
 
-    function strToUint(
-        string memory _str
-    ) internal pure returns (uint256 res, bool err) {
-        if (bytes(_str).length == 0) {
-            return (0, true);
-        }
-        for (uint256 i = 0; i < bytes(_str).length; i++) {
-            if (
-                (uint8(bytes(_str)[i]) - 48) < 0 ||
-                (uint8(bytes(_str)[i]) - 48) > 9
-            ) {
-                return (0, false);
-            }
-            res +=
-                (uint8(bytes(_str)[i]) - 48) *
-                10 ** (bytes(_str).length - i - 1);
-        }
-
-        return (res, true);
-    }
-
+    /// @dev Convert a string to an EVM address. Also checks the string length
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         require(strBytes.length == 42, "CTMRWADeployer: Invalid address length");
@@ -222,6 +243,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         revert("Invalid hex character");
     }
 
+    /// @dev Check if two strings are equal (in fact if their hashes are equal)
     function stringsEqual(
         string memory a,
         string memory b
@@ -231,6 +253,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         return (ka == kb);
     }
 
+    /// @dev Convert a string to lower case
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
         bytes memory bLower = new bytes(bStr.length);
@@ -246,12 +269,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         return string(bLower);
     }
     
-    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return(strArray);
-    }
-
+    /// @dev Fallback function for failed c3call cross-chain. Only emits an event at present
     function _c3Fallback(bytes4 _selector,
         bytes calldata _data,
         bytes calldata _reason) internal override returns (bool) {
@@ -260,7 +278,5 @@ contract CTMRWADeployer is Context, GovernDapp {
         emit LogFallback(_selector, _data, _reason);
         return true;
     }
-
-    
 
 }
