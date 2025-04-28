@@ -2,9 +2,6 @@
 
 pragma solidity ^0.8.19;
 
-// import "forge-std/console.sol";
-
-
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -14,6 +11,19 @@ import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {ICTMRWA001StorageManager} from "./interfaces/ICTMRWA001StorageManager.sol";
 import {URIData, URIType, URICategory} from "./interfaces/ICTMRWA001Storage.sol";
 
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract manages and stores the on-chain information relating to RWA storage objects.
+ * The storage data is for this chain only, but it is reproduced in the CTMRWA001Storage contracts on
+ * every chain that the RWA is deployed to. This means that a user on any chain in the RWA can access
+ * the same decentralized storage data on BNB Greenfield, or IPFS.
+ *
+ * This contract is deployed by CTMRWADeployer on each chain once for every CTMRWA001 contract.
+ * Its ID matches the ID in CTMRWA001.
+ * The cross-chain functionality is managed by CTMRWA001StorageManager
+ */
 
 contract CTMRWA001Storage is Context {
     using Strings for *;
@@ -334,12 +344,6 @@ contract CTMRWA001Storage is Context {
             }
         }
         return string(bLower);
-    }
-    
-    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return(strArray);
     }
     
 }

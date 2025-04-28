@@ -7,9 +7,7 @@ interface ICTMRWAMap {
     function rwaX() external returns(address);
     function ctmRwaDeployer() external returns(address);
 
-    function setGateway(address _gateway) external;
-    function setRwa001X(address _ctmRwa001X) external;
-    function setCtmRwaDeployer(address deployer) external;
+    function setCtmRwaDeployer(address deployer, address gateway, address rwa001X) external;
 
     function attachContracts(
         uint256 ID, 

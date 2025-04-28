@@ -988,6 +988,7 @@ contract CTMRWA001X is Context, GovernDapp {
         return string(bLower);
     }
     
+    /// @dev Convert an individual string to an array with a single value
     function _stringToArray(string memory _string) internal pure returns(string[] memory) {
         string[] memory strArray = new string[](1);
         strArray[0] = _string;

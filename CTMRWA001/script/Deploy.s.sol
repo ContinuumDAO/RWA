@@ -113,7 +113,7 @@ contract Deploy is Script {
         console.log(address(ctmRwaFallback));
 
 
-        address ctmRwa001Map = deployMap(govAddr);
+        address ctmRwa001Map = deployMap();
 
         console.log("CTMRWAMap");
         console.log(ctmRwa001Map);
@@ -151,8 +151,6 @@ contract Deploy is Script {
         console.log("CTMRWA001Factory");
         console.log(ctmRWA001Factory);
 
-        ctmRwaMap.setCtmRwaDeployer(address(ctmRwaDeployer));
-
         vm.stopBroadcast();
     }
 
@@ -185,6 +183,7 @@ contract Deploy is Script {
             feeManagerAddr
         );
 
+        ctmRwaDeployer.setMap(_ctmRwa001Map);
         ctmRwa001X.setCtmRwaDeployer(address(ctmRwaDeployer), address(ctmRwaErc20Deployer));
 
         tokenFactory = new CTMRWA001TokenFactory(_ctmRwa001Map, address(ctmRwaDeployer));
@@ -251,10 +250,9 @@ contract Deploy is Script {
         return(address(ctmRwaDeployer), address(storageManager), address(sentryManager), address(dividendFactory), address(tokenFactory));
     }
 
-    function deployMap(address _gov) internal returns(address) {
+    function deployMap() internal returns(address) {
 
         ctmRwaMap = new CTMRWAMap(
-            _gov,
             address(gateway),
             address(ctmRwa001X)
         );

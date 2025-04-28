@@ -98,9 +98,14 @@ contract CTMRWADeployer is Context, GovernDapp {
         rwaX = _rwaX;
     }
 
-    /// @notice Governance function to change the CTMRWAMap contract address
+    /**
+     * @notice Governance function to change the CTMRWAMap contract address and also
+     * to reset the deployer, gateway and rwaX addresses in CTMRWAMap should this contract
+     * need to be redeployed.
+     */
     function setMap(address _map) external onlyGov {
         ctmRwaMap = _map;
+        ICTMRWAMap(ctmRwaMap).setCtmRwaDeployer(address(this), gateway, rwaX);
     }
 
     /// @dev The main deploy function that calls the various deploy functions that call CREATE2 for this ID

@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.19;
 
-// import "forge-std/console.sol";
-
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -487,28 +485,6 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
     }
 
 
-
-    // function strToUint(
-    //     string memory _str
-    // ) internal pure returns (uint256 res, bool err) {
-    //     if (bytes(_str).length == 0) {
-    //         return (0, true);
-    //     }
-    //     for (uint256 i = 0; i < bytes(_str).length; i++) {
-    //         if (
-    //             (uint8(bytes(_str)[i]) - 48) < 0 ||
-    //             (uint8(bytes(_str)[i]) - 48) > 9
-    //         ) {
-    //             return (0, false);
-    //         }
-    //         res +=
-    //             (uint8(bytes(_str)[i]) - 48) *
-    //             10 ** (bytes(_str).length - i - 1);
-    //     }
-
-    //     return (res, true);
-    // }
-
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         require(strBytes.length == 42, "CTMRWA001StorageManager: Invalid address length");
@@ -566,12 +542,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         }
         return string(bLower);
     }
-    
-    // function _stringToArray(string memory _string) internal pure returns(string[] memory) {
-    //     string[] memory strArray = new string[](1);
-    //     strArray[0] = _string;
-    //     return(strArray);
-    // }
+
 
     function _c3Fallback(bytes4 _selector,
         bytes calldata _data,

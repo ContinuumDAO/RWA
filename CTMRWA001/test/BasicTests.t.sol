@@ -206,7 +206,6 @@ contract SetUp is Test {
         assertEq(ok, true);
         assertEq(chainIdsStr.length, 1);
         chainIdsStr.pop();
-        //assertEq(chainIdsStr.length, 0);
         rwaXsStr.pop();
 
         ctmRwa001Map = deployMap();
@@ -228,9 +227,6 @@ contract SetUp is Test {
 
         storageManager.setCtmRwaMap(address(ctmRwa001Map));
 
-        // chainIdsStr.push("1");
-        // storageAddrsStr.push(address(storageManager).toHexString());
-        // assertEq(chainIdsStr.length, storageAddrsStr.length);
         ok = gateway.attachStorageManager(
             rwaType, 
             version, 
@@ -238,8 +234,6 @@ contract SetUp is Test {
             _stringToArray(address(storageManager).toHexString())
         );
         assertEq(ok, true);
-        // chainIdsStr.pop();
-        // storageAddrsStr.pop();
 
         sentryManager.setCtmRwaMap(address(ctmRwa001Map));
 
@@ -256,8 +250,10 @@ contract SetUp is Test {
         ctmRwaErc20DeployerAddr = address(ctmRwaErc20Deployer);
 
         rwa001X.setCtmRwaDeployer(ctmRwaDeployer, ctmRwaErc20DeployerAddr);
-        map.setCtmRwaDeployer(ctmRwaDeployer);
 
+        deployer.setMap(address(map));
+
+       
         chainIdsStr.push("1");
         gwaysStr.push("ethereumGateway");
         gateway.addChainContract(chainIdsStr, gwaysStr);
@@ -279,11 +275,6 @@ contract SetUp is Test {
 
         vm.prank(user1);
         ctm.approve(address(rwa001X), ctmBal);
-
-        // string[] memory cIdList = new string[](1);
-        // cIdList[0] = cID().toHexString();
-        // string[] memory gatewayLocal = new string[](1);
-        // gatewayLocal[0] = address(rwa001X).toHexString();
         
     }
 
@@ -314,7 +305,6 @@ contract SetUp is Test {
 
     function deployMap() internal returns(address) {
         map = new CTMRWAMap(
-            address(c3Gov),
             address(gateway),
             address(rwa001X)
         );

@@ -10,58 +10,85 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import{ICTMRWAAttachment} from "./interfaces/ICTMRWAMap.sol";
 
-struct TokenContract {
-    string chainIdStr;
-    string contractStr;
-    string storageAddrStr;
-    string sentryAddrStr;
-}
 
+
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract links together the various parts of the CTMRWA001 RWA.
+ * For every ID, which is unique to one RWA, there are different contracts as follows -
+ *
+ * (1) The CTMRWA001 contract itself, which is the Semi-Fungible-Token
+ * (2) A Dividend contract called CTMRWA001Dividend
+ * (3) A Storage contract called CTMRWA001Storage
+ * (4) A Sentry contract called CTMRWA001Sentry
+ *
+ * This set all share a single ID, which is the same on all chains that the RWA is deployed to
+ * The whole set is deployed by CTMRWADeployer.
+ * This contract, deployed just once on each chain, stores the state linking the ID to each of the 
+ * constituent contract addresses. The links from the contract addresses back to the ID are also stored.
+ *
+ * The 'attach' functions are called by CTMRWADeployer when the contracts are deployed.
+ */
+
+
+/// @dev rwaType is the RWA type defining CTMRWA001
 uint256 constant rwaType = 1;
-uint256 constant version = 1;
 
+/// @dev version is the single integer version of this RWA type
+uint256 constant version = 1;
 
 contract CTMRWAMap is Context {
     using Strings for *;
 
-    address gov;
+    /// @dev Address of the CTMRWAGateway contract
     address gateway;
+
+    /// @dev Address of the CTMRWADeployer contract
     address public ctmRwaDeployer;
+
+    /// @dev Address of the CTMRWA001X contract
     address public ctmRwa001X;
 
+    /// @dev String representation of the local chainID
     string cIdStr;
 
+    /// @dev ID => address of CTMRWA001 contract as string
+    mapping(uint256 => string) idToContract;
 
-    mapping(uint256 => string) idToContract; // ID => tokenContractAddrStr
-    mapping(string => uint256) contractToId; // tokenContractAddrStr => ID
+    /// @dev address of CTMRWA001 contract as string => ID
+    mapping(string => uint256) contractToId;
 
+
+    /// @dev ID => CTMRWA001Dividend contract as string
     mapping(uint256 => string) idToDividend;
+
+    /// @dev CTMRWA001Dividend contract as string => ID
     mapping(string => uint256) dividendToId;
 
+
+    /// @dev ID => CTMRWA001Storage contract as string
     mapping(uint256 => string) idToStorage;
+
+    /// @dev CTMRWA001Storage contract as string => ID
     mapping(string => uint256) storageToId;
 
+
+    /// @dev ID => CTMRWA001Sentry contract as string
     mapping(uint256 => string) idToSentry;
+
+    /// @dev CTMRWA001Sentry contract as string => ID
     mapping(string => uint256) sentryToId;
 
 
     constructor(
-        address _gov,
         address _gateway,
         address _rwa001X
     ) {
-        gov = _gov;
         gateway = _gateway;
         ctmRwa001X = _rwa001X;
         cIdStr = cID().toString();
-    }
-
-    modifier onlyGov {
-        require(
-            _msgSender() == gov,
-            "CTMRWAMap: This is an onlyGov function"
-        );
-        _;
     }
 
     modifier onlyDeployer {
@@ -80,18 +107,28 @@ contract CTMRWAMap is Context {
         _;
     }
 
-    function setCtmRwaDeployer(address _deployer) external onlyGov {
+    /**
+     * @dev Set the addresses of CTMRWADeployer, CTMRWAGateway and CTMRWA001X
+     * NOTE Can only be called by the setMap function in CTMRWADeployer, called by Governor
+     */
+    function setCtmRwaDeployer(
+        address _deployer,
+        address _gateway,
+        address _rwa001X
+    ) external onlyDeployer {
         ctmRwaDeployer = _deployer;
-    }
-
-    function setGateway(address _gateway) external onlyGov {
         gateway = _gateway;
+        ctmRwa001X = _rwa001X;
     }
 
-    function setRwa001X(address _ctmRwa001X) external onlyGov {
-        ctmRwa001X = _ctmRwa001X;
-    }
-
+    /**
+     * @notice Return the ID of a given CTMRWA001 contract
+     * NOTE The input address is a string.
+     * NOTE The function also returns a boolean ok, which is false if the ID does not exist
+     * @param _tokenAddrStr String version of the CTMRWA001 contract address
+     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA001
+     * @param _version The version of this RWA. Latest version is 1
+     */
     function getTokenId(string memory _tokenAddrStr, uint256 _rwaType, uint256 _version) public view returns(bool, uint256) {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
@@ -101,6 +138,13 @@ contract CTMRWAMap is Context {
         return (id != 0, id);
     }
 
+    /**
+     * @notice Return the CTMRWA001 contract address for a given ID
+     * NOTE The function also returns a boolean ok, which is false if the ID does not exist
+     * @param _ID The ID being examined
+     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA001
+     * @param _version The version of this RWA. Latest version is 1
+     */
     function getTokenContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns(bool, address) {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
@@ -110,6 +154,13 @@ contract CTMRWAMap is Context {
             : (false, address(0));
     }
 
+    /**
+     * @notice Return the CTMRWA001Dividend contract address for a given ID
+     * NOTE The function also returns a boolean ok, which is false if the ID does not exist
+     * @param _ID The ID being examined
+     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA001
+     * @param _version The version of this RWA. Latest version is 1
+     */
     function getDividendContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns(bool, address) {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
@@ -119,6 +170,13 @@ contract CTMRWAMap is Context {
             : (false, address(0));
     }
 
+    /**
+     * @notice Return the CTMRWA001Storage contract address for a given ID
+     * NOTE The function also returns a boolean ok, which is false if the ID does not exist
+     * @param _ID The ID being examined
+     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA001
+     * @param _version The version of this RWA. Latest version is 1
+     */
     function getStorageContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns(bool, address) {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
@@ -128,6 +186,13 @@ contract CTMRWAMap is Context {
             : (false, address(0));
     }
 
+    /**
+     * @notice Return the CTMRWA001Sentry contract address for a given ID
+     * NOTE The function also returns a boolean ok, which is false if the ID does not exist
+     * @param _ID The ID being examined
+     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA001
+     * @param _version The version of this RWA. Latest version is 1
+     */
     function getSentryContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns(bool, address) {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
@@ -137,7 +202,12 @@ contract CTMRWAMap is Context {
             : (false, address(0));
     }
 
-
+    /**
+     * @dev This function is called by CTMRWADeployer after the deployment of the
+     * CTMRWA001, CTMRWA001Dividend, CTMRWA001Storage and CTMRWA001Sentry contracts on a chain.
+     * It links them together by setting the same ID for the one RWA and storing their
+     * contract addresses.
+     */
     function attachContracts(
         uint256 _ID, 
         uint256 _rwaType, 
@@ -169,6 +239,7 @@ contract CTMRWAMap is Context {
 
     }
 
+    /// @dev Internal helper function for attachContracts
     function _attachCTMRWAID(
         uint256 _ID, 
         address _ctmRwaAddr,
@@ -207,27 +278,7 @@ contract CTMRWAMap is Context {
         return block.chainid;
     }
 
-    function strToUint(
-        string memory _str
-    ) internal pure returns (uint256 res, bool err) {
-        if (bytes(_str).length == 0) {
-            return (0, true);
-        }
-        for (uint256 i = 0; i < bytes(_str).length; i++) {
-            if (
-                (uint8(bytes(_str)[i]) - 48) < 0 ||
-                (uint8(bytes(_str)[i]) - 48) > 9
-            ) {
-                return (0, false);
-            }
-            res +=
-                (uint8(bytes(_str)[i]) - 48) *
-                10 ** (bytes(_str).length - i - 1);
-        }
-
-        return (res, true);
-    }
-
+    /// @dev Convert a string to an EVM address. Also checks the string length
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
@@ -262,6 +313,7 @@ contract CTMRWAMap is Context {
         revert("Invalid hex character");
     }
 
+    /// @dev Check if two strings are equal (in fact if their hashes are equal)
     function stringsEqual(
         string memory a,
         string memory b
@@ -271,6 +323,7 @@ contract CTMRWAMap is Context {
         return (ka == kb);
     }
 
+    /// @dev Convert a string to lower case
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
         bytes memory bLower = new bytes(bStr.length);
@@ -286,6 +339,7 @@ contract CTMRWAMap is Context {
         return string(bLower);
     }
     
+    /// @dev Convert an individual string to an array with a single value
     function _stringToArray(string memory _string) internal pure returns(string[] memory) {
         string[] memory strArray = new string[](1);
         strArray[0] = _string;
