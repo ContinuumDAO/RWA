@@ -16,8 +16,8 @@ CTMRWA001/saved-libs
 
 CTMRWA001/contracts/Stellar/stellar-testnet-account.txt
 CTMRWA001/contracts/Stellar/ctmrwa001/target/
-CTMRWA001/contracts/Stellar/testnet-snapshots/
-CTMRWA001/contracts/Stellar/example_usage.rs
+CTMRWA001/contracts/Stellar/ctmrwa001/testnet-snapshots/
+CTMRWA001/contracts/Stellar/ctmrwa001/example_usage.rs
 
 
 # Docs
