@@ -411,7 +411,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             _slot,
             _erc20Name,
             _symbol,
-            _decimals,
             _feeToken
         );
 

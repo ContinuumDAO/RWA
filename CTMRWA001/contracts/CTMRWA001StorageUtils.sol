@@ -11,6 +11,18 @@ import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 
 import {CTMRWA001Storage} from "./CTMRWA001Storage.sol";
 
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract has two tasks. The first is to deploy a new CTMRWA001Storage contract on 
+ * one chain. It uses the CREATE2 instruction to deploy the contract, returning its address.
+ * The second function is to manage all cross-chain failures in synchronizing the on-chain records
+ * for Storage.
+ *
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA001Storage contract 
+ * deployments and c3Fallbacks.
+ */
 
 contract CTMRWA001StorageUtils is Context {
     using Strings for *;
@@ -53,6 +65,9 @@ contract CTMRWA001StorageUtils is Context {
 
     }
 
+    /**
+     * @dev Deploy a new CTMRWA001Storage using 'salt' ID to ensure a unique contract address
+     */
     function deployStorage(
         uint256 _ID,
         address _tokenAddr,
@@ -76,11 +91,17 @@ contract CTMRWA001StorageUtils is Context {
         return(address(ctmRwa001Storage));
     }
 
-
+    /// @dev Get the latest revert string from a failed c3call cross-chain transaction
     function getLastReason() public view returns(string memory) {
         return(string(lastReason));
     }
 
+    /**
+     * @dev This fallback function from a failed c3call manages the reversion of an addURI
+     * cross-chain c3call. The storage record is 'popped' and the nonce is rewound.
+     * NOTE The storage object created on decentralized storage (e.g. BNB Greenfield) must
+     * before another addURI call can be made
+     */
     function smC3Fallback(
         bytes4 _selector,
         bytes calldata _data,
@@ -118,6 +139,7 @@ contract CTMRWA001StorageUtils is Context {
         return(true);
     }
 
+    /// @dev Get the address of the CTMRWA001 contract from the _ID
     function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA001StorageUtils: The requested tokenID does not exist");
@@ -126,6 +148,7 @@ contract CTMRWA001StorageUtils is Context {
         return(tokenAddr, tokenAddrStr);
     }
 
+    /// @dev Convert a string to an EVM address. Also checks the string length
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         require(strBytes.length == 42, "CTMRWA001StorageUtils: Invalid address length");
@@ -160,6 +183,7 @@ contract CTMRWA001StorageUtils is Context {
         revert("Invalid hex character");
     }
 
+    /// @dev Convert a string to lower case
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
         bytes memory bLower = new bytes(bStr.length);
@@ -174,6 +198,5 @@ contract CTMRWA001StorageUtils is Context {
         }
         return string(bLower);
     }
-
 
 }

@@ -13,34 +13,60 @@ import {ICTMRWA001X} from "./interfaces/ICTMRWA001X.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
 
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract manages the deployment of an ERC20 token that is an interface to the 
+ * underlying CTMRWA001 token. It allows the tokenAdmin (Issuer) to deploy a unique ERC20 representing
+ * a single Asset Class (slot).
+ *
+ * Whereas anyone could call deployERC20() in this contract, there is no point, since it has to be
+ * called by CTMRWA001 to be valid and linked to the CTMRWA001.
+ *
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA001Dividend contract 
+ * deployments.
+ */
+
 contract CTMRWAERC20Deployer is Context {
     using Strings for *;
 
-    address public ctmRwa001X;
+    /// @dev Address of the CTMRWAMap contract
     address public ctmRwaMap;
+
+    /// @dev Address of the FeeManager contract
     address public feeManager;
+
+    /// @dev String representation of the local chainID
     string cIDStr;
 
     constructor(
-        address _ctmRwa001X,
         address _ctmRwaMap,
         address _feeManager
     ) {
-        ctmRwa001X = _ctmRwa001X;
         ctmRwaMap = _ctmRwaMap;
         feeManager = _feeManager;
 
-         cIDStr = block.chainid.toString();
+        cIDStr = block.chainid.toString();
     }
 
-    
-
+    /**
+     * @notice Deploy a new ERC20 contract linked to a CTMRWA001 with ID, for ONE slot
+     * @param _ID The unique ID number for the CTMRWA001
+     * @param _slot The slot number selected for this ERC20.
+     * @param _name The name for the ERC20. This will be pre-pended with "slot X | ", where X is
+     * the slot number
+     * @param  _symbol The symbol to use for the ERC20
+     * @param  _feeToken The fee token address to pay. The contract address must be 
+     * in the return from feeTokenList() in FeeManager
+     * NOTE The resulting ERC20 is only valid if this function is called from a CTMRWA001 contract
+     * otherwise it will not be linked to it.
+     */
     function deployERC20(
         uint256 _ID,
         uint256 _slot,
         string memory _name, 
         string memory _symbol, 
-        uint8 _decimals,
         address _feeToken
     ) external returns(address) {
 
@@ -51,15 +77,13 @@ contract CTMRWAERC20Deployer is Context {
             _slot,
             _name, 
             _symbol,
-            _decimals,
-            ctmRwa001X,
             ctmRwaMap
         );
 
         return(address(newErc20));
-        
     }
 
+    /// @dev Pay the fee for deploying the ERC20
     function _payFee(
         FeeType _feeType, 
         address _feeToken
@@ -80,6 +104,7 @@ contract CTMRWAERC20Deployer is Context {
         return(true);
     }
 
+    /// @dev Convert an individual string to an array with a single value
     function _stringToArray(string memory _string) internal pure returns(string[] memory) {
         string[] memory strArray = new string[](1);
         strArray[0] = _string;
@@ -87,18 +112,41 @@ contract CTMRWAERC20Deployer is Context {
     }
 }
 
+/**
+ * This contract is an ERC20. The required interface functions are directly linked to various
+ * functions in CTMRWA001. This contract is deployed by deployERC20() in the contract CTMRWAERC20Deployer
+ * which uses CREATE2. 
+ */
 contract CTMRWAERC20 is Context, ERC20 {
 
+    /// @dev The ID of the CTMRWA001 that created this ERC20 is stored here
     uint256 public ID;
+
+    /// @dev The slot number that this ERC20 relates to. Each ERC20 relates to ONE slot
     uint256 public slot;
+
+    /// @dev The corresponding slot name
     string slotName;
+
+    /// @dev The name of this ERC20 
     string ctmRwaName;
+
+    /// @dev The symbol of this ERC20
     string ctmRwaSymbol;
+
+    /// @dev The decimals of this ERC20 are the same as for the CTMRWA001
     uint8 ctmRwaDecimals;
-    address ctmRwa001X;
+
+    /// @dev The address of the CTMRWAMap contract
     address ctmRwaMap;
+
+    /// @dev The address of the CTMRWA001 contract that called this
     address ctmRwaToken;
+
+    /// @dev  rwaType is the RWA type defining CTMRWA001
     uint256 rwaType = 1;
+
+    /// @dev version is the single integer version of this RWA type
     uint256 version = 1;
 
     constructor(
@@ -106,8 +154,6 @@ contract CTMRWAERC20 is Context, ERC20 {
         uint256 _slot,
         string memory _name, 
         string memory _symbol,
-        uint8 _decimals,
-        address _ctmRwa001X,
         address _ctmRwaMap
     ) ERC20(_name, _symbol) {
         ID = _ID;
@@ -115,8 +161,6 @@ contract CTMRWAERC20 is Context, ERC20 {
         string memory slotStr = string.concat("slot ", Strings.toString(slot), "| ");
         ctmRwaName = string.concat(slotStr, _name);
         ctmRwaSymbol = _symbol;
-        ctmRwaDecimals = _decimals;
-        ctmRwa001X = _ctmRwa001X;
         ctmRwaMap = _ctmRwaMap;
 
         bool ok;
@@ -127,20 +171,35 @@ contract CTMRWAERC20 is Context, ERC20 {
         require(ICTMRWA001(ctmRwaToken).slotExists(slot), "CTMRWAERC20: Slot does not exist");
 
         slotName = ICTMRWA001(ctmRwaToken).slotName(slot);
+        ctmRwaDecimals = ICTMRWA001(ctmRwaToken).valueDecimals();
     }
 
+    /**
+     * @notice The ERC20 name returns the input name, pre-pended with the slot 
+     */
     function name() public view override returns (string memory) {
         return ctmRwaName;
     }
 
-     function symbol() public view override returns (string memory) {
+    /**
+     * @notice The ERC20 symbol
+     */
+    function symbol() public view override returns (string memory) {
         return ctmRwaSymbol;
     }
 
+    /**
+     * @notice The ERC20 decimals. This is not part of the official interface, but is added here 
+     * for convenience
+     */
     function decimals() public view override returns (uint8) {
         return ctmRwaDecimals;
     }
 
+    /**
+     * @notice The ERC20 totalSupply. This is derived from the CTMRWA001 and is the 
+     * total fungible balance summed over all tokenIds in the slot of this ERC20
+     */
     function totalSupply() public view override returns (uint256) {
 
         uint256 total;
@@ -156,25 +215,56 @@ contract CTMRWAERC20 is Context, ERC20 {
         return total;
     }
 
+    /**
+     * @notice The ERC20 balanceOf. This is derived from the CTMRWA001 and is the sum of
+     * the fungible balances of all tokenIds in this slot for this _account
+     * @param _account The wallet address of the balanceOf being sought
+     */
     function balanceOf(address _account) public view override returns (uint256) {
         return _balance(_account);
     }
 
+    /**
+     * @notice Returns the ERC20 allowance of _spender on behalf of _owner
+     * @param _owner The owner of the tokenIds who is granting approval to the spender
+     * @param _spender The recipient, who is being granted approval to spend on behalf of _owner
+     */
     function allowance(address _owner, address _spender) public view override returns (uint256) {
         return super.allowance(_owner, _spender);
     }
 
+    /**
+     * @notice Grant approval to a spender to spend a fungible value from the slot
+     * @param _spender The wallet address being granted approval to spend value
+     * @param _value The fungible value being approved to spend by the spender
+     */
     function approve(address _spender, uint256 _value) public override returns (bool) {
         _approve(_msgSender(), _spender, _value, true);
         return true;
     }
 
+    /**
+     * @notice Transfer a fungible value to another wallet from the caller's balance
+     * @param _to The recipient of the transfer
+     * @param _value The fungible amount being transferred.
+     * NOTE The _value is taken from the first tokenId owned by the caller and if this is not
+     * sufficient, the balance is taken from the second owned tokenId etc.
+     */
     function transfer(address _to, uint256 _value) public override returns (bool) {
         address owner = _msgSender();
         _transfer(owner, _to, _value);
         return true;
     }
 
+    /**
+     * @notice The caller transfers _value from the wallet _from to the wallet _to.
+     * @param _from The wallet being debited
+     * @param _to The wallet being credited
+     * @param _value The fungible amount being transfered
+     * NOTE The caller must have sufficient allowance granted to it by the _from wallet
+     * NOTE The _value is taken from the first tokenId owned by the caller and if this is not
+     * sufficient, the balance is taken from the second owned tokenId etc.
+     */
     function transferFrom(address _from, address _to, uint256 _value) public override returns (bool) {
         _spendAllowance(_from, _msgSender(), _value);
         _transfer(_from, _to, _value);
@@ -182,11 +272,12 @@ contract CTMRWAERC20 is Context, ERC20 {
         return true;
     }
 
+    /// @dev Low level function to approve spending
     function _approve(address _owner, address _spender, uint256 _value, bool _emitEvent) internal override {
         super._approve(_owner, _spender, _value, _emitEvent);
     }
 
-
+    /// @dev Low level function to get the balance of a wallet (summed over all tokenIds in this slot)
     function _balance(address _account) internal view returns(uint256) {
         uint256 balance;
         uint256 tokenId;
@@ -203,6 +294,10 @@ contract CTMRWAERC20 is Context, ERC20 {
         return balance;
     }
 
+    /**
+     * @dev Low level function calling transferFrom in CTMRWA001 to adjust the balances
+     * of both the _from tokenIds and creating a new tokenId for the _to wallet
+     */
     function _update(address _from, address _to, uint256 _value) internal override {
         uint256 fromBalance = _balance(_from);
         if (fromBalance < _value) {
@@ -242,6 +337,7 @@ contract CTMRWAERC20 is Context, ERC20 {
         }
     }
 
+    /// @dev Low level function granting approval IF the spender has enough allowance from _owner
     function _spendAllowance(address _owner, address _spender, uint256 _value) internal override {
         uint256 currentAllowance = allowance(_owner, _spender);
         

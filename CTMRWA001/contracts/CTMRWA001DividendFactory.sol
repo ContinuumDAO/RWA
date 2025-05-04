@@ -2,13 +2,24 @@
 
 pragma solidity ^0.8.19;
 
-// import "forge-std/console.sol";
 
 import "./CTMRWA001Dividend.sol";
 
 interface TokenID {
     function ID() external view returns(uint256);
 }
+
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract has one task, which is to deploy a new CTMRWA001Dividend contract on 
+ * one chain. The deploy function is called by CTMRWADeployer. It uses the CREATE2 instruction
+ * to deploy the contract, returning its address.
+ *
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA001Dividend contract 
+ * deployments.
+ */
 
 contract CTMRWA001DividendFactory {
     address public deployer;
@@ -24,6 +35,9 @@ contract CTMRWA001DividendFactory {
         deployer = _deployer;
     }
 
+    /**
+     * @dev Deploy a new CTMRWA001Dividend using 'salt' ID to ensure a unique contract address
+     */
     function deployDividend(
         uint256 _ID,
         address _tokenAddr,

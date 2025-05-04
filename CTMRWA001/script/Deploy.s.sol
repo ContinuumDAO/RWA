@@ -118,8 +118,6 @@ contract Deploy is Script {
         console.log("CTMRWAMap");
         console.log(ctmRwa001Map);
 
-        ctmRwa001X.setCtmRwaMap(ctmRwa001Map);
-        
 
         (
             address ctmDeployer, 
@@ -178,13 +176,12 @@ contract Deploy is Script {
         );
 
         ctmRwaErc20Deployer = new CTMRWAERC20Deployer(
-            _rwa001X,
             _ctmRwa001Map,
             feeManagerAddr
         );
 
-        ctmRwaDeployer.setMap(_ctmRwa001Map);
         ctmRwa001X.setCtmRwaDeployer(address(ctmRwaDeployer), address(ctmRwaErc20Deployer));
+        ctmRwa001X.setCtmRwaMap(_ctmRwa001Map);
 
         tokenFactory = new CTMRWA001TokenFactory(_ctmRwa001Map, address(ctmRwaDeployer));
 

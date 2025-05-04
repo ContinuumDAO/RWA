@@ -20,20 +20,47 @@ import {ICTMRWA001SentryUtils} from "./interfaces/ICTMRWA001SentryUtils.sol";
 
 import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
 
-
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract manages the cross-chain synchronization of all controlled access
+ * functionality to RWAs. This controls any whitelist of addresses allowed to trade,
+ * adding the requirement for KYC, KYB, over 18 years, Accredited Investor status and geo-fencing.
+ *
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA001Sentry contract 
+ * deployments and functions.
+ */
 
 contract CTMRWA001SentryManager is Context, GovernDapp {
     using Strings for *;
     using SafeERC20 for IERC20;
 
+    /// @dev The address of the CTMRWADeployer contract
     address public ctmRwaDeployer;
+
+    /// @dev The address of the CTMRWAMap contract
     address public ctmRwa001Map;
+
+    /// @dev The address of the CTMRWA001SentryUtils contract (adjunct to this contract)
     address public utilsAddr;
+
+    /// @dev rwaType is the RWA type defining CTMRWA001
     uint256 public rwaType;
+
+    /// @dev version is the single integer version of this RWA type
     uint256 public version;
+
+    /// @dev The address of the CTMRWAGateway contract
     address gateway;
+
+    /// @dev The address of the FeeManager contract
     address feeManager;
+
+    /// The address of the CTMRWA001PolygonId contract
     address polygonId;
+
+    /// @dev A string respresentation of this chainID
     string cIdStr;
     
 
@@ -61,31 +88,57 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         cIdStr = block.chainid.toString();
     }
 
+    /**
+     * @notice Governance can change to a new CTMRWAGateway contract
+     * @param _gateway address of the new CTMRWAGateway contract
+     */
     function setGateway(address _gateway) external onlyGov {
         gateway = _gateway;
     }
 
+    /**
+     * @notice Governance can change to a new FeeManager contract
+     * @param _feeManager address of the new FeeManager contract
+     */
     function setFeeManager(address _feeManager) external onlyGov {
         feeManager = _feeManager;
     }
 
+    /**
+     * @notice Governance can change to a new CTMRWADeployer and CTMRWAERC20Deployer contracts
+     * @param _deployer address of the new CTMRWADeployer contract
+     */
     function setCtmRwaDeployer(address _deployer) external onlyGov {
         ctmRwaDeployer = _deployer;
     }
 
+    /**
+     * @notice Governance can change to a new CTMRWAMap contract
+     * @param _map address of the new CTMRWAMap contract
+     */
     function setCtmRwaMap(address _map) external onlyGov {
         ctmRwa001Map = _map;
     }
 
+    /**
+     * @notice Governance can change to a new CTMRWA001SentryUtils contract
+     * @param _utilsAddr address of the new CTMRWA001SentryUtils contract
+     */
     function setSentryUtils(address _utilsAddr) external onlyGov {
         utilsAddr = _utilsAddr;
     }
 
-
+    /**
+     * @notice Governance can switch to a new CTMRWA001PolygonId contract
+     */
     function setPolygonId(address _polygonId) external onlyGov {
         polygonId = _polygonId;
     }
 
+    /**
+     * @dev This function is called by CTMRWADeployer, allowing CTMRWA001SentryUtils to 
+     * deploy a CTMRWA001Sentry contract with the same ID as for the CTMRWA001 contract
+     */
     function deploySentry(
         uint256 _ID,
         address _tokenAddr,
@@ -105,6 +158,10 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         return(sentryAddr);
     }
 
+    /**
+     * @notice The tokenAdmin (Issuer) can optionally set conditions for trading the RWA via zkProofs.
+     * 
+     */
     function setSentryOptions(
         uint256 _ID,
         bool _whitelist,

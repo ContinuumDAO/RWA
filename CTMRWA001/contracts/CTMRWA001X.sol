@@ -129,11 +129,15 @@ contract CTMRWA001X is Context, GovernDapp {
     }
 
     /**
-     * @notice Governance can change to a new CTMRWAMap contract
+     * @notice Governance can change to a new CTMRWAMap contract and also
+     * to reset the deployer, gateway and rwaX addresses in CTMRWAMap should this contract
+     * need to be redeployed.
      * @param _map address of the new CTMRWAMap contract
      */
     function setCtmRwaMap(address _map) external onlyGov {
+        require(ctmRwaDeployer != address(0), "CTMRWA001X: address ctmRwaDeployer is zero");
         ctmRwa001Map = _map;
+        ICTMRWAMap(ctmRwa001Map).setCtmRwaDeployer(ctmRwaDeployer, gateway, address(this));
     }
 
     /**

@@ -3,7 +3,18 @@
 pragma solidity ^0.8.19;
 
 import "./CTMRWA001.sol";
-import {SlotData, ICTMRWA001} from "./interfaces/ICTMRWA001.sol"; 
+import {SlotData, ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
+
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract has one task, which is to deploy a new CTMRWA001 contract on one chain
+ * The deploy function is called by CTMRWADeployer. It uses the CREATE2 instruction to deploy the
+ * contract, returning its address.
+ *
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA001 contract deployments
+ */
 
 contract CTMRWA001TokenFactory {
 
@@ -23,6 +34,9 @@ contract CTMRWA001TokenFactory {
         ctmRwaDeployer = _ctmRwaDeployer;
     }
 
+    /**
+     * @dev Deploy a new CTMRWA001 using 'salt' ID to ensure a unique contract address
+     */
     function deploy(
         bytes memory _deployData
     ) external onlyDeployer returns(address) {

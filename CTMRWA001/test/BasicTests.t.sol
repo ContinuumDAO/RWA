@@ -210,8 +210,6 @@ contract SetUp is Test {
 
         ctmRwa001Map = deployMap();
 
-        rwa001X.setCtmRwaMap(address(map));
-
         deployCTMRWA001Deployer(
             rwaType,
             version,
@@ -250,8 +248,7 @@ contract SetUp is Test {
         ctmRwaErc20DeployerAddr = address(ctmRwaErc20Deployer);
 
         rwa001X.setCtmRwaDeployer(ctmRwaDeployer, ctmRwaErc20DeployerAddr);
-
-        deployer.setMap(address(map));
+        rwa001X.setCtmRwaMap(address(map));
 
        
         chainIdsStr.push("1");
@@ -337,7 +334,6 @@ contract SetUp is Test {
         );
 
         ctmRwaErc20Deployer = new CTMRWAERC20Deployer(
-            _rwa001X,
             _map,
             address(feeManager)
         );

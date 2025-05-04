@@ -8,7 +8,6 @@ interface ICTMRWAERC20Deployer {
         uint256 slot,
         string memory name, 
         string memory symbol, 
-        uint8 decimals,
         address feeToken
     ) external returns(address);
 }

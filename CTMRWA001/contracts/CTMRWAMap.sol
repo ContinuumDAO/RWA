@@ -109,13 +109,13 @@ contract CTMRWAMap is Context {
 
     /**
      * @dev Set the addresses of CTMRWADeployer, CTMRWAGateway and CTMRWA001X
-     * NOTE Can only be called by the setMap function in CTMRWADeployer, called by Governor
+     * NOTE Can only be called by the setMap function in CTMRWA001X, called by Governor
      */
     function setCtmRwaDeployer(
         address _deployer,
         address _gateway,
         address _rwa001X
-    ) external onlyDeployer {
+    ) external onlyRwa001X {
         ctmRwaDeployer = _deployer;
         gateway = _gateway;
         ctmRwa001X = _rwa001X;
