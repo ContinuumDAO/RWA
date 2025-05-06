@@ -51,10 +51,10 @@ pub struct SlotData {
 }
 
 #[contract]
-pub struct ctm_rwa001;
+pub struct CtmRwa001;
 
 #[contractimpl]
-impl ctm_rwa001 {
+impl CtmRwa001 {
     // Initialize the contract
     pub fn initialize(
         env: Env,

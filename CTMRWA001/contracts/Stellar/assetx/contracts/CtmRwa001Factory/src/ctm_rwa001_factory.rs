@@ -1,5 +1,5 @@
 use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Env, Address, BytesN, String, Vec};
-use ctm_rwa001::ctm_rwa001Client; // Import ctm_rwa001 client
+use ctm_rwa001::CtmRwa001Client; // Import ctm_rwa001 client
 
 #[contracttype]
 #[derive(Clone)]
@@ -41,7 +41,7 @@ impl CtmRwa001Factory {
             .deploy(wasm_hash);
 
         // Initialize the deployed contract
-        let client = ctm_rwa001Client::new(&env, &contract_address);
+        let client = CtmRwa001Client::new(&env, &contract_address);
         client.initialize(
             &rwa_type,
             &version,
