@@ -1,0 +1,17 @@
+[package]
+name = "ctm_rwa001_factory"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+#[dependencies]
+#soroban-sdk = { workspace = true }
+
+[dependencies]
+soroban-sdk = { workspace = true, version = "21.7.2", features = ["alloc"] }
+ctm_rwa001 = { path = "../CtmRwa001" } # Add CtmRwa001 as a dependency
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, version = "21.7.2", features = ["testutils"] }

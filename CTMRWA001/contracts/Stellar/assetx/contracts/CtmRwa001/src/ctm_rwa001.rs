@@ -1,5 +1,5 @@
 use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, vec, Address, U256, Env, String, Vec, Map,
+    contract, contractimpl, contracttype, symbol_short, vec, Address, Env, String, Vec, Map,
     log, BytesN, Bytes
 };
 
@@ -10,7 +10,7 @@ pub enum DataKey {
     RwaType,                // u32: RWA Type
     Version,                // u32: verrsion
     TokenAdmin,             // Address: Contract admin
-    Id,                     // u128: Unique RWA ID
+    Id,                     // BytesN<32>: Unique RWA ID
     TokenIdGenerator,       // u128: Next token ID
     Name,                   // String: Token name
     Symbol,                 // String: Token symbol
@@ -51,10 +51,10 @@ pub struct SlotData {
 }
 
 #[contract]
-pub struct CTMRWA001;
+pub struct ctm_rwa001;
 
 #[contractimpl]
-impl CTMRWA001 {
+impl ctm_rwa001 {
     // Initialize the contract
     pub fn initialize(
         env: Env,
@@ -65,7 +65,7 @@ impl CTMRWA001 {
         symbol: String,
         decimals: u32,
         base_uri: String,
-        rwa_id: Bytes
+        rwa_id: BytesN<32>
     ) {
         let storage = env.storage().persistent();
 
@@ -75,10 +75,10 @@ impl CTMRWA001 {
         }
 
         // Set contract metadata
-        storage.set(&DataKey::TokenAdmin, &rwa_type);
-        storage.set(&DataKey::TokenAdmin, &version);
+        storage.set(&DataKey::RwaType, &rwa_type);
+        storage.set(&DataKey::Version, &version);
         storage.set(&DataKey::TokenAdmin, &token_admin);
-        storage.set(&DataKey::Id, &U256::from_be_bytes(&env, &rwa_id));
+        storage.set(&DataKey::Id, &rwa_id);
         storage.set(&DataKey::TokenIdGenerator, &1u128);
         storage.set(&DataKey::Name, &token_name);
         storage.set(&DataKey::Symbol, &symbol);
@@ -391,7 +391,7 @@ mod test {
         let rwa_type: u32 = 1;
         let version: u32 = 1;
         let admin = Address::generate(&env);
-        let id = Bytes::from_array(&env, &[6; 32]);
+        let id = BytesN::from_array(&env, &[6; 32]);
         let recipient = Address::generate(&env);
 
         // Initialize
