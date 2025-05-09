@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "contracts/CtmRwa001",
     "contracts/CtmRwa001Factory",
+    "contracts/CtmRwaDeployer",
 ]
 
 [workspace.dependencies]

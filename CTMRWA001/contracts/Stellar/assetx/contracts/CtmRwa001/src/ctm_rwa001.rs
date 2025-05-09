@@ -87,14 +87,14 @@ impl CtmRwa001 {
         storage.set(&DataKey::AllTokens, &Vec::<TokenData>::new(&env));
         storage.set(&DataKey::AllSlots, &Vec::<SlotData>::new(&env));
 
-        // Emit initialization event (optional)
+        // Emit initialization event
         env.events().publish(
             (symbol_short!("init"),),
             (token_admin, token_name, symbol, rwa_id)
         );
     }
 
-    // Modifier-like check for token admin
+    // Check for token admin
     fn require_token_admin(env: &Env, caller: &Address) {
         let token_admin: Address = env.storage().persistent().get(&DataKey::TokenAdmin).unwrap();
         if caller != &token_admin {
@@ -102,7 +102,7 @@ impl CtmRwa001 {
         }
     }
 
-    // Modifier-like check for minter (simplified to admin-only for now)
+    // Check for minter (simplified to admin-only for now)
     fn require_minter(env: &Env, caller: &Address) {
         Self::require_token_admin(env, caller);
     }
@@ -155,7 +155,6 @@ impl CtmRwa001 {
     // Mint a new token
     pub fn mint(env: Env, caller: Address, to: Address, slot: u128, slot_name: String, value: u128) -> u128 {
         Self::require_minter(&env, &caller);
-        to.require_auth(); // Ensure recipient authorizes the transaction
     
         let storage = env.storage().persistent();
     

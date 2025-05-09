@@ -1,0 +1,78 @@
+Starting Stellar Quickstart
+versions:
+  quickstart: 5acbe30ff5faf7c5e401aa850fa924dedcac63d3
+  stellar-core:
+    v20.1.0
+    rust version: rustc 1.74.1 (a28077b28 2023-12-04)
+    soroban-env-host: 
+        curr:
+            package version: 20.1.0
+            git version: c1b238b65bfd13666be4ac14e0e390c31b549caf
+            ledger protocol version: 20
+            pre-release version: 0
+            rs-stellar-xdr:
+                package version: 20.0.2
+                git version: a928e82943e4e93c887555fdec3b1e139ad810d2
+                base XDR git version: bb54e505f814386a3f45172e0b7e95b7badbe969
+  horizon:
+    horizon-v2.27.0-(built-from-source)
+    go1.20.13
+  soroban-rpc:
+    soroban-rpc 20.1.0 (cd494db450bc20cbd69aec13801d3c6186674403) HEAD
+    stellar-xdr bb54e505f814386a3f45172e0b7e95b7badbe969
+mode: ephemeral
+network: futurenet
+network passphrase: Test SDF Future Network ; October 2022
+network id: a3a1c6a78286713e29be0e9785670fa838d13917cd8eaeb4a3579ff1debc7fd5
+network root secret key: SCR2DRVHQKDHCPRJXYHJPBLHB6UDRUJZC7GY5LVUUNLZ74O6XR75KK5K
+network root account id: GADNDFP7HM3KFVHOQBBJDBGRONMKQVUYKXI6OYNDMS2ZIK7L6HA3F2RF
+postgres user: stellar
+postgres password: W5Mf5IZTWQwM04xm
+finalize-pgpass: ok
+init-postgres: ok
+Waiting for postgres to be available...
+postgres: up
+create-horizon-db: ok
+create-core-db: ok
+stellar-postgres-user: ok
+chown-core: ok
+finalize-core-config-pgpass: ok
+finalize-core-config-manual-close: ok
+init-core-db: ok
+finalize-horizon-captivecore-db: ok
+finalize-horizon-captivecore-config-enable-soroban-diagnostic-events: ok
+chown-horizon: ok
+init-horizon-db: ok
+finalize-soroban-rpc-captivecore-db: ok
+finalize-soroban-rpc-captivecore-config-enable-soroban-diagnostic-events: ok
+init-soroban-rpc: ok
+postgres: down
+supervisor: starting
+soroban rpc: waiting for ready state...
+horizon: waiting for ingestion to catch up...
+supervisor: 2025-05-07 16:54:07,680 INFO Included extra file "/opt/stellar/supervisor/etc/supervisord.conf.d/horizon.conf" during parsing
+supervisor: 2025-05-07 16:54:07,680 INFO Included extra file "/opt/stellar/supervisor/etc/supervisord.conf.d/nginx.conf" during parsing
+supervisor: 2025-05-07 16:54:07,680 INFO Included extra file "/opt/stellar/supervisor/etc/supervisord.conf.d/postgresql.conf" during parsing
+supervisor: 2025-05-07 16:54:07,680 INFO Included extra file "/opt/stellar/supervisor/etc/supervisord.conf.d/soroban-rpc.conf" during parsing
+supervisor: 2025-05-07 16:54:07,680 INFO Included extra file "/opt/stellar/supervisor/etc/supervisord.conf.d/stellar-core.conf" during parsing
+supervisor: 2025-05-07 16:54:07,680 INFO Set uid to user 0 succeeded
+supervisor: 2025-05-07 16:54:07,682 INFO RPC interface 'supervisor' initialized
+supervisor: 2025-05-07 16:54:07,682 CRIT Server 'unix_http_server' running without any HTTP authentication checking
+supervisor: 2025-05-07 16:54:07,682 INFO supervisord started with pid 1
+supervisor: 2025-05-07 16:54:08,686 INFO spawned: 'postgresql' with pid 266
+supervisor: 2025-05-07 16:54:08,687 INFO spawned: 'stellar-core' with pid 267
+supervisor: 2025-05-07 16:54:08,688 INFO spawned: 'horizon' with pid 268
+supervisor: 2025-05-07 16:54:08,690 INFO spawned: 'nginx' with pid 269
+supervisor: 2025-05-07 16:54:08,692 INFO spawned: 'soroban-rpc' with pid 270
+supervisor: 2025-05-07 16:54:09,729 INFO success: postgresql entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+supervisor: 2025-05-07 16:54:09,729 INFO success: stellar-core entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+supervisor: 2025-05-07 16:54:09,729 INFO success: horizon entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+supervisor: 2025-05-07 16:54:09,729 INFO success: nginx entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+supervisor: 2025-05-07 16:54:09,729 INFO success: soroban-rpc entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+stellar-core: Joining SCP
+supervisor: 2025-05-07 16:54:13,766 INFO exited: soroban-rpc (exit status 1; not expected)
+supervisor: 2025-05-07 16:54:13,869 INFO spawned: 'soroban-rpc' with pid 381
+supervisor: 2025-05-07 16:54:14,944 INFO success: soroban-rpc entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
+supervisor: 2025-05-07 16:54:18,985 INFO exited: soroban-rpc (exit status 1; not expected)
+supervisor: 2025-05-07 16:54:18,993 INFO spawned: 'soroban-rpc' with pid 426
+supervisor: 2025-05-07 16:54:19,993 INFO success: soroban-rpc entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)

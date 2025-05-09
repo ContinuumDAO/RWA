@@ -1,5 +1,5 @@
 [package]
-name = "ctm_rwa001_factory"
+name = "ctm_rwa_deployer"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,7 +8,6 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 soroban-sdk = { workspace = true, version = "21.7.2", features = ["alloc"] }
-ctm_rwa001 = { path = "../CtmRwa001" } # Add CtmRwa001 as a dependency
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, version = "21.7.2", features = ["testutils"] }

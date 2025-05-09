@@ -4,7 +4,10 @@ use ctm_rwa001::CtmRwa001Client; // Import ctm_rwa001 client
 #[contracttype]
 #[derive(Clone)]
 pub enum DataKey {
-    DeployedContracts(BytesN<32>), // Maps rwa_id to deployed contract Address
+    RwaType,                        // The type of RWA
+    Version,                        // The version of this type of RWA
+    CtmRwaDeployer,                 // The address of the CtmRwaDeployer contract
+    DeployedContracts(BytesN<32>),  // Maps rwa_id to deployed contract Address
 }
 
 #[contract]
@@ -12,6 +15,31 @@ pub struct CtmRwa001Factory;
 
 #[contractimpl]
 impl CtmRwa001Factory {
+
+    pub fn initialize(
+        env: Env,
+        rwa_type: u32,
+        version: u32,
+        ctm_rwa_deployer: Address
+    ) {
+        let storage = env.storage().persistent();
+
+        // Ensure not already initialized
+        if storage.has(&DataKey::RwaType) {
+            panic!("CTMRWA001TokenFactory: Contract already initialized");
+        }
+
+        storage.set(&DataKey::RwaType, &rwa_type);
+        storage.set(&DataKey::Version, &version);
+        storage.set(&DataKey::CtmRwaDeployer, &ctm_rwa_deployer);
+
+        // Emit initialization event
+        env.events().publish(
+            (symbol_short!("init"),),
+            (rwa_type, version, ctm_rwa_deployer)
+        );
+    }
+
     pub fn deploy(
         env: Env,
         caller: Address,
@@ -25,7 +53,9 @@ impl CtmRwa001Factory {
         decimals: u32,
         base_uri: String
     ) -> Address {
-        caller.require_auth();
+        // caller.require_auth();
+
+        Self::require_deployer(&env, &caller);
 
         let storage = env.storage().persistent();
 
@@ -63,6 +93,14 @@ impl CtmRwa001Factory {
         );
 
         contract_address
+    }
+
+     // Check for token admin
+     fn require_deployer(env: &Env, caller: &Address) {
+        let ctm_rwa_deployer: Address = env.storage().persistent().get(&DataKey::CtmRwaDeployer).unwrap();
+        if caller != &ctm_rwa_deployer {
+            panic!("CTMRWA001TokenFactory: Caller is not CTMRWADeployer");
+        }
     }
 
     pub fn get_contract(env: Env, rwa_id: BytesN<32>) -> Option<Address> {

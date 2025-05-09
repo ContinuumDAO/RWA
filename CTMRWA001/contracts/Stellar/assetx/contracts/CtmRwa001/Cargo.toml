@@ -6,9 +6,6 @@ edition = "2021"
 [lib]
 crate-type = ["cdylib", "lib"]
 
-#[dependencies]
-#soroban-sdk = { workspace = true }
-
 [dependencies]
 soroban-sdk = { workspace = true, version = "21.7.2", features = ["alloc"] }
 
