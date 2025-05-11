@@ -8,7 +8,6 @@ use soroban_sdk::{
 #[contracttype]
 #[derive(Clone)]
 pub enum DataKey {
-    TokenAdmin,
     Gov,
     Gateway,
     FeeManager,
@@ -27,7 +26,6 @@ pub struct CTMRwaDeployer;
 impl CTMRwaDeployer {
     pub fn initialize(
         env: Env,
-        token_admin: Address,
         gov: Address,
         gateway: Address,
         fee_manager: Address,
@@ -35,57 +33,56 @@ impl CTMRwaDeployer {
         ctm_rwa_map: Address
     ) {
         let storage = env.storage().persistent();
-        if storage.has(&DataKey::TokenAdmin) {
+        if storage.has(&DataKey::Gov) {
             panic!("CTMRwaDeployer: Contract has already been initialized");
         }
 
-        storage.set(&DataKey::TokenAdmin, &token_admin);
         storage.set(&DataKey::Gov, &gov);
         storage.set(&DataKey::Gateway, &gateway);
         storage.set(&DataKey::FeeManager, &fee_manager);
         storage.set(&DataKey::RwaX, &rwa_x);
         storage.set(&DataKey::CtmRwaMap, &ctm_rwa_map);
 
-        env.events().publish((symbol_short!("init"),), (token_admin,));
+        env.events().publish((symbol_short!("init"),), (gov,));
     }
 
-    pub fn set_token_admin(env: Env, token_admin: Address, new_admin: Address) {
-        token_admin.require_auth();
-        Self::check_admin(&env, &token_admin);
+    pub fn set_governor(env: Env, gov: Address, new_gov: Address) {
+        gov.require_auth();
+        Self::check_gov(&env, &gov);
         let storage = env.storage().persistent();
-        storage.set(&DataKey::TokenAdmin, &new_admin);
-        env.events().publish((symbol_short!("set_admin"),), (new_admin,));
+        storage.set(&DataKey::Gov, &new_gov);
+        env.events().publish((symbol_short!("set_gov"),), (new_gov,));
     }
 
-    fn check_admin(env: &Env, caller: &Address) {
-        let token_admin: Address = env
+    fn check_gov(env: &Env, caller: &Address) {
+        let gov: Address = env
             .storage()
             .persistent()
-            .get(&DataKey::TokenAdmin)
-            .unwrap_or_else(|| panic!("CTMRwaDeployer: TokenAdmin not set"));
-        if caller != &token_admin {
-            panic!("CTMRwaDeployer: Caller is not tokenAdmin");
+            .get(&DataKey::Gov)
+            .unwrap_or_else(|| panic!("CTMRwaDeployer: Gov not set"));
+        if caller != &gov {
+            panic!("CTMRwaDeployer: Caller is not gov");
         }
     }
 
     pub fn set_token_hash(
         env: Env, 
-        token_admin: Address, 
+        gov: Address, 
         rwa_type: u32, 
         version: u32, 
         token_hash: BytesN<32>
     ) {
-        token_admin.require_auth();
-        Self::check_admin(&env, &token_admin);
+        gov.require_auth();
+        Self::check_gov(&env, &gov);
         let storage = env.storage().persistent();
         storage.set(&DataKey::TokenHash(rwa_type.clone(), version.clone()), &token_hash);
         env.events().publish((symbol_short!("tok_hash"),), (rwa_type, version, token_hash));
     }
 
 
-    pub fn set_factory(env: Env, token_admin: Address, rwa_type: u32, version: u32, factory: Address) {
-        token_admin.require_auth();
-        Self::check_admin(&env, &token_admin);
+    pub fn set_factory(env: Env, gov: Address, rwa_type: u32, version: u32, factory: Address) {
+        gov.require_auth();
+        Self::check_gov(&env, &gov);
         let storage = env.storage().persistent();
         storage.set(&DataKey::TokenFactory(rwa_type.clone(), version.clone()), &factory);
         env.events().publish((symbol_short!("set_fact"),), (rwa_type, version, factory));
@@ -96,18 +93,14 @@ impl CTMRwaDeployer {
         rwa_id: BytesN<32>,
         rwa_type: u32,
         version: u32,
-        token_admin: Address,
-        token_name: String,
-        symbol: String,
-        decimals: u32,
-        base_uri: String
+        deploy_args: Bytes
     ) -> Address {
 
         let rwa_x: Address = env
             .storage()
             .persistent()
             .get(&DataKey::RwaX)
-            .unwrap_or_else(|| panic!(CTMRwaDeployer: Could not get RwaX address));
+            .unwrap_or_else(|| panic!("CTMRwaDeployer: Could not get RwaX address"));
 
         rwa_x.require_auth();
 
@@ -125,17 +118,11 @@ impl CTMRwaDeployer {
 
         let client = CTMRWA001FactoryClient::new(&env, &token_factory);
 
+        // Call Token Factory
         let token_address = client.deploy(
-            &caller,
+            &env.current_contract_address(),
             &token_hash,
-            &rwa_id,
-            &rwa_type,
-            &version,
-            &token_admin,
-            &token_name,
-            &symbol,
-            &decimals,
-            &base_uri
+            &deploy_args
         );
 
         env.events().publish(
@@ -154,13 +141,6 @@ pub trait CTMRWA001Factory {
         env: Env,
         caller: Address,
         wasm_hash: BytesN<32>,
-        rwa_id: BytesN<32>,
-        rwa_type: u32,
-        version: u32,
-        token_admin: Address,
-        token_name: String,
-        symbol: String,
-        decimals: u32,
-        base_uri: String
+        deploy_args: Bytes
     ) -> Address;
 }

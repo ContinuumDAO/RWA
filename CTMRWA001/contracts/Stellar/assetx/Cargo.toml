@@ -9,11 +9,6 @@ members = [
 [workspace.dependencies]
 soroban-sdk = "21.7.2"
 
-#[dependencies]
-#soroban-sdk = { version = "21.7.2", features = ["alloc"] }
-
-#[dev-dependencies]
-#soroban-sdk = { version = "21.7.2", features = ["testutils"] }
 
 [profile.release]
 opt-level = "z" # Optimize for size

@@ -9,6 +9,8 @@ crate-type = ["cdylib", "lib"]
 [dependencies]
 soroban-sdk = { workspace = true, version = "21.7.2", features = ["alloc"] }
 ctm_rwa001 = { path = "../CtmRwa001" } # Add CtmRwa001 as a dependency
+ethabi = { version = "18.0.0", default-features = false } # Use no_std compatible version if needed
+serde = { version = "1.0", default-features = false, features = ["derive"] }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, version = "21.7.2", features = ["testutils"] }

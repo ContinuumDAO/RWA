@@ -10,6 +10,7 @@ pub enum DataKey {
     RwaType,                // u32: RWA Type
     Version,                // u32: verrsion
     TokenAdmin,             // Address: Contract admin
+    TokenAdminFrom,         // String: Admin of chain that created this token
     Id,                     // BytesN<32>: Unique RWA ID
     TokenIdGenerator,       // u128: Next token ID
     Name,                   // String: Token name
@@ -60,7 +61,7 @@ impl CtmRwa001 {
         env: Env,
         rwa_type: u32,
         version: u32,
-        token_admin: Address,
+        token_admin_from: String,
         token_name: String,
         symbol: String,
         decimals: u32,
@@ -77,7 +78,8 @@ impl CtmRwa001 {
         // Set contract metadata
         storage.set(&DataKey::RwaType, &rwa_type);
         storage.set(&DataKey::Version, &version);
-        storage.set(&DataKey::TokenAdmin, &token_admin);
+        // storage.set(&DataKey::TokenAdmin, &token_admin);  // Must set separately with changeTokenAdmin
+        storage.set(&DataKey::TokenAdminFrom, &token_admin_from);
         storage.set(&DataKey::Id, &rwa_id);
         storage.set(&DataKey::TokenIdGenerator, &1u128);
         storage.set(&DataKey::Name, &token_name);
@@ -90,7 +92,7 @@ impl CtmRwa001 {
         // Emit initialization event
         env.events().publish(
             (symbol_short!("init"),),
-            (token_admin, token_name, symbol, rwa_id)
+            (token_name, symbol, rwa_id)
         );
     }
 

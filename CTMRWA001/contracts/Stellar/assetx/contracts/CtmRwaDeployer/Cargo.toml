@@ -9,5 +9,6 @@ crate-type = ["cdylib", "lib"]
 [dependencies]
 soroban-sdk = { workspace = true, version = "21.7.2", features = ["alloc"] }
 
+
 [dev-dependencies]
 soroban-sdk = { workspace = true, version = "21.7.2", features = ["testutils"] }
