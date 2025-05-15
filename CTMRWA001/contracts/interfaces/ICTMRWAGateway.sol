@@ -8,86 +8,97 @@ struct ChainContract {
 }
 
 interface ICTMRWAGateway {
-    function getChainCount() external view returns(uint256);
-    function chainContract() external view returns(ChainContract[] memory);
+    function getChainCount() external view returns (uint256);
+    function chainContract() external view returns (ChainContract[] memory);
     function addXChainInfo(
         string memory tochainIdStr,
         string memory toContractStr,
         string[] memory chainIdsStr,
         string[] memory contractAddrsStr
     ) external;
-    function addChainContract(string[] memory chainIdsStr, string[] memory contractsAddressStr) external returns (bool);
-    function getChainContract(uint256 pos) external view returns(string memory, string memory);
-    function getChainContract(string memory chainIdStr) external view returns(string memory);
+    function addChainContract(
+        string[] memory chainIdsStr,
+        string[] memory contractsAddressStr
+    ) external returns (bool);
+    function getChainContract(
+        uint256 pos
+    ) external view returns (string memory, string memory);
+    function getChainContract(
+        string memory chainIdStr
+    ) external view returns (string memory);
     function getAllRwaXChains(
         uint256 rwaType,
         uint256 version
-    ) external view returns(string[] memory);
-    function existRwaXChain(uint256 rwaType, uint256 version, string memory chainIdStr) external view returns(bool);
+    ) external view returns (string[] memory);
+    function existRwaXChain(
+        uint256 rwaType,
+        uint256 version,
+        string memory chainIdStr
+    ) external view returns (bool);
     function addXChainInfoX(
         string[] memory chainIdsStr,
         string[] memory contractAddrsStr,
         string memory fromContractStr
-    ) external returns(bool);  // onlyCaller
+    ) external returns (bool); // onlyCaller
     function getAttachedRWAX(
         uint256 rwaType,
         uint256 version,
         string memory _chainIdStr
-    ) external view returns(bool, string memory);
+    ) external view returns (bool, string memory);
     function getAttachedRWAX(
         uint256 _rwaType,
         uint256 _version,
         uint256 _indx
-    ) external view returns(string memory, string memory);
+    ) external view returns (string memory, string memory);
     function getRWAXCount(
         uint256 _rwaType,
         uint256 _version
-    ) external view returns(uint256);
-    function attachRWAX (
+    ) external view returns (uint256);
+    function attachRWAX(
         uint256 rwaType,
         uint256 version,
-        string[] memory _chainIdStr, 
+        string[] memory _chainIdStr,
         string[] memory _rwaXAddrStr
-    ) external returns(bool);   // onlyGov
+    ) external returns (bool); // onlyGov
     function getAttachedStorageManager(
         uint256 _rwaType,
         uint256 _version,
         uint256 _indx
-    ) external view returns(string memory, string memory);
+    ) external view returns (string memory, string memory);
     function getAttachedStorageManager(
         uint256 _rwaType,
         uint256 _version,
         string memory _chainIdStr
-    ) external view returns(bool, string memory);
+    ) external view returns (bool, string memory);
     function getStorageManagerCount(
         uint256 _rwaType,
         uint256 _version
-    ) external view returns(uint256);
-    function attachStorageManager (
+    ) external view returns (uint256);
+    function attachStorageManager(
         uint256 rwaType,
         uint256 version,
-        string[] memory chainIdStr, 
+        string[] memory chainIdStr,
         string[] memory storageManagerStr
-    ) external returns(bool);   // onlyGov
+    ) external returns (bool); // onlyGov
 
     function getAttachedSentryManager(
         uint256 _rwaType,
         uint256 _version,
         uint256 _indx
-    ) external view returns(string memory, string memory);
+    ) external view returns (string memory, string memory);
     function getAttachedSentryManager(
         uint256 _rwaType,
         uint256 _version,
         string memory _chainIdStr
-    ) external view returns(bool, string memory);
+    ) external view returns (bool, string memory);
     function getSentryManagerCount(
         uint256 _rwaType,
         uint256 _version
-    ) external view returns(uint256);
-    function attachSentryManager (
+    ) external view returns (uint256);
+    function attachSentryManager(
         uint256 rwaType,
         uint256 version,
-        string[] memory chainIdStr, 
+        string[] memory chainIdStr,
         string[] memory storageManagerStr
-    ) external returns(bool);   // onlyGov
+    ) external returns (bool); // onlyGov
 }

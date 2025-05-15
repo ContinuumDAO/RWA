@@ -1,5 +1,5 @@
 [package]
-name = "ctm_rwa_deployer"
+name = "ctm_rwa_gateway"
 version = "0.1.0"
 edition = "2021"
 

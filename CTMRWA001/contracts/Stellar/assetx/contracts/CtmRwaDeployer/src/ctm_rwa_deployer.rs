@@ -116,14 +116,42 @@ impl CTMRwaDeployer {
             .get(&DataKey::TokenFactory(rwa_type.clone(), version.clone()))
             .unwrap_or_else(|| panic!("CTMRwaDeployer: Factory address not set for rwa_type and version"));
 
-        let client = CTMRWA001FactoryClient::new(&env, &token_factory);
+        let factory_client = CTMRWA001FactoryClient::new(&env, &token_factory);
 
         // Call Token Factory
-        let token_address = client.deploy(
+        let token_address = factory_client.deploy(
             &env.current_contract_address(),
             &token_hash,
             &deploy_args
         );
+
+        let ctm_rwa001_client = CTMRWA001Client::new(&env, &token_address);
+
+        // Check new ctm_rwa001
+        let rwa_type_deployed = ctm_rwa001_client.get_rwa_type();
+        let version_deployed = ctm_rwa001_client.get_version();
+
+        if rwa_type_deployed != rwa_type || version_deployed != version {
+            panic!("CTMRwaDeployer: The RwaType or Version was incorrect");
+        }
+
+        let map_address: Address = env
+            .storage()
+            .persistent()
+            .get(&DataKey::CtmRwaMap)
+            .unwrap_or_else(|| panic!("CTMRwaDeployer: Could not get the CTMRWAMap address"));
+
+        let ctm_rwa_map_client = CTMRWAMapClient::new(&env, &map_address);
+
+        // Attach the contracts in CtmRwaMap
+        ctm_rwa_map_client.attach_contracts(
+            &env.current_contract_address(),
+            &rwa_id,
+            &rwa_type,
+            &version,
+            &token_address
+        );
+        
 
         env.events().publish(
             (symbol_short!("deploy"),),
@@ -143,4 +171,25 @@ pub trait CTMRWA001Factory {
         wasm_hash: BytesN<32>,
         deploy_args: Bytes
     ) -> Address;
+}
+
+#[contractclient(name = "CTMRWA001Client")]
+pub trait CTMRWA001 {
+    fn get_rwa_type(env: Env) -> u32;
+    fn get_version(env: Env) -> u32;
+}
+
+#[contractclient(name = "CTMRWAMapClient")]
+pub trait CTMRWAMap {
+    fn attach_contracts(
+        env: Env,
+        caller: Address,
+        id: BytesN<32>,
+        rwa_type: u32,
+        version: u32,
+        token_addr: Address,
+        // dividend_addr: Address,
+        // storage_addr: Address,
+        // sentry_addr: Address
+    );
 }

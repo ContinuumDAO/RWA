@@ -1,13 +1,16 @@
 [workspace]
 resolver = "2"
 members = [
+    "contracts/CtmRwaGateway",
     "contracts/CtmRwa001",
+    "contracts/CtmRwa001X",
     "contracts/CtmRwa001Factory",
     "contracts/CtmRwaDeployer",
+    "contracts/CtmRwaMap",
 ]
 
 [workspace.dependencies]
-soroban-sdk = "21.7.2"
+soroban-sdk = "22.0.7"
 
 
 [profile.release]

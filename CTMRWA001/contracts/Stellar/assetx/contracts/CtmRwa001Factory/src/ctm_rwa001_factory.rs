@@ -4,7 +4,7 @@ use soroban_sdk::{
 use soroban_sdk::vec;
 use ctm_rwa001::CtmRwa001Client; // Import ctm_rwa001 client
 
-use ethabi::{ParamType, Token, encode, decode};
+use ethabi::{ParamType, Token, decode};
 
 #[contracttype]
 #[derive(Clone)]

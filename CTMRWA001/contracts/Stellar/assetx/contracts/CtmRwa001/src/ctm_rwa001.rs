@@ -96,6 +96,7 @@ impl CtmRwa001 {
         );
     }
 
+   
     // Check for token admin
     fn require_token_admin(env: &Env, caller: &Address) {
         let token_admin: Address = env.storage().persistent().get(&DataKey::TokenAdmin).unwrap();
@@ -109,19 +110,40 @@ impl CtmRwa001 {
         Self::require_token_admin(env, caller);
     }
 
+    // Get RwaType
+    pub fn get_rwa_type(env: Env) -> u32 {
+        env.storage().persistent().get(&DataKey::RwaType)
+        .unwrap_or_else(|| panic!("CTMRWA001: rwa_type not set"))
+    }
+
+    // Get Version
+    pub fn get_version(env: Env) -> u32 {
+        env.storage().persistent().get(&DataKey::Version)
+        .unwrap_or_else(|| panic!("CTMRWA001: version not set"))
+    }
+
+     // Get token_admin
+     pub fn get_token_admin(env: &Env) -> Address {
+        env.storage().persistent().get(&DataKey::TokenAdmin)
+        .unwrap_or_else(|| panic!("CTMRWA001: token_admin not set"))
+    }
+
     // Get contract name
     pub fn name(env: Env) -> String {
-        env.storage().persistent().get(&DataKey::Name).unwrap()
+        env.storage().persistent().get(&DataKey::Name)
+        .unwrap_or_else(|| panic!("CTMRWA001: name not set"))
     }
 
     // Get contract symbol
     pub fn symbol(env: Env) -> String {
-        env.storage().persistent().get(&DataKey::Symbol).unwrap()
+        env.storage().persistent().get(&DataKey::Symbol)
+        .unwrap_or_else(|| panic!("CTMRWA001: symbol not set"))
     }
 
     // Get value decimals
     pub fn value_decimals(env: Env) -> u32 {
-        env.storage().persistent().get(&DataKey::Decimals).unwrap()
+        env.storage().persistent().get(&DataKey::Decimals)
+        .unwrap_or_else(|| panic!("CTMRWA001: decimals not set"))
     }
 
     // Create a new slot

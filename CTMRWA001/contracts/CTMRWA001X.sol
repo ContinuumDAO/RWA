@@ -179,7 +179,7 @@ contract CTMRWA001X is Context, GovernDapp {
      * Set to 0 for integer only quantities and up to typically 18 for maximum precision
      * @param _baseURI Is a string describing how the data linked to the RWA is stored (or not).
      * "GFLD" is the default to store data on decentralized BNB Greenfield.
-     * "IPFS" is to stroe the RWA data on the Inter-planetary-file-system (to be added soon. Not active yet)
+     * "IPFS" is to store the RWA data on the Inter-planetary-file-system (to be added soon. Not active yet)
      * "NONE" NO data storage for this RWA.
      * NOTE The _baseURI CANNOT later be modified.
      * @param _toChainIdsStr This is an array of strings of chainIDs to deploy to.
