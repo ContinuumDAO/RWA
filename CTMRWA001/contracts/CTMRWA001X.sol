@@ -123,7 +123,7 @@ contract CTMRWA001X is Context, GovernDapp {
      * @param _set Boolean setting or un-setting minter
      */
     function changeMinterStatus(address _minter, bool _set) external onlyGov {
-        require(_minter != address(this) && _minter != fallbackAddr, "CTMRWA001X: Cannot unset minter CTMRWA001X");
+        require(_minter != address(this) && _minter != fallbackAddr, "RWAX: Cannot unset minter");
         isMinter[_minter] = _set;
     }
 
@@ -150,7 +150,7 @@ contract CTMRWA001X is Context, GovernDapp {
      * @param _map address of the new CTMRWAMap contract
      */
     function setCtmRwaMap(address _map) external onlyGov {
-        require(ctmRwaDeployer != address(0), "CTMRWA001X: address ctmRwaDeployer is zero");
+        require(ctmRwaDeployer != address(0), "RWAX: address ctmRwaDeployer is zero");
         ctmRwa001Map = _map;
         ICTMRWAMap(ctmRwa001Map).setCtmRwaDeployer(ctmRwaDeployer, gateway, address(this));
     }
@@ -170,7 +170,7 @@ contract CTMRWA001X is Context, GovernDapp {
      * @param _fallbackAddr address of the new CTMRWA001Fallback contract
      */
     function setFallback(address _fallbackAddr) external onlyGov {
-        require(_fallbackAddr != address(this) && _fallbackAddr != address(0), "CTMRWA001X: Invalid fallBackAddr");
+        // require(_fallbackAddr != address(this) && _fallbackAddr != address(0), "RWAX: Invalid fallBackAddr");
         isMinter[fallbackAddr] = false;
         isMinter[_fallbackAddr] = true;
         fallbackAddr = _fallbackAddr;
@@ -216,10 +216,10 @@ contract CTMRWA001X is Context, GovernDapp {
         string[] memory _toChainIdsStr,
         string memory _feeTokenStr
     ) public returns(uint256) {
-        require(!_includeLocal && _existingID>0 || _includeLocal && _existingID == 0, "CTMRWA001X: Incorrect call logic");
+        require(!_includeLocal && _existingID>0 || _includeLocal && _existingID == 0, "RWAX: Incorrect call logic");
         uint256 len = bytes(_tokenName).length;
         if (_includeLocal) {
-            require(len >= 10 && len <= 512,"CTMRWA001X: Token name length is < 10 or > 512 characters");
+            require(len >= 10 && len <= 512,"RWAX: Token length is < 10 or > 512");
         }
         uint256 nChains = _toChainIdsStr.length;
 
@@ -268,7 +268,7 @@ contract CTMRWA001X is Context, GovernDapp {
         } else {  // a CTMRWA001 token must be deployed already, so use the existing ID
             ID = _existingID;
             (bool ok, address rwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(ID, _rwaType, _version);
-            require(ok, "CTMRWA001X: The token ID does not exist on the current chain");
+            require(ok, "RWAX: The token is not on this chain");
             ctmRwa001Addr = rwa001Addr;
 
             _checkTokenAdmin(ctmRwa001Addr);
@@ -276,7 +276,7 @@ contract CTMRWA001X is Context, GovernDapp {
             (, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(ID, _rwaType, _version);
             bool whitelist = ICTMRWA001Sentry(sentryAddr).whitelistSwitch();
             bool kyc = ICTMRWA001Sentry(sentryAddr).kycSwitch();
-            require((!whitelist && !kyc), "CTMRWA001X: Whitelist or kyc set and cannot add new chains");
+            require((!whitelist && !kyc), "RWAX: Whitelist or kyc set No new chains");
 
             tokenName = ICTMRWA001(ctmRwa001Addr).name();
             symbol = ICTMRWA001(ctmRwa001Addr).symbol();
@@ -321,7 +321,7 @@ contract CTMRWA001X is Context, GovernDapp {
         address _tokenAdmin
     ) internal returns(address) {
         (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
-        require(!ok, "CTMRWA001X: A local contract with this ID already exists");
+        require(!ok, "RWAX: ID already exists");
 
         bytes memory deployData = abi.encode(
             _ID, 
@@ -345,7 +345,7 @@ contract CTMRWA001X is Context, GovernDapp {
         ICTMRWA001(ctmRwa001Token).changeAdmin(_tokenAdmin);
 
         ok = ICTMRWA001(ctmRwa001Token).attachId(_ID, _tokenAdmin);
-        require(ok, "CTMRWA001X: Could not attachId to new token");
+        require(ok, "RWAX: Could not attachId");
 
         adminTokens[_tokenAdmin].push(ctmRwa001Token);
 
@@ -370,7 +370,7 @@ contract CTMRWA001X is Context, GovernDapp {
         string[] memory _slotNames,
         string memory _ctmRwa001AddrStr
     ) internal returns (bool) {
-        require(!stringsEqual(_toChainIdStr, cID().toString()), "CTMRWA001X: Not a cross-chain transfer");
+        require(!stringsEqual(_toChainIdStr, cID().toString()), "RWAX: Not cross-chain");
         address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
 
         (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
@@ -419,7 +419,7 @@ contract CTMRWA001X is Context, GovernDapp {
     ) external onlyCaller returns(bool) { 
 
         (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
-        require(!ok, "CTMRWA001X: A local contract with this ID already exists");
+        require(!ok, "RWAX: ID already exists");
 
         address newAdmin = stringToAddress(_newAdminStr);
 
@@ -525,7 +525,7 @@ contract CTMRWA001X is Context, GovernDapp {
     ) external onlyCaller returns(bool) {
         
         (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001X: Destination token contract with this ID does not exist");
+        require(ok, "RWAX: Destination ID does not exist");
 
         address newAdmin = stringToAddress(_newAdminStr);
 
@@ -534,7 +534,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         address currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
         address oldAdmin = stringToAddress(_oldAdminStr);
-        require(currentAdmin == oldAdmin, "CTMRWA001X: Not admin, or token is locked. Cannot change admin address");
+        require(currentAdmin == oldAdmin, "RWAX: Not admin or token is locked");
 
         _changeAdmin(currentAdmin, newAdmin, _ID );
 
@@ -575,7 +575,7 @@ contract CTMRWA001X is Context, GovernDapp {
             return(_toTokenId);
         } else {
             bool slotExists = ICTMRWA001(ctmRwa001Addr).slotExists(_slot);
-            require(slotExists, "CTMRWA001X: Slot does not exist");
+            require(slotExists, "RWAX: Slot not exist");
             string memory thisSlotName = ICTMRWA001(ctmRwa001Addr).slotName(_slot);
            
             uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(_toAddress, _slot, thisSlotName, _value);
@@ -605,9 +605,9 @@ contract CTMRWA001X is Context, GovernDapp {
         string[] memory _toChainIdsStr,
         string memory _feeTokenStr
     ) public returns(bool) {
-        require(bytes(_slotName).length <= 256, "CTMRWA001X: Slot name > 256 characters");
+        require(bytes(_slotName).length <= 256, "RWAX: Slot > 256");
         (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
-        require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "CTMRWA001X: Trying to create a slot that already exists");
+        require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "RWAX: Slot that already exists");
         
         _checkTokenAdmin(ctmRwa001Addr);
 
@@ -655,15 +655,15 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory _slotName
     ) external onlyCaller returns(bool) {
         (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001X: Destination token contract with this ID does not exist");
-        require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "CTMRWA001X: Trying to create a slot that already exists");
+        require(ok, "RWAX: ID does not exist");
+        require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "RWAX: Slot that already exists");
 
         (, string memory fromChainIdStr,) = context();
 
         address fromAddress = stringToAddress(_fromAddressStr);
 
         address currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
-        require(fromAddress == currentAdmin, "CTMRWA001X: Only the token admin can add slots, or token is locked");
+        require(fromAddress == currentAdmin, "RWAX: Only tokenAdmin can add slots, or locked");
 
         ICTMRWA001(ctmRwa001Addr).createSlotX(_slot, _slotName);
 
@@ -698,7 +698,7 @@ contract CTMRWA001X is Context, GovernDapp {
         string memory toChainIdStr = _toLower(_toChainIdStr);
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "CTMRWA001X: Not approved or owner of tokenId");
+        require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "RWAX: Not approved or owner");
 
         if(stringsEqual(toChainIdStr, cIDStr)) {
             address toAddr = stringToAddress(_toAddressStr);
@@ -760,7 +760,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
         address fromAddr = stringToAddress(_fromAddrStr);
-        require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "CTMRWA001X: transfer caller is not owner nor approved");
+        require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "RWAX: Not owner/approved");
 
         if(stringsEqual(toChainIdStr, cIDStr)) {
             address toAddr = stringToAddress(_toAddressStr);
@@ -820,10 +820,10 @@ contract CTMRWA001X is Context, GovernDapp {
         address toAddr = stringToAddress(_toAddressStr);
 
         (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001X: Destination token contract with this ID does not exist"); 
+        require(ok, "RWAX: ID does not exist"); 
 
         bool slotExists = ICTMRWA001(ctmRwa001Addr).slotExists(_slot);
-        require(slotExists, "CTMRWA001X: Destination slot does not exist");
+        require(slotExists, "RWAX: Slot does not exist");
 
         string memory thisSlotName = ICTMRWA001(ctmRwa001Addr).slotName(_slot);
 
@@ -881,7 +881,7 @@ contract CTMRWA001X is Context, GovernDapp {
     /// @dev Get the CTMRWA001 address and string version on this chain for an ID
     function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001X: The requested tokenID does not exist");
+        require(ok, "RWAX: tokenID not exist");
         string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
 
         return(tokenAddr, tokenAddrStr);
@@ -889,12 +889,12 @@ contract CTMRWA001X is Context, GovernDapp {
 
     /// @dev Get the corresponding CTMRWA001X address on another chain with chainId _toChainIdStr
     function _getRWAX(string memory _toChainIdStr) internal view returns(string memory, string memory) {
-        require(!stringsEqual(_toChainIdStr, cIDStr), "CTMRWA001X: Not a cross-chain request");
+        require(!stringsEqual(_toChainIdStr, cIDStr), "RWAX: Not Xchain");
 
         string memory fromAddressStr = _toLower(_msgSender().toHexString());
 
         (bool ok, string memory toRwaXStr) = ICTMRWAGateway(gateway).getAttachedRWAX(rwaType, version, _toChainIdStr);
-        require(ok, "CTMRWA001X: Target contract address not found");
+        require(ok, "RWAX: Address not found");
 
         return(fromAddressStr, toRwaXStr);
     }
@@ -907,7 +907,7 @@ contract CTMRWA001X is Context, GovernDapp {
         address currentAdmin = ICTMRWA001(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = _toLower(currentAdmin.toHexString());
 
-        require(_msgSender() == currentAdmin, "CTMRWA001X: Not token admin, or it is locked");
+        require(_msgSender() == currentAdmin, "RWAX: Not tokenAdmin or locked");
 
         return(currentAdmin, currentAdminStr);
     }
@@ -958,7 +958,7 @@ contract CTMRWA001X is Context, GovernDapp {
     /// @dev Convert a string to an EVM address. Also checks the string length
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
+        require(strBytes.length == 42, "RWAX: Invalid addr length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {

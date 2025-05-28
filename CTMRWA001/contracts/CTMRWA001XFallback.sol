@@ -111,7 +111,7 @@ contract CTMRWA001XFallback is Context {
     /// @dev Convert a string to an EVM address. Also checks the string length 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
+        require(strBytes.length == 42, "CTMRWA001X: Invalid addr length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {

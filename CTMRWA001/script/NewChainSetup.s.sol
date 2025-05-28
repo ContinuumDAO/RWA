@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.22;
+pragma solidity ^0.8.19;
 
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
@@ -28,7 +28,7 @@ contract NewChainSetup is Script {
     uint256 rwaType = 1;
     uint256 version = 1;
 
-    uint256 chainId = 153;   // This is the chainId we are processing
+    uint256 chainId = 43113;   // This is the chainId we are processing
 
     bool COMPLETE = true;
 
@@ -155,13 +155,13 @@ contract NewChainSetup is Script {
             0x208Ec1Ca3B07a50151c5741bc0E05C61beddad90,
             0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
         ));
-        newchains.push(NewChain(  // MANTLE SEPOLIA Chain 5003 solidity 0.8.27  invalid opcode: opcode 0x5e not defined
+        newchains.push(NewChain(  // MANTLE SEPOLIA Chain 5003 solidity 0.8.22 *
             5003,
-            0xf5b9B2DCdA465aD62b56390da5C36e4403e5AE92,
-            0x6B39331e9478571BF6D55842AAB470BA3196bd5A,
-            0x5b1E22E2b53f673485A38A57457b00ACcd24dc07,
-            0xf3F62dAF8f096e5e1e8626cF2F35d816d454bC93,
-            0xB5f5be1Ac436D8AD082c4804AFeDa73088730ed1,
+            0x9DC772b55e95A630031EBe431706D105af01Cf03,
+            0xad49cabD336f943a9c350b9ED60680c54fa2c3d1,
+            0x358498985E6ac7CA73F5110b415525aE04CB8313,
+            0xeDe597aA066e6d7bc84BF586c494735DEB7DDe9F,
+            0xDa61b02D88D2c857dA9d2da435152b08F03E2836,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         ));
         newchains.push(NewChain(  // BLAST SEPOLIA Chain 168587773 Solidity 0.8.27 *
@@ -173,13 +173,13 @@ contract NewChainSetup is Script {
             0x0156a74FD9432446030f47f7c55f4d1FbfdF5E9a,
             0x5d5408e949594E535d0c3d533761Cb044E11b664
         ));
-        newchains.push(NewChain(  //  REDBELLY TESTNET Chain 153 Solidity 0.8.27 DIDN'T WORK
+        newchains.push(NewChain(  //  REDBELLY TESTNET Chain 153 Solidity 0.8.22 *
             153,
-            0xFBDbf53Eb371419E92c718aC76632c7f3617545A,
-            0xfdF17beCE656A0aC2d1302305962122A968eEa28,
-            0x0a3272bC10d8BD7f6ab8FC732a30dB3F6e9b1597,
-            0x35f5B7A7469c7B3e3Bb159335eC92Ce74f7F11CD,
-            0x2b15Aab31879e4B3A9Dc521A3A4eBDB5d691d18A,
+            0x24A74106195Acd7e3E0a8cc17fd44761CC32474a,
+            0x41388451eca7344136004D29a813dCEe49577B44,
+            0xa328Fd0f353afc134f8f6Bdb51082D85395d7200,
+            0x74972e7Ff5561bD902E3Ec3dDD5A22653088cA6f,
+            0x5930640c1572bCD396eB410f62a6975ab9b8A148,
             0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
         ));
         newchains.push(NewChain(  //  OPTIMISM SEPOLIA Chain 11155420 Solidity 0.8.27 *

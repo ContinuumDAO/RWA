@@ -164,17 +164,17 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
     
     modifier onlyTokenAdmin() {
-        require(_msgSender() == tokenAdmin||_msgSender() == ctmRwa001X, "CTMRWA001: This is an onlyTokenAdmin function");
+        require(_msgSender() == tokenAdmin||_msgSender() == ctmRwa001X, "RWA: onlyTokenAdmin");
         _;
     }
 
     modifier onlyDeployer() {
-        require(_msgSender() == ctmRwaDeployer, "CTMRWA001: This is an onlyDeployer function");
+        require(_msgSender() == ctmRwaDeployer, "RWA: onlyDeployer");
         _;
     }
 
     modifier onlyCtmMap() {
-        require(_msgSender() == ctmRwaMap, "CTMRWA001: This can only be called by CTMRWAMap");
+        require(_msgSender() == ctmRwaMap, "RWA: onlyCTMRWAMap");
         _;
     }
 
@@ -183,7 +183,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             _msgSender() == ctmRwa001X || 
             _msgSender() == rwa001XFallback ||
             _erc20s[_msgSender()], 
-            "CTMRWA001: This can only be called by CTMRWA001X/CTMRWAERC20");
+            "RWA: Only CTMRWA001X/CTMRWAERC20");
         _;
     }
 
@@ -191,17 +191,17 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         require(
             ICTMRWA001X(ctmRwa001X).isMinter(_msgSender()) ||
             _erc20s[_msgSender()],
-            "CTMRWA001: This is an onlyMinter function");
+            "RWA: onlyMinter");
         _;
     }
 
     modifier onlyDividend() {
-        require(_msgSender() == dividendAddr, "CTMRWA001: This can only be called by Dividend contract");
+        require(_msgSender() == dividendAddr, "RWA: onlyDividend");
         _;
     }
 
     modifier onlyERC20() {
-        require(_erc20s[_msgSender()], "CTMRWA001: Not a valid CTMRWAERC20");
+        require(_erc20s[_msgSender()], "RWA: onlyCTMRWAERC20");
         _;
     }
     
@@ -228,7 +228,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      *      A reputable law firm's signature, with the law firm described in LEGAL in CTMRWA001Storage
      */
     function setOverrideWallet(address _overrideWallet) public onlyTokenAdmin {
-        require(ICTMRWA001Storage(storageAddr).regulatorWallet() != address(0), "CTMRWA001: Token is not a Security");
+        require(ICTMRWA001Storage(storageAddr).regulatorWallet() != address(0), "RWA: Not a Security");
         overrideWallet = _overrideWallet;
     }
 
@@ -260,7 +260,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * NOTE Only callable from CTMRWA001X
      */
     function attachId(uint256 nextID, address _tokenAdmin) external onlyRwa001X returns(bool) {
-        require(_tokenAdmin == tokenAdmin, "CTMRWA001: attachId is an AdminOnly function");
+        require(_tokenAdmin == tokenAdmin, "RWA: attachId is AdminOnly");
         if(ID == 0) { // not yet attached
             ID = nextID;
             return(true);
@@ -272,7 +272,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @param _dividendAddr The new CTMRWA001Dividend contract address
      */
     function attachDividend(address _dividendAddr) external onlyCtmMap returns(bool) {
-        require(dividendAddr == address(0), "CTMRWA001: Cannot reset the dividend contract address");
+        require(dividendAddr == address(0), "RWA: Cannot reset dividend contract");
         dividendAddr = _dividendAddr;
         return(true);
     }
@@ -282,7 +282,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @param _storageAddr The new CTMRWA001Storage contract address
      */
     function attachStorage(address _storageAddr) external onlyCtmMap returns(bool) {
-        require(storageAddr == address(0), "CTMRWA001: Cannot reset the storage contract address");
+        require(storageAddr == address(0), "RWA: Cannot reset storage contract");
         storageAddr = _storageAddr;
         return(true);
     }
@@ -292,7 +292,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @param _sentryAddr The new CTMRWA001Sentry contract address
      */
     function attachSentry(address _sentryAddr) external onlyCtmMap returns(bool) {
-        require(sentryAddr == address(0), "CTMRWA001: Cannot reset the sentry contract address");
+        require(sentryAddr == address(0), "RWA: Cannot reset sentry contract");
         sentryAddr = _sentryAddr;
         return(true);
     }
@@ -320,7 +320,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @param _owner The wallet address for which we want the balance of
      */
     function balanceOf(address _owner) public view virtual override returns (uint256) {
-        require(_owner != address(0), "CTMRWA001: balance query for the zero address");
+        require(_owner != address(0), "RWA: zero address");
         return _addressData[_owner].ownedTokens.length;
     }
 
@@ -331,7 +331,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     function ownerOf(uint256 _tokenId) public view virtual returns (address owner_) {
         requireMinted(_tokenId);
         owner_ = _allTokens[_allTokensIndex[_tokenId]].owner;
-        require(owner_ != address(0), "CTMRWA001: invalid tokenId");
+        require(owner_ != address(0), "RWA: zero address");
     }
 
     /**
@@ -377,7 +377,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @param _dividend The dividend rate per unit of this slot that can be claimed by holders
      */
     function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyDividend returns(bool) {
-        require(slotExists(_slot), "CTMRWA001: in changeDividend, slot does not exist");
+        require(slotExists(_slot), "RWA: slot not exist");
         _allSlots[_allSlotsIndex[_slot]].dividendRate = _dividend;
         return(true);
     }
@@ -387,7 +387,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @param _slot The slot number in this CTMRWA001
      */
     function getDividendRateBySlot(uint256 _slot) external view returns(uint256) {
-        require(slotExists(_slot), "CTMRWA001: in getDividendBySlot, slot does not exist");
+        require(slotExists(_slot), "RWA: slot not exist");
         return(_allSlots[_allSlotsIndex[_slot]].dividendRate);
     }
 
@@ -404,8 +404,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         string memory _erc20Name,
         address _feeToken
     ) public onlyTokenAdmin {
-        require(slotExists(_slot), "CTMRWA001: Slot does not exist");
-        require(_erc20Slots[_slot] == address(0), "CTMRWA001: ERC20 for this slot already exists");
+        require(slotExists(_slot), "RWA: Slot does not exist");
+        require(_erc20Slots[_slot] == address(0), "RWA: ERC20 slot already exists");
         address newErc20 = ICTMRWAERC20Deployer(erc20Deployer).deployERC20(
             ID,
             _slot,
@@ -434,9 +434,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     */
     function approve(uint256 _tokenId, address _to, uint256 _value) public payable virtual override {
         address owner = CTMRWA001.ownerOf(_tokenId);
-        require(_to != owner, "CTMRWA001: approval to current owner");
+        require(_to != owner, "RWA: approval current owner");
 
-        require(isApprovedOrOwner(_msgSender(), _tokenId), "CTMRWA001: approve caller is not owner nor approved");
+        require(isApprovedOrOwner(_msgSender(), _tokenId), "RWA: approve caller not owner/approved");
 
         _approveValue(_tokenId, _to, _value);
     }
@@ -504,7 +504,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         address _to,
         uint256 _tokenId
     ) public onlyRwa001X {
-        require(isApprovedOrOwner(_msgSender(), _tokenId), "CTMRWA001: transfer caller is not owner nor approved");
+        require(isApprovedOrOwner(_msgSender(), _tokenId), "RWA: transfer caller not owner/approved");
         _transferTokenId(_from, _to, _tokenId);
 
     }
@@ -516,8 +516,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @param _tokenId The tokenId being transferred
      */
     function forceTransfer(address _from, address _to, uint256 _tokenId) public returns(bool) {
-        require(overrideWallet != address(0), "CTMRWA001: Licensed Security override not set up");
-        require(_msgSender() == overrideWallet, "CTMRWA001: Not authorized to force a transfer");
+        require(overrideWallet != address(0), "RWA: Licensed Security override not set up");
+        require(_msgSender() == overrideWallet, "RWA: Cannot forceTransfer");
         _transferTokenId(_from, _to, _tokenId);
 
         return true;
@@ -544,7 +544,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @dev Deprecated
      */
     function tokenByIndex(uint256 _index) public view virtual returns (uint256) {
-        require(_index < this.totalSupply(), "CTMRWA001: global index out of bounds");
+        require(_index < this.totalSupply(), "RWA: global index out of bounds");
         return _allTokens[_index].id;
     }
 
@@ -554,7 +554,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @param _index The index into the wallet address
      */
     function tokenOfOwnerByIndex(address _owner, uint256 _index) external view virtual override returns (uint256) {
-        require(_index < CTMRWA001.balanceOf(_owner), "CTMRWA001: owner index out of bounds");
+        require(_index < CTMRWA001.balanceOf(_owner), "RWA: owner index out of bounds");
         return _addressData[_owner].ownedTokens[_index];
     }
 
@@ -567,7 +567,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     function spendAllowance(address _operator, uint256 _tokenId, uint256 _value) public virtual {
         uint256 currentAllowance = CTMRWA001.allowance(_tokenId, _operator);
         if (!isApprovedOrOwner(_operator, _tokenId) && currentAllowance != type(uint256).max) {
-            require(currentAllowance >= _value, "CTMRWA001: insufficient allowance");
+            require(currentAllowance >= _value, "RWA: insufficient allowance");
             _approveValue(_tokenId, _operator, currentAllowance - _value);
         }
     }
@@ -594,11 +594,11 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      */
     function approve(address _to, uint256 _tokenId) public virtual {
         address owner = ownerOf(_tokenId);
-        require(_to != owner, "CTMRWA001: approval to current owner");
+        require(_to != owner, "RWA: approval current owner");
 
         require(
             _msgSender() == owner, 
-            "CTMRWA001: approve caller is not owner"
+            "RWA: approve caller not owner"
         );
 
         _approve(_to, _tokenId);
@@ -639,9 +639,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * If whitelists are enabled, then _to is checked in CTMRWA001Sentry
      */
     function _mint(address _to, uint256 _tokenId, uint256 _slot, string memory _slotName, uint256 _value) internal {
-        require(_to != address(0), "CTMRWA001: cannot mint to the zero address");
-        require(_tokenId != 0, "CTMRWA001: cannot mint zero tokenId");
-        require(!_exists(_tokenId), "CTMRWA001: token already minted");
+        require(_to != address(0), "RWA: mint to zero address");
+        require(_tokenId != 0, "RWA: mint zero tokenId");
+        require(!_exists(_tokenId), "RWA: already minted");
 
         _beforeValueTransfer(address(0), _to, 0, _tokenId, _slot, _slotName, _value);
         __mintToken(_to, _tokenId, _slot);
@@ -694,7 +694,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     /// @dev burn a tokenId, checking permissions
     function burn(uint256 _tokenId) public virtual {
-        require(isApprovedOrOwner(_msgSender(), _tokenId), "CTMRWA001: caller is not token owner nor approved");
+        require(isApprovedOrOwner(_msgSender(), _tokenId), "RWA: caller not owner/approved");
         _burn(_tokenId);
     }
 
@@ -723,7 +723,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
         (, uint256 bal, address owner, uint256 slot, string memory thisSlotName,) = this.getTokenInfo(_tokenId);
 
-        require(bal >= _value, "CTMRWA001: burn value exceeds balance");
+        require(bal >= _value, "RWA: burn > balance");
 
         _beforeValueTransfer(owner, address(0), _tokenId, 0, slot, thisSlotName, _value);
         
@@ -806,7 +806,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         address _to,
         uint256 _value
     ) internal {
-        require(_to != address(0), "CTMRWA001: approve value to the zero address");
+        require(_to != address(0), "RWA: approve to zero address");
         if (!_existApproveValue(_to, _tokenId)) {
             _allTokens[_allTokensIndex[_tokenId]].valueApprovals.push(_to);
         }
@@ -848,14 +848,14 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         uint256 _toTokenId,
         uint256 _value
     ) internal {
-        require(_exists(_fromTokenId), "CTMRWA001: transfer from invalid token ID");
-        require(_exists(_toTokenId), "CTMRWA001: transfer to invalid token ID");
+        require(_exists(_fromTokenId), "RWA: transfer from invalid token");
+        require(_exists(_toTokenId), "RWA: transfer to invalid token");
 
         TokenData storage fromTokenData = _allTokens[_allTokensIndex[_fromTokenId]];
         TokenData storage toTokenData = _allTokens[_allTokensIndex[_toTokenId]];
 
-        require(fromTokenData.balance >= _value, "CTMRWA001: insufficient balance for transfer");
-        require(fromTokenData.slot == toTokenData.slot, "CTMRWA001: transfer to token with different slot");
+        require(fromTokenData.balance >= _value, "RWA: balance<value");
+        require(fromTokenData.slot == toTokenData.slot, "RWA: transfer to different slot");
 
         string memory thisSlotName = slotNameOf(_fromTokenId);
 
@@ -886,16 +886,16 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
         require(
             _checkOnCTMRWA001Received(_fromTokenId, _toTokenId, _value, ""),
-            "CTMRWA001: transfer rejected by CTMRWA001Receiver"
+            "RWA: transfer rejected by receiver"
         );
     }
 
     /// @dev Burn 'value' from a pre-existing tokenId, callable by any 'Minter'
     function burnValueX(uint256 _fromTokenId, uint256 _value) external onlyMinter returns(bool) {
-        require(_exists(_fromTokenId), "CTMRWA001: transfer from invalid token ID");
+        require(_exists(_fromTokenId), "RWA: transfer from invalid token ID");
 
         TokenData storage fromTokenData = _allTokens[_allTokensIndex[_fromTokenId]];
-        require(fromTokenData.balance >= _value, "CTMRWA001: insufficient balance for transfer");
+        require(fromTokenData.balance >= _value, "RWA: balance<value");
 
         fromTokenData.balance -= _value;
         return(true);
@@ -905,17 +905,17 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      *  whitelisted (if whitelisting is enabled). Function is callable by any Minter
      */
     function mintValueX(uint256 _toTokenId, uint256 _slot, uint256 _value) external onlyMinter returns(bool) {
-        require(_exists(_toTokenId), "CTMRWA001: transfer to invalid token ID");
+        require(_exists(_toTokenId), "RWA: transfer to invalid token");
         string memory toAddressStr = ownerOf(_toTokenId).toHexString();
 
         if(sentryAddr != address(0)) {
             require(ICTMRWA001Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
-                "CTMRWA001: Transfer of value to this address is not allowable"
+                "RWA: Transfer not WL"
             );
         }
 
         TokenData storage toTokenData = _allTokens[_allTokensIndex[_toTokenId]];
-        require(toTokenData.slot == _slot, "CTMRWA001: Destination slot is not the same as source slot");
+        require(toTokenData.slot == _slot, "RWA: Dest slot != source slot");
 
         toTokenData.balance += _value;
         return(true);
@@ -927,8 +927,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         address _to,
         uint256 _tokenId
     ) internal {
-        require(CTMRWA001.ownerOf(_tokenId) == _from, "CTMRWA001: transfer from invalid owner");
-        require(_to != address(0), "CTMRWA001: transfer to the zero address");
+        require(CTMRWA001.ownerOf(_tokenId) == _from, "RWA: transfer from invalid owner");
+        require(_to != address(0), "RWA: transfer to the zero address");
 
         uint256 slot = CTMRWA001.slotOf(_tokenId);
         uint256 value = CTMRWA001.balanceOf(_tokenId);
@@ -975,46 +975,6 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         return _tokenIdGenerator++;
     }
 
-    /// @dev Check if an address is a contract or not
-    function _isContract(address _addr) private view returns (bool) {
-        uint32 size;
-        assembly {
-            size := extcodesize(_addr)
-        }
-        return (size > 0);
-    }
-    
-
-    function cID() internal view returns (uint256) {
-        return block.chainid;
-    }
-
-    /// @dev Check if two strings are equal (strictly - if the strings have the same hash)
-    function stringsEqual(
-        string memory a,
-        string memory b
-    ) public pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
-    }
-
-    /// @dev Convert a string to lower case
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
-    }
-
    
     /// @notice Return the number of slots in the CTMRWA001
     function slotCount() public view returns (uint256) {
@@ -1036,8 +996,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     /// @dev Function is used to initialize the slot struct array on a newly deployed chain in this RWA
     function initializeSlotData(uint256[] memory _slotNumbers, string[] memory _slotNames) external onlyDeployer {
-        require(_slotNumbers.length == _slotNames.length, "CTMRWA001: initializeSlotData length input mismatch");
-        require(_allSlots.length == 0, "CTMRWA001: initializeSlotData slot data must be uninitialized");
+        require(_slotNumbers.length == _slotNames.length, "RWA: SlotData length input mismatch");
+        require(_allSlots.length == 0, "RWA: Slot data must be uninit");
         for(uint256 i=0; i<_slotNumbers.length; i++) {
             _allSlots.push(SlotData(_slotNumbers[i], _slotNames[i], 0, emptyUint256));
         }
@@ -1050,7 +1010,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @param _slot The slot number being examined
      */
     function slotName(uint256 _slot) public view returns (string memory) {
-        require(slotExists(_slot), "CTMRWA001: slot does not exist");
+        require(slotExists(_slot), "RWA: slot not exist");
         return( _allSlots[_allSlotsIndex[_slot]].slotName);
     }
 
@@ -1059,7 +1019,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @param _index The index into the struct array
      */
     function slotByIndex(uint256 _index) public view returns (uint256) {
-        require(_index < slotCount(), "CTMRWA001: slot index out of bounds");
+        require(_index < slotCount(), "RWA: slot index out of bounds");
         return _allSlots[_index].slot;
     }
 
@@ -1106,7 +1066,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
      * @param _index The index into the slot tokens
      */
     function tokenInSlotByIndex(uint256 _slot, uint256 _index) public view returns (uint256) {
-        require(_index < this.tokenSupplyInSlot(_slot), "CTMRWA001: slot token index out of bounds");
+        require(_index < this.tokenSupplyInSlot(_slot), "RWA: slot token index out of bounds");
         return _allSlots[_allSlotsIndex[_slot]].slotTokens[_index];
     }
 
@@ -1149,12 +1109,12 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         string memory _slotName,
         uint256 _value
     ) internal virtual {
-        require(slotExists(_slot), "CTMRWA001: Slot does not exist");
+        require(slotExists(_slot), "RWA: Slot not exist");
 
         if(sentryAddr != address(0)) {
             string memory toAddressStr = _to.toHexString();
             require(ICTMRWA001Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
-                "CTMRWA001: Transfer of the token to this address is not allowable"
+                "RWA: Transfer token to address is not allowable"
             );
         }
 

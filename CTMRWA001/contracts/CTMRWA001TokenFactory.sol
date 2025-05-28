@@ -22,7 +22,7 @@ contract CTMRWA001TokenFactory {
     address public ctmRwaDeployer;
 
     modifier onlyDeployer {
-        require(msg.sender == ctmRwaDeployer, "CTMRWA001TokenFactory: onlyDeployer function");
+        require(msg.sender == ctmRwaDeployer, "RWATF: onlyDeployer");
         _;
     }
 

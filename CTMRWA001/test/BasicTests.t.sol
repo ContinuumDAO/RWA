@@ -875,10 +875,10 @@ contract TestBasicToken is SetUp {
         assertEq(newDecimals, 18);
         assertEq(ts, 0);
 
-        vm.expectRevert("CTMRWA001: ERC20 for this slot already exists");
+        vm.expectRevert("RWA: ERC20 slot already exists");
         ICTMRWA001(ctmRwaAddr).deployErc20(slot, name, address(usdc));
 
-        vm.expectRevert("CTMRWA001: Slot does not exist");
+        vm.expectRevert("RWA: Slot does not exist");
         ICTMRWA001(ctmRwaAddr).deployErc20(99, name, address(usdc));
 
         uint256 tokenId1User1 = rwa001X.mintNewTokenValueLocal(
@@ -1013,7 +1013,7 @@ contract TestBasicToken is SetUp {
             tokenStr
         );
 
-        vm.expectRevert("CTMRWA001: Licensed Security override not set up");
+        vm.expectRevert("RWA: Licensed Security override not set up");
         ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
 
         string memory randomData = "this is any old data";
@@ -1052,7 +1052,7 @@ contract TestBasicToken is SetUp {
             tokenStr
         );
 
-        vm.expectRevert("CTMRWA001: Licensed Security override not set up");
+        vm.expectRevert("RWA: Licensed Security override not set up");
         ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
 
 
@@ -1060,13 +1060,13 @@ contract TestBasicToken is SetUp {
         ICTMRWA001Storage(stor).createSecurity(admin);
         assertEq(ICTMRWA001Storage(stor).regulatorWallet(), admin);
 
-        vm.expectRevert("CTMRWA001: Licensed Security override not set up");
+        vm.expectRevert("RWA: Licensed Security override not set up");
         ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
 
         ICTMRWA001(ctmRwaAddr).setOverrideWallet(tokenAdmin2);
         assertEq(ICTMRWA001(ctmRwaAddr).overrideWallet(), tokenAdmin2);
 
-        vm.expectRevert("CTMRWA001: Not authorized to force a transfer");
+        vm.expectRevert("RWA: Cannot forceTransfer");
         ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
 
         vm.stopPrank();
@@ -1077,7 +1077,7 @@ contract TestBasicToken is SetUp {
         vm.stopPrank();
 
         vm.startPrank(user2);
-        vm.expectRevert("CTMRWA001: Not authorized to force a transfer");
+        vm.expectRevert("RWA: Cannot forceTransfer");
         ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId2User1);
 
         vm.stopPrank();
@@ -1087,7 +1087,7 @@ contract TestBasicToken is SetUp {
         vm.stopPrank();
 
         vm.startPrank(tokenAdmin2);
-        vm.expectRevert("CTMRWA001: Licensed Security override not set up"); // Must re-setup override wallet if tokenAdmin has changed
+        vm.expectRevert("RWA: Licensed Security override not set up"); // Must re-setup override wallet if tokenAdmin has changed
         ICTMRWA001(ctmRwaAddr).forceTransfer(user1, user2, tokenId2User1);
         vm.stopPrank();
 
@@ -1479,7 +1479,7 @@ contract TestBasicToken is SetUp {
             tokenStr
         );
 
-        vm.expectRevert("CTMRWA001X: Whitelist or kyc set and cannot add new chains");
+        vm.expectRevert("RWAX: Whitelist or kyc set No new chains");
         rwa001X.deployAllCTMRWA001X(
             false,  // include local mint
             ID,
@@ -1661,7 +1661,7 @@ contract TestBasicToken is SetUp {
             tokenStr
         );
 
-        vm.expectRevert("CTMRWA001: Transfer of the token to this address is not allowable");
+        vm.expectRevert("RWA: Transfer token to address is not allowable");
         newTokenId = rwa001X.mintNewTokenValueLocal(
             treasury,
             0,
@@ -1677,7 +1677,7 @@ contract TestBasicToken is SetUp {
         // here we can test transferring some tokens owned by user2
         vm.startPrank(user2);
 
-        vm.expectRevert("CTMRWA001: Transfer of the token to this address is not allowable");
+        vm.expectRevert("RWA: Transfer token to address is not allowable");
         rwa001X.transferWholeTokenX(
             user2Str,
             treasury.toHexString(),
@@ -1687,7 +1687,7 @@ contract TestBasicToken is SetUp {
             tokenStr
         );
 
-        vm.expectRevert("CTMRWA001: Transfer of the token to this address is not allowable");
+        vm.expectRevert("RWA: Transfer token to address is not allowable");
         rwa001X.transferPartialTokenX(
             newTokenId,
             treasury.toHexString(),
@@ -1750,7 +1750,7 @@ contract TestBasicToken is SetUp {
         string memory feeTokenStr = feeTokenList[0].toHexString();
 
 
-        vm.expectRevert("CTMRWA001X: Not approved or owner of tokenId");
+        vm.expectRevert("RWAX: Not approved or owner");
         rwa001X.transferPartialTokenX(tokenId, user1.toHexString(), cIdStr, 5, ID, feeTokenStr);
         vm.stopPrank();
 

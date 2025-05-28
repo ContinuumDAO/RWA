@@ -111,8 +111,8 @@ const getRwaContracts = (chainIdStr) => {
     } else if (chainIdStr == "5003") {  // MANTLE SEPOLIA Chain 5003
 
         rpcUrl = "https://rpc.sepolia.mantle.xyz"
-        ctmRwaMap = "0x2a592B15dd480F7E861198002ed68F8E5927ee80"
-        storageManager = "0xf3F62dAF8f096e5e1e8626cF2F35d816d454bC93"
+        ctmRwaMap = "0x1b34e36f4A7B083b153803946C68F8567b4Fe021"
+        storageManager = "0xeDe597aA066e6d7bc84BF586c494735DEB7DDe9F"
         feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
@@ -135,8 +135,8 @@ const getRwaContracts = (chainIdStr) => {
     }  else if (chainIdStr == "153") {  // REDBELLY TESTNET Chain 153
 
         rpcUrl = "https://governors.testnet.redbelly.network"
-        ctmRwaMap = "0xAd8E9e0Cc6FB6680E3e4fE2b6c3E8E84911e9637"
-        storageManager = "0x35f5B7A7469c7B3e3Bb159335eC92Ce74f7F11CD"
+        ctmRwaMap = "0x9ae0309E655D58AA5fC29296523C2e4E8fcB7522"
+        storageManager = "0x74972e7Ff5561bD902E3Ec3dDD5A22653088cA6f"
         feeToken = "0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
