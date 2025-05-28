@@ -93,7 +93,7 @@ impl CTMRwaDeployer {
         rwa_id: BytesN<32>,
         rwa_type: u32,
         version: u32,
-        deploy_args: Bytes
+        deploy_args: Vec<u8>
     ) -> Address {
 
         let rwa_x: Address = env

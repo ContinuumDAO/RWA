@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.19;
+pragma solidity 0.8.22;
 
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
@@ -28,7 +28,7 @@ contract NewChainSetup is Script {
     uint256 rwaType = 1;
     uint256 version = 1;
 
-    uint256 chainId = 4201;   // This is the chainId we are processing
+    uint256 chainId = 153;   // This is the chainId we are processing
 
     bool COMPLETE = true;
 
@@ -65,170 +65,215 @@ contract NewChainSetup is Script {
     // }
 
     constructor() {
-        newchains.push(NewChain(    // ARB Sepolia *
+        newchains.push(NewChain(    // ARB Sepolia  Solidity 0.8.27 *
             421614,
-            0x15E8BBa5f3F0118C357E74D86a65f46977D58053,
-            0xb866653913aE6aCb12e9aa33D6d45651cDFEB78B,
-            0x8e1fc60c90Aff208023735c9eE54Ff6315D13182,
-            0x3804bD72656E086166f2d64E7C78f2F9CD2735b8,
-            0x9cEB3f7ddcEe31eB8aC66D51838999709B1d4e4F,
+            0xFa89DD803b8872f991997778d26c74a3Aecd9639,
+            0x8bd737F4Ea451911eDF0445ACB1B7efdc9565221,
+            0xc28328b1f98076eD5111f1223C647E883f5d6E16,
+            0x7aB4De775c88e4aA4c93d0078d8318463fABfb13,
+            0xb63F83484b9bdbaD5C574B4c89Badf0359e78854,
             0xbF5356AdE7e5F775659F301b07c4Bc6961044b11
         ));
-        newchains.push(NewChain(   // POLYGON AMOY  Chain 80002 *
-            80002,
-            0x6f013Ad0b507590dcB26E674199ba99d613e9dFD,
-            0x68CE4a4a6F6EbF5Ba25791Ea5385080e57A5BE82,
-            0x5Cc4E3125B75284246Ffd677eC53553f1d78b825,
-            0xE5b921BD326efa802e3dc20Fb3502559f59fd8AA,
-            0xe5f1354ad39be96a3d2566b27dBc12Dd1Af1b9dB,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        ));
-        newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532
+        newchains.push(NewChain(  // BASE SEPOLIA  Chain 84532 Solidity 0.8.27 *
             84532,
-            0x808490311dEbe8818cdfFe1FAae436cb84fAa906,
-            0xB3672d1bBd1bADbbBf6b327C2ad7785534aF2E7F,
-            0xD3ee2E923723D2e634219797512bD768d5973020,
-            0x1481875CA0EcD0ACdEb79d3d57FB76EAE726d128,
-            0x3bFF2A879a92e2125cDe895FA20BA3A4AEb2D4D7,
+            0x31F21C6E2605D28e6b204CD323FF58421FC8Dd00,
+            0x8736d3b789A6548Cc8fb607dA34Ed860ab626322,
+            0x050E942b8ebb0E174A847f343D04EfdC669dFf63,
+            0x7e0858dE387f30Ebc0bC2F24A35dc4ad9231Cffd,
+            0x669AB21e6CeA598ea34CD1292680937c3DEF535c,
             0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         ));
-        newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
-            59141,
-            0x5Bd9BE690c9DA2Afb3E50eC6B73ae6EaA66d5d30,
-            0xdfa830314001a2dc761c0564D61962a57b7A5B89,
-            0x6a61BDf8faaE1614701674dB133A0bd1414E88Dc,
-            0x73B4143b7cd9617F9f29452f268479Bd513e3d23,
-            0x5dA80743b6FD7FEB2Bf7207aBe20E57E204e2B5b,
-            0x6654D956A4487A26dF1186b01B689c26939544fC
+        newchains.push(NewChain(   // POLYGON AMOY  Chain 80002  Solidity 0.8.27 *
+            80002,
+            0x66dB3f564807fdc689eC85285981eF464daeB943,
+            0x2dA1B2763cF56b9DF5CbBB5A996C7e8836d8C6D8,
+            0xA332fc0BF257AFF4aB07267De75d5Eb0c67B71AF,
+            0xB3D138F0613CC476faA8c5E2C1a64e90D9d506F3,
+            0xf32bc63A511B3B3DeB8fB6AeB3c52eBC0541067e,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         ));
+        newchains.push(NewChain(  //  SEPOLIA  Chain 11155111 Solidity 0.8.27 *
+            11155111,
+            0x13797c225F8E3645299F17d83365e0f5DB1c1607,
+            0x778511925d3243Cf03a2486386ECc363E9Ad6647,
+            0x08D0F2f8368CE13206F4839c3ce9151Be93893Bc,
+            0x6681DB630eB117050D78E0B89eB5619b35Ea12e8,
+            0xF4842C8354fE42e85D6DCDe11CFAda1B80BEAa33,
+            0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c
+        ));
+        newchains.push(NewChain(  //  BSC TESTNET Chain 97 Solidity 0.8.27 *
+            97,
+            0x7a63F6b51c503e9A3354AF8262E8C7129aBDbBEb,
+            0x37C7137Dc6e3DC3c3637bFEd3F6dBFbd43386429,
+            0x1736009b39009f1cD6F08791C781317c2Dce4a88,
+            0x71645806ee984439ADC3352ABB5491Ec03928e63,
+            0x0d7B0bb763557EA0c7c2d938B5Ae3D5ccbbf8D44,
+            0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD
+        ));
+        newchains.push(NewChain(  // LUMIA TESTNET Chain 1952959480 Solidity 0.8.27 DIDN'T WORK
+            1952959480,
+            0x5fd63cA6c373Cd35E8e373fb5Fa7830A8783ECED,
+            0x62421e1C0110AEbD376e34411c2616C10efF9161,
+            0xAFd6479edC4A6354B3531333827c924089ba3880,
+            0xE3A405Aa844DA4b6E83eAe852bA471219163CBe0,
+            0x4A707B416Ee66aF8b1671209ed48f5dcc00257bF,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        ));
+        newchains.push(NewChain(  // OPBNB TESTNET  Chain 5611 Solidity 0.8.27 *
+            5611,
+            0x78F81b1AEe019efaAfe58853D96c5E9Ac87be731,
+            0x7743150e59d6A27ec96dDDa07B24131D0122b611,
+            0xe08C7eE637336565511eb3421DAFdf45b860F9bc,
+            0x926DF1f820Af8E3cF53A58C94332eB16BA4cB4b5,
+            0x3AF6a526DD51C8B08FD54dBB624E042BB3b0a77e,
+            0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
+        ));
+        newchains.push(NewChain(  // SONEIUM MINATO Chain 1946 Solidity 0.8.27 *
+            1946,
+            0xa7441037961E31D4b64Aca57417d7673FEdC8fEC,
+            0xf299832e535b9cc50D4002909061c320964D03FC,
+            0xF074c733800eC017Da580A5DC95533143CD6abE4,
+            0x3f547B04f8CF9552434B7f3a51Fc23247911b797,
+            0xc04058E417De221448D4140FC1622dE24121C5e3,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        ));
+        newchains.push(NewChain(  // SCROLL SEPOLIA   Chain 534351 Solidity 0.8.27 *
+            534351,
+            0x1944F7fdd330Af7b0e7C08349591213E35ed5948,
+            0x1249d751e6a0b7b11b9e55CBF8bC7d397AC3c083,
+            0x93637D7068CEebC6cCDCB230E3AE65436666fe15,
+            0xb406b937C12E03d676727Fc1Bb686279EeDbc178,
+            0x66dc636132fb9b7f6ed858928B65864D3fd0ea67,
+            0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
+        ));
+        newchains.push(NewChain(  // HOLESKY Chain 17000 Solidity 0.8.27 *
+            17000,
+            0x1EeBC47AaE37F2EA390869efe60db5a2cF2c9d80,
+            0x9372CD1287E0bB6337802D80DFF342348c85fd78,
+            0x1371eC7be82175C768Adc2E9E9AE5018863D5151,
+            0xe148fbc6C35B6cecC50d18Ebf69959a6A989cB7C,
+            0x208Ec1Ca3B07a50151c5741bc0E05C61beddad90,
+            0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
+        ));
+        newchains.push(NewChain(  // MANTLE SEPOLIA Chain 5003 solidity 0.8.27  invalid opcode: opcode 0x5e not defined
+            5003,
+            0xf5b9B2DCdA465aD62b56390da5C36e4403e5AE92,
+            0x6B39331e9478571BF6D55842AAB470BA3196bd5A,
+            0x5b1E22E2b53f673485A38A57457b00ACcd24dc07,
+            0xf3F62dAF8f096e5e1e8626cF2F35d816d454bC93,
+            0xB5f5be1Ac436D8AD082c4804AFeDa73088730ed1,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        ));
+        newchains.push(NewChain(  // BLAST SEPOLIA Chain 168587773 Solidity 0.8.27 *
+            168587773,
+            0xEa4A06cB68ABa869e6BF98Edc4BdbC731d2D82e3,
+            0x9A0F81de582Ce9194FEADC6CCefaf9eA70451616,
+            0x66dc636132fb9b7f6ed858928B65864D3fd0ea67,
+            0x8D4EEe23A687b304E94eee3211f3058A60744502,
+            0x0156a74FD9432446030f47f7c55f4d1FbfdF5E9a,
+            0x5d5408e949594E535d0c3d533761Cb044E11b664
+        ));
+        newchains.push(NewChain(  //  REDBELLY TESTNET Chain 153 Solidity 0.8.27 DIDN'T WORK
+            153,
+            0xFBDbf53Eb371419E92c718aC76632c7f3617545A,
+            0xfdF17beCE656A0aC2d1302305962122A968eEa28,
+            0x0a3272bC10d8BD7f6ab8FC732a30dB3F6e9b1597,
+            0x35f5B7A7469c7B3e3Bb159335eC92Ce74f7F11CD,
+            0x2b15Aab31879e4B3A9Dc521A3A4eBDB5d691d18A,
+            0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
+        ));
+        newchains.push(NewChain(  //  OPTIMISM SEPOLIA Chain 11155420 Solidity 0.8.27 *
+            11155420,
+            0xf74b4051a565399B114a0fd6a674eCAB864aE186,
+            0xb9de1C03EEa7546D9dB1fa6fc19Dfa7443f0AEDE,
+            0x6Da387268C610E7276ee20255252819e923C754e,
+            0x6429D598684EfBe5a5fF70451e7B2C501c85e254,
+            0xA31AC55003cde3eF9CE9c576a691d0F41586c20b,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        ));
+        newchains.push(NewChain(  //  AVALANCHE FUJI Chain 43113 Solidity 0.8.27 *
+            43113,
+            0x8176186fa521E54f12Dd8011EB6729003E3D3Fe0,
+            0x5e0D85dFa2827cD3065aB2D4af93E58DC82c5e96,
+            0x0cB36959A63c02C004566829D11e9EAb4dA3aCE0,
+            0xAE66C08b9d76EeCaA74314c60f3305D43707ACc9,
+            0xf9EDcE2638da660F51Ee08220a1a5A32fAB61d61,
+            0x15A1ED0815ECeD97E46967179846c72BA21DABAd
+        ));
+        // newchains.push(NewChain(  // LINEA SEPOLIA Chain 59141
+        //     59141,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     0x6654D956A4487A26dF1186b01B689c26939544fC
+        // ));
         // newchains.push(NewChain(  // CONFLUX ESPACE  Chain 71
         //     71,
 
         //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         // ));
-        newchains.push(NewChain(  // CORE Testnet Chain 1115  With Solidity 0.8.22
-            1115,
-            0xF3A991cB19949cB6aBD9E416F0408C648B6c36Fa,
-            0xb5d1f61f6B9f0CA2B89eb9D693e8cD737076846A,
-            0x5b4d2c1b2e918fF1b0DE85803F5A737E5f816eCb,
-            0xf9229aCEba228fdbb757A637EeeBadB46FDb617e,
-            0x971C8BDd123aA0c864480419f378fB135f7CaBC1,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        ));
-        newchains.push(NewChain(  // HOLESKY Chain 17000
-            17000,
-            0xeFbd6990A5C4ABFA30b91409aA3d9A0e7C8Bb77b,
-            0x43B8494f3C645c8CBA2B0D13C7Bd948D9877620c,
-            0xd13779b354c3C72c9B438ABe7Db3086098778A7a,
-            0xe5AF1a54B2b8cA3091edD229329B60A82b7A04E8,
-            0xDbBbbbd746F539d8C82aea9d4F776e5BA0F4e1a1,
-            0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
-        ));
-        newchains.push(NewChain(  // MORPH HOLESKY  Chain 2810
-            2810,
-            0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2,
-            0x45cddE4bdAbC97b3ec02B1271432ceeBc04d4c53,
-            0x9E2F5D1228b02C2FbF3168Db1162e7461574eBB9,
-            0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9,
-            0xDFe447a7F6780dD40D3eA4CF3F132c1F3b50BfF7,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        ));
-        newchains.push(NewChain(  // BLAST SEPOLIA Chain 168587773
-            168587773,
-            0x4218C42503FBB0CC65cbDf507B7ce64F0C52BC32,
-            0xC230C289328a86d2daC10Db25E91f516aD7D0D3f,
-            0x610D47b471Ca1BA509F752AFAD8E391664bF4deC,
-            0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a,
-            0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D,
-            0x5d5408e949594E535d0c3d533761Cb044E11b664
-        ));
-        newchains.push(NewChain(  // BITLAYER TESTNET Chain 200810
-            200810,
-            0x5Fb1394608Ce2Ef7092A642d6c5D3b2325300bFD,
-            0xe5AF1a54B2b8cA3091edD229329B60A82b7A04E8,
-            0x66b719C489193594c617801e67119959CD15b63A,
-            0xC5E7f5e1BABBF45e3F1e0764B48736C19A122383,
-            0x0A576aB9704438ef4eF94C50c6bD0F13eFE12b06,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        ));
-        newchains.push(NewChain(  // SCROLL SEPOLIA   Chain 534351
-            534351,
-            0xD55F76833388137FB1ECFc0dE1e6982716A19640,
-            0x9E2F5D1228b02C2FbF3168Db1162e7461574eBB9,
-            0x7ED4D0234E6c0F6704463E9A62A33AB7B7846A09,
-            0x0A0C882706544F37377e9bb7976E0805cd29a94F,
-            0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9,
-            0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
-        ));
-        newchains.push(NewChain(  // MANTLE SEPOLIA Chain 5003 solidity 0.8.22
-            5003,
-            0x00d850114aC97754eCf9611Bb0dA99BbFC21BC4C,
-            0x69a68786C9A1088f7121633b5c390F3007EAEBbe,
-            0x0156a74FD9432446030f47f7c55f4d1FbfdF5E9a,
-            0xA365a4Ea68929C6297ef32Da2c21BDBfd1d354f0,
-            0x6F86E2fEeC756591A65D10158aca89DEc2e5eB51,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        ));
+        // newchains.push(NewChain(  // CORE Testnet Chain 1115  With Solidity 0.8.22
+        //     1115,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        // ));
+        // newchains.push(NewChain(  // MORPH HOLESKY  Chain 2810
+        //     2810,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        // ));
+        // newchains.push(NewChain(  // BITLAYER TESTNET Chain 200810
+        //     200810,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        // ));
         // newchains.push(NewChain(  // LUKSO TESTNET  Chain 4201
         //     4201,
-        //     0xDbBbbbd746F539d8C82aea9d4F776e5BA0F4e1a1,
-        //     0x766061Cd28592Fd2503cAA3E4772C1215192cD3d,
-        //     0xe96270a4DeFb602d8C7E5aDB7f090EAC5291A641,
-        //     0xFA633c1aB4Ed7d8aa032f50219c6065189D13bd0,
-        //     0xd6374b3842652fc5Fc963c069ce05f1A48f965ce,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
         //     0xC92291fbBe0711b6B34928cB1b09aba1f737DEfd
             
-        // ));
-        // newchains.push(NewChain(  // LUMIA TESTNET Chain 1952959480 Solidity 0.8.22
-        //     1952959480,
-        //     0x0632cB03145500fe2E9CF44f59FC020910Dd79aD,
-        //     0xce2dAd6e634a28e75C6dD96AE1fd3624AB20AA2f,
-        //     0x1a18668aFa9f8E5Eb1fD0616926311e854723b5a,
-        //     0x49653d473B80Bed6e159D8Be4710b5d31875fBee,
-        //     0x81aA882dcCB2772ce63CF6b54C5e1B6b4aDa34eF,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         // ));
         // newchains.push(NewChain(  // PLUME TESTNET Chain 161221135
         //     161221135,
             
         //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         // ));
-        newchains.push(NewChain(  // VANGUARD Chain 78600
-            78600,
-            0xD523b4f68c015B472724c24e127FF1f51EeE0fbf,
-            0x4dDcab55e1eae426a98e85f43896592Ad1dB0f84,
-            0x8d494f8B762005cCA5BDEBb770Af3bf51E730305,
-            0x89c8CC177f04CC8209B93e42d81a780c3A685dD4,
-            0xDD15811D29A330AD2850A994f6AAEcFfA68A5c12,
-            0x6654D956A4487A26dF1186b01B689c26939544fC
-        ));
-        newchains.push(NewChain(  // U2U NEBULAS TESTNET Chain 2484
-            2484,
-            0x3CB56e6E5917a2a8924BC2A5C1f0ecc90b585e74,
-            0x1F652e2D8A9FCa346A0F45D59a67FB998999e454,
-            0xa3bae05aA45bcC739258b124FACE332043D3B1dA,
-            0xA33cfD901896C775c5a6d62e94081b4Fdd1B09BC, 
-            0x41543A4C6423E2546FC58AC63117B5692D68c323,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        ));
-        newchains.push(NewChain(  // SONEIUM MINATO Chain 1946
-            1946,
-            0x654Ad7D43857b354079caD2d668bFA1eF2a01Fcf,
-            0x610D47b471Ca1BA509F752AFAD8E391664bF4deC,
-            0xf7548cB35188aa7DaC8423fAA2ACe3855634e40C,
-            0x80f1BB2DF520e3e091C79AebE81f46136A8fBCb5,
-            0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        ));
-        newchains.push(NewChain(  // OPBNB TESTNET  Chain 5611
-            5611,
-            0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9,
-            0xCa19ddc73718512B968B2cb838b1408885D74A05,
-            0x4596F5bFba6cB5ebdb23a0d118434b43Ad9Be3B7,
-            0xd13779b354c3C72c9B438ABe7Db3086098778A7a,
-            0x43B8494f3C645c8CBA2B0D13C7Bd948D9877620c,
-            0x108642B1b2390AC3f54E3B45369B7c660aeFffAD
-        ));
+        // newchains.push(NewChain(  // VANGUARD Chain 78600
+        //     78600,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     0x6654D956A4487A26dF1186b01B689c26939544fC
+        // ));
+        // newchains.push(NewChain(  // U2U NEBULAS TESTNET Chain 2484
+        //     2484,
+        //     ,
+        //     ,
+        //     ,
+        //     , 
+        //     ,
+        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        // ));
         // newchains.push(NewChain(  // SONIC TESTNET  Chain 64165
         //     64165,
         //     ,
@@ -269,60 +314,15 @@ contract NewChainSetup is Script {
         //     0xf6d2060494cD08e776D22a47E67d485a33C8c5d2
             
         // ));
-        newchains.push(NewChain(  //  BSC TESTNET Chain 97
-            97,
-            0x4146FE54Fd379fd095C227ea012a50387674766D,
-            0xC5A13F8750f362AA8e8Ace59f261268295923190,
-            0x20D5CdE9700144ED0Da22754D89f3379916c99Fa,
-            0x188af80a2ea153bc43dD448434d753C05D3C93f3,
-            0x39446dF8f82282Aebcb0EdDc61D6B716C188Ee85,
-            0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD
-        ));
-        newchains.push(NewChain(  //  SEPOLIA  Chain 11155111
-            11155111,
-            0xBB348A6f2227E56a210097f808025Ca3635BEE1d,
-            0x3D9aD7fb378BCeb18C47e01AF6e60679B6CAa8A9,
-            0x06c067f00F946ecaA23C5b253fFf4B91a5869F10,
-            0xDC44569f688a91ba3517C292de75E30EA284eeA0,
-            0x636D43798340603707c936c1A93597Dc44Effbee,
-            0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c
-        ));
-        newchains.push(NewChain(  //  OPTIMISM SEPOLIA Chain 11155420
-            11155420,
-            0xcDEcbA8e8a537823733238225df54Cc212d681Cd,
-            0x8393181277c8a85ec0468B3f1ee61Bbfd78E62b4,
-            0x73943Ec95AaFBb4DD073b11F5c9701E5Bc3708A6,
-            0xc3dC6a3EdC40460BAa684F45E9e377B7e42009b1,
-            0xF1a79c24efF78FfFfbd4f8Df0Ce31aDEc284b9Cf,
-            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        ));
-        newchains.push(NewChain(  //  REDBELLY TESTNET Chain 153 Solidity 0.8.22
-            153,
-            0xeA5c4FBEFFDfe9173bE7dC8c94eD6288A1D8f85E,
-            0x8d494f8B762005cCA5BDEBb770Af3bf51E730305,
-            0xD4bD9BBA2fb97C36Bbd619303cAB636F476f8904,
-            0x52661DbA4F88FeD997164ff2C453A2339216592C,
-            0x89c8CC177f04CC8209B93e42d81a780c3A685dD4,
-            0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58
-        ));
-        newchains.push(NewChain(  //  MANTA PACIFIC Chain 3441006 Solidity 0.8.27
-            3441006,
-            0x005c5Fd1585A73817107bFd3929f7e559750ceEd,
-            0xDef5D31e4b2E0BF38Af3E8092a5ABF51Db484Eec,
-            0x6EE5C158882857c7F52b37FCe37B1CF39944f22E,
-            0xcAcF2003d4bC2e19C865e65Ebb9D57C440217f0F,
-            0xF53fb9bb64AB9d3D78F976735762c5af9B5fF341,
-            0x20cEfCf72622156987f82E1B54E94Dbc0848De9C
-        ));
-        newchains.push(NewChain(  //  AVALANCHE FUJI Chain 43113 Solidity 0.8.27
-            43113,
-            0x005c5Fd1585A73817107bFd3929f7e559750ceEd,
-            0xDef5D31e4b2E0BF38Af3E8092a5ABF51Db484Eec,
-            0x6EE5C158882857c7F52b37FCe37B1CF39944f22E,
-            0xcAcF2003d4bC2e19C865e65Ebb9D57C440217f0F,
-            0xF53fb9bb64AB9d3D78F976735762c5af9B5fF341,
-            0x15A1ED0815ECeD97E46967179846c72BA21DABAd
-        ));
+        // newchains.push(NewChain(  //  MANTA PACIFIC Chain 3441006 Solidity 0.8.27
+        //     3441006,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     ,
+        //     0x20cEfCf72622156987f82E1B54E94Dbc0848De9C
+        // ));
     }
     
    

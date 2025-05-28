@@ -8,8 +8,9 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 soroban-sdk = { workspace = true, version = "22.0.7", features = ["alloc"] }
-ethabi = { version = "18.0.0", default-features = false } # Use no_std compatible version if needed
-serde = { version = "1.0", default-features = false, features = ["derive"] }
+alloy-sol-types = {version="1.1.0" }
+#ethabi = { version = "18.0.0", default-features = false } # Use no_std compatible version if needed
+#serde = { version = "1.0", default-features = false, features = ["derive"] }
 
 
 [dev-dependencies]

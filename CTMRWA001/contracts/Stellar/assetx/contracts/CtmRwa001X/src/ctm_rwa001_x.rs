@@ -1,13 +1,20 @@
+
 use soroban_sdk::{
-    contract, contractimpl, contracttype, contractclient, symbol_short, vec, Address, Env, U256, String, Vec, Map,
+    contract, contractimpl, contracttype, contractclient, symbol_short, Address, Env, String, Vec, Map,
     log, BytesN, Bytes
 };
 use soroban_sdk::xdr::ToXdr;
 
-use ethabi::{ParamType, Token, encode};
+extern crate alloc;
+use alloc::string::{String as AllocString, ToString};
+use alloc::vec; // Import vec module for vec! macro
+
+use alloy_sol_types::{sol, SolValue};
+
+const rwa_type: u32 = 1;
+const version: u32 = 1;
 
 // storage keys for persistent data
-
 #[contracttype]
 #[derive(Clone)]
 pub enum DataKey {
@@ -16,6 +23,25 @@ pub enum DataKey {
     FeeManager,
     CtmRwaMap,
     CtmRwaDeployer
+}
+
+
+
+
+#[contract]
+pub struct CTMRwa001X;
+
+sol! {
+    struct Output {
+        bytes[]   a;
+        string    b;
+        string    c;
+        string    d;
+        uint8     e;
+        string    f;
+        uint256[] g;
+        string[]  h;
+    }
 }
 
 #[contracttype]
@@ -33,10 +59,6 @@ pub struct SlotDetails {
     slot_numbers: Vec<u32>,
     slot_names: Vec<String>
 }
-
-
-#[contract]
-pub struct CTMRwa001X;
 
 #[contractimpl]
 impl CTMRwa001X {
@@ -176,31 +198,59 @@ impl CTMRwa001X {
             slot_names
         } = slot_details;
 
-        // let eth_tokens = vec![
-        //     Token::FixedBytes(rwa_id.to_vec()),
-        //     Token::String(token_admin.to_string()),
-        //     Token::String(token_name),
-        //     Token::String(token_symbol),
-        //     Token::Uint(token_decimals),
-        //     Token::String(base_uri),
-        //     // Token::Array(slot_numbers),
-        //     // Token::Array(slot_names),
-        // ];
+        // Convert Soroban types to alloy-compatible types
+        let alloy_token_admin = alloy_sol_types::private::Address::from_slice(
+            &token_admin.to_xdr(env).to_alloc_vec()[..21]
+        );
 
-        // let eth_bytesn_encoded = encode(&eth_tokens);
+        // Helper function to convert soroban_sdk::String to alloc::string::String
+        fn string_to_alloc_string(env: &Env, s: String) -> AllocString {
+            let len = s.len() as usize;
+            let mut buffer = vec![0u8; len];
+            s.copy_into_slice(&mut buffer);
+            AllocString::from_utf8(buffer)
+                .unwrap_or_else(|_| panic!("Invalid UTF-8 in string"))
+        }
 
-        let token_decimals: U256 = U256::from_u32(&env, 18u32);
+        let alloy_token_name = string_to_alloc_string(env, token_name);
+        let alloy_token_symbol = string_to_alloc_string(env, token_symbol);
+        let alloy_base_uri = string_to_alloc_string(env, base_uri);
 
-        let eth_tokens = vec![ &env,
-            Token::String(String::from_str("dummy token name")),
-            Token::Uint(token_decimals)
-        ];
+        let alloy_slot_names: alloc::vec::Vec<AllocString> = slot_names
+            .iter()
+            .map(|s| string_to_alloc_string(env, s.clone()))
+            .collect();
 
-        let eth_bytesn_encoded = encode(&eth_tokens);
+        let alloy_slot_numbers: alloc::vec::Vec<alloy_sol_types::private::U256> = slot_numbers
+            .iter()
+            .map(|n| alloy_sol_types::private::U256::from(n))
+            .collect();
 
+        let output = Output {
+            a: alloc::vec![alloy_sol_types::private::Bytes::from(rwa_id.to_array().to_vec())],
+            b: alloy_token_admin.to_string(),
+            c: alloy_token_name,
+            d: alloy_token_symbol,
+            e: token_decimals as u8,
+            f: alloy_base_uri,
+            g: alloy_slot_numbers,
+            h: alloy_slot_names
+        };
 
+        let deploy_args = output.abi_encode();
 
-        token_admin
+        let ctm_rwa_deployer: Address = env.storage().persistent().get(&DataKey::CtmRwaDeployer).unwrap();
+
+        let deployer_client = CTMRWA001DeployerClient::new(&env, &ctm_rwa_deployer);
+
+        let ctm_rwa001_address = deployer_client.deploy(
+            &rwa_id,
+            &rwa_type,
+            &version,
+            &deploy_args
+        );
+
+        ctm_rwa001_address
     }
 
 
@@ -293,7 +343,7 @@ pub trait CTMRWA001Deployer {
         rwa_id: BytesN<32>,
         rwa_type: u32,
         version: u32,
-        deploy_args: Bytes
+        deploy_args: Vec<u8>
     ) -> Address;
 }
 

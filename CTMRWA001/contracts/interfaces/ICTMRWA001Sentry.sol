@@ -13,6 +13,9 @@ interface ICTMRWA001Sentry {
     function setSentryOptionsFlag() external;
     function sentryOptionsSet() external returns(bool);
 
+    function setZkMeParams(uint256 merchantNo, uint256 programNo, address cooperator) external;
+    function getZkMeParams() external view returns(uint256, uint256, address);
+
     function whitelistSwitch() external view returns(bool);
     function kycSwitch() external view returns(bool);
     function kybSwitch() external view returns(bool);

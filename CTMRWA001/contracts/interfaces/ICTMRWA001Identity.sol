@@ -10,9 +10,10 @@ enum RequestId {
     COUNTRY    
 }
 
-interface ICTMRWA001PolygonId {
+interface ICTMRWA001Identity {
 
     function setVerifierAddress(address _verifierAddress) external;
+    function setZkMeVerifierAddress(address verifierAddress) external;
     function setSentryManager(address _sentryManager) external;
     function setFeeManager(address _feeManager) external;
     function setCtmRwaMap(address _map) external;

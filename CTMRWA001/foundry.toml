@@ -1,11 +1,11 @@
 [profile.default]
-src = "contracts"
+src = "flattened"
 out = "out"
 libs = ["lib"]
 optimizer = true
 optimizer_runs = 120
 via_ir = true
-solc = "0.8.27"
+solc = "0.8.22"
 
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",

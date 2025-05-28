@@ -24,6 +24,10 @@ contract CTMRWA001Sentry is Context {
     address public ctmRwa001X;
     address public ctmRwa001Map;
 
+    uint256 merchantNo;
+    uint256 programNo;
+    address cooperator;
+
     bool public sentryOptionsSet;
 
     // // Whitelist of wallets permitted to hold CTMRWA001
@@ -100,6 +104,20 @@ contract CTMRWA001Sentry is Context {
         }
         
         return(true);
+    }
+
+    function setZkMeParams(
+        uint256 _merchantNo, 
+        uint256 _programNo, 
+        address _cooperator
+    ) external onlySentryManager {
+        merchantNo = _merchantNo;
+        programNo = _programNo;
+        cooperator = _cooperator;
+    }
+
+    function getZkMeParams() public view returns(uint256, uint256, address) {
+        return(merchantNo, programNo, cooperator);
     }
 
 

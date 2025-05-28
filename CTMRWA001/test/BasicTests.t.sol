@@ -1204,17 +1204,17 @@ contract TestBasicToken is SetUp {
     }
 
     function test_getTokenList() public {
-        vm.startPrank(admin);
+        vm.startPrank(user1);
         (, address ctmRwaAddr) = CTMRWA001Deploy();
         deployAFewTokensLocal(ctmRwaAddr);
         vm.stopPrank();
 
-        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(admin);
+        address[] memory adminTokens = rwa001X.getAllTokensByAdminAddress(user1);
         assertEq(adminTokens.length, 1);  // only one CTMRWA001 token deployed
         assertEq(ctmRwaAddr, adminTokens[0]);
 
         address[] memory nRWA001 = rwa001X.getAllTokensByOwnerAddress(user1);  // List of CTMRWA001 tokens that user1 has or still has tokens in
-        assertEq(nRWA001.length, 3);
+        assertEq(nRWA001.length, 1);
 
         uint256 tokenId;
         uint256 id;
@@ -1769,7 +1769,8 @@ contract TestBasicToken is SetUp {
         uint256 balNewToken = ICTMRWA001(ctmRwaAddr).balanceOf(newTokenId);
         assertEq(balNewToken, 5);
 
-        ICTMRWA001(ctmRwaAddr).approve(tokenId2, user2, 50);
+        // ICTMRWA001(ctmRwaAddr).approve(tokenId2, user2, 50);
+        ICTMRWA001(ctmRwaAddr).approve(user2, tokenId2);
         vm.stopPrank();
 
         vm.startPrank(user2);

@@ -1123,8 +1123,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     /// @dev Create a new slot struct and add it to the slot struct array
     function _createSlot(uint256 _slot, string memory _slotName) internal {
-        require(!slotExists(_slot), "CTMRWA001: slot already exists");
-        require(bytes(_name).length <= 128, "CTMRWA001: Slot name > 128 characters");
+        
         SlotData memory slotData = SlotData({
             slot: _slot,
             slotName: _slotName,

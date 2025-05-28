@@ -59,7 +59,7 @@ contract Deploy is Script {
         console.log(deployer);
 
         // env variables (changes based on deployment chain, edit in .env)
-        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_LUKSO_TESTNET");
+        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_U2U_NEBULAS_TESTNET");
         address govAddr = deployer;
         uint256 dappID1 = vm.envUint("DAPP_ID1");  // Gateway
         uint256 dappID2 = vm.envUint("DAPP_ID2");  // FeeManager

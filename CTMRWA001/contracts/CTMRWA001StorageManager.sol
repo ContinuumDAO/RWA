@@ -62,6 +62,12 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
     /// @dev string representation of the chainID
     string cIdStr;
+
+    /// @dev New c3call for adding URI for ID to chain chainIdStr
+    event AddingURI(uint256 ID, string chainIdStr);
+
+    /// @dev New URI added on local chain for ID
+    event URIAdded(uint256 ID);
     
     modifier onlyDeployer {
         require(msg.sender == ctmRwaDeployer, "CTMRWA001StorageManager: onlyDeployer function");
@@ -245,6 +251,8 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
                 );
 
                 c3call(toRwaSMStr, chainIdStr, callData);
+
+                emit AddingURI(_ID, chainIdStr);
             }
         }
     }
@@ -320,6 +328,8 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
                 );
 
                 c3call(toRwaSMStr, chainIdStr, callData);
+
+                emit AddingURI(_ID, chainIdStr);
             }
         }
     }
@@ -354,6 +364,8 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         for(uint256 i=0; i<len; i++) {
             ICTMRWA001Storage(storageAddr).addURILocal(_ID, _objectName[i], _uToCat(_uriCategory[i]), _uToType(_uriType[i]), _title[i], _slot[i], _timestamp[i], _uriDataHash[i]);
         }
+
+        emit URIAdded(_ID);
 
         return(true);
     }

@@ -21,6 +21,23 @@ pub struct ArgData {
 
 #[contracttype]
 #[derive(Clone)]
+pub struct TokenDetails {
+    token_name: String,
+    token_symbol: String,
+    token_decimals: u32,
+    base_uri: String
+}
+
+#[contracttype]
+#[derive(Clone)]
+pub struct SlotDetails {
+    slot_numbers: Vec<u32>,
+    slot_names: Vec<String>
+}
+
+
+#[contracttype]
+#[derive(Clone)]
 pub enum DataKey {
     RwaType,                        // The type of RWA
     Version,                        // The version of this type of RWA
@@ -62,6 +79,8 @@ impl CtmRwa001Factory {
         env: Env,
         caller: Address,
         wasm_hash: BytesN<32>,
+        // token_details: TokenDetails,
+        // slot_details: SlotDetails
         deploy_args: Bytes
     ) -> Address {
 
@@ -71,6 +90,8 @@ impl CtmRwa001Factory {
 
         // Use EVM compatible abi.decode for the payload, to create the correct arguments for
         let dec_args:ArgData = Self::decode_ctm_arg(&env, deploy_args.clone());
+
+        
 
         // Check if rwa_id is already used
         if storage.has(&DataKey::DeployedContracts(dec_args.rwa_id.clone())) {

@@ -57,11 +57,29 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
     /// @dev The address of the FeeManager contract
     address feeManager;
 
-    /// The address of the CTMRWA001PolygonId contract
-    address polygonId;
+    /// The address of the CTMRWA001Identity contract
+    address identity;
 
     /// @dev A string respresentation of this chainID
     string cIdStr;
+
+    /// @dev A new c3call for ID to set the Sentry Options on chain toChainIdStr
+    event SettingSentryOptions(uint256 ID, string toChainIdStr);
+
+    /// @dev New Sentry Options set for ID
+    event SentryOptionsSet(uint256 ID);
+
+    /// @dev New c3call to set Whitelist for ID to chain toChainIdStr
+    event AddingWhitelist(uint256 ID, string toChainIdStr);
+
+    /// @dev New Whitelist added on local chain for ID
+    event WhitelistAdded(uint256 ID);
+
+    /// @dev New c3call to Add a Country List for ID to chain toChainIdStr
+    event AddingCountryList(uint256 ID, string toChainIdStr);
+
+    /// @dev New Country List added on local chain for ID
+    event CountryListAdded(uint256 ID);
     
 
     modifier onlyDeployer {
@@ -129,10 +147,10 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
     }
 
     /**
-     * @notice Governance can switch to a new CTMRWA001PolygonId contract
+     * @notice Governance can switch to a new CTMRWA001Identity contract
      */
-    function setPolygonId(address _polygonId) external onlyGov {
-        polygonId = _polygonId;
+    function setIdentity(address _id) external onlyGov {
+        identity = _id;
     }
 
     /**
@@ -248,9 +266,28 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
                 );
 
                 c3call(toRwaSentryStr, chainIdStr, callData);
+
+                emit SettingSentryOptions(_ID, chainIdStr);
             }
         }
 
+    }
+
+    function setZkMeParams(
+        uint256 _ID,
+        uint256 _merchantNo,
+        uint256 _programNo,
+        address _cooperator
+    ) public {
+        require(identity != address(0), "CTMRWA001SentryManager: the CTMRWA001Identity contract has not been set");
+
+        (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
+        _checkTokenAdmin(ctmRwa001Addr);
+
+        (address sentryAddr,) = _getSentryAddr(_ID);
+
+        ICTMRWA001Sentry(sentryAddr).setZkMeParams(_merchantNo, _programNo, _cooperator);
+        
     }
 
     // removes the Accredited flag if KYC set
@@ -263,8 +300,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa001Addr);
 
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001SentryManager: Could not find _ID or its sentry address");
+        (address sentryAddr,) = _getSentryAddr(_ID);
 
         bool kyc = ICTMRWA001Sentry(sentryAddr).kycSwitch();
         require(kyc, "CTMRWA001SentryManager: KYC was not set, so cannot go public");
@@ -312,6 +348,8 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
                 );
 
                 c3call(toRwaSentryStr, chainIdStr, callData);
+
+                emit SettingSentryOptions(_ID, chainIdStr);
             }
         }
 
@@ -328,8 +366,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         bool _countryBL
     ) external onlyCaller returns(bool) {
 
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001SentryManager: Could not find _ID or its sentry address");
+        (address sentryAddr,) = _getSentryAddr(_ID);
 
         ICTMRWA001Sentry(sentryAddr).setSentryOptionsLocal(
             _ID,
@@ -341,6 +378,8 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
             _countryWL,
             _countryBL
         );
+
+        emit SentryOptionsSet(_ID);
 
         return(true);
     }
@@ -356,8 +395,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
 
         require(_choices.length == _wallets.length, "CTMRWA001SentryManager: addWhitelist parameters lengths not equal");
 
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001SentryManager: Could not find _ID or its sentry address");
+        (address sentryAddr,) = _getSentryAddr(_ID);
 
         (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa001Addr);
@@ -367,7 +405,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
 
         uint256 len = _wallets.length;
 
-        if (_msgSender() != polygonId) { // charge a different fee if FeeType.KYC
+        if (_msgSender() != identity) { // charge a different fee if FeeType.KYC
             uint256 fee = _getFee(FeeType.WHITELIST, len, _chainIdsStr, _feeTokenStr);
             _payFee(fee, _feeTokenStr);
         }
@@ -390,6 +428,8 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
                 );
 
                 c3call(toRwaSentryStr, chainIdStr, callData);
+
+                emit AddingWhitelist(_ID, chainIdStr);
             }
         }
     }
@@ -400,10 +440,11 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         bool[] memory _choices
     ) external onlyCaller returns(bool) {
 
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001SentryManager: Could not find _ID or its sentry address");
+        (address sentryAddr,) = _getSentryAddr(_ID);
 
         ICTMRWA001Sentry(sentryAddr).setWhitelistSentry(_ID, _wallets, _choices);
+
+        emit WhitelistAdded(_ID);
 
         return(true);
     }
@@ -419,8 +460,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
 
         require(_choices.length == _countries.length, "CTMRWA001SentryManager: addCountryList parameters lengths not equal");
 
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001SentryManager: Could not find _ID or its sentry address");
+        (address sentryAddr,) = _getSentryAddr(_ID);
 
         (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa001Addr);
@@ -453,6 +493,8 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
                 );
 
                 c3call(toRwaSentryStr, chainIdStr, callData);
+
+                emit AddingCountryList(_ID, chainIdStr);
             }
         }
     }
@@ -463,10 +505,11 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
         bool[] memory _choices
     ) external onlyCaller returns(bool) {
 
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001SentryManager: Could not find _ID or its sentry address");
+        (address sentryAddr,) = _getSentryAddr(_ID);
 
         ICTMRWA001Sentry(sentryAddr).setCountryListLocal(_ID, _countries, _choices);
+
+        emit CountryListAdded(_ID);
 
         return(true);
     }
@@ -512,10 +555,18 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
 
     function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001StorageManager: The requested tokenID does not exist");
+        require(ok, "CTMRWA001SentryManager: The requested tokenID does not exist");
         string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
 
         return(tokenAddr, tokenAddrStr);
+    }
+
+    function _getSentryAddr(uint256 _ID) internal view returns(address, string memory) {
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, rwaType, version);
+        require(ok, "CTMRWA001SentryManager: Could not find _ID or its sentry address");
+        string memory sentryAddrStr = _toLower(sentryAddr.toHexString());
+
+        return(sentryAddr, sentryAddrStr);
     }
 
     function _getSentry(string memory _toChainIdStr) internal view returns(string memory, string memory) {
@@ -535,7 +586,7 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
 
         require(
             _msgSender() == currentAdmin ||
-            _msgSender() == polygonId,
+            _msgSender() == identity,
             "CTMRWA001SentryManager: Not tokenAdmin");
 
         return(currentAdmin, currentAdminStr);

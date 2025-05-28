@@ -76,14 +76,29 @@ contract CTMRWA001X is Context, GovernDapp {
      */
     mapping(address => address[]) public ownedCtmRwa001;
 
-    /// @dev New CTMRWA001 deployed
+    /// @dev New c3call for CTMRWA001 deployment on destination chain toChainIdStr
+    event DeployCTMRWA001(uint256 ID, string toChainIdStr);
+
+    /// @dev New CTMRWA001 deployed on the local chain
     event CreateNewCTMRWA001(uint256 ID);
 
-    /// @dev New Asset Class (slot) created
-    event CreateSlot(uint256 ID, uint256 slot, string fromChainIdStr);
+    /// @dev New c3call to create a new Asset Class (slot) on chain toChainIdStr
+    event CreateSlot(uint256 ID, uint256 slot, string toChainIdStr);
 
-    /// @dev New value minted from another chain (after transferFrom)
-    event MintingX(uint256 ID, string fromChainIdStr, string fromAddrStr);
+    /// @dev New Asset Class (slot) created on the local chain from fromChainIdStr
+    event SlotCreated(uint256 ID, uint256 slot, string fromChainIdStr);
+
+    /// @dev New c3call to mint value to chain toChainIdStr to address toAddressStr
+    event Minting(uint256 ID, string toAddressStr, string toChainIdStr);
+
+    /// @dev New value minted from another chain fromChainIdStr and fromAddrStr
+    event Minted(uint256 ID, string fromChainIdStr, string fromAddrStr);
+
+    /// @dev New c3call to change the token admin on chain toChainIdStr
+    event ChangingAdmin(uint256 ID, string toChainIdStr);
+
+    /// @dev New token admin set on the local chain
+    event AdminChanged(uint256 ID, string newAdmin);
 
 
     constructor(
@@ -334,6 +349,8 @@ contract CTMRWA001X is Context, GovernDapp {
 
         adminTokens[_tokenAdmin].push(ctmRwa001Token);
 
+        emit CreateNewCTMRWA001(_ID);
+
         return(ctmRwa001Token);
     }
 
@@ -379,6 +396,8 @@ contract CTMRWA001X is Context, GovernDapp {
 
         c3call(toRwaXStr, toChainIdStr, callData);
 
+        emit DeployCTMRWA001(ID, toChainIdStr);
+
         return(true);
         
     }
@@ -414,8 +433,6 @@ contract CTMRWA001X is Context, GovernDapp {
             _slotNames,
             newAdmin
         );
-
-        emit CreateNewCTMRWA001(_ID);
 
         return(true);
     }
@@ -489,6 +506,8 @@ contract CTMRWA001X is Context, GovernDapp {
                 );
 
                 c3call(toRwaXStr, toChainIdStr, callData);
+
+                emit ChangingAdmin(_ID, toChainIdStr);
             }
         }
 
@@ -518,6 +537,8 @@ contract CTMRWA001X is Context, GovernDapp {
         require(currentAdmin == oldAdmin, "CTMRWA001X: Not admin, or token is locked. Cannot change admin address");
 
         _changeAdmin(currentAdmin, newAdmin, _ID );
+
+        emit AdminChanged(_ID, _newAdminStr);
 
         return(true);
     
@@ -612,12 +633,13 @@ contract CTMRWA001X is Context, GovernDapp {
                 );
 
                 c3call(toRwaXStr, toChainIdStr, callData);
+
+                emit CreateSlot(_ID, _slot, toChainIdStr);
             }
         }
 
         ICTMRWA001(ctmRwa001Addr).createSlotX(_slot, _slotName);
 
-        emit CreateSlot(_ID, _slot, cIDStr);
         return(true);
     }
 
@@ -645,7 +667,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         ICTMRWA001(ctmRwa001Addr).createSlotX(_slot, _slotName);
 
-        emit CreateSlot(_ID, _slot, fromChainIdStr);
+        emit SlotCreated(_ID, _slot, fromChainIdStr);
 
         return(true);
 
@@ -772,6 +794,8 @@ contract CTMRWA001X is Context, GovernDapp {
             );
 
             c3call(toRwaXStr, toChainIdStr, callData);
+
+            emit Minting(_ID, _toAddressStr, toChainIdStr);
         }
 
     }
@@ -807,7 +831,7 @@ contract CTMRWA001X is Context, GovernDapp {
 
         _updateOwnedCtmRwa001(toAddr, ctmRwa001Addr);
 
-        emit MintingX(_ID, fromChainIdStr, _fromAddressStr);
+        emit Minted(_ID, fromChainIdStr, _fromAddressStr);
 
         return(true);
     }

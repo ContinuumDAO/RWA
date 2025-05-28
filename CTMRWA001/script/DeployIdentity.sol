@@ -4,9 +4,9 @@ pragma solidity >=0.8.19;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {CTMRWA001PolygonId} from "../contracts/CTMRWA001PolygonId.sol";
+import {CTMRWA001Identity} from "../contracts/CTMRWA001Identity.sol";
 
-import {RequestId, ICTMRWA001PolygonId} from "../contracts/interfaces/ICTMRWA001PolygonId.sol";
+import {RequestId, ICTMRWA001Identity} from "../contracts/interfaces/ICTMRWA001Identity.sol";
 
 
 contract DeployPolygonId is Script {
@@ -20,10 +20,10 @@ contract DeployPolygonId is Script {
         console.log("Wallet of deployer");
         console.log(deployer);
 
-        require(block.chainid == 80002, "Must be connected to Polygon Amoy");
+        require(block.chainid == 534351, "Must be connected to Scroll Sepolia");
 
         // env variables (changes based on deployment chain, edit in .env)
-        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_AMOY");
+        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_SCROLL_SEPOLIA");
         address govAddr = deployer;
         uint256 dappID6 = vm.envUint("DAPP_ID6");
         
@@ -32,14 +32,14 @@ contract DeployPolygonId is Script {
         address sentryManagerAddr = 0xBa59F04dbdcB1B74d601fbBF3E7e1ca82081c536;
         address feeManagerAddr = 0x2D2112DE9801EAf71B6D1cBf40A99E57AFc235a7;
 
-        address verifierAddr = 0xfcc86A79fCb057A8e55C6B853dff9479C3cf607c;
+        address verifierAddr = 0xf8E1973814E66BF03002862C325305A5EeF98cc1;  //zkMe
 
 
         vm.startBroadcast(deployerPrivateKey);
 
-        console.log("Deploying PolygonId contract...");
+        console.log("Deploying Identity contract...");
 
-        CTMRWA001PolygonId ctmPolygonId = new CTMRWA001PolygonId (
+        CTMRWA001Identity ctmIdentity = new CTMRWA001Identity (
             govAddr,
             rwaType,
             version,
@@ -51,14 +51,14 @@ contract DeployPolygonId is Script {
             feeManagerAddr
         );
 
-        address ctmPolygonIdAddr = address(ctmPolygonId);
+        address ctmIdAddr = address(ctmIdentity);
 
-        console.log("CTMRWA001PolygonId");
-        console.log(ctmPolygonIdAddr);
+        console.log("CTMRWA001Identity");
+        console.log(ctmIdAddr);
 
-        console.log("Setting PrivadoID verifier address");
+        console.log("Setting zKMe verifier address");
 
-        ICTMRWA001PolygonId(ctmPolygonIdAddr).setVerifierAddress(verifierAddr);
+        ICTMRWA001Identity(ctmIdAddr).setZkMeVerifierAddress(verifierAddr);
 
         console.log("Finished");
 

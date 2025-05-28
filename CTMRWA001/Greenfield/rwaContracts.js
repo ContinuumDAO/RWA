@@ -7,187 +7,187 @@ const getRwaContracts = (chainIdStr) => {
 
     if(chainIdStr == "421614") { // ARB Sepolia
         rpcUrl = "https://sepolia-rollup.arbitrum.io/rpc"
-        ctmRwaMap = "0x47D91341Ba367BCe483d0Ee2fE02DD1420b883EC"
-        storageManager = "0x3804bD72656E086166f2d64E7C78f2F9CD2735b8"
+        ctmRwaMap = "0x4f390Eaa4Ddb82fc37053b8E8dbc3367594577E4"
+        storageManager = "0x7aB4De775c88e4aA4c93d0078d8318463fABfb13"
         feeToken = "0xbF5356AdE7e5F775659F301b07c4Bc6961044b11"
 
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "84532") { // BASE SEPOLIA Chain 84532
 
         rpcUrl = "https://base-sepolia-rpc.publicnode.com"
-        ctmRwaMap = "0xC5A13F8750f362AA8e8Ace59f261268295923190"
-        storageManager = "0x1481875CA0EcD0ACdEb79d3d57FB76EAE726d128"
+        ctmRwaMap = "0x416D3bE80a79E4F082C92f7fB17b1C13fD91B055"
+        storageManager = "0x7e0858dE387f30Ebc0bC2F24A35dc4ad9231Cffd"
         feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "80002") {  // POLYGON AMOY Chain 80002
 
-        rpcUrl = "https://rpc.ankr.com/polygon_amoy"
-        ctmRwaMap = "0xf9229aCEba228fdbb757A637EeeBadB46FDb617e"
-        storageManager = "0xE5b921BD326efa802e3dc20Fb3502559f59fd8AA"
+        rpcUrl = "https://rpc-amoy.polygon.technology"
+        ctmRwaMap = "0x9A48630090429E3039A5E1CDb4cf0433D54a1AEe"
+        storageManager = "0xB3D138F0613CC476faA8c5E2C1a64e90D9d506F3"
         feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "11155111") {  // ETHEREUM SEPOLIA  Chain 11155111
 
         rpcUrl = "https://ethereum-sepolia-rpc.publicnode.com"
-        ctmRwaMap = "0x8Ed2Dc74260aA279fcB5438932B5B367F221e7db"
-        storageManager = "0xDC44569f688a91ba3517C292de75E30EA284eeA0"
+        ctmRwaMap = "0x4f102432739a2DE082B7977316796A05C99147fb"
+        storageManager = "0x6681DB630eB117050D78E0B89eB5619b35Ea12e8"
         feeToken = "0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "97") {  // BSC TESTNET  Chain 97
 
         rpcUrl = "https://data-seed-prebsc-1-s1.binance.org:8545/"
-        ctmRwaMap = "0xC886FFa78114cf7e701Fd33505b270505B3FeAE3"
-        storageManager = "0x188af80a2ea153bc43dD448434d753C05D3C93f3"
+        ctmRwaMap = "0x15702A75071c424BbdC6F69aFeB6F919593B389E"
+        storageManager = "0x71645806ee984439ADC3352ABB5491Ec03928e63"
         feeToken = "0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    } else if (chainIdStr == "200810") {  // BITLAYER TESTNET Chain 200810
+    // } else if (chainIdStr == "200810") {  // BITLAYER TESTNET Chain 200810
 
-        rpcUrl = "https://testnet-rpc.bitlayer.org"
-        ctmRwaMap = "0x766061Cd28592Fd2503cAA3E4772C1215192cD3d"
-        storageManager = "0xC5E7f5e1BABBF45e3F1e0764B48736C19A122383"
-        feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
+    //     rpcUrl = "https://testnet-rpc.bitlayer.org"
+    //     ctmRwaMap = ""
+    //     storageManager = ""
+    //     feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
-        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    //     return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "1952959480") {  // LUMIA TESTNET Chain 1952959480
 
         rpcUrl = "https://testnet-rpc.lumia.org"
-        ctmRwaMap = ""
-        storageManager = ""
+        ctmRwaMap = "0x698509EBaefBFA03C2c32162155CEcdDFC7C728C"
+        storageManager = "0xE3A405Aa844DA4b6E83eAe852bA471219163CBe0"
         feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "5611") { // OPBNB TESTNET  Chain 5611
 
         rpcUrl = "https://opbnb-testnet-rpc.publicnode.com"
-        ctmRwaMap = "0xa3bae05aA45bcC739258b124FACE332043D3B1dA"
-        storageManager = "0xd13779b354c3C72c9B438ABe7Db3086098778A7a"
+        ctmRwaMap = "0xF813DdCDd690aCB06ddbFeb395Cf65D18Efe74A7"
+        storageManager = "0x926DF1f820Af8E3cF53A58C94332eB16BA4cB4b5"
         feeToken = "0x108642B1b2390AC3f54E3B45369B7c660aeFffAD"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    } else if (chainIdStr == "1115") {  // CORE Testnet Chain 1115
+    // } else if (chainIdStr == "1115") {  // CORE Testnet Chain 1115
 
-        rpcUrl = "https://rpc.test.btcs.network/"
-        ctmRwaMap = "0xa3bae05aA45bcC739258b124FACE332043D3B1dA"
-        storageManager = "0xd13779b354c3C72c9B438ABe7Db3086098778A7a"
-        feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
+    //     rpcUrl = "https://rpc.test.btcs.network/"
+    //     ctmRwaMap = ""
+    //     storageManager = ""
+    //     feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
-        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    //     return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "1946") {  // SONEIUM MINATO Chain 1946
 
         rpcUrl = "https://rpc.minato.soneium.org/"
-        ctmRwaMap = "0x0f78335bD79BDF6C8cbE6f4F565Ca715a44Aed54"
-        storageManager = "0x80f1BB2DF520e3e091C79AebE81f46136A8fBCb5"
+        ctmRwaMap = "0x1249d751e6a0b7b11b9e55CBF8bC7d397AC3c083"
+        storageManager = "0x3f547B04f8CF9552434B7f3a51Fc23247911b797"
         feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    } else if (chainIdStr == "2810") {  // MORPH HOLESKY  Chain 2810
+    // } else if (chainIdStr == "2810") {  // MORPH HOLESKY  Chain 2810
 
-        rpcUrl = "https://rpc-holesky.morphl2.io"
-        ctmRwaMap = "0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a"
-        storageManager = "0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9"
-        feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
+    //     rpcUrl = "https://rpc-holesky.morphl2.io"
+    //     ctmRwaMap = ""
+    //     storageManager = ""
+    //     feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
-        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    //     return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "534351") {  // SCROLL SEPOLIA   Chain 534351
 
         rpcUrl = "https://sepolia-rpc.scroll.io"
-        ctmRwaMap = "0x80f1BB2DF520e3e091C79AebE81f46136A8fBCb5"
-        storageManager = "0x0A0C882706544F37377e9bb7976E0805cd29a94F"
+        ctmRwaMap = "0x21640b51400Da2B679916b8619c38b3Cc03692fe"
+        storageManager = "0xb406b937C12E03d676727Fc1Bb686279EeDbc178"
         feeToken = "0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "17000") {  // HOLESKY Chain 17000
 
         rpcUrl = "https://ethereum-holesky-rpc.publicnode.com"
-        ctmRwaMap = "0xA33cfD901896C775c5a6d62e94081b4Fdd1B09BC"
-        storageManager = "0xe5AF1a54B2b8cA3091edD229329B60A82b7A04E8"
+        ctmRwaMap = "0x0156a74FD9432446030f47f7c55f4d1FbfdF5E9a"
+        storageManager = "0xe148fbc6C35B6cecC50d18Ebf69959a6A989cB7C"
         feeToken = "0x108642B1b2390AC3f54E3B45369B7c660aeFffAD"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "5003") {  // MANTLE SEPOLIA Chain 5003
 
         rpcUrl = "https://rpc.sepolia.mantle.xyz"
-        ctmRwaMap = "0x41388451eca7344136004D29a813dCEe49577B44"
-        storageManager = "0xA365a4Ea68929C6297ef32Da2c21BDBfd1d354f0"
+        ctmRwaMap = "0x2a592B15dd480F7E861198002ed68F8E5927ee80"
+        storageManager = "0xf3F62dAF8f096e5e1e8626cF2F35d816d454bC93"
         feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    } else if (chainIdStr == "4201") {  // LUKSO TESTNET  Chain 4201
+    // } else if (chainIdStr == "4201") {  // LUKSO TESTNET  Chain 4201
 
-        rpcUrl = "https://rpc.testnet.lukso.network/"
-        ctmRwaMap = ""
-        storageManager = ""
-        feeToken = "0xC92291fbBe0711b6B34928cB1b09aba1f737DEfd"
+    //     rpcUrl = "https://rpc.testnet.lukso.network/"
+    //     ctmRwaMap = ""
+    //     storageManager = ""
+    //     feeToken = "0xC92291fbBe0711b6B34928cB1b09aba1f737DEfd"
         
-        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    //     return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     }  else if (chainIdStr == "168587773") {  // BLAST SEPOLIA Chain 168587773
 
-        rpcUrl = "https://sepolia.blast.io"
-        ctmRwaMap = "0xD55F76833388137FB1ECFc0dE1e6982716A19640"
-        storageManager = "0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a"
+        rpcUrl = "https://rpc.ankr.com/blast_testnet_sepolia"
+        ctmRwaMap = "0xcFF54249Dae66746377e15C07D95c42188D5d3A8"
+        storageManager = "0x8D4EEe23A687b304E94eee3211f3058A60744502"
         feeToken = "0x5d5408e949594E535d0c3d533761Cb044E11b664"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     }  else if (chainIdStr == "153") {  // REDBELLY TESTNET Chain 153
 
         rpcUrl = "https://governors.testnet.redbelly.network"
-        ctmRwaMap = "0xdC910F7BCc6f163DFA4804eACa10891eb5B9E867"
-        storageManager = "0x52661DbA4F88FeD997164ff2C453A2339216592C"
+        ctmRwaMap = "0xAd8E9e0Cc6FB6680E3e4fE2b6c3E8E84911e9637"
+        storageManager = "0x35f5B7A7469c7B3e3Bb159335eC92Ce74f7F11CD"
         feeToken = "0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     }  else if (chainIdStr == "11155420") {  // OPTIMISM SEPOLIA Chain 11155420
 
         rpcUrl = "https://rpc.ankr.com/optimism_sepolia"
-        ctmRwaMap = "0x64C5734e22cf8126c6367c0230B66788fBE4AB90"
-        storageManager = "0xc3dC6a3EdC40460BAa684F45E9e377B7e42009b1"
+        ctmRwaMap = "0xe73c59e27Ea9e702FAdfC804c33EFEFB3D5D6C26"
+        storageManager = "0x6429D598684EfBe5a5fF70451e7B2C501c85e254"
         feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    } else if (chainIdStr == "59141") {  // LINEA SEPOLIA Chain 59141
+    // } else if (chainIdStr == "59141") {  // LINEA SEPOLIA Chain 59141
 
-        rpcUrl = "https://linea-sepolia-rpc.publicnode.com"
-        ctmRwaMap = "0x3144e9ff0C0F7b2414Ec0684665451f0487293FA"
-        storageManager = "0x73B4143b7cd9617F9f29452f268479Bd513e3d23"
-        feeToken = "0x6654D956A4487A26dF1186b01B689c26939544fC"
+    //     rpcUrl = "https://linea-sepolia-rpc.publicnode.com"
+    //     ctmRwaMap = ""
+    //     storageManager = ""
+    //     feeToken = "0x6654D956A4487A26dF1186b01B689c26939544fC"
         
-        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    } else if (chainIdStr == "78600") {  // VANGUARD Chain 78600
+    //     return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    // } else if (chainIdStr == "78600") {  // VANGUARD Chain 78600
 
-        rpcUrl = "https://rpc-vanguard.vanarchain.com"
-        ctmRwaMap = "0xCBf4E5FDA887e602E5132FA800d74154DFb5B237"
-        storageManager = "0x89c8CC177f04CC8209B93e42d81a780c3A685dD4"
-        feeToken = "0x6654D956A4487A26dF1186b01B689c26939544fC"
+    //     rpcUrl = "https://rpc-vanguard.vanarchain.com"
+    //     ctmRwaMap = ""
+    //     storageManager = ""
+    //     feeToken = "0x6654D956A4487A26dF1186b01B689c26939544fC"
         
-        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    }  else if (chainIdStr == "2484") {  // U2U NEBULAS TESTNET Chain 2484
+    //     return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    // }  else if (chainIdStr == "2484") {  // U2U NEBULAS TESTNET Chain 2484
 
-        rpcUrl = "https://rpc-nebulas-testnet.uniultra.xyz"
-        ctmRwaMap = "0xEcabB66a84340E7E6D020EAD0dAb1364767f3f70"
-        storageManager = "0xA33cfD901896C775c5a6d62e94081b4Fdd1B09BC"
-        feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
+    //     rpcUrl = "https://rpc-nebulas-testnet.uniultra.xyz"
+    //     ctmRwaMap = ""
+    //     storageManager = ""
+    //     feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
-        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    //     return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "43113") {  // AVALANCHE FUJI Chain 431130
 
         rpcUrl = "https://api.avax-test.network/ext/bc/C/rpc"
-        ctmRwaMap = "0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3"
-        storageManager = "0xcAcF2003d4bC2e19C865e65Ebb9D57C440217f0F"
+        ctmRwaMap = "0xD2cd1c42e56Ca30588de604E724C0031b2139053"
+        storageManager = "0xAE66C08b9d76EeCaA74314c60f3305D43707ACc9"
         feeToken = "0x15A1ED0815ECeD97E46967179846c72BA21DABAd"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    } else if (chainIdStr == "3441006") {  // MANTA PACIFIC Chain 3441006
+    // } else if (chainIdStr == "3441006") {  // MANTA PACIFIC Chain 3441006
 
-        rpcUrl = "https://pacific-rpc.sepolia-testnet.manta.network/http"
-        ctmRwaMap = "0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3"
-        storageManager = "0xcAcF2003d4bC2e19C865e65Ebb9D57C440217f0F"
-        feeToken = "0x20cEfCf72622156987f82E1B54E94Dbc0848De9C"
+    //     rpcUrl = "https://pacific-rpc.sepolia-testnet.manta.network/http"
+    //     ctmRwaMap = ""
+    //     storageManager = ""
+    //     feeToken = "0x20cEfCf72622156987f82E1B54E94Dbc0848De9C"
         
-        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+    //     return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     }else {
         return {ok: false, rpcUrl: null, ctmRwaMap: null, storageManager: null, feeToken: null}
     }
