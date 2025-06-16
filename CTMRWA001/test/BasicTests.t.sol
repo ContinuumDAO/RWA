@@ -102,10 +102,6 @@ contract SetUp is Test {
     uint256[] slotNumbers;
     string[] slotNames;
 
-
-    // address c3;
-
-    // Options opt;
     
     TestERC20 ctm;
     TestERC20 usdc;
@@ -373,7 +369,6 @@ contract SetUp is Test {
        
         deployer.setStorageFactory(_rwaType, _version, storageManagerAddr);
         
-        // ICTMRWAFactory(address(storageManager)).setCtmRwaDeployer(address(deployer));
 
         sentryManager = new CTMRWA001SentryManager(
             _gov,

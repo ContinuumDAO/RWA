@@ -214,15 +214,15 @@ contract NewChainSetup is Script {
 
         //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         // ));
-        // newchains.push(NewChain(  // CORE Testnet Chain 1115  With Solidity 0.8.22
-        //     1115,
-        //     ,
-        //     ,
-        //     ,
-        //     ,
-        //     ,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        // ));
+        newchains.push(NewChain(  // CORE Testnet Chain 1115  With Solidity 0.8.22 *
+            1115,
+            0xc0b8f765907ab09106010190Ee991aAae01F88Ba,
+            0xC981D340AC02B717B52DC249c46B1942e20EDBAD,
+            0x87a0c3e97B52A42edBB513ad9701F6641B62afe2,
+            0x2809808fC225FDAF859826cE7499a56B106D8870,
+            0xEa37aEfe52E5327528F71171844474CF77507770,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        ));
         // newchains.push(NewChain(  // MORPH HOLESKY  Chain 2810
         //     2810,
         //     ,
@@ -232,15 +232,15 @@ contract NewChainSetup is Script {
         //     ,
         //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
         // ));
-        // newchains.push(NewChain(  // BITLAYER TESTNET Chain 200810
-        //     200810,
-        //     ,
-        //     ,
-        //     ,
-        //     ,
-        //     ,
-        //     0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
-        // ));
+        newchains.push(NewChain(  // BITLAYER TESTNET Chain 200810 *
+            200810,
+            0xe08C7eE637336565511eb3421DAFdf45b860F9bc,
+            0x78F81b1AEe019efaAfe58853D96c5E9Ac87be731,
+            0xb849bF0a5ca08f1e6EA792bDC06ff2317bb2fB90,
+            0x0F607AF04457E86eC349FbEbb6e23B0A6A0D067F,
+            0x10A04ad4a73C8bb00Ee5A29B27d11eeE85390306,
+            0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae
+        ));
         // newchains.push(NewChain(  // LUKSO TESTNET  Chain 4201
         //     4201,
         //     ,

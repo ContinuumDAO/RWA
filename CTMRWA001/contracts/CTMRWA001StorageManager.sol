@@ -264,7 +264,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
      * decentralized storage objects on e.g. BNB Greenfield.
      * @param _ID The ID of this RWA
      * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
-     * NOTE For EVM chains, you must convert the integer chainID values to strings. Include the local chainID too.
+     * NOTE For EVM chains, you must convert the integer chainID values to strings. Do not include the local chainID.
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * NOTE For EVM chains, the address of the fee token must be converted to a string
@@ -295,6 +295,8 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
         uint256 len = objectName.length;
 
+        require(len >= 1, "StorM: No URI to transfer");
+
         uint256 fee;
 
         for (uint256 i=0; i<len; i++) {
@@ -303,7 +305,9 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
         _payFee(fee, _feeTokenStr);
 
-        uint256 startNonce = ICTMRWA001Storage(storageAddr).nonce();
+        //  TODO This is a bug. The startNonce should be 1
+        // uint256 startNonce = ICTMRWA001Storage(storageAddr).nonce();
+        uint256 startNonce = 1;
 
         for(uint256 i=0; i<_chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);

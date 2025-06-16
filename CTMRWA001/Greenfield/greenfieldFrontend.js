@@ -339,20 +339,21 @@ const getPropertyList = async(ID, signer) => {
 }
 
 const addImage = (filePath) => {
-    const rwaTitle = "# Image of the products"
+    const rwaTitle = "Living Area 3 Bed Apartment"
     const rwaType = "SLOT"
-    const slot = 0
+    const slot = 1
     const rwaCategory = "IMAGE"
-    const rwaText = "## Close up of the product and its detailing"
+    const rwaText = "Typical living area of a 3 bed apartment"
 
     const fileBuffer = fs.readFileSync(filePath)
     const extname = path.extname(filePath)
     const fileType = mimeTypes.lookup(extname)
+    console.log(`file type = ${fileType}`)
 
     const imageData = JSON.stringify(fileBuffer.toString('base64'))
 
     const rwaImage = new Image(
-        "Main product image",
+        "Living Area 3 bed Apartment",
         fileType,
         imageData
     )
@@ -372,28 +373,28 @@ const addImage = (filePath) => {
 
 const addIssuer = () => {
 
-    const rwaTitle = "Apartment Rents Investment Income"
+    const rwaTitle = "Luxury New York Apartments for rent"
     const rwaType = "CONTRACT"
     const slot = 0
     const rwaCategory = "ISSUER"
-    const rwaText = "London rentals offers the opportunity to invest in the rental sector"
+    const rwaText = "Issuer details"
 
     const rwaIssuer = new Issuer(
-        "John",
-        "Doe",
+        "Cyrus",
+        "Lonnegan",
         "CEO",
-        "London Rentals Ltd.",
-        "5 Church St, Islington, London",
-        "UK",
-        "12345678XN",
-        "https:CompanyRegistrationOffice.co.uk",
-        "john.doe@londonrentals.co.uk",
-        "@LondonRentlas",
-        "https://londonrentals.co.uk",
-        "https://x.com/londonrentals",
-        "+44",
+        "Manhattan Dreams Inc",
+        "123, 81st and Central Park West, NY",
+        "USA",
+        "123456789A",
+        "https://companyregistry.gov",
+        "lonnegan@manhattandreams.com",
+        "@ManhattanDreams",
+        "https://manhattandreams.com",
+        "@ManhattanDreams",
+        "+1",
         "55555555",
-        "https://somelawfirm.com/lawtruth/1/"
+        "https://lawracle.com/manhattandreams/#/4"
     )
 
     const newRwaURI = new Rwa(
@@ -433,16 +434,17 @@ const main = async () => {
 
     // This is just an example using one ID and on the connected chain
 
-    const ID = 100378939522858631234443358884388513329252401371060324643700462511137992733692n
+    const ID = 74886859248354536321417773353571956707504292536674633233244863350932463885198n
     const rwaObject = addIssuer()  // sample rwaObject ISSUER Category
-    const rwaImage = addImage("./22.png") // sample rwaObject IMAGE Category
+    const rwaImage = addImage("./New_York_Interior.jpg")
+    // const rwaImage = addImage("./22.png") // sample rwaObject IMAGE Category
 
     let storageRes = await getStorageContract(ID, chainIdStr, signer)
     let storageContract = storageRes.storageContract
    
     let tokenAdmin = await getTokenAdmin(storageContract, signer)
 
-    const chainIdsStr = ["421614", "97"]
+    const chainIdsStr = ["421614", "43113", "97"]
     // const chainIdsStr = ["421614"]
     // const chainIdsStr = ["5611"]
 
@@ -481,39 +483,39 @@ const main = async () => {
         // return
 
         let storageObjectExists = false
-        const res = await createObject(ID, rwaObject, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
+        const res = await createObject(ID, rwaImage, chainIdsStr, feeToken, 100, tokenAdmin, signer, storageObjectExists)
         console.log(res)
         return
 
-        let myObject = '1'
-        const getObjRes = await getObject(ID, myObject, chainIdStr, signer)
-        console.log(getObjRes)
+        // let myObject = '1'
+        // const getObjRes = await getObject(ID, myObject, chainIdStr, signer)
+        // console.log(getObjRes)
 
-        if (getObjRes.ok) {
-            console.log(getObjRes.msg)
+        // if (getObjRes.ok) {
+        //     console.log(getObjRes.msg)
 
-            // To recover the original rwaObject that was uploaded (for display in Explorer, or download)
-            let rwaObject = getObjRes.rwaObject
+        //     // To recover the original rwaObject that was uploaded (for display in Explorer, or download)
+        //     let rwaObject = getObjRes.rwaObject
 
-            let fname = 'my_object-' + myObject + '.json'
-            fs.writeFileSync(fname, Buffer.from(JSON.stringify(rwaObject)))
-            console.log(`JSON file written: ${fname}`)
+        //     let fname = 'my_object-' + myObject + '.json'
+        //     fs.writeFileSync(fname, Buffer.from(JSON.stringify(rwaObject)))
+        //     console.log(`JSON file written: ${fname}`)
 
-            let rwaProp = rwaObject.properties
-            console.log(rwaProp)
+        //     let rwaProp = rwaObject.properties
+        //     console.log(rwaProp)
 
-            // Procedure to download the image/video file, if required (only for node.js)
-            let rwaCategory = getObjRes.rwaObject.category
-            if (rwaCategory == "IMAGE" || rwaCategory == "VIDEO") {
-                console.log(`IMAGE/VIDEO: size: = ${rwaProp.image_data.length}`)
-                let imageType = rwaProp.image_type.split("/")[1]
-                let imageName = rwaProp.image_name.replaceAll(" ", "_") + '.' + imageType
+        //     // Procedure to download the image/video file, if required (only for node.js)
+        //     let rwaCategory = getObjRes.rwaObject.category
+        //     if (rwaCategory == "IMAGE" || rwaCategory == "VIDEO") {
+        //         console.log(`IMAGE/VIDEO: size: = ${rwaProp.image_data.length}`)
+        //         let imageType = rwaProp.image_type.split("/")[1]
+        //         let imageName = rwaProp.image_name.replaceAll(" ", "_") + '.' + imageType
 
-                let imageBase64 = rwaProp.image_data
-                fs.writeFileSync(imageName, imageBase64, {encoding: 'base64'})
-                console.log(`Image/video file created: ${imageName}`)
-            }
-        }
+        //         let imageBase64 = rwaProp.image_data
+        //         fs.writeFileSync(imageName, imageBase64, {encoding: 'base64'})
+        //         console.log(`Image/video file created: ${imageName}`)
+        //     }
+        // }
 
     } catch(err) {
         if (

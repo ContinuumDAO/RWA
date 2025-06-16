@@ -101,6 +101,7 @@ contract CTMRWA001Dividend is Context {
      * separately.
      */
     function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyTokenAdmin returns(bool) {
+        // uint8 decimals = ICTMRWA001(tokenAddr).valueDecimals();
         ICTMRWA001(tokenAddr).changeDividendRate(_slot, _dividend);
 
         emit ChangeDividendRate(_slot, _dividend, tokenAdmin);
@@ -131,7 +132,9 @@ contract CTMRWA001Dividend is Context {
             dividendPayable += ICTMRWA001(tokenAddr).balanceOf(tokenId)*slotRate;
         }
 
-        return(dividendPayable);
+        uint8 decimals = ICTMRWA001(tokenAddr).valueDecimals();
+
+        return(dividendPayable/10**decimals);
     }
 
     /**

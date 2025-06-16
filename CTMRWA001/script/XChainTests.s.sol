@@ -81,9 +81,9 @@ contract XChainTests is Script {
 
     function run() external {
 
-        loadContracts(1115);
+        loadContracts(421614);
 
-        // uint256 ID = ;
+        uint256 ID = 32040649258612427893281522177540151650934260323877079186698121410535279995065;
 
 
         // debugRwaXCall();
@@ -96,10 +96,11 @@ contract XChainTests is Script {
         // checkDeployData();
 
 
-        uint256 idBack = deployLocal();
+        // uint256 idBack = deployLocal();
 
         
         // toChainIdsStr.push("421614");
+        // toChainIdsStr.push("97");
         // toChainIdsStr.push("84532");
         // toChainIdsStr.push("78600"); // Vanguard
         // toChainIdsStr.push("534351"); // Scroll
@@ -108,7 +109,7 @@ contract XChainTests is Script {
         // createSlots(ID, toChainIdsStr);
         // getSlots(ID,0);
 
-        // mintLocalValue(0);
+        // mintLocalValue(ID);
 
         
         // string memory newAddrStr = "0xb5981FADCD79992f580ccFdB981d9D850b27DC37";
@@ -125,6 +126,8 @@ contract XChainTests is Script {
         // toChainIdsStr.push("5611");
         // lockRwa(ID);
 
+        fundDividends(ID, 0);
+
 
     }
 
@@ -132,40 +135,40 @@ contract XChainTests is Script {
         if(chainId == 421614) {   // On ARB SEPOLIA
             // c3UUIDKeeper = ;
             feeToken = 0xbF5356AdE7e5F775659F301b07c4Bc6961044b11;
-            feeManager =  0x8e1fc60c90Aff208023735c9eE54Ff6315D13182;
-            gatewayAddr = 0x15E8BBa5f3F0118C357E74D86a65f46977D58053;
-            rwa001XAddr = 0xb866653913aE6aCb12e9aa33D6d45651cDFEB78B;
-            ctmFallbackAddr = 0xf098767bDe30c0b9C280dbA756f2Ae7E6a653a25;
-            ctmRwa001Map = 0x47D91341Ba367BCe483d0Ee2fE02DD1420b883EC;
-            ctmRwaDeployer =  0x3637d9Bc1A0e819c9d637aFb582c7B3011fCD9Ba;
-            ctmRwaFactory = 0x9ccBe1F97e1B44FA9A7dc5A1aC0979eF013754eF;
-            dividendAddr = 0x48Baaa226b610B506C04b1DCcEc2bA75E4C0191c;
-            storageManagerAddr = 0x3804bD72656E086166f2d64E7C78f2F9CD2735b8;
-            sentryManagerAddr = 0x9cEB3f7ddcEe31eB8aC66D51838999709B1d4e4F;
+            feeManager =  0xc28328b1f98076eD5111f1223C647E883f5d6E16;
+            gatewayAddr = 0xFa89DD803b8872f991997778d26c74a3Aecd9639;
+            rwa001XAddr = 0x8bd737F4Ea451911eDF0445ACB1B7efdc9565221;
+            ctmFallbackAddr = 0xc84C772F77Ff379D00229F8fcdE16Ed91bcFe8Da;
+            ctmRwa001Map = 0x4f390Eaa4Ddb82fc37053b8E8dbc3367594577E4;
+            ctmRwaDeployer =  0x167EF5E62CF14Eb74c4A9bC599D9afcB2119c2f8;
+            ctmRwaFactory = 0x35e0c0081fDAC9d2731B8dB54f131EFc5aa8d25E;
+            dividendAddr = 0xEE7729FbC22B718ce4999bAe6aabACDd8e2C2878;
+            storageManagerAddr = 0x7aB4De775c88e4aA4c93d0078d8318463fABfb13;
+            sentryManagerAddr = 0xb63F83484b9bdbaD5C574B4c89Badf0359e78854;
         } else if(chainId == 80002) {    // on POLYGON AMOY
             feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0x5Cc4E3125B75284246Ffd677eC53553f1d78b825;
-            gatewayAddr = 0x6f013Ad0b507590dcB26E674199ba99d613e9dFD;
-            rwa001XAddr = 0x68CE4a4a6F6EbF5Ba25791Ea5385080e57A5BE82;
-            ctmFallbackAddr = 0x5c0712E102261ED6B7Dbde118bF351150BDa425f;
-            ctmRwa001Map = 0xf9229aCEba228fdbb757A637EeeBadB46FDb617e;
-            ctmRwaDeployer = 0x971C8BDd123aA0c864480419f378fB135f7CaBC1;
-            ctmRwaFactory = 0x783264825Db3088b5448f85B6dc25BB7EEf666ec;
-            dividendAddr = 0xBA08c3b81ed1A13e7A3457b6ab5DDdBa2DF34df4;
-            storageManagerAddr = 0xE5b921BD326efa802e3dc20Fb3502559f59fd8AA;
-            sentryManagerAddr = 0xe5f1354ad39be96a3d2566b27dBc12Dd1Af1b9dB;
+            feeManager = 0xA332fc0BF257AFF4aB07267De75d5Eb0c67B71AF;
+            gatewayAddr = 0x66dB3f564807fdc689eC85285981eF464daeB943;
+            rwa001XAddr = 0x2dA1B2763cF56b9DF5CbBB5A996C7e8836d8C6D8;
+            ctmFallbackAddr = 0x2fDbB139FB38520C2aD6CD30cF45b3C8E5633C65;
+            ctmRwa001Map = 0x9A48630090429E3039A5E1CDb4cf0433D54a1AEe;
+            ctmRwaDeployer = 0x709b45446a540fA2bE3B9f8C6302B8c392AA9095;
+            ctmRwaFactory = 0x2d65BF61631767CEC4D28BeCF7d38f40eD6AFe8E;
+            dividendAddr = 0x3be6c5F79d6aA0cE17641fEE418063DB59acec5c;
+            storageManagerAddr = 0xB3D138F0613CC476faA8c5E2C1a64e90D9d506F3;
+            sentryManagerAddr = 0xf32bc63A511B3B3DeB8fB6AeB3c52eBC0541067e;
         } else if(chainId == 43113) {    // on AVALANCHE FUJI
             feeToken = 0x15A1ED0815ECeD97E46967179846c72BA21DABAd;
-            feeManager = 0x6EE5C158882857c7F52b37FCe37B1CF39944f22E;
-            gatewayAddr = 0x005c5Fd1585A73817107bFd3929f7e559750ceEd;
-            rwa001XAddr = 0xDef5D31e4b2E0BF38Af3E8092a5ABF51Db484Eec;
-            ctmFallbackAddr = 0xb76428eBE853F2f6a5D74C4361B72999f55EE637;
-            ctmRwa001Map = 0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3;
-            ctmRwaDeployer = 0x7dAbce18C66b5c857355A815b6c1e926C701C23F;
-            ctmRwaFactory = 0xaD2E580C931861360C998db3F0B090A5391DA58e;
-            dividendAddr = 0x77aBD89181775355f39a2dfb74fB233499Fc4500;
-            storageManagerAddr = 0xcAcF2003d4bC2e19C865e65Ebb9D57C440217f0F;
-            sentryManagerAddr = 0xF53fb9bb64AB9d3D78F976735762c5af9B5fF341;
+            feeManager = 0x0cB36959A63c02C004566829D11e9EAb4dA3aCE0;
+            gatewayAddr = 0x8176186fa521E54f12Dd8011EB6729003E3D3Fe0;
+            rwa001XAddr = 0x5e0D85dFa2827cD3065aB2D4af93E58DC82c5e96;
+            ctmFallbackAddr = 0x5fA2d872ac859d6F4b9b695B3b11de80160905ab;
+            ctmRwa001Map = 0xD2cd1c42e56Ca30588de604E724C0031b2139053;
+            ctmRwaDeployer = 0xA84752aC44fe4eD2bD82EFa6B6e12d3f96885d10;
+            ctmRwaFactory = 0xf63ee230AdD3B9F8b675FCd1A2CF95Cc34C0f30C;
+            dividendAddr = 0x511A4e9af646E933c145A8892837547900078A97;
+            storageManagerAddr = 0xAE66C08b9d76EeCaA74314c60f3305D43707ACc9;
+            sentryManagerAddr = 0xf9EDcE2638da660F51Ee08220a1a5A32fAB61d61;
         // } else if(chainId == 338) {    // on CRONOS
         //     feeToken = 0xf6d2060494cD08e776D22a47E67d485a33C8c5d2;
         //     feeManager = ;
@@ -177,90 +180,90 @@ contract XChainTests is Script {
         //     ctmRwaFactory = ;
         //     dividendAddr = ;
         //     storageManagerAddr = ;
-         } else if(chainId == 78600) {    // on VANGUARD
-            feeToken = 0x6654D956A4487A26dF1186b01B689c26939544fC;
-            feeManager = 0x8d494f8B762005cCA5BDEBb770Af3bf51E730305;
-            gatewayAddr = 0xD523b4f68c015B472724c24e127FF1f51EeE0fbf;
-            rwa001XAddr = 0x4dDcab55e1eae426a98e85f43896592Ad1dB0f84;
-            ctmFallbackAddr = 0xdC910F7BCc6f163DFA4804eACa10891eb5B9E867;
-            ctmRwa001Map = 0xCBf4E5FDA887e602E5132FA800d74154DFb5B237;
-            ctmRwaDeployer = 0x24DA0F2114B682D01234bC9E103ff7eEbF86aE6A;
-            ctmRwaFactory = 0x52661DbA4F88FeD997164ff2C453A2339216592C;
-            dividendAddr = 0x4f06e8Cea14d352f67E6C21AbC4CBfed38498e6A;
-            storageManagerAddr = 0x89c8CC177f04CC8209B93e42d81a780c3A685dD4;
-            sentryManagerAddr = 0xDD15811D29A330AD2850A994f6AAEcFfA68A5c12;
-        } else if(chainId == 3441006) {    // on MANTA
-            feeToken = 0x20cEfCf72622156987f82E1B54E94Dbc0848De9C;
-            feeManager = 0x6EE5C158882857c7F52b37FCe37B1CF39944f22E;
-            gatewayAddr = 0x005c5Fd1585A73817107bFd3929f7e559750ceEd;
-            rwa001XAddr = 0xDef5D31e4b2E0BF38Af3E8092a5ABF51Db484Eec;
-            ctmFallbackAddr = 0xb76428eBE853F2f6a5D74C4361B72999f55EE637;
-            ctmRwa001Map = 0x92BB6DEfEF73fa2ee42FeC2273d98693571bd7f3;
-            ctmRwaDeployer = 0x7dAbce18C66b5c857355A815b6c1e926C701C23F;
-            ctmRwaFactory = 0xaD2E580C931861360C998db3F0B090A5391DA58e;
-            dividendAddr = 0x77aBD89181775355f39a2dfb74fB233499Fc4500;
-            storageManagerAddr = 0xcAcF2003d4bC2e19C865e65Ebb9D57C440217f0F;
-            sentryManagerAddr = 0xF53fb9bb64AB9d3D78F976735762c5af9B5fF341;
+        //  } else if(chainId == 78600) {    // on VANGUARD
+        //     feeToken = 0x6654D956A4487A26dF1186b01B689c26939544fC;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
+        //     sentryManagerAddr = ;
+        // } else if(chainId == 3441006) {    // on MANTA
+        //     feeToken = 0x20cEfCf72622156987f82E1B54E94Dbc0848De9C;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
+        //     sentryManagerAddr = ;
         } else if(chainId == 5003) {    // on MANTLE
             feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0x0156a74FD9432446030f47f7c55f4d1FbfdF5E9a;
-            gatewayAddr = 0x00d850114aC97754eCf9611Bb0dA99BbFC21BC4C;
-            rwa001XAddr = 0x69a68786C9A1088f7121633b5c390F3007EAEBbe;
-            ctmFallbackAddr = 0xa328Fd0f353afc134f8f6Bdb51082D85395d7200;
-            ctmRwa001Map = 0x41388451eca7344136004D29a813dCEe49577B44;
-            ctmRwaDeployer = 0xe148fbc6C35B6cecC50d18Ebf69959a6A989cB7C;
-            ctmRwaFactory = 0x208Ec1Ca3B07a50151c5741bc0E05C61beddad90;
-            dividendAddr = 0x74972e7Ff5561bD902E3Ec3dDD5A22653088cA6f;
-            storageManagerAddr = 0xA365a4Ea68929C6297ef32Da2c21BDBfd1d354f0;
-            sentryManagerAddr = 0x6F86E2fEeC756591A65D10158aca89DEc2e5eB51;
+            feeManager = 0x358498985E6ac7CA73F5110b415525aE04CB8313;
+            gatewayAddr = 0x9DC772b55e95A630031EBe431706D105af01Cf03;
+            rwa001XAddr = 0xad49cabD336f943a9c350b9ED60680c54fa2c3d1;
+            ctmFallbackAddr = 0x47D8fbD6206CAa763105CEfdEE47b16D03F87890;
+            ctmRwa001Map = 0x1b34e36f4A7B083b153803946C68F8567b4Fe021;
+            ctmRwaDeployer = 0x0EeA0C2FB4122e8193E26B06358E384b2b909848;
+            ctmRwaFactory = 0xc047401F28F43eC8Af8C5aAaC26Bf7d007E2474a;
+            dividendAddr = 0x36d600bAF33DeF37318D71a186418bB84D2A63b9;
+            storageManagerAddr = 0xeDe597aA066e6d7bc84BF586c494735DEB7DDe9F;
+            sentryManagerAddr = 0xDa61b02D88D2c857dA9d2da435152b08F03E2836;
         } else if(chainId == 11155111) {    // on SEPOLIA
             feeToken = 0xa4C104db0937F1E886d5C9c9789D6f0e5bfBA75c;
-            feeManager = 0x06c067f00F946ecaA23C5b253fFf4B91a5869F10;
-            gatewayAddr = 0xBB348A6f2227E56a210097f808025Ca3635BEE1d;
-            rwa001XAddr = 0x3D9aD7fb378BCeb18C47e01AF6e60679B6CAa8A9;
-            ctmFallbackAddr = 0xF6BeB087A52BC1deF538a16DA652337BDb0E5535;
-            ctmRwa001Map = 0x8Ed2Dc74260aA279fcB5438932B5B367F221e7db;
-            ctmRwaDeployer = 0x8ebc3d6994b3cA9052095dBcE3803dBf5ffeD062;
-            ctmRwaFactory = 0xb0dB162169b0ca1ED329811D79F2CA78a4eeA504;
-            dividendAddr = 0x3bc5C06b2e04d7D71a2e4AB3686D5D8011c53f6f;
-            storageManagerAddr = 0xDC44569f688a91ba3517C292de75E30EA284eeA0;
-            sentryManagerAddr = 0x636D43798340603707c936c1A93597Dc44Effbee;
-         } else if(chainId == 2810) {    // on MORPH HOLESKY
-            feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0x9E2F5D1228b02C2FbF3168Db1162e7461574eBB9;
-            gatewayAddr = 0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2;
-            rwa001XAddr = 0x45cddE4bdAbC97b3ec02B1271432ceeBc04d4c53;
-            ctmFallbackAddr = 0x80f1BB2DF520e3e091C79AebE81f46136A8fBCb5;
-            ctmRwa001Map = 0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a;
-            ctmRwaDeployer = 0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D;
-            ctmRwaFactory = 0x0A0C882706544F37377e9bb7976E0805cd29a94F;
-            dividendAddr = 0xa3bae05aA45bcC739258b124FACE332043D3B1dA;
-            storageManagerAddr = 0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9;
-            sentryManagerAddr = 0xDFe447a7F6780dD40D3eA4CF3F132c1F3b50BfF7;
+            feeManager = 0x08D0F2f8368CE13206F4839c3ce9151Be93893Bc;
+            gatewayAddr = 0x13797c225F8E3645299F17d83365e0f5DB1c1607;
+            rwa001XAddr = 0x778511925d3243Cf03a2486386ECc363E9Ad6647;
+            ctmFallbackAddr = 0x3800dAcd202a91A791BC040dfD352a9565E51Aa7;
+            ctmRwa001Map = 0x4f102432739a2DE082B7977316796A05C99147fb;
+            ctmRwaDeployer = 0xef7c7BB5AB5b7bf55f7Cd9a38167C1F61eD15295;
+            ctmRwaFactory = 0x91677ec1879987aBC3978fD2A71204640A9e9f4A;
+            dividendAddr = 0x2bb5cD060F24DE792b7C54d7577D7847EAe63D71;
+            storageManagerAddr = 0x6681DB630eB117050D78E0B89eB5619b35Ea12e8;
+            sentryManagerAddr = 0xF4842C8354fE42e85D6DCDe11CFAda1B80BEAa33;
+        //  } else if(chainId == 2810) {    // on MORPH HOLESKY
+        //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
+        //     sentryManagerAddr = ;
         } else if(chainId == 168587773) {    // on BLAST
             feeToken = 0x5d5408e949594E535d0c3d533761Cb044E11b664;
-            feeManager = 0x610D47b471Ca1BA509F752AFAD8E391664bF4deC;
-            gatewayAddr = 0x4218C42503FBB0CC65cbDf507B7ce64F0C52BC32;
-            rwa001XAddr = 0xC230C289328a86d2daC10Db25E91f516aD7D0D3f;
-            ctmFallbackAddr = 0x0f78335bD79BDF6C8cbE6f4F565Ca715a44Aed54;
-            ctmRwa001Map = 0xD55F76833388137FB1ECFc0dE1e6982716A19640;
-            ctmRwaDeployer = 0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2;
-            ctmRwaFactory = 0x80f1BB2DF520e3e091C79AebE81f46136A8fBCb5;
-            dividendAddr = 0x0A0C882706544F37377e9bb7976E0805cd29a94F;
-            storageManagerAddr = 0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a;
-            sentryManagerAddr = 0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D;
-        } else if(chainId == 1952959480) {    // on LUMIA
-            feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0x8BeaD36D15356320159A846a53AF8d6cB2eAA604;
-            gatewayAddr = 0x3B973407EB120f75B4a3a8702145Aa7F96cb9c07;
-            rwa001XAddr = 0x98269063D2bd9dDa4B9438f4240463b8B475c7f6;
-            ctmFallbackAddr = 0x81Db0Cb1645C447214909a2C90A048B9AD4881f5;
-            ctmRwa001Map = 0xeE894d33b491B5B4D930F21bd1D9B583EA5493C7;
-            ctmRwaDeployer = 0xC47E0Da1a73b7E6aa86fce7F21C73Cc8D5E8ef4B;
-            ctmRwaFactory = 0x7D29D0bcBFda9c23c82317AF1a57995F74954a7e;
-            dividendAddr = 0x6fCfFb153d538194467357a887B8973b1dC286d9;
-            storageManagerAddr = 0x6b556FaA59C5F719Bc0E70B8872e08A80F55969E;
-            sentryManagerAddr = 0x656F2D9D696e03779263e92d43BF92829825CD09;
+            feeManager = 0x66dc636132fb9b7f6ed858928B65864D3fd0ea67;
+            gatewayAddr = 0xEa4A06cB68ABa869e6BF98Edc4BdbC731d2D82e3;
+            rwa001XAddr = 0x9A0F81de582Ce9194FEADC6CCefaf9eA70451616;
+            ctmFallbackAddr = 0xF84A465ce158Aad1848B737a6eCAbE6D253D12C2;
+            ctmRwa001Map = 0xcFF54249Dae66746377e15C07D95c42188D5d3A8;
+            ctmRwaDeployer = 0x32101CD0cF6FbC0743B17B51A94224c75B7092A0;
+            ctmRwaFactory = 0x1EeBC47AaE37F2EA390869efe60db5a2cF2c9d80;
+            dividendAddr = 0x69a68786C9A1088f7121633b5c390F3007EAEBbe;
+            storageManagerAddr = 0x8D4EEe23A687b304E94eee3211f3058A60744502;
+            sentryManagerAddr = 0x0156a74FD9432446030f47f7c55f4d1FbfdF5E9a;
+        // } else if(chainId == 1952959480) {    // on LUMIA
+        //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
+        //     sentryManagerAddr = ;
         // } else if(chainId == 14853) {    // on HUMANODE
         //     feeToken = 0x6dD69414E074575c45D5330d2707CAf80303a85B;
         //     feeManager = ;
@@ -274,123 +277,123 @@ contract XChainTests is Script {
         //     storageManagerAddr = ;
         } else if(chainId == 200810) {    // on Bitlayer
             feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0x66b719C489193594c617801e67119959CD15b63A;
-            gatewayAddr = 0x5Fb1394608Ce2Ef7092A642d6c5D3b2325300bFD;
-            rwa001XAddr = 0xe5AF1a54B2b8cA3091edD229329B60A82b7A04E8;
-            ctmFallbackAddr = 0xe96270a4DeFb602d8C7E5aDB7f090EAC5291A641;
-            ctmRwa001Map = 0x766061Cd28592Fd2503cAA3E4772C1215192cD3d;
-            ctmRwaDeployer = 0xa78f13ddB2538e76ed0EB66F3B0c36d77c237Ab8;
-            ctmRwaFactory = 0xE569c146B0d4c1c941607b5c6A648b5877AE29EF;
-            dividendAddr = 0x41cf60030c69b88baE714c2e67D101E158C3bB97;
-            storageManagerAddr = 0xC5E7f5e1BABBF45e3F1e0764B48736C19A122383;
-            sentryManagerAddr = 0x0A576aB9704438ef4eF94C50c6bD0F13eFE12b06;
-        } else if(chainId == 2484) {    // on U2U NEBULAS
-            feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0xa3bae05aA45bcC739258b124FACE332043D3B1dA;
-            gatewayAddr = 0x3CB56e6E5917a2a8924BC2A5C1f0ecc90b585e74;
-            rwa001XAddr = 0x1F652e2D8A9FCa346A0F45D59a67FB998999e454;
-            ctmFallbackAddr = 0x95574b1a28865A81D2df36683d027A9D7603aFC7;
-            ctmRwa001Map = 0xEcabB66a84340E7E6D020EAD0dAb1364767f3f70;
-            ctmRwaDeployer = 0xeFbd6990A5C4ABFA30b91409aA3d9A0e7C8Bb77b;
-            ctmRwaFactory = 0x7AEECCcafb96e53460B5b633Fc668adf14ed8419;
-            dividendAddr = 0x66b719C489193594c617801e67119959CD15b63A;
-            storageManagerAddr = 0xA33cfD901896C775c5a6d62e94081b4Fdd1B09BC;
-            sentryManagerAddr = 0x41543A4C6423E2546FC58AC63117B5692D68c323;
+            feeManager = 0xb849bF0a5ca08f1e6EA792bDC06ff2317bb2fB90;
+            gatewayAddr = 0xe08C7eE637336565511eb3421DAFdf45b860F9bc;
+            rwa001XAddr = 0x78F81b1AEe019efaAfe58853D96c5E9Ac87be731;
+            ctmFallbackAddr = 0x7743150e59d6A27ec96dDDa07B24131D0122b611;
+            ctmRwa001Map = 0xb4317DBA65486889643585A8D96C8d1990971Cad;
+            ctmRwaDeployer = 0xF813DdCDd690aCB06ddbFeb395Cf65D18Efe74A7;
+            ctmRwaFactory = 0x140991fF31A86D700510C1d391A0ACd48CB7AbB7;
+            dividendAddr = 0x605Ab9626e57C5d1f3f0508D5400aB0449b5a015;
+            storageManagerAddr = 0x0F607AF04457E86eC349FbEbb6e23B0A6A0D067F;
+            sentryManagerAddr = 0x10A04ad4a73C8bb00Ee5A29B27d11eeE85390306;
+        // } else if(chainId == 2484) {    // on U2U NEBULAS
+        //     feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
+        //     sentryManagerAddr = ;
         } else if(chainId == 1115) {    // on CORE
             feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0x5b4d2c1b2e918fF1b0DE85803F5A737E5f816eCb;
-            gatewayAddr = 0xF3A991cB19949cB6aBD9E416F0408C648B6c36Fa;
-            rwa001XAddr = 0xb5d1f61f6B9f0CA2B89eb9D693e8cD737076846A;
-            ctmFallbackAddr = 0xF96089140dd5869Cc84C5c3A4B65dE016BE7fAc3;
-            ctmRwa001Map = 0xFCCE5239FF3783fDEFF7FC2E303D619e3e8e0870;
-            ctmRwaDeployer = 0x6f013Ad0b507590dcB26E674199ba99d613e9dFD;
-            ctmRwaFactory = 0x5c0712E102261ED6B7Dbde118bF351150BDa425f;
-            dividendAddr = 0x783264825Db3088b5448f85B6dc25BB7EEf666ec;
-            storageManagerAddr = 0xf9229aCEba228fdbb757A637EeeBadB46FDb617e;
+            feeManager = 0x87a0c3e97B52A42edBB513ad9701F6641B62afe2;
+            gatewayAddr = 0xc0b8f765907ab09106010190Ee991aAae01F88Ba;
+            rwa001XAddr = 0xC981D340AC02B717B52DC249c46B1942e20EDBAD;
+            ctmFallbackAddr = 0xE9A9b06b26F1971D64a8f19682FE0E584eb5D541;
+            ctmRwa001Map = 0x5ffFBa2E10d66e9368c6270cfD07e31802fff751;
+            ctmRwaDeployer = 0x7f75443345A631751A7f6cdE34be3a8855ccdac7;
+            ctmRwaFactory = 0x5318f955E3024C78329945Ea9517D3cC2443AeC4;
+            dividendAddr = 0x309d782000B646429f79Bc927D2F382ec4DDf55C;
+            storageManagerAddr = 0x2809808fC225FDAF859826cE7499a56B106D8870;
         } else if(chainId == 534351) {    // on SCROLL
             feeToken = 0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58;
-            feeManager = 0x7ED4D0234E6c0F6704463E9A62A33AB7B7846A09;
-            gatewayAddr = 0xD55F76833388137FB1ECFc0dE1e6982716A19640;
-            rwa001XAddr = 0x9E2F5D1228b02C2FbF3168Db1162e7461574eBB9;
-            ctmFallbackAddr = 0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2;
-            ctmRwa001Map = 0x80f1BB2DF520e3e091C79AebE81f46136A8fBCb5;
-            ctmRwaDeployer = 0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a;
-            ctmRwaFactory = 0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D;
-            dividendAddr = 0xDFe447a7F6780dD40D3eA4CF3F132c1F3b50BfF7;
-            storageManagerAddr = 0x0A0C882706544F37377e9bb7976E0805cd29a94F;
-            sentryManagerAddr = 0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9;
-        } else if(chainId == 59141) {    // on LINEA
-            feeToken = 0x6654D956A4487A26dF1186b01B689c26939544fC;
-            feeManager = 0x6a61BDf8faaE1614701674dB133A0bd1414E88Dc;
-            gatewayAddr = 0x5Bd9BE690c9DA2Afb3E50eC6B73ae6EaA66d5d30;
-            rwa001XAddr = 0xdfa830314001a2dc761c0564D61962a57b7A5B89;
-            ctmFallbackAddr = 0x328bBD32Ca55cD85Ef95f88df18c95f7562b05AA;
-            ctmRwa001Map = 0x3144e9ff0C0F7b2414Ec0684665451f0487293FA;
-            ctmRwaDeployer = 0x75F6b1C030591b1075dad74C46705851c5bbF924;
-            ctmRwaFactory = 0x114ace1c918409889464c2a714f8442a97934Ccf;
-            dividendAddr = 0x9aF1e5b3e863d88A4E220fb07FfB8c2e5a96dDbd;
-            storageManagerAddr = 0x73B4143b7cd9617F9f29452f268479Bd513e3d23;
-            sentryManagerAddr = 0x5dA80743b6FD7FEB2Bf7207aBe20E57E204e2B5b;
+            feeManager = 0x93637D7068CEebC6cCDCB230E3AE65436666fe15;
+            gatewayAddr = 0x1944F7fdd330Af7b0e7C08349591213E35ed5948;
+            rwa001XAddr = 0x1249d751e6a0b7b11b9e55CBF8bC7d397AC3c083;
+            ctmFallbackAddr = 0x797AA64f83e4d17c2C6C80321f22445AAB153630;
+            ctmRwa001Map = 0x21640b51400Da2B679916b8619c38b3Cc03692fe;
+            ctmRwaDeployer = 0x20ADAf244972bC6cB064353F3EA4893f73E85599;
+            ctmRwaFactory = 0x264D6501B1F4f3a98341C6aA81527e0C43587fB1;
+            dividendAddr = 0x9A0F81de582Ce9194FEADC6CCefaf9eA70451616;
+            storageManagerAddr = 0xb406b937C12E03d676727Fc1Bb686279EeDbc178;
+            sentryManagerAddr = 0x66dc636132fb9b7f6ed858928B65864D3fd0ea67;
+        // } else if(chainId == 59141) {    // on LINEA
+        //     feeToken = 0x6654D956A4487A26dF1186b01B689c26939544fC;
+        //     feeManager = ;
+        //     gatewayAddr = ;
+        //     rwa001XAddr = ;
+        //     ctmFallbackAddr = ;
+        //     ctmRwa001Map = ;
+        //     ctmRwaDeployer = ;
+        //     ctmRwaFactory = ;
+        //     dividendAddr = ;
+        //     storageManagerAddr = ;
+        //     sentryManagerAddr = ;
         } else if(chainId == 1946) {    // on SONEIUM
             feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0xf7548cB35188aa7DaC8423fAA2ACe3855634e40C;
-            gatewayAddr = 0x654Ad7D43857b354079caD2d668bFA1eF2a01Fcf;
-            rwa001XAddr = 0x610D47b471Ca1BA509F752AFAD8E391664bF4deC;
-            ctmFallbackAddr = 0x4218C42503FBB0CC65cbDf507B7ce64F0C52BC32;
-            ctmRwa001Map = 0x0f78335bD79BDF6C8cbE6f4F565Ca715a44Aed54;
-            ctmRwaDeployer = 0xD55F76833388137FB1ECFc0dE1e6982716A19640;
-            ctmRwaFactory = 0x25903bEA74d4fbE43B7D30703D2A740841DfB7b2;
-            dividendAddr = 0x3FfbC9f4C2Bb8fB74Ab712d3E01c695Ce2329b1D;
-            storageManagerAddr = 0x80f1BB2DF520e3e091C79AebE81f46136A8fBCb5;
-            sentryManagerAddr = 0x3dc0e90bB56DE095321c48aadF0D0c29b47b837a;
+            feeManager = 0xF074c733800eC017Da580A5DC95533143CD6abE4;
+            gatewayAddr = 0xa7441037961E31D4b64Aca57417d7673FEdC8fEC;
+            rwa001XAddr = 0xf299832e535b9cc50D4002909061c320964D03FC;
+            ctmFallbackAddr = 0x93637D7068CEebC6cCDCB230E3AE65436666fe15;
+            ctmRwa001Map = 0x1249d751e6a0b7b11b9e55CBF8bC7d397AC3c083;
+            ctmRwaDeployer = 0x797AA64f83e4d17c2C6C80321f22445AAB153630;
+            ctmRwaFactory = 0x052E276c0A9D2D2adf1A2AeB6D7eCaEC38ec9dE6;
+            dividendAddr = 0xD455BB0f664Ac8241b505729C3116f1ACC441be4;
+            storageManagerAddr = 0x3f547B04f8CF9552434B7f3a51Fc23247911b797;
+            sentryManagerAddr = 0xc04058E417De221448D4140FC1622dE24121C5e3;
         } else if(chainId == 153) {    // on REDBELLY
             feeToken = 0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58;
-            feeManager = 0xD4bD9BBA2fb97C36Bbd619303cAB636F476f8904;
-            gatewayAddr = 0xeA5c4FBEFFDfe9173bE7dC8c94eD6288A1D8f85E;
-            rwa001XAddr = 0x8d494f8B762005cCA5BDEBb770Af3bf51E730305;
-            ctmFallbackAddr = 0xD523b4f68c015B472724c24e127FF1f51EeE0fbf;
-            ctmRwa001Map = 0xdC910F7BCc6f163DFA4804eACa10891eb5B9E867;
-            ctmRwaDeployer = 0xCBf4E5FDA887e602E5132FA800d74154DFb5B237;
-            ctmRwaFactory = 0x24DA0F2114B682D01234bC9E103ff7eEbF86aE6A;
-            dividendAddr = 0xDD15811D29A330AD2850A994f6AAEcFfA68A5c12;
-            storageManagerAddr = 0x52661DbA4F88FeD997164ff2C453A2339216592C;
-            sentryManagerAddr =  0x89c8CC177f04CC8209B93e42d81a780c3A685dD4;
+            feeManager = 0xa328Fd0f353afc134f8f6Bdb51082D85395d7200;
+            gatewayAddr = 0x24A74106195Acd7e3E0a8cc17fd44761CC32474a;
+            rwa001XAddr = 0x41388451eca7344136004D29a813dCEe49577B44;
+            ctmFallbackAddr = 0xe18CBAfD232945c93F0cFF5C38089c4A69623e7C;
+            ctmRwa001Map = 0x9ae0309E655D58AA5fC29296523C2e4E8fcB7522;
+            ctmRwaDeployer = 0x208Ec1Ca3B07a50151c5741bc0E05C61beddad90;
+            ctmRwaFactory = 0x6F86E2fEeC756591A65D10158aca89DEc2e5eB51;
+            dividendAddr = 0xe08C7eE637336565511eb3421DAFdf45b860F9bc;
+            storageManagerAddr = 0x74972e7Ff5561bD902E3Ec3dDD5A22653088cA6f;
+            sentryManagerAddr =  0x5930640c1572bCD396eB410f62a6975ab9b8A148;
         } else if(chainId == 84532) {    // on BASE SEPOLIA *
             feeToken = 0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae;
-            feeManager = 0xD3ee2E923723D2e634219797512bD768d5973020;
-            gatewayAddr = 0x808490311dEbe8818cdfFe1FAae436cb84fAa906;
-            rwa001XAddr = 0xB3672d1bBd1bADbbBf6b327C2ad7785534aF2E7F;
-            ctmFallbackAddr = 0x20D5CdE9700144ED0Da22754D89f3379916c99Fa;
-            ctmRwa001Map = 0xC5A13F8750f362AA8e8Ace59f261268295923190;
-            ctmRwaDeployer = 0xfFFDFD7bBd2D957dd12EA30Ce24852dc26F8b453;
-            ctmRwaFactory = 0xf8da97e4A861EE781c5e3ab5d2e6472d0f900aFf;
-            dividendAddr = 0x7048fc44bAEbb72929724f8E6BBdbA3ED470ab4c;
-            storageManagerAddr = 0x1481875CA0EcD0ACdEb79d3d57FB76EAE726d128;
-            sentryManagerAddr = 0x3bFF2A879a92e2125cDe895FA20BA3A4AEb2D4D7;
+            feeManager = 0x050E942b8ebb0E174A847f343D04EfdC669dFf63;
+            gatewayAddr = 0x31F21C6E2605D28e6b204CD323FF58421FC8Dd00;
+            rwa001XAddr = 0x8736d3b789A6548Cc8fb607dA34Ed860ab626322;
+            ctmFallbackAddr = 0x245B3Da2CE81797F7ACA1E37E2Bc6A2026De269b;
+            ctmRwa001Map = 0x416D3bE80a79E4F082C92f7fB17b1C13fD91B055;
+            ctmRwaDeployer = 0xd661BbE93a05ff2720623d501B54CF5eE72B2A9b;
+            ctmRwaFactory = 0xb3aefEa9F49De70C41Ce22Afa321E64393932d21;
+            dividendAddr = 0x129Cc2aaD6ea7a6f093D7b08DFda7b0414eDc02B;
+            storageManagerAddr = 0x7e0858dE387f30Ebc0bC2F24A35dc4ad9231Cffd;
+            sentryManagerAddr = 0x669AB21e6CeA598ea34CD1292680937c3DEF535c;
         } else if(chainId == 97) {  // BSC TESTNET
             feeToken = 0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD;
-            feeManager = 0x20D5CdE9700144ED0Da22754D89f3379916c99Fa;
-            gatewayAddr = 0x4146FE54Fd379fd095C227ea012a50387674766D;
-            rwa001XAddr = 0xC5A13F8750f362AA8e8Ace59f261268295923190;
-            ctmFallbackAddr = 0xaD22d595152AB2De3aD57a97E127142B1B6Cd376;
-            ctmRwa001Map = 0xC886FFa78114cf7e701Fd33505b270505B3FeAE3;
-            ctmRwaDeployer = 0x3e15986e2fCbc9A636Ddf2eA798Ae6C162200144;
-            ctmRwaFactory = 0xC6965959fa28741191DdCb20B6b99657fbDA9f45;
-            dividendAddr = 0x823329dd3F730031E95338Ce59f5Fcb3BE6486B4;
-            storageManagerAddr = 0x188af80a2ea153bc43dD448434d753C05D3C93f3;
-            sentryManagerAddr = 0x39446dF8f82282Aebcb0EdDc61D6B716C188Ee85;
+            feeManager = 0x1736009b39009f1cD6F08791C781317c2Dce4a88;
+            gatewayAddr = 0x7a63F6b51c503e9A3354AF8262E8C7129aBDbBEb;
+            rwa001XAddr = 0x37C7137Dc6e3DC3c3637bFEd3F6dBFbd43386429;
+            ctmFallbackAddr = 0x80969848e69741E47d83db606A2497f816c24773;
+            ctmRwa001Map = 0x15702A75071c424BbdC6F69aFeB6F919593B389E;
+            ctmRwaDeployer = 0xdB2dC418F97DA871f5aCA6C4D50440FBffa40313;
+            ctmRwaFactory = 0x57AAF7641Eb89AC6C55dFa1DEBd7e27b73E75fe9;
+            dividendAddr = 0xf9F9cDc9d1e0B967aEFcE60919CAe45026E2A9e6;
+            storageManagerAddr = 0x71645806ee984439ADC3352ABB5491Ec03928e63;
+            sentryManagerAddr = 0x0d7B0bb763557EA0c7c2d938B5Ae3D5ccbbf8D44;
         } else if(chainId == 5611) {  // OPBNB TESTNET  Chain 5611
             feeToken = 0x108642B1b2390AC3f54E3B45369B7c660aeFffAD;
-            feeManager = 0x4596F5bFba6cB5ebdb23a0d118434b43Ad9Be3B7;
-            gatewayAddr = 0x6F0DDf81d8145301058e37CC51A485Ae6b44BCF9;
-            rwa001XAddr = 0xCa19ddc73718512B968B2cb838b1408885D74A05;
-            ctmFallbackAddr = 0xDFe447a7F6780dD40D3eA4CF3F132c1F3b50BfF7;
-            ctmRwa001Map = 0xa3bae05aA45bcC739258b124FACE332043D3B1dA;
-            ctmRwaDeployer = 0x1F652e2D8A9FCa346A0F45D59a67FB998999e454;
-            ctmRwaFactory = 0x22D305a430b57a12D569f1e578B9F2f7613f92F8;
-            dividendAddr = 0xa99eED86A083074bE196578f8a1c7B7B22015082;
-            storageManagerAddr = 0xd13779b354c3C72c9B438ABe7Db3086098778A7a;
-            sentryManagerAddr = 0x43B8494f3C645c8CBA2B0D13C7Bd948D9877620c;
+            feeManager = 0xe08C7eE637336565511eb3421DAFdf45b860F9bc;
+            gatewayAddr = 0x78F81b1AEe019efaAfe58853D96c5E9Ac87be731;
+            rwa001XAddr = 0x7743150e59d6A27ec96dDDa07B24131D0122b611;
+            ctmFallbackAddr = 0x89330bE16C672D4378B6731a8347D23B0c611de3;
+            ctmRwa001Map = 0xF813DdCDd690aCB06ddbFeb395Cf65D18Efe74A7;
+            ctmRwaDeployer = 0x093eaCfA2D856516ED71aF96D7DC7C571E6CA2a6;
+            ctmRwaFactory = 0xe73Fb620e57F764746Ead61319865F71f6A5CD60;
+            dividendAddr = 0xc0DD542BCaC26095A2C83fFb10826CCEf806C07b;
+            storageManagerAddr = 0x926DF1f820Af8E3cF53A58C94332eB16BA4cB4b5;
+            sentryManagerAddr = 0x3AF6a526DD51C8B08FD54dBB624E042BB3b0a77e;
         }
 
         gateway = ICTMRWAGateway(gatewayAddr);
@@ -520,7 +523,7 @@ contract XChainTests is Script {
 
         IERC20(feeToken).approve(rwa001XAddr, 10000*10**ITheiaERC20(feeToken).decimals());
 
-        uint256 newTokenId = rwa001X.mintNewTokenValueLocal(senderAccount, 0, 6, 1450, _ID, feeTokenStr);
+        uint256 newTokenId = rwa001X.mintNewTokenValueLocal(senderAccount, 0, 0, 1450, _ID, feeTokenStr);
         console.log("newTokenId = ");
         console.log(newTokenId);
 
@@ -749,6 +752,33 @@ contract XChainTests is Script {
 
 
         vm.stopBroadcast();
+
+    }
+
+    function fundDividends(uint256 _ID, uint256 _slot) public returns(uint256) {
+         vm.startBroadcast(senderPrivateKey);
+
+
+        (bool ok, address divAddr) = ICTMRWAMap(ctmRwa001Map).getDividendContract(_ID, 1, 1);
+
+        IERC20(feeToken).approve(divAddr, 1000*10**ITheiaERC20(feeToken).decimals());
+
+        ICTMRWA001Dividend(divAddr).setDividendToken(feeToken);
+
+        address token = ICTMRWA001Dividend(divAddr).dividendToken();
+        assert(token == address(feeToken));
+
+        uint256 divRate = 2;
+        ICTMRWA001Dividend(divAddr).changeDividendRate(_slot, divRate);
+
+        uint256 dividendTotal = ICTMRWA001Dividend(divAddr).getTotalDividend();
+
+        uint256 unclaimed = ICTMRWA001Dividend(divAddr).fundDividend();
+
+
+        vm.stopBroadcast();
+
+        return unclaimed;
 
     }
 

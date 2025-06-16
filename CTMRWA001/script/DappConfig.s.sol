@@ -87,15 +87,15 @@ contract DappConfig is Script {
         //     71,
             
         // ));
-        // newchains.push(NewChain(  // CORE Testnet Chain 1115
-        //     1115,
-        //     ,
-        //     ,
-        //     ,
-        //     ,
-        //     ,
-            
-        // ));
+        newchains.push(NewChain(  // CORE Testnet Chain 1115
+            1115,
+            0xc0b8f765907ab09106010190Ee991aAae01F88Ba,
+            0xC981D340AC02B717B52DC249c46B1942e20EDBAD,
+            0x87a0c3e97B52A42edBB513ad9701F6641B62afe2,
+            0x2809808fC225FDAF859826cE7499a56B106D8870,
+            0xEa37aEfe52E5327528F71171844474CF77507770,
+            0x7f75443345A631751A7f6cdE34be3a8855ccdac7
+        ));
         newchains.push(NewChain(  // HOLESKY Chain 17000
             17000,
             0x1EeBC47AaE37F2EA390869efe60db5a2cF2c9d80,
@@ -123,15 +123,15 @@ contract DappConfig is Script {
             0x0156a74FD9432446030f47f7c55f4d1FbfdF5E9a,
             0x32101CD0cF6FbC0743B17B51A94224c75B7092A0
         ));
-        // newchains.push(NewChain(  // BITLAYER TESTNET Chain 200810
-        //     200810,
-        //     ,
-        //     ,
-        //     ,
-        //     ,
-        //     ,
-            
-        // ));
+        newchains.push(NewChain(  // BITLAYER TESTNET Chain 200810
+            200810,
+            0xe08C7eE637336565511eb3421DAFdf45b860F9bc,
+            0x78F81b1AEe019efaAfe58853D96c5E9Ac87be731,
+            0xb849bF0a5ca08f1e6EA792bDC06ff2317bb2fB90,
+            0x0F607AF04457E86eC349FbEbb6e23B0A6A0D067F,
+            0x10A04ad4a73C8bb00Ee5A29B27d11eeE85390306,
+            0xF813DdCDd690aCB06ddbFeb395Cf65D18Efe74A7
+        ));
         newchains.push(NewChain(  // SCROLL SEPOLIA   Chain 534351
             534351,
             0x1944F7fdd330Af7b0e7C08349591213E35ed5948,
@@ -294,7 +294,7 @@ contract DappConfig is Script {
         // addDappWhitelist(65);
         // address toAdd = 0xF53fb9bb64AB9d3D78F976735762c5af9B5fF341;
         // addOneAddress(65,toAdd);
-        addSingle(65,1);
+        addSingle(65,2);
 
         vm.stopBroadcast();
 

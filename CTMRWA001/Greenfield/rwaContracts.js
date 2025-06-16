@@ -44,14 +44,14 @@ const getRwaContracts = (chainIdStr) => {
         feeToken = "0xDd43fc986a13392dDbC7aeA150b41EfE27b2d0eD"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    // } else if (chainIdStr == "200810") {  // BITLAYER TESTNET Chain 200810
+    } else if (chainIdStr == "200810") {  // BITLAYER TESTNET Chain 200810
 
-    //     rpcUrl = "https://testnet-rpc.bitlayer.org"
-    //     ctmRwaMap = ""
-    //     storageManager = ""
-    //     feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
+        rpcUrl = "https://testnet-rpc.bitlayer.org"
+        ctmRwaMap = "0xb4317DBA65486889643585A8D96C8d1990971Cad"
+        storageManager = "0x0F607AF04457E86eC349FbEbb6e23B0A6A0D067F"
+        feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
-    //     return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "1952959480") {  // LUMIA TESTNET Chain 1952959480
 
         rpcUrl = "https://testnet-rpc.lumia.org"
@@ -68,14 +68,14 @@ const getRwaContracts = (chainIdStr) => {
         feeToken = "0x108642B1b2390AC3f54E3B45369B7c660aeFffAD"
         
         return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
-    // } else if (chainIdStr == "1115") {  // CORE Testnet Chain 1115
+    } else if (chainIdStr == "1115") {  // CORE Testnet Chain 1115
 
-    //     rpcUrl = "https://rpc.test.btcs.network/"
-    //     ctmRwaMap = ""
-    //     storageManager = ""
-    //     feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
+        rpcUrl = "https://rpc.test.btcs.network/"
+        ctmRwaMap = "0x5ffFBa2E10d66e9368c6270cfD07e31802fff751"
+        storageManager = "0x2809808fC225FDAF859826cE7499a56B106D8870"
+        feeToken = "0x6a4DBC971533Ba36bdc23aD70F5A7a12E064f4ae"
         
-    //     return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
+        return {ok: true, rpcUrl: rpcUrl, ctmRwaMap: ctmRwaMap, storageManager: storageManager, feeToken: feeToken}
     } else if (chainIdStr == "1946") {  // SONEIUM MINATO Chain 1946
 
         rpcUrl = "https://rpc.minato.soneium.org/"

@@ -369,6 +369,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             slotName(slot),
             tokenAdmin
         );
+        
     }
 
     /**
@@ -622,7 +623,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     /**
      * @dev Internal function minting value to a slot creating a NEW tokenId
      */
-    function _mint(address _to, uint256 _slot, string memory _slotName, uint256 _value) internal returns (uint256 tokenId) {
+    function _mint(address _to, uint256 _slot, string memory _slotName, uint256 _value) private returns (uint256 tokenId) {
         tokenId = _createOriginalTokenId();
         _mint(_to, tokenId, _slot, _slotName, _value);  
     }
@@ -659,7 +660,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     /**
      * @dev Mint value to an existing tokenId
      */
-    function _mintValue(uint256 _tokenId, uint256 _value) internal {
+    function _mintValue(uint256 _tokenId, uint256 _value) private {
         address owner = CTMRWA001.ownerOf(_tokenId);
         uint256 slot = CTMRWA001.slotOf(_tokenId);
         string memory thisSlotName = CTMRWA001.slotNameOf(_tokenId);
@@ -699,7 +700,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     /// @dev Lowest level burn function
-    function _burn(uint256 _tokenId) internal {
+    function _burn(uint256 _tokenId) private {
         requireMinted(_tokenId);
 
         (, uint256 bal, address owner, uint256 slot, string memory thisSlotName,) = this.getTokenInfo(_tokenId);
@@ -790,7 +791,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     /// @dev Lowest level approve to spend any amount from tokenId by an address function
-    function _approve(address _to, uint256 _tokenId) internal {
+    function _approve(address _to, uint256 _tokenId) private {
         _allTokens[_allTokensIndex[_tokenId]].approved = _to;
         emit Approval(CTMRWA001.ownerOf(_tokenId), _to, _tokenId);
     }
