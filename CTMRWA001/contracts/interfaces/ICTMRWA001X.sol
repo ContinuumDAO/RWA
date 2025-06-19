@@ -20,9 +20,8 @@ interface ICTMRWA001X {
     function setGateway(address _gateway) external;
     function setFallback(address _fallbackAddr) external;
     function setCtmRwaMap(address ctmRwaMap) external;
-    function setCtmRwaDeployer(address _deployer, address _erc20Deployer) external;
+    function setCtmRwaDeployer(address _deployer) external;
     function fallbackAddr() external returns(address);
-    function erc20Deployer() external returns(address);
     function gateway() external returns(address);
     function feeManager() external returns(address);
     function ctmRwaDeployer() external returns(address);
@@ -95,7 +94,7 @@ interface ICTMRWA001X {
         uint256 value_,
         uint256 ID,
         string memory feeTokenStr
-    ) external;
+    ) external returns(uint256);
     
 
     function transferWholeTokenX( // transfer from/to same tokenid without value

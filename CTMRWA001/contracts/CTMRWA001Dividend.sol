@@ -74,6 +74,10 @@ contract CTMRWA001Dividend is Context {
     /// @dev wallet of holder of a tokenId(s) in CTMRWA001 => unclaimed dividend
     mapping(address => uint256) public unclaimedDividend;
 
+    /// @dev unclaimed dividend for a tokenId. This is used by escrow, or staking contracts
+    /// @dev to allow claiming of dividends by the owner, whilst the tokenId is locked
+    mapping(uint256 => uint256) public dividendByTokenId;
+
     /**
      * @notice Change the ERC20 dividend token used to pay holders
      * @param _dividendToken The address of the ERC20 token used to fund/pay for dividends
@@ -164,7 +168,7 @@ contract CTMRWA001Dividend is Context {
      * transaction had happened (a few minutes). The function fundDividend should be called with
      * MultiCall on all chains simultaneously by the frontend to prevent such an exploit.
      */
-    function fundDividend() public payable onlyTokenAdmin returns(uint256) {
+    function fundDividend() public onlyTokenAdmin returns(uint256) {
         uint256 dividendPayable = getTotalDividend();
 
         require(IERC20(dividendToken).transferFrom(_msgSender(), address(this), dividendPayable), "CTMRWA001Dividend: Did not fund the dividend");
@@ -179,6 +183,7 @@ contract CTMRWA001Dividend is Context {
             holder = ICTMRWA001(tokenAddr).ownerOf(tokenId);
             dividend = _getDividendByToken(tokenId);
             unclaimedDividend[holder] += dividend;
+            dividendByTokenId[tokenId] += dividend;
             totalDividend += dividend;
         }
 
@@ -201,6 +206,18 @@ contract CTMRWA001Dividend is Context {
 
         emit ClaimDividend(_msgSender(), dividend, dividendToken);
         return true;
+    }
+
+    /// @dev This function allows the owner of a tokenId to reset the outstanding
+    /// @dev unclaimed dividend balance to zero. It is intended to assist
+    /// @dev escrow or staking contracts to account for nd allow dividend payments
+    /// @dev to the beneficial holders of a tokenId, whilst it is technically owned by
+    /// @dev the staking contract
+    function resetDividendByToken(uint256 _tokenId) external {
+        address owner = ICTMRWA001(tokenAddr).ownerOf(_tokenId);
+        require(_msgSender() == owner);
+
+        dividendByTokenId[_tokenId] = 0;
     }
 
     /// @dev This function returns how much dividend is payable for an individual tokenId

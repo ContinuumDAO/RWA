@@ -9,6 +9,7 @@ import {ICTMRWA001, SlotData} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
 
 import {ICTMRWA001X} from "./interfaces/ICTMRWA001X.sol";
+import {ICTMRWADeployer} from "./interfaces/ICTMRWADeployer.sol";
 import {ICTMRWAERC20Deployer} from "./interfaces/ICTMRWAERC20Deployer.sol";
 import {ICTMRWA001Storage} from "./interfaces/ICTMRWA001Storage.sol";
 import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
@@ -158,8 +159,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         baseURI = baseURI_;
         ctmRwa001X = _ctmRwa001X;
         rwa001XFallback = ICTMRWA001X(ctmRwa001X).fallbackAddr();
-        erc20Deployer = ICTMRWA001X(ctmRwa001X).erc20Deployer();
-        ctmRwaDeployer = _msgSender();
+        ctmRwaDeployer = ICTMRWA001X(ctmRwa001X).ctmRwaDeployer();
+        erc20Deployer = ICTMRWADeployer(ctmRwaDeployer).erc20Deployer();
 
     }
     
@@ -169,7 +170,10 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     modifier onlyDeployer() {
-        require(_msgSender() == ctmRwaDeployer, "RWA: onlyDeployer");
+        require(
+            _msgSender() == ctmRwaDeployer ||
+            _erc20s[_msgSender()],
+            "RWA: Only Deployer/CTMRWAERC20");
         _;
     }
 
@@ -181,9 +185,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     modifier onlyRwa001X() {
         require(
             _msgSender() == ctmRwa001X || 
-            _msgSender() == rwa001XFallback ||
-            _erc20s[_msgSender()], 
-            "RWA: Only CTMRWA001X/CTMRWAERC20");
+            _msgSender() == rwa001XFallback,
+            "RWA: Only CTMRWA001X");
         _;
     }
 
@@ -829,6 +832,11 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     /// @dev Version of _clearApprovedValues callable by CTMRWA001X
     function clearApprovedValues(uint256 _tokenId) external onlyRwa001X {
+        _clearApprovedValues(_tokenId);
+    }
+
+    /// @dev Version of _clearApprovedValues callable by CTMRWAERC20Deployer
+    function clearApprovedValuesErc20(uint256 _tokenId) external onlyDeployer {
         _clearApprovedValues(_tokenId);
     }
 

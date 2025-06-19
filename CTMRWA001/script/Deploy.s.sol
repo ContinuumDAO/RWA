@@ -4,31 +4,34 @@ pragma solidity ^0.8.19;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-// import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
-// import {CTMRWAMap} from "../contracts/CTMRWAMap.sol";
-// import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
-// import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
-// import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
-// import {CTMRWA001StorageManager} from "../contracts/CTMRWA001StorageManager.sol";
-// import {CTMRWA001SentryManager} from "../contracts/CTMRWA001SentryManager.sol";
-// import {FeeManager} from "../contracts/FeeManager.sol";
-// import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
-// import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
-
-
-import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
-import {CTMRWAMap} from "../flattened/CTMRWAMap.sol";
-import {CTMRWA001TokenFactory} from "../flattened/CTMRWA001TokenFactory.sol";
-import {CTMRWA001XFallback} from "../flattened/CTMRWA001XFallback.sol";
-import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
-import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
-import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
+import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
 import {CTMRWAERC20Deployer} from "../contracts/CTMRWAERC20Deployer.sol";
-import {CTMRWA001SentryManager} from "../flattened/CTMRWA001SentryManager.sol";
+import {CTMRWAMap} from "../contracts/CTMRWAMap.sol";
+import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
+import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
+import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
+import {CTMRWA001StorageManager} from "../contracts/CTMRWA001StorageManager.sol";
+import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
+import {CTMRWA001SentryManager} from "../contracts/CTMRWA001SentryManager.sol";
 import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
-import {FeeManager} from "../flattened/FeeManager.sol";
-import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
-import {CTMRWA001X} from "../flattened/CTMRWA001X.sol";
+import {FeeManager} from "../contracts/FeeManager.sol";
+import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
+import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
+
+
+// import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
+// import {CTMRWAMap} from "../flattened/CTMRWAMap.sol";
+// import {CTMRWA001TokenFactory} from "../flattened/CTMRWA001TokenFactory.sol";
+// import {CTMRWA001XFallback} from "../flattened/CTMRWA001XFallback.sol";
+// import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
+// import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
+// import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
+// import {CTMRWAERC20Deployer} from "../contracts/CTMRWAERC20Deployer.sol";
+// import {CTMRWA001SentryManager} from "../flattened/CTMRWA001SentryManager.sol";
+// import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
+// import {FeeManager} from "../flattened/FeeManager.sol";
+// import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
+// import {CTMRWA001X} from "../flattened/CTMRWA001X.sol";
 
 
 
@@ -180,12 +183,14 @@ contract Deploy is Script {
             feeManagerAddr
         );
 
-        ctmRwa001X.setCtmRwaDeployer(address(ctmRwaDeployer), address(ctmRwaErc20Deployer));
+        ctmRwa001X.setCtmRwaDeployer(address(ctmRwaDeployer));
         ctmRwa001X.setCtmRwaMap(_ctmRwa001Map);
 
         tokenFactory = new CTMRWA001TokenFactory(_ctmRwa001Map, address(ctmRwaDeployer));
 
         ctmRwaDeployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
+
+        ctmRwaDeployer.setErc20DeployerAddress(address(ctmRwaErc20Deployer));
 
         storageManager = new CTMRWA001StorageManager(
             _gov,

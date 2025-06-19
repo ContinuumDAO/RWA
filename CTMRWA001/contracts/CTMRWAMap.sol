@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
-
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -43,7 +41,7 @@ contract CTMRWAMap is Context {
     using Strings for *;
 
     /// @dev Address of the CTMRWAGateway contract
-    address gateway;
+    address public gateway;
 
     /// @dev Address of the CTMRWADeployer contract
     address public ctmRwaDeployer;
@@ -80,6 +78,13 @@ contract CTMRWAMap is Context {
 
     /// @dev CTMRWA001Sentry contract as string => ID
     mapping(string => uint256) sentryToId;
+
+
+    /// @dev ID => CTMRWADeployInvest contract as string
+    mapping(uint256 => string) idToInvest;
+
+    /// @dev CTMRWADeployInvest contract as string => ID
+    mapping(string => uint256) investToId;
 
 
     constructor(
@@ -202,6 +207,19 @@ contract CTMRWAMap is Context {
             : (false, address(0));
     }
 
+    function getInvestContract(
+        uint256 _ID, 
+        uint256 _rwaType, 
+        uint256 _version
+    ) public view returns(bool, address) {
+        require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
+
+        string memory _investStr = idToInvest[_ID];
+        return bytes(_investStr).length != 0 
+            ? (true, stringToAddress(_investStr)) 
+            : (false, address(0));
+    }
+
     /**
      * @dev This function is called by CTMRWADeployer after the deployment of the
      * CTMRWA001, CTMRWA001Dividend, CTMRWA001Storage and CTMRWA001Sentry contracts on a chain.
@@ -237,6 +255,28 @@ contract CTMRWAMap is Context {
         ok = ICTMRWAAttachment(_tokenAddr).attachSentry(_sentryAddr);
         require(ok, "CTMRWAMap: Failed to set the sentry contract address");
 
+    }
+
+    function setInvestmentContract(
+        uint256 _ID, 
+        uint256 _rwaType, 
+        uint256 _version, 
+        address _investAddr
+    ) external onlyDeployer returns(bool) {
+        require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
+
+        string memory investAddrStr = _toLower(_investAddr.toHexString());
+
+        uint256 lenContract = bytes(idToInvest[_ID]).length;
+
+        if(lenContract > 0 || investToId[investAddrStr] != 0) {
+            return(false);
+        } else {
+            idToInvest[_ID] = investAddrStr;
+            investToId[investAddrStr] = _ID;
+
+            return(true);
+        }
     }
 
     /// @dev Internal helper function for attachContracts

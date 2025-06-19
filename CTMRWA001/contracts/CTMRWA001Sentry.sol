@@ -24,8 +24,8 @@ contract CTMRWA001Sentry is Context {
     address public ctmRwa001X;
     address public ctmRwa001Map;
 
-    uint256 merchantNo;
-    uint256 programNo;
+    string merchantNo;
+    string programNo;
     address cooperator;
 
     bool public sentryOptionsSet;
@@ -107,8 +107,8 @@ contract CTMRWA001Sentry is Context {
     }
 
     function setZkMeParams(
-        uint256 _merchantNo, 
-        uint256 _programNo, 
+        string memory _merchantNo, 
+        string memory _programNo, 
         address _cooperator
     ) external onlySentryManager {
         merchantNo = _merchantNo;
@@ -116,7 +116,7 @@ contract CTMRWA001Sentry is Context {
         cooperator = _cooperator;
     }
 
-    function getZkMeParams() public view returns(uint256, uint256, address) {
+    function getZkMeParams() public view returns(string memory, string memory, address) {
         return(merchantNo, programNo, cooperator);
     }
 

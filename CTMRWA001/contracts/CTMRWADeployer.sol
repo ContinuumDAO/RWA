@@ -3,18 +3,15 @@
 pragma solidity ^0.8.19;
 
 
-import "forge-std/console.sol";
-
-
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-
 
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
 
 import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWAFactory} from "./interfaces/ICTMRWAFactory.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
+import {ICTMRWADeployInvest} from "./interfaces/ICTMRWADeployInvest.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -46,6 +43,12 @@ contract CTMRWADeployer is Context, GovernDapp {
 
     /// @dev The address of the CTMRWAMap contract
     address public ctmRwaMap;
+
+    /// @dev The address of the CTMRWAERC20Deployer contract
+    address public erc20Deployer;
+
+    /// @dev The address of the CTMRWADeployInvest contract
+    address public deployInvest;
 
     /// @dev Storage for the addresses of the CTMRWA001TokenFactory contracts
     mapping(uint256 => address[1_000_000_000]) public tokenFactory;
@@ -96,6 +99,25 @@ contract CTMRWADeployer is Context, GovernDapp {
     /// @notice Governance function to change the CTMRWA001X contract address
     function setRwaX(address _rwaX) external onlyGov {
         rwaX = _rwaX;
+    }
+
+    /**
+     * @notice Governance can change to a new CTMRWAERC20Deployer contract
+     * @param _erc20Deployer address of the new CTMRWAERC20Deployer contract
+    */
+    function setErc20DeployerAddress(address _erc20Deployer) external onlyGov {
+        erc20Deployer = _erc20Deployer;
+    }
+
+    /// @notice Governance function to change the CTMRWADeployInvest contract address
+    function setDeployInvest(address _deployInvest) external onlyGov {
+        deployInvest = _deployInvest;
+    }
+
+    /// @notice Governance function to set the CTMRWADeployInvest contract addresses 
+    /// @notice for this contract (CTMRWADeployer), CTMRWAMap and FeeManager
+    function setDeployerMapFee() external onlyGov {
+        ICTMRWADeployInvest(deployInvest).setDeployerMapFee(address(this), ctmRwaMap, feeManager);
     }
 
     /// @dev The main deploy function that calls the various deploy functions that call CREATE2 for this ID
@@ -197,6 +219,27 @@ contract CTMRWADeployer is Context, GovernDapp {
     /// @dev Governance function to set a new CTMRWA001SentryManager
     function setSentryFactory(uint256 _rwaType, uint256 _version, address _sentryFactory) external onlyGov {
         sentryFactory[_rwaType][_version] = _sentryFactory;
+    }
+
+    /// @dev Governance function to set the commission rate on funds raised
+    /// @param _commissionRate ia number between 0 and 10000, so in 0.01% increments
+    function setInvestCommissionRate(uint256 _commissionRate) external onlyGov {
+        ICTMRWADeployInvest(deployInvest).setCommissionRate(_commissionRate);
+    }
+
+    function deployNewInvestment(
+        uint256 _ID,
+        uint256 _rwaType,
+        uint256 _version,
+        address _feeToken
+    ) public {
+        (bool ok,) = ICTMRWAMap(ctmRwaMap).getInvestContract(_ID, _rwaType, _version);
+        require(!ok, "CTMDeploy: Investment contract already deployed");
+
+        require(deployInvest != address(0), "CTMDeployer: deployInvest address not set");
+
+        address investAddress = ICTMRWADeployInvest(deployInvest).deployInvest(_ID, _rwaType, _version, _feeToken);
+        ICTMRWAMap(ctmRwaMap).setInvestmentContract(_ID, _rwaType, _version, investAddress);
     }
 
     function cID() internal view returns (uint256) {

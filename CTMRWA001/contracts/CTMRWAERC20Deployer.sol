@@ -321,7 +321,7 @@ contract CTMRWAERC20 is Context, ERC20 {
                 if(tokenIdBal >= valRemaining) {
                     ICTMRWA001(ctmRwaToken).approve(tokenId, _to, valRemaining);
                     ICTMRWA001(ctmRwaToken).transferFrom(tokenId, newTokenId, valRemaining);
-                    ICTMRWA001(ctmRwaToken).clearApprovedValues(tokenId);
+                    ICTMRWA001(ctmRwaToken).clearApprovedValuesErc20(tokenId);
                     emit Transfer(_from, _to, _value);
                     return;
                 } else {

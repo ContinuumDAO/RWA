@@ -410,6 +410,14 @@ contract NewChainSetup is Script {
                     require(ok, "NewChainSetup: Could not set fee multiplier");
                     ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.KYC, 5);
                     require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.ERC20, 5);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.DEPLOYINVEST, 5);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.OFFERING, 5);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
+                    ok = IFeeManager(thisFeeManager).setFeeMultiplier(FeeType.INVEST, 5);
+                    require(ok, "NewChainSetup: Could not set fee multiplier");
                     
 
                     if(!stringsEqual(_toLower(ICTMRWAGateway(thisGway).getChainContract(chainIdStr)), thisGway.toHexString())) {

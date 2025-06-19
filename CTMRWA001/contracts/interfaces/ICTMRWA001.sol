@@ -75,6 +75,7 @@ interface ICTMRWA001 {
 
     function approveFromX(address to_, uint256 tokenId_) external;
     function clearApprovedValues(uint256 tokenId_) external;
+    function clearApprovedValuesErc20(uint256 tokenId_) external;
     function removeTokenFromOwnerEnumeration(address from, uint256 tokenId) external;
 
     function burn(uint256 tokenId) external;

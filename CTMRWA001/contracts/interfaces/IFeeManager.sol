@@ -26,7 +26,10 @@ enum FeeType {
     WHITELIST,
     COUNTRY,
     KYC,
-    ERC20
+    ERC20,
+    DEPLOYINVEST,
+    OFFERING,
+    INVEST
 }
 
 

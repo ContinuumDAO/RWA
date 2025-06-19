@@ -19,6 +19,13 @@ interface ICTMRWAMap {
         address sentryAddr
     ) external;
 
+    function setInvestmentContract(
+        uint256 ID, 
+        uint256 rwaType, 
+        uint256 version, 
+        address investAddr
+    ) external returns(bool);
+
     
     function getTokenContract(
         uint256 ID,
@@ -33,21 +40,27 @@ interface ICTMRWAMap {
     ) external view returns(bool ok, uint256 ID);
 
     function getDividendContract(
-        uint256 _ID, 
-        uint256 _rwaType, 
-        uint256 _version
+        uint256 ID, 
+        uint256 rwaType, 
+        uint256 version
     ) external view returns(bool, address);
 
     function getStorageContract(
-        uint256 _ID, 
-        uint256 _rwaType, 
-        uint256 _version
+        uint256 ID, 
+        uint256 rwaType, 
+        uint256 version
     ) external view returns(bool, address);
 
     function getSentryContract(
-        uint256 _ID, 
-        uint256 _rwaType, 
-        uint256 _version
+        uint256 ID, 
+        uint256 rwaType, 
+        uint256 version
+    ) external view returns(bool, address);
+
+    function getInvestContract(
+        uint256 ID, 
+        uint256 rwaType, 
+        uint256 version
     ) external view returns(bool, address);
 
 }

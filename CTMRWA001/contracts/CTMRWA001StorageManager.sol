@@ -305,8 +305,6 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
         _payFee(fee, _feeTokenStr);
 
-        //  TODO This is a bug. The startNonce should be 1
-        // uint256 startNonce = ICTMRWA001Storage(storageAddr).nonce();
         uint256 startNonce = 1;
 
         for(uint256 i=0; i<_chainIdsStr.length; i++) {

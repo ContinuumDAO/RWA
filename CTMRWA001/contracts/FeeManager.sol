@@ -19,7 +19,7 @@ contract FeeManager is GovernDapp, IFeeManager {
     address[] public feeTokenList;
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
-    uint256[25] public feeMultiplier;
+    uint256[29] public feeMultiplier;
 
     mapping(address => FeeParams) public feeParams;
 
@@ -206,6 +206,15 @@ contract FeeManager is GovernDapp, IFeeManager {
         } else if (_feeType == FeeType.ERC20) {
             feeMultiplier[24] = _multiplier;
             return(true);
+        } else if (_feeType == FeeType.DEPLOYINVEST) {
+            feeMultiplier[25] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.OFFERING) {
+            feeMultiplier[26] = _multiplier;
+            return(true);
+        } else if (_feeType == FeeType.INVEST) {
+            feeMultiplier[27] = _multiplier;
+            return(true);
         } else {
             return(false);
         }
@@ -263,6 +272,12 @@ contract FeeManager is GovernDapp, IFeeManager {
             return(feeMultiplier[23]);
         } else if (_feeType == FeeType.ERC20) {
             return(feeMultiplier[24]);
+        } else if (_feeType == FeeType.DEPLOYINVEST) {
+            return(feeMultiplier[25]);
+        } else if (_feeType == FeeType.OFFERING) {
+            return(feeMultiplier[26]);
+        } else if (_feeType == FeeType.INVEST) {
+            return(feeMultiplier[27]);
         } else {
             revert("FeeManager: Bad FeeType");
         }

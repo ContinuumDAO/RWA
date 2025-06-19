@@ -30,6 +30,7 @@ import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
 import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
 import {CTMRWA001StorageManager} from "../contracts/CTMRWA001StorageManager.sol";
 import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
+import {CTMRWADeployInvest} from "../contracts/CTMRWADeployInvest.sol";
 import {CTMRWAERC20Deployer} from "../contracts/CTMRWAERC20Deployer.sol";
 import {CTMRWA001SentryManager} from "../contracts/CTMRWA001SentryManager.sol";
 import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
@@ -83,6 +84,7 @@ contract SetUp is Test {
     address treasury;
     address ctmDividend;
     address ctmRwaDeployer;
+    address deployInvest;
     address ctmRwaErc20DeployerAddr;
     address ctmRwa001Map;
 
@@ -132,6 +134,7 @@ contract SetUp is Test {
     CTMRWAGateway gateway;
     CTMRWA001X rwa001X;
     CTMRWA001XFallback rwa001XFallback;
+    CTMRWADeployInvest ctmRwaDeployInvest;
     CTMRWAERC20Deployer ctmRwaErc20Deployer;
     CTMRWA001DividendFactory dividendFactory;
     CTMRWA001StorageManager storageManager;
@@ -241,9 +244,13 @@ contract SetUp is Test {
         
 
         ctmRwaDeployer = address(deployer);
+        deployInvest = address(ctmRwaDeployInvest);
+        deployer.setDeployInvest(deployInvest);
         ctmRwaErc20DeployerAddr = address(ctmRwaErc20Deployer);
+        deployer.setErc20DeployerAddress(ctmRwaErc20DeployerAddr);
 
-        rwa001X.setCtmRwaDeployer(ctmRwaDeployer, ctmRwaErc20DeployerAddr);
+        rwa001X.setCtmRwaDeployer(ctmRwaDeployer);
+
         rwa001X.setCtmRwaMap(address(map));
 
        
@@ -329,6 +336,13 @@ contract SetUp is Test {
             _dappIDDeployer
         );
 
+        ctmRwaDeployInvest = new CTMRWADeployInvest(
+            _map,
+            address(deployer),
+            0,
+            address(feeManager)
+        );
+
         ctmRwaErc20Deployer = new CTMRWAERC20Deployer(
             _map,
             address(feeManager)
@@ -385,6 +399,7 @@ contract SetUp is Test {
         address sentryManagerAddr = address(sentryManager);
 
         deployer.setSentryFactory(_rwaType, _version, sentryManagerAddr);
+
 
         sentryUtils = new CTMRWA001SentryUtils(
             _rwaType,
@@ -843,6 +858,41 @@ contract TestBasicToken is SetUp {
         vm.stopPrank();
     }
 
+    function test_invest() public {
+
+        vm.startPrank(tokenAdmin);
+        (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
+        createSomeSlots(ID);
+
+        uint256 slot = 1;
+        string memory name = "Basic Stuff";
+
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+
+        uint256 tokenId1User1 = rwa001X.mintNewTokenValueLocal(
+            user1,
+            0,
+            slot,
+            2000,
+            ID,
+            tokenStr
+        );
+
+        feeManager.setFeeMultiplier(FeeType.DEPLOYINVEST, 50);
+        feeManager.setFeeMultiplier(FeeType.OFFERING, 50);
+        feeManager.setFeeMultiplier(FeeType.INVEST, 5);
+
+
+        deployer.deployNewInvestment(
+            ID,
+            rwaType,
+            version,
+            address(usdc)
+        );
+
+        vm.stopPrank();
+    }
+
     function test_deployErc20() public {
 
         vm.startPrank(tokenAdmin);
@@ -853,6 +903,7 @@ contract TestBasicToken is SetUp {
         string memory name = "Basic Stuff";
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
+
 
         ICTMRWA001(ctmRwaAddr).deployErc20(slot, name, address(usdc));
 

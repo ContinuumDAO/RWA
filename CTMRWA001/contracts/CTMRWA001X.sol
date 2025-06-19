@@ -52,9 +52,6 @@ contract CTMRWA001X is Context, GovernDapp {
     /// @dev The address of the CTMRWADeployer contract
     address public ctmRwaDeployer;
 
-    /// @dev The address of the CTMRWAERC20Deployer contract
-    address public erc20Deployer;
-
     /// @dev The address of the CTMRWAMap contract
     address public ctmRwa001Map;
 
@@ -156,13 +153,11 @@ contract CTMRWA001X is Context, GovernDapp {
     }
 
     /**
-     * @notice Governance can change to a new CTMRWADeployer and CTMRWAERC20Deployer contracts
+     * @notice Governance can change to a new CTMRWADeployer
      * @param _deployer address of the new CTMRWADeployer contract
-     * @param _erc20Deployer address of the new CTMRWAERC20Deployer contract
      */
-    function setCtmRwaDeployer(address _deployer, address _erc20Deployer) external onlyGov {
+    function setCtmRwaDeployer(address _deployer) external onlyGov {
         ctmRwaDeployer = _deployer;
-        erc20Deployer = _erc20Deployer;
     }
 
     /**
@@ -693,7 +688,7 @@ contract CTMRWA001X is Context, GovernDapp {
         uint256 _value,
         uint256 _ID,
         string memory _feeTokenStr
-    ) public {
+    ) public returns(uint256) {
         
         string memory toChainIdStr = _toLower(_toChainIdStr);
 
@@ -703,9 +698,11 @@ contract CTMRWA001X is Context, GovernDapp {
         if(stringsEqual(toChainIdStr, cIDStr)) {
             address toAddr = stringToAddress(_toAddressStr);
             ICTMRWA001(ctmRwa001Addr).approveFromX(address(this), _fromTokenId);
-            ICTMRWA001(ctmRwa001Addr).transferFrom(_fromTokenId, toAddr, _value);
+            uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).transferFrom(_fromTokenId, toAddr, _value);
             ICTMRWA001(ctmRwa001Addr).approveFromX(address(0), _fromTokenId);
             _updateOwnedCtmRwa001(toAddr, ctmRwa001Addr);
+
+            return newTokenId;
         } else {
 
             (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
@@ -732,6 +729,8 @@ contract CTMRWA001X is Context, GovernDapp {
             );
             
             c3call(toRwaXStr, toChainIdStr, callData);
+
+            return 0;
         }
 
     }
