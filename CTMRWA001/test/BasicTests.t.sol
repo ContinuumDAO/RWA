@@ -50,6 +50,7 @@ import {URIType, URICategory, URIData, ICTMRWA001Storage} from "../contracts/int
 import {ICTMRWA001Sentry} from "../contracts/interfaces/ICTMRWA001Sentry.sol";
 import {ICTMRWA001SentryManager} from "../contracts/interfaces/ICTMRWA001SentryManager.sol";
 
+import {Offering, Holding, ICTMRWA001InvestWithTimeLock} from "../contracts/interfaces/ICTMRWADeployInvest.sol";
 import {ICTMRWAERC20} from "../contracts/interfaces/ICTMRWAERC20.sol";
 
 import {C3CallerStructLib, IC3GovClient} from "../contracts/c3Caller/IC3Caller.sol";
@@ -171,6 +172,7 @@ contract SetUp is Test {
         uint256 usdcBal = 100000*10**usdc.decimals();
         usdc.mint(admin, 3*usdcBal/5);
         usdc.mint(tokenAdmin, 1*usdcBal/5);
+        usdc.mint(user2, 1*usdcBal/5);
 
         uint256 ctmBal = 100000 ether;
         ctm.mint(admin, ctmBal);
@@ -607,14 +609,6 @@ contract SetUp is Test {
     }
 
     function createSomeSlots(uint256 _ID) public {
-       
-        // function createNewSlot(
-        //     uint256 _ID,
-        //     uint256 _slot,
-        //     string memory _slotName,
-        //     string[] memory _toChainIdsStr,
-        //     string memory _feeTokenStr
-        // ) public returns(bool) {
 
         someChainIdsStr.push(cID().toString());
         string memory tokenStr = _toLower((address(usdc).toHexString()));
@@ -864,16 +858,30 @@ contract TestBasicToken is SetUp {
         (uint256 ID, address ctmRwaAddr) = CTMRWA001Deploy();
         createSomeSlots(ID);
 
-        uint256 slot = 1;
-        string memory name = "Basic Stuff";
+        uint256 oneUsdc = 10**usdc.decimals();
+        uint8 decimalsRwa = ICTMRWA001(ctmRwaAddr).valueDecimals();
+        uint256 oneRwaUnit = 10**decimalsRwa;
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
 
-        uint256 tokenId1User1 = rwa001X.mintNewTokenValueLocal(
-            user1,
+        uint256 slot = 1;
+
+        uint256 tokenIdAdmin = rwa001X.mintNewTokenValueLocal(
+            tokenAdmin,
             0,
             slot,
-            2000,
+            4 * oneRwaUnit,  // 4 apartments (2 bed)
+            ID,
+            tokenStr
+        );
+
+        slot = 5;
+
+        uint256 tokenIdAdmin2 = rwa001X.mintNewTokenValueLocal(
+            tokenAdmin,
+            0,
+            slot,
+            2 * oneRwaUnit,  // 2 apartments (3 bed)
             ID,
             tokenStr
         );
@@ -882,7 +890,18 @@ contract TestBasicToken is SetUp {
         feeManager.setFeeMultiplier(FeeType.OFFERING, 50);
         feeManager.setFeeMultiplier(FeeType.INVEST, 5);
 
+        bool ok;
+        address investContract;
 
+        
+        address ctmInvest = deployer.deployNewInvestment(
+            ID,
+            rwaType,
+            version,
+            address(usdc)
+        );
+
+        vm.expectRevert("CTMDeploy: Investment contract already deployed");
         deployer.deployNewInvestment(
             ID,
             rwaType,
@@ -890,8 +909,273 @@ contract TestBasicToken is SetUp {
             address(usdc)
         );
 
+        (ok, investContract) = map.getInvestContract(ID, rwaType, version);
+        assertEq(ok, true);
+        assertEq(investContract, ctmInvest);
+
         vm.stopPrank();
+
+        
+        uint256 price = 200000*oneUsdc; // price of an apartment
+        address currency = address(usdc);
+        uint256 minInvest = 1000*oneUsdc;
+        uint256 maxInvest = 4000*oneUsdc;
+        string memory regulatorCountry = "US";
+        string memory regulatorAcronym = "SEC";
+        string memory offeringType = "Private Placement | Schedule D, 506(c)";
+        uint256 startTime = block.timestamp + 1*24*3600;
+        uint256 endTime = startTime + 30*24*3600;
+        uint256 lockDuration = 366*24*3600;
+
+        vm.startPrank(user1);
+        
+        vm.expectRevert("CTMInvest: Not tokenAdmin");
+        ICTMRWA001InvestWithTimeLock(investContract).createOffering(
+            tokenIdAdmin, 
+            price, 
+            currency, 
+            minInvest, 
+            maxInvest, 
+            regulatorCountry, 
+            regulatorAcronym, 
+            offeringType, 
+            startTime, 
+            endTime, 
+            lockDuration, 
+            address(usdc)
+        );
+
+        vm.stopPrank();
+
+        vm.startPrank(tokenAdmin);
+
+        vm.expectRevert("RWAX: Not owner/approved");
+        ICTMRWA001InvestWithTimeLock(investContract).createOffering(
+            tokenIdAdmin, 
+            price, 
+            currency, 
+            minInvest, 
+            maxInvest, 
+            regulatorCountry, 
+            regulatorAcronym, 
+            offeringType, 
+            startTime, 
+            endTime, 
+            lockDuration, 
+            address(usdc)
+        );
+
+        ICTMRWA001(ctmRwaAddr).approve(investContract, tokenIdAdmin);
+        ICTMRWA001InvestWithTimeLock(investContract).createOffering(
+            tokenIdAdmin, 
+            price, 
+            currency, 
+            minInvest, 
+            maxInvest, 
+            regulatorCountry, 
+            regulatorAcronym, 
+            offeringType, 
+            startTime, 
+            endTime, 
+            lockDuration, 
+            address(usdc)
+        );
+
+        uint256 count = ICTMRWA001InvestWithTimeLock(investContract).offeringCount();
+        assertEq(count,1);
+
+        Offering[] memory offerings = ICTMRWA001InvestWithTimeLock(investContract).listOfferings();
+        assertEq(offerings[0].tokenId, tokenIdAdmin);
+        assertEq(offerings[0].currency, currency);
+
+        address tokenOwner = ICTMRWA001(ctmRwaAddr).ownerOf(tokenIdAdmin);
+        assertEq(tokenOwner, investContract);
+
+        // try to add the same tokenId again
+        vm.expectRevert("RWA: transfer from invalid owner");
+        ICTMRWA001InvestWithTimeLock(investContract).createOffering(
+            tokenIdAdmin, 
+            price, 
+            currency, 
+            minInvest, 
+            maxInvest, 
+            regulatorCountry, 
+            regulatorAcronym, 
+            offeringType, 
+            startTime, 
+            endTime, 
+            lockDuration, 
+            address(usdc)
+        );
+
+
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+
+        uint256 indx = 0;
+        uint256 investment = 2000 * oneUsdc;
+
+        vm.expectRevert("CTMInvest: Offer not yet started");
+        uint256 tokenInEscrow = ICTMRWA001InvestWithTimeLock(investContract).investInOffering(
+            indx, investment, address(usdc)
+        );
+
+        skip(1*24*3600 + 1);
+
+        vm.expectRevert("CTMInvest: investment too low");
+        tokenInEscrow = ICTMRWA001InvestWithTimeLock(investContract).investInOffering(
+            indx, 500*oneUsdc, address(usdc)
+        );
+
+        vm.expectRevert("CTMInvest: investment too high");
+        tokenInEscrow = ICTMRWA001InvestWithTimeLock(investContract).investInOffering(
+            indx, 5000*oneUsdc, address(usdc)
+        );
+
+        usdc.approve(investContract, investment);
+        tokenInEscrow = ICTMRWA001InvestWithTimeLock(investContract).investInOffering(
+            indx, investment, address(usdc)
+        );
+
+        uint256 balInEscrow = ICTMRWA001(ctmRwaAddr).balanceOf(tokenInEscrow);
+        assertEq(balInEscrow*price, investment*oneRwaUnit);
+
+        Holding memory myHolding = 
+            ICTMRWA001InvestWithTimeLock(investContract).listEscrowHolding(user1, 0);
+        assertEq(myHolding.offerIndex, 0);
+        assertEq(myHolding.investor, user1);
+        assertEq(myHolding.tokenId, tokenInEscrow);
+        // block.timestamp hasn't advanced since the investOffering call
+        assertEq(myHolding.escrowTime, offerings[myHolding.offerIndex].lockDuration + block.timestamp);
+
+        address owner = ICTMRWA001(ctmRwaAddr).ownerOf(tokenInEscrow);
+        assertEq(owner, investContract);
+
+        // skip(30*24*3600);
+
+        // vm.expectRevert("CTMInvest: Offer expired");
+        // usdc.approve(investContract, investment);
+        // uint256 tokenInEscrow2 = ICTMRWA001InvestWithTimeLock(investContract).investInOffering(
+        //     indx, investment, address(usdc)
+        // );
+
+        skip(365*24*3600); // Day is now 1 day before lockDuration for tokenInEscrow
+
+        vm.expectRevert("CTMInvest: tokenId is still locked");
+        ICTMRWA001InvestWithTimeLock(investContract).unlockTokenId(myHolding.offerIndex, address(usdc));
+
+        skip(1*24*3600);
+        ICTMRWA001InvestWithTimeLock(investContract).unlockTokenId(myHolding.offerIndex, address(usdc));
+
+        owner = ICTMRWA001(ctmRwaAddr).ownerOf(tokenInEscrow);
+        assertEq(owner, user1);
+
+        // Try again
+        vm.expectRevert("CTMInvest: tokenId already withdrawn");
+        ICTMRWA001InvestWithTimeLock(investContract).unlockTokenId(myHolding.offerIndex, address(usdc));
+
+        vm.stopPrank();
+
+        vm.startPrank(tokenAdmin);
+
+        sentryManager.setSentryOptions(
+            ID,
+            true,  // whitelistSwitch
+            false,  // kycSwitch
+            false,  // kybSwitch
+            false,  // over18Switch
+            false,  // accreditedSwitch
+            false,  // countryWLSwitch
+            false,   // countryBLSwitch
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        // Create another holding for slot 5 this time
+        ICTMRWA001(ctmRwaAddr).approve(investContract, tokenIdAdmin2);
+        ICTMRWA001InvestWithTimeLock(investContract).createOffering(
+            tokenIdAdmin2, 
+            price, 
+            currency, 
+            minInvest, 
+            maxInvest, 
+            regulatorCountry, 
+            regulatorAcronym, 
+            offeringType, 
+            block.timestamp, 
+            block.timestamp+30*24*3600, 
+            lockDuration, 
+            address(usdc)
+        );
+        count = ICTMRWA001InvestWithTimeLock(investContract).offeringCount();
+        assertEq(count,2);
+
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+
+        indx = 1;  // This new second offering
+        usdc.approve(investContract, investment);
+        vm.expectRevert("CTMInvest: Not whitelisted");
+        tokenInEscrow = ICTMRWA001InvestWithTimeLock(investContract).investInOffering(
+            indx, investment, address(usdc)
+        );
+
+        vm.stopPrank();
+
+        vm.startPrank(tokenAdmin);
+
+        sentryManager.addWhitelist(
+            ID,
+            _stringToArray(user1.toHexString()), 
+            _boolToArray(true),
+            _stringToArray(cIdStr),
+            tokenStr
+        );
+
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+
+        tokenInEscrow = ICTMRWA001InvestWithTimeLock(investContract).investInOffering(
+            indx, investment, address(usdc)
+        );
+
+        uint256 holdingCount = ICTMRWA001InvestWithTimeLock(investContract).escrowHoldingCount(user1);
+        assertEq(holdingCount, 2); // The first one has already been redeemed
+
+        vm.stopPrank();
+
+        vm.startPrank(tokenAdmin);
+
+        // Test to see if we can claim dividends whilst token is in escrow
+
+        address ctmDividend = ICTMRWA001(ctmRwaAddr).dividendAddr();
+
+        ICTMRWA001Dividend(ctmDividend).setDividendToken(address(usdc));
+
+        uint256 divRate = 2;
+        ICTMRWA001Dividend(ctmDividend).changeDividendRate(5, divRate);
+
+        uint256 dividendTotal = ICTMRWA001Dividend(ctmDividend).getTotalDividend();
+
+        usdc.approve(ctmDividend, dividendTotal);
+        uint256 unclaimed = ICTMRWA001Dividend(ctmDividend).fundDividend();
+
+
+
+        vm.stopPrank();
+
     }
+
+
+
+
+
+
+
+
 
     function test_deployErc20() public {
 
@@ -1338,6 +1622,8 @@ contract TestBasicToken is SetUp {
         vm.stopPrank();
         assertEq(ok, true);
         uint balAfter = usdc.balanceOf(user1);
+
+        vm.stopPrank();
     }
 
     function test_sentryOptions() public {

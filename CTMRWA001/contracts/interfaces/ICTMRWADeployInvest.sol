@@ -48,7 +48,6 @@ interface ICTMRWADeployInvest {
 }
 
 interface ICTMRWA001InvestWithTimeLock {
-    function offerings() external view returns(Offering[] memory);
     function holdingsByAddress(address) external view returns(Holding[] memory);
     function commissionRate() external view returns(uint256);
 
@@ -71,7 +70,7 @@ interface ICTMRWA001InvestWithTimeLock {
         uint256 indx, 
         uint256 investment,
         address feeToken
-    ) external returns(uint256 total);
+    ) external returns(uint256);
 
     function withdrawInvested(uint256 indx) external returns(uint256);
 
@@ -79,11 +78,15 @@ interface ICTMRWA001InvestWithTimeLock {
 
     function claimDividendInEscrow(uint256 myIndx) external returns(uint256);
 
+    function offeringCount() external view returns(uint256);
+    function listOfferings() external view returns(Offering[] memory);
+    function listOffering(uint256 offerIndx) external view returns(Offering memory);
+
     function escrowHoldingCount(address holder) external view returns(uint256);
     function listEscrowHoldings(address holder) external view returns(Holding[] memory);
 
     function listEscrowHolding(
         address holder, 
         uint256 myIndx
-    ) external view returns(uint256,address,uint256,uint256);
+    ) external view returns(Holding memory);
 }

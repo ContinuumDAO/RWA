@@ -232,7 +232,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         uint256 _rwaType,
         uint256 _version,
         address _feeToken
-    ) public {
+    ) public returns(address) {
         (bool ok,) = ICTMRWAMap(ctmRwaMap).getInvestContract(_ID, _rwaType, _version);
         require(!ok, "CTMDeploy: Investment contract already deployed");
 
@@ -240,6 +240,8 @@ contract CTMRWADeployer is Context, GovernDapp {
 
         address investAddress = ICTMRWADeployInvest(deployInvest).deployInvest(_ID, _rwaType, _version, _feeToken);
         ICTMRWAMap(ctmRwaMap).setInvestmentContract(_ID, _rwaType, _version, investAddress);
+
+        return investAddress;
     }
 
     function cID() internal view returns (uint256) {

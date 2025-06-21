@@ -146,11 +146,14 @@ contract CTMRWA001InvestWithTimeLock is Context {
     /// @dev A list of offerings to investors
     Offering[] public offerings;
 
-    mapping(address => Holding[]) public holdingsByAddress;
+    mapping(address => Holding[]) private holdingsByAddress;
 
 
     /// @dev The token contract address corresponding to this ID
     address ctmRwaToken;
+
+    /// @dev the decimals of the CTMRWA001
+    uint8 decimalsRwa;
 
     /// @dev The Dividend contract address corresponding to this ID
     address public ctmRwaDividend;
@@ -207,6 +210,8 @@ contract CTMRWA001InvestWithTimeLock is Context {
         (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, rwaType, version);
         require(ok, "CTMInvest: There is no CTMRWA001 contract backing this ID");
 
+        decimalsRwa = ICTMRWA001(ctmRwaToken).valueDecimals();
+
         (ok, ctmRwaDividend) = ICTMRWAMap(ctmRwaMap).getDividendContract(ID, rwaType, version);
         require(ok, "CTMInvest: There is no CTMRWA001Dividend contract backing this ID");
 
@@ -239,6 +244,12 @@ contract CTMRWA001InvestWithTimeLock is Context {
         require(bytes(_regulatorCountry).length <= 2, "CTMInvest: not 2 digit country code");
         require(bytes(_offeringType).length <= 128, "CTMInvest: offering Type length > 128");
 
+        uint256 offer = ICTMRWA001(ctmRwaToken).balanceOf(_tokenId);
+
+        require(_minInvestment <= offer*_price/10**decimalsRwa, "CTMInvest: minInvestment too high");
+        require(_maxInvestment > _minInvestment, "CTMInvest: minInvestment>maxInvestment");
+
+
         _payFee(FeeType.OFFERING, _feeToken);
 
         ICTMRWA001X(ctmRwa001X).transferWholeTokenX(
@@ -252,7 +263,6 @@ contract CTMRWA001InvestWithTimeLock is Context {
 
         Holding[] memory holdings;
 
-        uint256 offer = ICTMRWA001(ctmRwaToken).balanceOf(_tokenId);
 
         offerings.push(Offering (
             _tokenId,
@@ -279,7 +289,7 @@ contract CTMRWA001InvestWithTimeLock is Context {
         uint256 _indx, 
         uint256 _investment,
         address _feeToken
-    ) public returns(uint256 total) {
+    ) public returns(uint256) {
 
         require(block.timestamp >= offerings[_indx].startTime, "CTMInvest: Offer not yet started");
         require(block.timestamp <= offerings[_indx].endTime, "CTMInvest: Offer expired");
@@ -302,7 +312,7 @@ contract CTMRWA001InvestWithTimeLock is Context {
         IERC20(currency).transferFrom(_msgSender(), address(this), _investment);
         offerings[_indx].investment += _investment;
 
-        uint256 value = _investment/offerings[_indx].price;
+        uint256 value = _investment*10**decimalsRwa/offerings[_indx].price;
 
 
         uint256 newTokenId = ICTMRWA001X(ctmRwa001X).transferPartialTokenX(
@@ -327,7 +337,7 @@ contract CTMRWA001InvestWithTimeLock is Context {
 
         holdingsByAddress[_msgSender()].push(newHolding);
 
-        return total;
+        return newTokenId;
     }
 
 
@@ -366,7 +376,7 @@ contract CTMRWA001InvestWithTimeLock is Context {
         address owner = ICTMRWA001(ctmRwaToken).ownerOf(tokenId);
 
         if(owner == address(this)) {
-            require(thisHolding.escrowTime > block.timestamp, "CTMInvest: tokenId is still locked");
+            require(block.timestamp >= thisHolding.escrowTime, "CTMInvest: tokenId is still locked");
 
             ICTMRWA001Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
 
@@ -418,7 +428,21 @@ contract CTMRWA001InvestWithTimeLock is Context {
         }
     }
 
-     function escrowHoldingCount(address _holder) public view returns(uint256) {
+
+    function offeringCount() public view returns(uint256) {
+        return(offerings.length);
+    }
+
+    function listOfferings() public view returns(Offering[] memory) {
+        return(offerings);
+    }
+
+    function listOffering(uint256 _offerIndx) public view returns(Offering memory) {
+        require(_offerIndx < offerings.length, "CTMInvest: Offering out of bounds");
+        return(offerings[_offerIndx]);
+    }
+
+    function escrowHoldingCount(address _holder) public view returns(uint256) {
         return holdingsByAddress[_holder].length;
     }
 
@@ -429,11 +453,11 @@ contract CTMRWA001InvestWithTimeLock is Context {
     function listEscrowHolding(
         address _holder, 
         uint256 _myIndx
-    ) public view returns(uint256,address,uint256,uint256) {
+    ) public view returns(Holding memory) {
         require(_myIndx < holdingsByAddress[_holder].length, "CTMInvest: exceed bounds");
         Holding memory thisHolding = holdingsByAddress[_holder][_myIndx];
 
-        return(thisHolding.offerIndex, thisHolding.investor, thisHolding.tokenId, thisHolding.escrowTime);
+        return(thisHolding);
     }
 
     function _checkTokenAdmin(address _ctmRwaToken) internal {

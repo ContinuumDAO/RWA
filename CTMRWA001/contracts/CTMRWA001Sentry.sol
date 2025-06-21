@@ -250,7 +250,20 @@ contract CTMRWA001Sentry is Context {
     }
 
     function isAllowableTransfer(string memory _user) public view returns(bool) {
+
+        bool ok;
+        address dividendContract;
+        (ok, dividendContract) = ICTMRWAMap(ctmRwa001Map).getDividendContract(ID, rwaType, version);
+
+        address investContract;
+        (ok, investContract) = ICTMRWAMap(ctmRwa001Map).getInvestContract(ID, rwaType, version);
+
         if (!whitelistSwitch || stringToAddress(_user) == address(0)) {
+            return(true);
+        } else if(
+            stringsEqual(_user, dividendContract.toHexString()) ||
+            stringsEqual(_user, investContract.toHexString())
+        ) {
             return(true);
         } else {
             string memory walletStr = _toLower(_user);

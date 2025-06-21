@@ -5,6 +5,7 @@ import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
 import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
+import {CTMRWADeployInvest} from "../contracts/CTMRWADeployInvest.sol";
 import {CTMRWAERC20Deployer} from "../contracts/CTMRWAERC20Deployer.sol";
 import {CTMRWAMap} from "../contracts/CTMRWAMap.sol";
 import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
@@ -26,6 +27,7 @@ import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
 // import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
 // import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
 // import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
+// import {CTMRWADeployInvest} from "../contracts/CTMRWADeployInvest.sol";
 // import {CTMRWAERC20Deployer} from "../contracts/CTMRWAERC20Deployer.sol";
 // import {CTMRWA001SentryManager} from "../flattened/CTMRWA001SentryManager.sol";
 // import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
@@ -45,6 +47,7 @@ contract DeployPart2 is Script {
     CTMRWAMap ctmRwaMap;
     CTMRWA001TokenFactory tokenFactory;
     CTMRWA001XFallback ctmRwaFallback;
+    CTMRWADeployInvest ctmRwaDeployInvest;
     CTMRWAERC20Deployer ctmRwaErc20Deployer;
     CTMRWA001StorageManager storageManager;
     CTMRWA001StorageUtils storageUtils;
@@ -148,6 +151,13 @@ contract DeployPart2 is Script {
             _dappIDDeployer
         );
 
+        ctmRwaDeployInvest = new CTMRWADeployInvest(
+            _ctmRwa001Map,
+            address(ctmRwaDeployer),
+            0,
+            feeManagerAddr
+        );
+
         ctmRwaErc20Deployer = new CTMRWAERC20Deployer(
             _ctmRwa001Map,
             feeManagerAddr
@@ -160,6 +170,7 @@ contract DeployPart2 is Script {
 
         ctmRwaDeployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
 
+        ctmRwaDeployer.setDeployInvest(address(ctmRwaDeployInvest));
         ctmRwaDeployer.setErc20DeployerAddress(address(ctmRwaErc20Deployer));
 
         storageManager = new CTMRWA001StorageManager(

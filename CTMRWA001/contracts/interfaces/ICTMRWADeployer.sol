@@ -32,5 +32,12 @@ interface ICTMRWADeployer {
     function setStorageFactory(uint256 rwaType, uint256 version, address storageFactory) external;
     function setSentryFactory(uint256 rwaType, uint256 version, address storageFactory) external;
 
+    function deployNewInvestment(
+        uint256 ID,
+        uint256 rwaType,
+        uint256 version,
+        address feeToken
+    ) external returns(address);
+
     function setErc20DeployerAddress(address erc20Deployer) external;
 }

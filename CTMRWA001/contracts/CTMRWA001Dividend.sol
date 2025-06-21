@@ -105,7 +105,6 @@ contract CTMRWA001Dividend is Context {
      * separately.
      */
     function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyTokenAdmin returns(bool) {
-        // uint8 decimals = ICTMRWA001(tokenAddr).valueDecimals();
         ICTMRWA001(tokenAddr).changeDividendRate(_slot, _dividend);
 
         emit ChangeDividendRate(_slot, _dividend, tokenAdmin);
@@ -138,7 +137,7 @@ contract CTMRWA001Dividend is Context {
 
         uint8 decimals = ICTMRWA001(tokenAddr).valueDecimals();
 
-        return(dividendPayable/10**decimals);
+        return(dividendPayable);
     }
 
     /**
@@ -159,7 +158,7 @@ contract CTMRWA001Dividend is Context {
 
     /**
      * @notice This function calculates how much dividend the tokenAdmin needs to transfer
-     * to this contract to pay all holders of tokenIds in the RWA. It the takes payment in 
+     * to this contract to pay all holders of tokenIds in the RWA. It takes payment in 
      * the current dividend token. Afterwards, the funds will then be available to claim.
      * NOTE This is a tokenAdmin only function.
      * NOTE This is not a cross-chain function. The fundDividend must be called by tokenAdnin
@@ -170,6 +169,8 @@ contract CTMRWA001Dividend is Context {
      */
     function fundDividend() public onlyTokenAdmin returns(uint256) {
         uint256 dividendPayable = getTotalDividend();
+
+        uint8 decimals = ICTMRWA001(tokenAddr).valueDecimals();
 
         require(IERC20(dividendToken).transferFrom(_msgSender(), address(this), dividendPayable), "CTMRWA001Dividend: Did not fund the dividend");
     
@@ -210,7 +211,7 @@ contract CTMRWA001Dividend is Context {
 
     /// @dev This function allows the owner of a tokenId to reset the outstanding
     /// @dev unclaimed dividend balance to zero. It is intended to assist
-    /// @dev escrow or staking contracts to account for nd allow dividend payments
+    /// @dev escrow or staking contracts to account for and allow dividend payments
     /// @dev to the beneficial holders of a tokenId, whilst it is technically owned by
     /// @dev the staking contract
     function resetDividendByToken(uint256 _tokenId) external {
@@ -223,7 +224,10 @@ contract CTMRWA001Dividend is Context {
     /// @dev This function returns how much dividend is payable for an individual tokenId
     function _getDividendByToken(uint256 _tokenId) internal view returns(uint256) {
         uint256 slot = ICTMRWA001(tokenAddr).slotOf(_tokenId);
-        return(ICTMRWA001(tokenAddr).getDividendRateBySlot(slot) * ICTMRWA001(tokenAddr).balanceOf(_tokenId));
+        return(
+            ICTMRWA001(tokenAddr).getDividendRateBySlot(slot) 
+            * ICTMRWA001(tokenAddr).balanceOf(_tokenId)
+        );
     }
         
 }

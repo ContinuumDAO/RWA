@@ -275,8 +275,8 @@ contract CTMRWA001SentryManager is Context, GovernDapp {
 
     function setZkMeParams(
         uint256 _ID,
-        uint256 _merchantNo,
-        uint256 _programNo,
+        string memory _merchantNo,
+        string memory _programNo,
         address _cooperator
     ) public {
         require(identity != address(0), "CTMRWA001SentryManager: the CTMRWA001Identity contract has not been set");
