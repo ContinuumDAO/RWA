@@ -190,6 +190,16 @@ contract CTMRWA001InvestWithTimeLock is Context {
         _;
     }
 
+    event CreateOffering(uint256 ID, uint256 indx, uint256 slot, uint256 offer);
+
+    event InvestInOffering(uint256 ID, uint256 indx, uint256 holdingIndx, uint256 investment);
+
+    event WithdrawFunds(uint256 ID, uint256 indx, uint256 funds);
+
+    event UnlockInvestmentToken(uint256 ID, address holder, uint256 holdingIndx);
+
+    event ClaimDividendInEscrow(uint256 ID, address holder, uint256 unclaimed);
+
 
     constructor(
         uint256 _ID,
@@ -245,6 +255,7 @@ contract CTMRWA001InvestWithTimeLock is Context {
         require(bytes(_offeringType).length <= 128, "CTMInvest: offering Type length > 128");
 
         uint256 offer = ICTMRWA001(ctmRwaToken).balanceOf(_tokenId);
+        uint256 slot = ICTMRWA001(ctmRwaToken).slotOf(_tokenId);
 
         require(_minInvestment <= offer*_price/10**decimalsRwa, "CTMInvest: minInvestment too high");
         require(_maxInvestment > _minInvestment, "CTMInvest: minInvestment>maxInvestment");
@@ -281,6 +292,10 @@ contract CTMRWA001InvestWithTimeLock is Context {
             _lockDuration,
             holdings
         ));
+
+        uint256 indx = offerings.length-1;
+
+        emit CreateOffering(ID, indx, slot, offer);
 
     }
 
@@ -334,8 +349,11 @@ contract CTMRWA001InvestWithTimeLock is Context {
         );
 
         offerings[_indx].holdings.push(newHolding);
+        uint256 holdingIndx = offerings[_indx].holdings.length - 1;
 
         holdingsByAddress[_msgSender()].push(newHolding);
+
+        emit InvestInOffering(ID, _indx, holdingIndx, _investment);
 
         return newTokenId;
     }
@@ -358,10 +376,15 @@ contract CTMRWA001InvestWithTimeLock is Context {
 
         if(investment > 0) {
             address currency = offerings[_indx].currency;
-            IERC20(currency).transferFrom(feeManager, _msgSender(), commission);
+            if(commission > 0) {
+                IERC20(currency).transferFrom(feeManager, _msgSender(), commission);
+            }
+            uint256 funds = investment - commission;
             offerings[_indx].investment = 0;
-            IERC20(currency).transferFrom(address(this), _msgSender(), (investment - commission));
-            return investment - commission;
+            IERC20(currency).transferFrom(address(this), _msgSender(), funds);
+
+            emit WithdrawFunds(ID, _indx, funds);
+            return funds;
         } else {
             return 0;
         }
@@ -388,6 +411,8 @@ contract CTMRWA001InvestWithTimeLock is Context {
                 ID, 
                 _feeToken.toHexString()
             );
+
+            emit UnlockInvestmentToken(ID, _msgSender(), _myIndx);
 
             return tokenId;
         } else {
@@ -420,6 +445,8 @@ contract CTMRWA001InvestWithTimeLock is Context {
             require(IERC20(dividendToken).balanceOf(address(this)) >= unclaimed, "CTMInvest: insufficient dividend to payout");
             ICTMRWA001Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
             IERC20(dividendToken).transfer(_msgSender(), unclaimed);
+
+            emit ClaimDividendInEscrow(ID, _msgSender(), unclaimed);
 
             return unclaimed;
 
