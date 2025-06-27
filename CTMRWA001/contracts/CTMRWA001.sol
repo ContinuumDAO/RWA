@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import {ICTMRWA001, SlotData} from "./interfaces/ICTMRWA001.sol";
 import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
@@ -26,7 +27,7 @@ import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
  * This token can be deployed many times and on multiple chains from CTMRWA001X
  */
 
-contract CTMRWA001 is Context, ICTMRWA001 {
+contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     using Strings for *;
 
     /// @notice Each CTMRWA001 corresponds to a single RWA. It is deployed on each chain
@@ -108,6 +109,12 @@ contract CTMRWA001 is Context, ICTMRWA001 {
 
     /// @dev slot => index
     mapping(uint256 => uint256) public _allSlotsIndex;
+
+    /// @dev owner => slot => balance
+    mapping(address => mapping(uint256 => uint256)) private _balance;
+
+    /// @dev slot => total supply in this slot
+    mapping(uint256 => uint256) private _supplyInSlot;
 
     string private _name;
     string private _symbol;
@@ -328,6 +335,17 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     }
 
     /**
+     * @notice Returns the total balance of all tokenIds owned by a wallet address in a slot
+     * @param _owner The wallet address for which we want the balance of in the slot
+     * @param _slot The slot number for which to find the balance
+     */
+    function balanceOf(address _owner, uint256 _slot) public view returns(uint256) {
+        require(_owner != address(0), "RWA: zero address");
+        require(slotExists(_slot), "RWA: slot not exist");
+        return _balance[_owner][_slot];
+    }
+
+    /**
      * @notice Returns the address of the owner of a token in this CTMRWA001
      * @param _tokenId The unique tokenId (instance of TokenData)
      */
@@ -410,8 +428,11 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     ) public onlyTokenAdmin {
         require(slotExists(_slot), "RWA: Slot does not exist");
         require(_erc20Slots[_slot] == address(0), "RWA: ERC20 slot already exists");
+        require(bytes(_erc20Name).length <= 128, "RWA: ERC20 name > 128");
         address newErc20 = ICTMRWAERC20Deployer(erc20Deployer).deployERC20(
             ID,
+            rwaType,
+            version,
             _slot,
             _erc20Name,
             _symbol,
@@ -634,8 +655,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
     /**
      * @dev A lower level function calling _mint from CTMRWA001X, creating a NEW tokenId
      */
-    function mintFromX(address to_, uint256 slot_, string memory _slotName, uint256 value_) external onlyMinter returns (uint256 tokenId) {
-        return(_mint(to_, slot_, _slotName, value_));
+    function mintFromX(address _to, uint256 _slot, string memory _slotName, uint256 _value) external onlyMinter returns (uint256 tokenId) {
+        return(_mint(_to, _slot, _slotName, _value));
     }
 
     /**
@@ -650,6 +671,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _beforeValueTransfer(address(0), _to, 0, _tokenId, _slot, _slotName, _value);
         __mintToken(_to, _tokenId, _slot);
         __mintValue(_tokenId, _value);
+        _balance[_to][_slot] += _value;
+        _supplyInSlot[_slot] += _value;
         _afterValueTransfer(address(0), _to, 0, _tokenId, _slot, _slotName, _value);
     }
 
@@ -669,6 +692,8 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         string memory thisSlotName = CTMRWA001.slotNameOf(_tokenId);
         _beforeValueTransfer(address(0), owner, 0, _tokenId, slot, thisSlotName, _value);
         __mintValue(_tokenId, _value);
+        _balance[owner][slot] += _value;
+        _supplyInSlot[slot] += _value;
         _afterValueTransfer(address(0), owner, 0, _tokenId, slot, thisSlotName, _value);
     }
 
@@ -714,6 +739,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _removeTokenFromOwnerEnumeration(owner, _tokenId);
         _removeTokenFromAllTokensEnumeration(_tokenId);
 
+        _balance[owner][slot] -= bal;
+        _supplyInSlot[slot] -= bal;
+
         emit TransferValue(_tokenId, 0, bal);
         emit SlotChanged(_tokenId, slot, 0);
         emit Transfer(owner, address(0), _tokenId);
@@ -732,6 +760,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _beforeValueTransfer(owner, address(0), _tokenId, 0, slot, thisSlotName, _value);
         
         _allTokens[_allTokensIndex[_tokenId]].balance -= _value;
+        _balance[owner][slot] -= _value;
+        _supplyInSlot[slot] -= _value;
+
         emit TransferValue(_tokenId, 0, _value);
         
         _afterValueTransfer(owner, address(0), _tokenId, 0, slot, thisSlotName, _value);
@@ -863,8 +894,10 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         TokenData storage fromTokenData = _allTokens[_allTokensIndex[_fromTokenId]];
         TokenData storage toTokenData = _allTokens[_allTokensIndex[_toTokenId]];
 
+        uint256 slot = fromTokenData.slot;
+
         require(fromTokenData.balance >= _value, "RWA: balance<value");
-        require(fromTokenData.slot == toTokenData.slot, "RWA: transfer to different slot");
+        require(slot == toTokenData.slot, "RWA: transfer to different slot");
 
         string memory thisSlotName = slotNameOf(_fromTokenId);
 
@@ -873,13 +906,16 @@ contract CTMRWA001 is Context, ICTMRWA001 {
             toTokenData.owner,
             _fromTokenId,
             _toTokenId,
-            fromTokenData.slot,
+            slot,
             thisSlotName,
             _value
         );
 
         fromTokenData.balance -= _value;
+        _balance[fromTokenData.owner][slot] -= _value;
+
         toTokenData.balance += _value;
+        _balance[toTokenData.owner][slot] += _value;
 
         emit TransferValue(_fromTokenId, _toTokenId, _value);
 
@@ -936,7 +972,7 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         address _to,
         uint256 _tokenId
     ) internal {
-        require(CTMRWA001.ownerOf(_tokenId) == _from, "RWA: transfer from invalid owner");
+        require(ownerOf(_tokenId) == _from, "RWA: transfer from invalid owner");
         require(_to != address(0), "RWA: transfer to the zero address");
 
         uint256 slot = CTMRWA001.slotOf(_tokenId);
@@ -949,7 +985,9 @@ contract CTMRWA001 is Context, ICTMRWA001 {
         _clearApprovedValues(_tokenId);
 
         _removeTokenFromOwnerEnumeration(_from, _tokenId);
+        _balance[_from][slot] -= value;
         _addTokenToOwnerEnumeration(_to, _tokenId);
+        _balance[_to][slot] += value;
 
         emit Transfer(_from, _to, _tokenId);
 
