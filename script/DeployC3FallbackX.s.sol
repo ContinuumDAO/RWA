@@ -4,9 +4,9 @@ pragma solidity ^0.8.19;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
-import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
-import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
+import {CTMRWA001XFallback} from "../src/CTMRWA001XFallback.sol";
+import {CTMRWA001X} from "../src/CTMRWA001X.sol";
+import {ICTMRWA001X} from "../src/interfaces/ICTMRWA001X.sol";
 
 
 

@@ -4,9 +4,9 @@ pragma solidity >=0.8.19;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {CTMRWA001Identity} from "../contracts/CTMRWA001Identity.sol";
+import {CTMRWA001Identity} from "../src/CTMRWA001Identity.sol";
 
-import {RequestId, ICTMRWA001Identity} from "../contracts/interfaces/ICTMRWA001Identity.sol";
+import {RequestId, ICTMRWA001Identity} from "../src/interfaces/ICTMRWA001Identity.sol";
 
 
 contract DeployPolygonId is Script {

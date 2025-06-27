@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {ICTMRWAGateway} from "../contracts/interfaces/ICTMRWAGateway.sol";
+import {ICTMRWAGateway} from "../src/interfaces/ICTMRWAGateway.sol";
 
 
 

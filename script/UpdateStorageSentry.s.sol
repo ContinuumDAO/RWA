@@ -4,16 +4,16 @@ pragma solidity ^0.8.19;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-// import {CTMRWA001StorageManager} from "../contracts/CTMRWA001StorageManager.sol";
-// import {CTMRWA001SentryManager} from "../contracts/CTMRWA001SentryManager.sol";
-import {ICTMRWADeployer} from "../contracts/interfaces/ICTMRWADeployer.sol";
+// import {CTMRWA001StorageManager} from "../src/CTMRWA001StorageManager.sol";
+// import {CTMRWA001SentryManager} from "../src/CTMRWA001SentryManager.sol";
+import {ICTMRWADeployer} from "../src/interfaces/ICTMRWADeployer.sol";
 
 import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
-import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
+import {CTMRWA001StorageUtils} from "../src/CTMRWA001StorageUtils.sol";
 import {CTMRWA001SentryManager} from "../flattened/CTMRWA001SentryManager.sol";
-import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
+import {CTMRWA001SentryUtils} from "../src/CTMRWA001SentryUtils.sol";
 
-import {ICTMRWA001StorageManager} from "../contracts/interfaces/ICTMRWA001StorageManager.sol";
+import {ICTMRWA001StorageManager} from "../src/interfaces/ICTMRWA001StorageManager.sol";
 
 
 

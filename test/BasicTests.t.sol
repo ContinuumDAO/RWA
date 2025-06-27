@@ -6,54 +6,54 @@ import "forge-std/console.sol";
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import {C3UUIDKeeper} from "../contracts/c3Caller/C3UUIDKeeper.sol";
-import {IUUIDKeeper} from "../contracts/c3Caller/IUUIDKeeper.sol";
-import {C3CallerDapp} from "../contracts/c3Caller/C3CallerDapp.sol";
-import {C3Caller} from "../contracts/c3Caller/C3Caller.sol";
-import {IC3Caller, IC3CallerProxy, IC3GovClient} from "../contracts/c3Caller/IC3Caller.sol";
-import {C3CallerProxy} from "../contracts/c3Caller/C3CallerProxy.sol";
-import {C3CallerProxyERC1967} from "../contracts/c3Caller/C3CallerProxyERC1967.sol";
-import {C3GovClient} from "../contracts/c3Caller/C3GovClient.sol";
+import {C3UUIDKeeper} from "../src/c3Caller/C3UUIDKeeper.sol";
+import {IUUIDKeeper} from "../src/c3Caller/IUUIDKeeper.sol";
+import {C3CallerDapp} from "../src/c3Caller/C3CallerDapp.sol";
+import {C3Caller} from "../src/c3Caller/C3Caller.sol";
+import {IC3Caller, IC3CallerProxy, IC3GovClient} from "../src/c3Caller/IC3Caller.sol";
+import {C3CallerProxy} from "../src/c3Caller/C3CallerProxy.sol";
+import {C3CallerProxyERC1967} from "../src/c3Caller/C3CallerProxyERC1967.sol";
+import {C3GovClient} from "../src/c3Caller/C3GovClient.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {TestERC20} from "../contracts/mocks/TestERC20.sol";
+import {TestERC20} from "../src/mocks/TestERC20.sol";
 
-import {FeeManager} from "../contracts/FeeManager.sol";
-import {FeeType, IFeeManager} from "../contracts/interfaces/IFeeManager.sol";
+import {FeeManager} from "../src/FeeManager.sol";
+import {FeeType, IFeeManager} from "../src/interfaces/IFeeManager.sol";
 
-import {CTMRWADeployer} from "../contracts/CTMRWADeployer.sol";
-import {CTMRWAMap} from "../contracts/CTMRWAMap.sol";
-import {CTMRWA001TokenFactory} from "../contracts/CTMRWA001TokenFactory.sol";
-import {CTMRWA001XFallback} from "../contracts/CTMRWA001XFallback.sol";
-import {CTMRWA001DividendFactory} from "../contracts/CTMRWA001DividendFactory.sol";
-import {CTMRWA001StorageManager} from "../contracts/CTMRWA001StorageManager.sol";
-import {CTMRWA001StorageUtils} from "../contracts/CTMRWA001StorageUtils.sol";
-import {CTMRWADeployInvest} from "../contracts/CTMRWADeployInvest.sol";
-import {CTMRWAERC20Deployer} from "../contracts/CTMRWAERC20Deployer.sol";
-import {CTMRWA001SentryManager} from "../contracts/CTMRWA001SentryManager.sol";
-import {CTMRWA001SentryUtils} from "../contracts/CTMRWA001SentryUtils.sol";
+import {CTMRWADeployer} from "../src/CTMRWADeployer.sol";
+import {CTMRWAMap} from "../src/CTMRWAMap.sol";
+import {CTMRWA001TokenFactory} from "../src/CTMRWA001TokenFactory.sol";
+import {CTMRWA001XFallback} from "../src/CTMRWA001XFallback.sol";
+import {CTMRWA001DividendFactory} from "../src/CTMRWA001DividendFactory.sol";
+import {CTMRWA001StorageManager} from "../src/CTMRWA001StorageManager.sol";
+import {CTMRWA001StorageUtils} from "../src/CTMRWA001StorageUtils.sol";
+import {CTMRWADeployInvest} from "../src/CTMRWADeployInvest.sol";
+import {CTMRWAERC20Deployer} from "../src/CTMRWAERC20Deployer.sol";
+import {CTMRWA001SentryManager} from "../src/CTMRWA001SentryManager.sol";
+import {CTMRWA001SentryUtils} from "../src/CTMRWA001SentryUtils.sol";
 
-import {CTMRWAGateway} from "../contracts/CTMRWAGateway.sol";
-import {CTMRWA001X} from "../contracts/CTMRWA001X.sol";
+import {CTMRWAGateway} from "../src/CTMRWAGateway.sol";
+import {CTMRWA001X} from "../src/CTMRWA001X.sol";
 
-import {ICTMRWA001, SlotData} from "../contracts/interfaces/ICTMRWA001.sol";
-import {ICTMRWAGateway} from "../contracts/interfaces/ICTMRWAGateway.sol";
-import {ICTMRWADeployer} from "../contracts/interfaces/ICTMRWADeployer.sol";
-import {ICTMRWAFactory} from "../contracts/interfaces/ICTMRWAFactory.sol";
-import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
-import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
-import {ICTMRWA001XFallback} from "../contracts/interfaces/ICTMRWA001XFallback.sol";
-import {ICTMRWA001Dividend} from "../contracts/interfaces/ICTMRWA001Dividend.sol";
-import {URIType, URICategory, URIData, ICTMRWA001Storage} from "../contracts/interfaces/ICTMRWA001Storage.sol";
-import {ICTMRWA001Sentry} from "../contracts/interfaces/ICTMRWA001Sentry.sol";
-import {ICTMRWA001SentryManager} from "../contracts/interfaces/ICTMRWA001SentryManager.sol";
+import {ICTMRWA001, SlotData} from "../src/interfaces/ICTMRWA001.sol";
+import {ICTMRWAGateway} from "../src/interfaces/ICTMRWAGateway.sol";
+import {ICTMRWADeployer} from "../src/interfaces/ICTMRWADeployer.sol";
+import {ICTMRWAFactory} from "../src/interfaces/ICTMRWAFactory.sol";
+import {ICTMRWAMap} from "../src/interfaces/ICTMRWAMap.sol";
+import {ICTMRWA001X} from "../src/interfaces/ICTMRWA001X.sol";
+import {ICTMRWA001XFallback} from "../src/interfaces/ICTMRWA001XFallback.sol";
+import {ICTMRWA001Dividend} from "../src/interfaces/ICTMRWA001Dividend.sol";
+import {URIType, URICategory, URIData, ICTMRWA001Storage} from "../src/interfaces/ICTMRWA001Storage.sol";
+import {ICTMRWA001Sentry} from "../src/interfaces/ICTMRWA001Sentry.sol";
+import {ICTMRWA001SentryManager} from "../src/interfaces/ICTMRWA001SentryManager.sol";
 
-import {Offering, Holding, ICTMRWA001InvestWithTimeLock} from "../contracts/interfaces/ICTMRWADeployInvest.sol";
-import {ICTMRWAERC20} from "../contracts/interfaces/ICTMRWAERC20.sol";
+import {Offering, Holding, ICTMRWA001InvestWithTimeLock} from "../src/interfaces/ICTMRWADeployInvest.sol";
+import {ICTMRWAERC20} from "../src/interfaces/ICTMRWAERC20.sol";
 
-import {C3CallerStructLib, IC3GovClient} from "../contracts/c3Caller/IC3Caller.sol";
+import {C3CallerStructLib, IC3GovClient} from "../src/c3Caller/IC3Caller.sol";
 
 
 

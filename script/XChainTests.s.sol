@@ -7,23 +7,23 @@ import "forge-std/console.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import {IC3Caller} from "../contracts/c3Caller/IC3Caller.sol";
-import {IUUIDKeeper} from "../contracts/c3Caller/IUUIDKeeper.sol";
-import {ITheiaERC20} from "../contracts/routerV2/ITheiaERC20.sol";
+import {IC3Caller} from "../src/c3Caller/IC3Caller.sol";
+import {IUUIDKeeper} from "../src/c3Caller/IUUIDKeeper.sol";
+import {ITheiaERC20} from "../src/routerV2/ITheiaERC20.sol";
 
-import {ICTMRWA001, SlotData} from "../contracts/interfaces/ICTMRWA001.sol";
-import {ICTMRWAGateway} from "../contracts/interfaces/ICTMRWAGateway.sol";
-import {ICTMRWA001X} from "../contracts/interfaces/ICTMRWA001X.sol";
-import {ICTMRWA001StorageManager} from "../contracts/interfaces/ICTMRWA001StorageManager.sol";
-import {ICTMRWA001SentryManager} from "../contracts/interfaces/ICTMRWA001SentryManager.sol";
-import {ICTMRWA001Sentry} from "../contracts/interfaces/ICTMRWA001Sentry.sol";
-import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
-import {ICTMRWADeployer} from "../contracts/interfaces/ICTMRWADeployer.sol";
-import {ICTMRWAMap} from "../contracts/interfaces/ICTMRWAMap.sol";
-import {ICTMRWA001XFallback} from "../contracts/interfaces/ICTMRWA001XFallback.sol";
-import {ICTMRWA001Dividend} from "../contracts/interfaces/ICTMRWA001Dividend.sol";
-import {URICategory, URIType} from "../contracts/interfaces/ICTMRWA001Storage.sol";
-import {URIType, URICategory, URIData, ICTMRWA001Storage} from "../contracts/interfaces/ICTMRWA001Storage.sol";
+import {ICTMRWA001, SlotData} from "../src/interfaces/ICTMRWA001.sol";
+import {ICTMRWAGateway} from "../src/interfaces/ICTMRWAGateway.sol";
+import {ICTMRWA001X} from "../src/interfaces/ICTMRWA001X.sol";
+import {ICTMRWA001StorageManager} from "../src/interfaces/ICTMRWA001StorageManager.sol";
+import {ICTMRWA001SentryManager} from "../src/interfaces/ICTMRWA001SentryManager.sol";
+import {ICTMRWA001Sentry} from "../src/interfaces/ICTMRWA001Sentry.sol";
+import {ICTMRWAMap} from "../src/interfaces/ICTMRWAMap.sol";
+import {ICTMRWADeployer} from "../src/interfaces/ICTMRWADeployer.sol";
+import {ICTMRWAMap} from "../src/interfaces/ICTMRWAMap.sol";
+import {ICTMRWA001XFallback} from "../src/interfaces/ICTMRWA001XFallback.sol";
+import {ICTMRWA001Dividend} from "../src/interfaces/ICTMRWA001Dividend.sol";
+import {URICategory, URIType} from "../src/interfaces/ICTMRWA001Storage.sol";
+import {URIType, URICategory, URIData, ICTMRWA001Storage} from "../src/interfaces/ICTMRWA001Storage.sol";
 
 interface IDKeeper {
     function isUUIDExist(bytes32) external returns(bool);
