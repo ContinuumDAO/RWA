@@ -1,6 +1,6 @@
 #/bin/bash!
 
-
+forge flatten contracts/CTMRWA001.sol --output flattened/CTMRWA001.sol
 forge flatten contracts/CTMRWA001TokenFactory.sol --output flattened/CTMRWA001TokenFactory.sol
 forge flatten contracts/CTMRWADeployer.sol --output flattened/CTMRWADeployer.sol
 forge flatten contracts/CTMRWAGateway.sol --output flattened/CTMRWAGateway.sol

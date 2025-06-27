@@ -6,6 +6,7 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -85,7 +86,11 @@ contract CTMRWADeployInvest is Context {
 
         _payFee(FeeType.DEPLOYINVEST, _feeToken);
 
-        CTMRWA001InvestWithTimeLock newInvest = new CTMRWA001InvestWithTimeLock(
+        bytes32 salt = keccak256(abi.encode(_ID, _rwaType, _version));
+
+        CTMRWA001InvestWithTimeLock newInvest = new CTMRWA001InvestWithTimeLock {
+            salt: salt
+        }(
             _ID,
             _rwaType,
             _version,
@@ -130,7 +135,7 @@ contract CTMRWADeployInvest is Context {
 
 
 
-contract CTMRWA001InvestWithTimeLock is Context {
+contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -145,6 +150,9 @@ contract CTMRWA001InvestWithTimeLock is Context {
 
     /// @dev A list of offerings to investors
     Offering[] public offerings;
+
+    /// @dev limit the number of Offerings to stop DDoS attacks
+    uint256 public constant MAX_OFFERINGS = 100;
 
     mapping(address => Holding[]) private holdingsByAddress;
 
@@ -190,15 +198,22 @@ contract CTMRWA001InvestWithTimeLock is Context {
         _;
     }
 
-    event CreateOffering(uint256 ID, uint256 indx, uint256 slot, uint256 offer);
+    /// @dev Mapping to track pause state for each offering index
+    mapping(uint256 => bool) private _isOfferingPaused;
 
-    event InvestInOffering(uint256 ID, uint256 indx, uint256 holdingIndx, uint256 investment);
+    event CreateOffering(uint256 indexed ID, uint256 indx, uint256 slot, uint256 offer);
 
-    event WithdrawFunds(uint256 ID, uint256 indx, uint256 funds);
+    event OfferingPaused(uint256 indexed ID, uint256 indexed indx, address account);
+    event OfferingUnpaused(uint256 indexed ID, uint256 indexed indx, address account);
 
-    event UnlockInvestmentToken(uint256 ID, address holder, uint256 holdingIndx);
+    event InvestInOffering(uint256 indexed ID, uint256 indx, uint256 holdingIndx, uint256 investment);
 
-    event ClaimDividendInEscrow(uint256 ID, address holder, uint256 unclaimed);
+    event WithdrawFunds(uint256 indexed ID, uint256 indx, uint256 funds);
+
+    event UnlockInvestmentToken(uint256 indexed ID, address holder, uint256 holdingIndx);
+
+    event ClaimDividendInEscrow(uint256 indexed ID, address holder, uint256 unclaimed);
+    
 
 
     constructor(
@@ -234,6 +249,26 @@ contract CTMRWA001InvestWithTimeLock is Context {
 
     }
 
+    // Pause a specific offering (only tokenAdmin)
+    function pauseOffering(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) {
+        require(_indx < offerings.length, "CTMInvest: Offering index out of bounds");
+        _isOfferingPaused[_indx] = true;
+        emit OfferingPaused(ID, _indx, _msgSender());
+    }
+
+    /// @dev  Unpause a specific offering (only tokenAdmin)
+    function unpauseOffering(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) {
+        require(_indx < offerings.length, "CTMInvest: Offering index out of bounds");
+        _isOfferingPaused[_indx] = false;
+        emit OfferingUnpaused(ID, _indx, _msgSender());
+    }
+
+    /// @dev Check if a specific offering is paused
+    function isOfferingPaused(uint256 _indx) public view returns (bool) {
+        require(_indx < offerings.length, "CTMInvest: Offering index out of bounds");
+        return _isOfferingPaused[_indx];
+    }
+
 
     function createOffering(
         uint256 _tokenId,
@@ -251,6 +286,7 @@ contract CTMRWA001InvestWithTimeLock is Context {
     ) public onlyTokenAdmin(ctmRwaToken) {
 
         require(ICTMRWA001(ctmRwaToken).requireMinted(_tokenId), "CTMInvest: Token does not exist");
+        require(offerings.length < MAX_OFFERINGS, "CTMInvest: Max offerings reached");
         require(bytes(_regulatorCountry).length <= 2, "CTMInvest: not 2 digit country code");
         require(bytes(_offeringType).length <= 128, "CTMInvest: offering Type length > 128");
 
@@ -295,6 +331,8 @@ contract CTMRWA001InvestWithTimeLock is Context {
 
         uint256 indx = offerings.length-1;
 
+        _isOfferingPaused[indx] = false;
+
         emit CreateOffering(ID, indx, slot, offer);
 
     }
@@ -305,7 +343,8 @@ contract CTMRWA001InvestWithTimeLock is Context {
         uint256 _investment,
         address _feeToken
     ) public returns(uint256) {
-
+        require(_indx < offerings.length, "CTMInvest: Offering index out of bounds");
+        require(!_isOfferingPaused[_indx], "CTMInvest: Offering is paused");
         require(block.timestamp >= offerings[_indx].startTime, "CTMInvest: Offer not yet started");
         require(block.timestamp <= offerings[_indx].endTime, "CTMInvest: Offer expired");
         address currency = offerings[_indx].currency;
@@ -324,11 +363,12 @@ contract CTMRWA001InvestWithTimeLock is Context {
 
         _payFee(FeeType.INVEST, _feeToken);
 
-        IERC20(currency).transferFrom(_msgSender(), address(this), _investment);
-        offerings[_indx].investment += _investment;
-
         uint256 value = _investment*10**decimalsRwa/offerings[_indx].price;
 
+        offerings[_indx].balRemaining -= value;
+
+        IERC20(currency).transferFrom(_msgSender(), address(this), _investment);
+        offerings[_indx].investment += _investment;
 
         uint256 newTokenId = ICTMRWA001X(ctmRwa001X).transferPartialTokenX(
             tokenId, 
@@ -339,7 +379,6 @@ contract CTMRWA001InvestWithTimeLock is Context {
             feeTokenStr
         );
 
-        offerings[_indx].balRemaining -= value;
 
         Holding memory newHolding = Holding(
             _indx,
@@ -373,6 +412,8 @@ contract CTMRWA001InvestWithTimeLock is Context {
 
         uint256 investment = offerings[_indx].investment;
         uint256 commission = commissionRate * investment/10000;
+
+        require(commission > 0 || commissionRate == 0, "CTMInvest: Commission too low");
 
         if(investment > 0) {
             address currency = offerings[_indx].currency;

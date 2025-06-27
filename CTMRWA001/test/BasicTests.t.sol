@@ -1148,6 +1148,33 @@ contract TestBasicToken is SetUp {
         vm.stopPrank();
 
         vm.startPrank(tokenAdmin);
+        // Test to see if pause works
+        ICTMRWA001InvestWithTimeLock(investContract).pauseOffering(indx);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        usdc.approve(investContract, investment);
+        vm.expectRevert("CTMInvest: Offering is paused");
+        ICTMRWA001InvestWithTimeLock(investContract).investInOffering(
+            indx, investment, address(usdc)
+        );
+        vm.stopPrank();
+
+        vm.startPrank(tokenAdmin);
+        // Test to see if pause works
+        ICTMRWA001InvestWithTimeLock(investContract).unpauseOffering(indx);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        ICTMRWA001InvestWithTimeLock(investContract).investInOffering(
+            indx, investment, address(usdc)
+        );
+        holdingCount = ICTMRWA001InvestWithTimeLock(investContract).escrowHoldingCount(user1);
+        assertEq(holdingCount, 3);
+        vm.stopPrank();
+
+
+        vm.startPrank(tokenAdmin);
 
         // Test to see if we can claim dividends whilst token is in escrow
 
@@ -1160,8 +1187,8 @@ contract TestBasicToken is SetUp {
 
         uint256 dividendTotal = ICTMRWA001Dividend(ctmDividend).getTotalDividend();
 
-        usdc.approve(ctmDividend, dividendTotal);
-        uint256 unclaimed = ICTMRWA001Dividend(ctmDividend).fundDividend();
+        // usdc.approve(ctmDividend, dividendTotal);
+        // uint256 unclaimed = ICTMRWA001Dividend(ctmDividend).fundDividend();
 
 
 

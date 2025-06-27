@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 
 import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
@@ -33,7 +34,7 @@ import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
  */
 
 
-contract CTMRWA001X is Context, GovernDapp {
+contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
     using Strings for *;
     using SafeERC20 for IERC20;
 

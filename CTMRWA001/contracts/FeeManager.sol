@@ -6,13 +6,16 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 
 import "./routerV2/GovernDapp.sol";
 import "./interfaces/IFeeManager.sol";
 
 
 
-contract FeeManager is GovernDapp, IFeeManager {
+contract FeeManager is ReentrancyGuard, Context, GovernDapp, IFeeManager {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -20,6 +23,8 @@ contract FeeManager is GovernDapp, IFeeManager {
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
     uint256[29] public feeMultiplier;
+
+    event LogFallback(bytes4 selector, bytes data, bytes reason);
 
     mapping(address => FeeParams) public feeParams;
 
@@ -221,7 +226,7 @@ contract FeeManager is GovernDapp, IFeeManager {
     }
 
 
-    function getFeeMultiplier(FeeType _feeType) external view returns (uint256) {
+    function getFeeMultiplier(FeeType _feeType) public view returns (uint256) {
         if(_feeType == FeeType.ADMIN) {
             return(feeMultiplier[0]);
         } else if (_feeType == FeeType.DEPLOY) {
@@ -302,7 +307,7 @@ contract FeeManager is GovernDapp, IFeeManager {
             baseFee += getToChainBaseFee(block.chainid.toString(), _feeTokenStr);
         }
         
-        uint256 fee = baseFee*this.getFeeMultiplier(_feeType);
+        uint256 fee = baseFee*getFeeMultiplier(_feeType);
         
         return fee;
     }
@@ -353,10 +358,13 @@ contract FeeManager is GovernDapp, IFeeManager {
     }
 
     function _c3Fallback(
-        bytes4 /*_selector*/,
-        bytes calldata /*_data*/,
-        bytes calldata /*_reason*/
+        bytes4 _selector,
+        bytes calldata _data,
+        bytes calldata _reason
     ) internal virtual override returns (bool) {
+
+        emit LogFallback(_selector, _data, _reason);
+
         return true;
     }
 
@@ -410,26 +418,6 @@ contract FeeManager is GovernDapp, IFeeManager {
         return block.chainid;
     }
 
-    function strToUint(
-        string memory _str
-    ) internal pure returns (uint256 res, bool err) {
-        if (bytes(_str).length == 0) {
-            return (0, true);
-        }
-        for (uint256 i = 0; i < bytes(_str).length; i++) {
-            if (
-                (uint8(bytes(_str)[i]) - 48) < 0 ||
-                (uint8(bytes(_str)[i]) - 48) > 9
-            ) {
-                return (0, false);
-            }
-            res +=
-                (uint8(bytes(_str)[i]) - 48) *
-                10 ** (bytes(_str).length - i - 1);
-        }
-
-        return (res, true);
-    }
 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);

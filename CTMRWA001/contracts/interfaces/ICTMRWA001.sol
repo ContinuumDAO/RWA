@@ -51,7 +51,8 @@ interface ICTMRWA001 {
     );
     function slotNameOf(uint256 _tokenId) external view returns(string memory);
     function balanceOf(uint256 _tokenId) external view returns (uint256);
-    function balanceOf(address user) external view returns (uint256);
+    function balanceOf(address owner) external view returns (uint256);
+    function balanceOf(address owner, uint256 slot) external view returns(uint256);
    
     function baseURI() external view returns(string memory);
     function getErc20(uint256 _slot) external view returns(address);

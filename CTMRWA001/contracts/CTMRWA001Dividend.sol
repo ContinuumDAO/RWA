@@ -124,20 +124,11 @@ contract CTMRWA001Dividend is Context {
      * @param _slot The Asset Class (slot)
      */
     function getTotalDividendBySlot(uint256 _slot) public view returns(uint256) {
-        uint256 len = ICTMRWA001(tokenAddr).tokenSupplyInSlot(_slot);
-        uint256 dividendPayable;
-        uint256 tokenId;
+        uint256 totalSupply = ICTMRWA001(tokenAddr).totalSupplyInSlot(_slot);
 
         uint256 slotRate = getDividendRateBySlot(_slot);
 
-        for(uint256 i=0; i<len; i++) {
-            tokenId = ICTMRWA001(tokenAddr).tokenInSlotByIndex(_slot, i);
-            dividendPayable += ICTMRWA001(tokenAddr).balanceOf(tokenId)*slotRate;
-        }
-
-        uint8 decimals = ICTMRWA001(tokenAddr).valueDecimals();
-
-        return(dividendPayable);
+        return(totalSupply * slotRate);
     }
 
     /**

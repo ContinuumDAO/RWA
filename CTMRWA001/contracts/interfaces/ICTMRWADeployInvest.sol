@@ -51,6 +51,11 @@ interface ICTMRWA001InvestWithTimeLock {
     function holdingsByAddress(address) external view returns(Holding[] memory);
     function commissionRate() external view returns(uint256);
 
+    function pauseOffering(uint256 _indx) external;
+    function unpauseOffering(uint256 _indx) external;
+
+    function isOfferingPaused(uint256 _indx) external view returns (bool);
+
     function createOffering(
         uint256 tokenId,
         uint256 price,
