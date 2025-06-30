@@ -1,7 +1,7 @@
 {
-  "name": "javascript",
+  "name": "ctmrwa",
   "version": "1.0.0",
-  "main": "fees.js",
+  "main": "js-helpers/fees.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
