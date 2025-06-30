@@ -4,9 +4,9 @@ pragma solidity >=0.8.19;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {CTMRWA001Identity} from "../src/CTMRWA001Identity.sol";
+import {CTMRWA1Identity} from "../src/CTMRWA1Identity.sol";
 
-import {RequestId, ICTMRWA001Identity} from "../src/interfaces/ICTMRWA001Identity.sol";
+import {RequestId, ICTMRWA1Identity} from "../src/interfaces/ICTMRWA1Identity.sol";
 
 
 contract DeployPolygonId is Script {
@@ -39,7 +39,7 @@ contract DeployPolygonId is Script {
 
         console.log("Deploying Identity contract...");
 
-        CTMRWA001Identity ctmIdentity = new CTMRWA001Identity (
+        CTMRWA1Identity ctmIdentity = new CTMRWA1Identity (
             govAddr,
             rwaType,
             version,
@@ -53,12 +53,12 @@ contract DeployPolygonId is Script {
 
         address ctmIdAddr = address(ctmIdentity);
 
-        console.log("CTMRWA001Identity");
+        console.log("CTMRWA1Identity");
         console.log(ctmIdAddr);
 
         console.log("Setting zKMe verifier address");
 
-        ICTMRWA001Identity(ctmIdAddr).setZkMeVerifierAddress(verifierAddr);
+        ICTMRWA1Identity(ctmIdAddr).setZkMeVerifierAddress(verifierAddr);
 
         console.log("Finished");
 

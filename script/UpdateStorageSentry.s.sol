@@ -4,25 +4,25 @@ pragma solidity ^0.8.19;
 import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
-// import {CTMRWA001StorageManager} from "../src/CTMRWA001StorageManager.sol";
-// import {CTMRWA001SentryManager} from "../src/CTMRWA001SentryManager.sol";
+// import {CTMRWA1StorageManager} from "../src/CTMRWA1StorageManager.sol";
+// import {CTMRWA1SentryManager} from "../src/CTMRWA1SentryManager.sol";
 import {ICTMRWADeployer} from "../src/interfaces/ICTMRWADeployer.sol";
 
-import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
-import {CTMRWA001StorageUtils} from "../src/CTMRWA001StorageUtils.sol";
-import {CTMRWA001SentryManager} from "../flattened/CTMRWA001SentryManager.sol";
-import {CTMRWA001SentryUtils} from "../src/CTMRWA001SentryUtils.sol";
+import {CTMRWA1StorageManager} from "../flattened/CTMRWA1StorageManager.sol";
+import {CTMRWA1StorageUtils} from "../src/CTMRWA1StorageUtils.sol";
+import {CTMRWA1SentryManager} from "../flattened/CTMRWA1SentryManager.sol";
+import {CTMRWA1SentryUtils} from "../src/CTMRWA1SentryUtils.sol";
 
-import {ICTMRWA001StorageManager} from "../src/interfaces/ICTMRWA001StorageManager.sol";
+import {ICTMRWA1StorageManager} from "../src/interfaces/ICTMRWA1StorageManager.sol";
 
 
 
 contract UpdateStorageSentry is Script {
 
-    CTMRWA001StorageManager storageManager;
-    CTMRWA001StorageUtils storageUtils;
-    CTMRWA001SentryUtils sentryUtils;
-    CTMRWA001SentryManager sentryManager;
+    CTMRWA1StorageManager storageManager;
+    CTMRWA1StorageUtils storageUtils;
+    CTMRWA1SentryUtils sentryUtils;
+    CTMRWA1SentryManager sentryManager;
 
     uint256 chainId;
 
@@ -66,7 +66,7 @@ contract UpdateStorageSentry is Script {
             mapAddr = 0x18433A774aF5d473191903A5AF156f3Eb205bBA4;
         } else if (chainId == 11155111) {
             c3callerProxyAddr = vm.envAddress("C3_DEPLOY_SEPOLIA");
-            feeManagerAddr = 0xee53A0AD7f17715774Acc3963693B37040900019;
+            feeManagerAddr = 0xee53A0AD7f17715774Acc3963693B370409019;
             gatewayAddr = 0xF8fe7804AE6DBC7306AB5A97aE2302706170530C;
             deployerAddr = 0x0A91De653d4c09E7bC757eD794a03e4b40A1D057;
             mapAddr = 0xd546A3a98D86d22e28d688FAf3a074D000F2612B;
@@ -225,7 +225,7 @@ contract UpdateStorageSentry is Script {
     ) internal returns(address,address) {
 
         if (STORAGE) {
-            storageManager = new CTMRWA001StorageManager(
+            storageManager = new CTMRWA1StorageManager(
                 _gov,
                 _rwaType,
                 _version,
@@ -238,9 +238,9 @@ contract UpdateStorageSentry is Script {
             );
 
             address storageManagerAddr = address(storageManager);
-            // address storageManagerAddr = 0xFA1e6C9B7464668a0001309c0969b0f6Fa893E8f;
+            // address storageManagerAddr = 0xFA1e6C9B7464668a01309c0969b0f6Fa893E8f;
 
-            storageUtils = new CTMRWA001StorageUtils(
+            storageUtils = new CTMRWA1StorageUtils(
                 _rwaType,
                 _version,
                 mapAddr,
@@ -248,7 +248,7 @@ contract UpdateStorageSentry is Script {
             );
 
 
-            // ICTMRWA001StorageManager(storageManagerAddr).setStorageUtils(address(storageUtils));
+            // ICTMRWA1StorageManager(storageManagerAddr).setStorageUtils(address(storageUtils));
             storageManager.setStorageUtils(address(storageUtils));
             storageManager.setCtmRwaDeployer(deployerAddr);
             storageManager.setCtmRwaMap(mapAddr);
@@ -257,7 +257,7 @@ contract UpdateStorageSentry is Script {
         }
 
         if (SENTRY) {
-            sentryManager = new CTMRWA001SentryManager(
+            sentryManager = new CTMRWA1SentryManager(
                 _gov,
                 _rwaType,
                 _version,
@@ -271,7 +271,7 @@ contract UpdateStorageSentry is Script {
 
             address sentryManagerAddr = address(sentryManager);
 
-            sentryUtils = new CTMRWA001SentryUtils(
+            sentryUtils = new CTMRWA1SentryUtils(
                 _rwaType,
                 _version,
                 mapAddr,

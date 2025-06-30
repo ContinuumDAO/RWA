@@ -1,39 +1,32 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
+import "forge-std/console.sol";
 
-import {CTMRWA001XFallback} from "../src/CTMRWA001XFallback.sol";
-import {CTMRWA001X} from "../src/CTMRWA001X.sol";
-import {ICTMRWA001X} from "../src/interfaces/ICTMRWA001X.sol";
-
-
+import {ICTMRWA1X} from "../src/interfaces/ICTMRWA1X.sol";
+import {CTMRWA1X} from "../src/x/CTMRWA1X.sol";
+import {CTMRWA1XFallback} from "../src/x/CTMRWA1XFallback.sol";
 
 contract DeployC3FallbackX is Script {
+  CTMRWA1XFallback ctmRwaFallback;
 
-    CTMRWA001XFallback ctmRwaFallback;
-   
+  function run() external {
+    uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+    address deployer = vm.addr(deployerPrivateKey);
+    console.log("Wallet of deployer");
+    console.log(deployer);
 
-    function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address deployer = vm.addr(deployerPrivateKey);
-        console.log("Wallet of deployer");
-        console.log(deployer);
+    vm.startBroadcast(deployerPrivateKey);
 
+    address ctmRwa1XAddr = 0x22D305a430b57a12D569f1e578B9F2f7613f92F8;
 
-        vm.startBroadcast(deployerPrivateKey);
+    ctmRwaFallback = new CTMRWA1XFallback(ctmRwa1XAddr);
 
-        address ctmRwa001XAddr = 0x22D305a430b57a12D569f1e578B9F2f7613f92F8;
+    // ICTMRWA1X(ctmRwa1XAddr).setFallback(address(ctmRwaFallback));
+    console.log("ctmRwaFallback address");
+    console.log(address(ctmRwaFallback));
 
-
-        ctmRwaFallback = new CTMRWA001XFallback(ctmRwa001XAddr);
-
-        // ICTMRWA001X(ctmRwa001XAddr).setFallback(address(ctmRwaFallback));
-        console.log("ctmRwaFallback address");
-        console.log(address(ctmRwaFallback));
-
-        vm.stopBroadcast();
-    }
-
+    vm.stopBroadcast();
+  }
 }

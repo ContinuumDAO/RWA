@@ -18,7 +18,7 @@ contract UpdateChainSetup is Script {
     
     string[] chainIdsStr;
     string[] gwaysStr;
-    string[] rwa001XsStr;
+    string[] rwa1XsStr;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -33,17 +33,17 @@ contract UpdateChainSetup is Script {
         // Bitlayer Testnet
         string memory chainIdStr = "200810";
         string memory gatewayDestAddrStr = "0x005c5Fd1585A73817107bFd3929f7e559750ceEd";
-        string memory rwa001XAddrStr = "0xDef5D31e4b2E0BF38Af3E8092a5ABF51Db484Eec";
+        string memory rwa1XAddrStr = "0xDef5D31e4b2E0BF38Af3E8092a5ABF51Db484Eec";
         address feeManager = 0x6EE5C158882857c7F52b37FCe37B1CF39944f22E;
 
         console.log("For Arb Sepolia");
         chainIdsStr.push(chainIdStr);
         gwaysStr.push(gatewayDestAddrStr);
-        rwa001XsStr.push(rwa001XAddrStr);
+        rwa1XsStr.push(rwa1XAddrStr);
         address gateway = 0x8Ea9B4616e5653CF21B87e60c8D72d8384685ec6;
         ICTMRWAGateway(gateway).addChainContract(chainIdsStr, gwaysStr);
         gwaysStr.pop();
-        ICTMRWAGateway(gateway).attachRWAX(rwaType, version, chainIdsStr, rwa001XsStr);
+        ICTMRWAGateway(gateway).attachRWAX(rwaType, version, chainIdsStr, rwa1XsStr);
         chainIdsStr.pop();
 
         vm.stopBroadcast();

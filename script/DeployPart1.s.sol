@@ -6,21 +6,21 @@ import {Script} from "forge-std/Script.sol";
 
 // import {CTMRWADeployer} from "../src/CTMRWADeployer.sol";
 // import {CTMRWAMap} from "../src/CTMRWAMap.sol";
-// import {CTMRWA001TokenFactory} from "../src/CTMRWA001TokenFactory.sol";
-// import {CTMRWA001XFallback} from "../src/CTMRWA001XFallback.sol";
-// import {CTMRWA001DividendFactory} from "../src/CTMRWA001DividendFactory.sol";
-// import {CTMRWA001StorageManager} from "../src/CTMRWA001StorageManager.sol";
-// import {CTMRWA001SentryManager} from "../src/CTMRWA001SentryManager.sol";
+// import {CTMRWA1TokenFactory} from "../src/CTMRWA1TokenFactory.sol";
+// import {CTMRWA1XFallback} from "../src/CTMRWA1XFallback.sol";
+// import {CTMRWA1DividendFactory} from "../src/CTMRWA1DividendFactory.sol";
+// import {CTMRWA1StorageManager} from "../src/CTMRWA1StorageManager.sol";
+// import {CTMRWA1SentryManager} from "../src/CTMRWA1SentryManager.sol";
 // import {FeeManager} from "../src/FeeManager.sol";
 // import {CTMRWAGateway} from "../src/CTMRWAGateway.sol";
-// import {CTMRWA001X} from "../src/CTMRWA001X.sol";
+// import {CTMRWA1X} from "../src/CTMRWA1X.sol";
 
 import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
-import {CTMRWA001TokenFactory} from "../flattened/CTMRWA001TokenFactory.sol";
-import {CTMRWA001XFallback} from "../flattened/CTMRWA001XFallback.sol";
+import {CTMRWA1TokenFactory} from "../flattened/CTMRWA1TokenFactory.sol";
+import {CTMRWA1XFallback} from "../flattened/CTMRWA1XFallback.sol";
 import {FeeManager} from "../flattened/FeeManager.sol";
 import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
-import {CTMRWA001X} from "../flattened/CTMRWA001X.sol";
+import {CTMRWA1X} from "../flattened/CTMRWA1X.sol";
 
 
 
@@ -31,9 +31,9 @@ contract DeployPart1 is Script {
     CTMRWADeployer ctmRwaDeployer;
     CTMRWAGateway gateway;
     FeeManager feeManager;
-    CTMRWA001X ctmRwa001X;
-    CTMRWA001TokenFactory tokenFactory;
-    CTMRWA001XFallback ctmRwaFallback;
+    CTMRWA1X ctmRwa1X;
+    CTMRWA1TokenFactory tokenFactory;
+    CTMRWA1XFallback ctmRwaFallback;
 
     address feeManagerAddr;
 
@@ -79,8 +79,8 @@ contract DeployPart1 is Script {
         console.log(address(gateway));
 
 
-        // deploy RWA001X
-        ctmRwa001X = new CTMRWA001X(
+        // deploy RWA1X
+        ctmRwa1X = new CTMRWA1X(
             address(gateway),
             feeManagerAddr,
             govAddr,
@@ -89,12 +89,12 @@ contract DeployPart1 is Script {
             dappID3
         );
 
-        console.log("ctmRwa001X address");
-        console.log(address(ctmRwa001X));
+        console.log("ctmRwa1X address");
+        console.log(address(ctmRwa1X));
 
-        ctmRwaFallback = new CTMRWA001XFallback(address(ctmRwa001X));
+        ctmRwaFallback = new CTMRWA1XFallback(address(ctmRwa1X));
 
-        ctmRwa001X.setFallback(address(ctmRwaFallback));
+        ctmRwa1X.setFallback(address(ctmRwaFallback));
         console.log("ctmRwaFallback address");
         console.log(address(ctmRwaFallback));
 

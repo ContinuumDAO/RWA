@@ -1,276 +1,240 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
+import "forge-std/console.sol";
 
-import {CTMRWADeployer} from "../src/CTMRWADeployer.sol";
-import {CTMRWADeployInvest} from "../src/CTMRWADeployInvest.sol";
-import {CTMRWAERC20Deployer} from "../src/CTMRWAERC20Deployer.sol";
-import {CTMRWAMap} from "../src/CTMRWAMap.sol";
-import {CTMRWA001TokenFactory} from "../src/CTMRWA001TokenFactory.sol";
-import {CTMRWA001XFallback} from "../src/CTMRWA001XFallback.sol";
-import {CTMRWA001DividendFactory} from "../src/CTMRWA001DividendFactory.sol";
-import {CTMRWA001StorageManager} from "../src/CTMRWA001StorageManager.sol";
-import {CTMRWA001StorageUtils} from "../src/CTMRWA001StorageUtils.sol";
-import {CTMRWA001SentryManager} from "../src/CTMRWA001SentryManager.sol";
-import {CTMRWA001SentryUtils} from "../src/CTMRWA001SentryUtils.sol";
-import {FeeManager} from "../src/FeeManager.sol";
-import {CTMRWAGateway} from "../src/CTMRWAGateway.sol";
-import {CTMRWA001X} from "../src/CTMRWA001X.sol";
+import {CTMRWADeployInvest} from "../src/deployer/CTMRWADeployInvest.sol";
+import {CTMRWADeployer} from "../src/deployer/CTMRWADeployer.sol";
+import {CTMRWAERC20Deployer} from "../src/deployer/CTMRWAERC20Deployer.sol";
 
+import {CTMRWA1DividendFactory} from "../src/factories/CTMRWA1DividendFactory.sol";
+import {CTMRWA1TokenFactory} from "../src/factories/CTMRWA1TokenFactory.sol";
+
+import {FeeManager} from "../src/managers/FeeManager.sol";
+import {CTMRWAGateway} from "../src/protocol/CTMRWAGateway.sol";
+import {CTMRWAMap} from "../src/protocol/CTMRWAMap.sol";
+import {CTMRWA1SentryManager} from "../src/sentry/CTMRWA1SentryManager.sol";
+import {CTMRWA1SentryUtils} from "../src/sentry/CTMRWA1SentryUtils.sol";
+import {CTMRWA1StorageManager} from "../src/storage/CTMRWA1StorageManager.sol";
+import {CTMRWA1StorageUtils} from "../src/storage/CTMRWA1StorageUtils.sol";
+
+import {CTMRWA1X} from "../src/x/CTMRWA1X.sol";
+import {CTMRWA1XFallback} from "../src/x/CTMRWA1XFallback.sol";
 
 // import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
 // import {CTMRWAMap} from "../flattened/CTMRWAMap.sol";
-// import {CTMRWA001TokenFactory} from "../flattened/CTMRWA001TokenFactory.sol";
-// import {CTMRWA001XFallback} from "../flattened/CTMRWA001XFallback.sol";
-// import {CTMRWA001DividendFactory} from "../flattened/CTMRWA001DividendFactory.sol";
-// import {CTMRWA001StorageManager} from "../flattened/CTMRWA001StorageManager.sol";
-// import {CTMRWA001StorageUtils} from "../src/CTMRWA001StorageUtils.sol";
-// import {CTMRWAERC20Deployer} from "../src/CTMRWAERC20Deployer.sol";
-// import {CTMRWADeployInvest} from "../src/CTMRWADeployInvest.sol";
-// import {CTMRWA001SentryManager} from "../flattened/CTMRWA001SentryManager.sol";
-// import {CTMRWA001SentryUtils} from "../src/CTMRWA001SentryUtils.sol";
+// import {CTMRWA1TokenFactory} from "../flattened/CTMRWA1TokenFactory.sol";
+// import {CTMRWA1XFallback} from "../flattened/CTMRWA1XFallback.sol";
+// import {CTMRWA1DividendFactory} from "../flattened/CTMRWA1DividendFactory.sol";
+// import {CTMRWA1StorageManager} from "../flattened/CTMRWA1StorageManager.sol";
+// import {CTMRWA1StorageUtils} from "../src/storage/CTMRWA1StorageUtils.sol";
+// import {CTMRWAERC20Deployer} from "../src/deployer/CTMRWAERC20Deployer.sol";
+// import {CTMRWADeployInvest} from "../src/deployer/CTMRWADeployInvest.sol";
+// import {CTMRWA1SentryManager} from "../flattened/CTMRWA1SentryManager.sol";
+// import {CTMRWA1SentryUtils} from "../src/sentry/CTMRWA1SentryUtils.sol";
 // import {FeeManager} from "../flattened/FeeManager.sol";
 // import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
-// import {CTMRWA001X} from "../flattened/CTMRWA001X.sol";
-
-
-
+// import {CTMRWA1X} from "../flattened/CTMRWA1X.sol";
 
 contract Deploy is Script {
+  CTMRWADeployer ctmRwaDeployer;
+  CTMRWAMap ctmRwaMap;
+  CTMRWAGateway gateway;
+  FeeManager feeManager;
+  CTMRWA1X ctmRwa1X;
+  CTMRWA1TokenFactory tokenFactory;
+  CTMRWA1XFallback ctmRwaFallback;
+  CTMRWADeployInvest ctmRwaDeployInvest;
+  CTMRWAERC20Deployer ctmRwaErc20Deployer;
+  CTMRWA1StorageManager storageManager;
+  CTMRWA1SentryManager sentryManager;
+  CTMRWA1StorageUtils storageUtils;
+  CTMRWA1SentryUtils sentryUtils;
+  CTMRWA1DividendFactory dividendFactory;
 
-    CTMRWADeployer ctmRwaDeployer;
-    CTMRWAMap ctmRwaMap;
-    CTMRWAGateway gateway;
-    FeeManager feeManager;
-    CTMRWA001X ctmRwa001X;
-    CTMRWA001TokenFactory tokenFactory;
-    CTMRWA001XFallback ctmRwaFallback;
-    CTMRWADeployInvest ctmRwaDeployInvest;
-    CTMRWAERC20Deployer ctmRwaErc20Deployer;
-    CTMRWA001StorageManager storageManager;
-    CTMRWA001SentryManager sentryManager;
-    CTMRWA001StorageUtils storageUtils;
-    CTMRWA001SentryUtils sentryUtils;
-    CTMRWA001DividendFactory dividendFactory;
+  address feeManagerAddr;
 
-    address feeManagerAddr;
+  function run() external {
+    uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+    address deployer = vm.addr(deployerPrivateKey);
+    console.log("Wallet of deployer");
+    console.log(deployer);
 
+    // env variables (changes based on deployment chain, edit in .env)
+    address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_U2U_NEBULAS_TESTNET");
+    address govAddr = deployer;
+    uint256 dappID1 = vm.envUint("DAPP_ID1"); // Gateway
+    uint256 dappID2 = vm.envUint("DAPP_ID2"); // FeeManager
+    uint256 dappID3 = vm.envUint("DAPP_ID3"); // CTMRWAX
+    uint256 dappID4 = vm.envUint("DAPP_ID4"); // CTMRWADEPLOYER
+    uint256 dappID5 = vm.envUint("DAPP_ID5"); // CTMRWASTORAGE
+    uint256 dappID6 = vm.envUint("DAPP_ID6"); // CTMRWASENTRY
 
-    function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        address deployer = vm.addr(deployerPrivateKey);
-        console.log("Wallet of deployer");
-        console.log(deployer);
+    address txSender = deployer;
 
-        // env variables (changes based on deployment chain, edit in .env)
-        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_U2U_NEBULAS_TESTNET");
-        address govAddr = deployer;
-        uint256 dappID1 = vm.envUint("DAPP_ID1");  // Gateway
-        uint256 dappID2 = vm.envUint("DAPP_ID2");  // FeeManager
-        uint256 dappID3 = vm.envUint("DAPP_ID3");  // CTMRWAX
-        uint256 dappID4 = vm.envUint("DAPP_ID4");  // CTMRWADEPLOYER
-        uint256 dappID5 = vm.envUint("DAPP_ID5");  // CTMRWASTORAGE
-        uint256 dappID6 = vm.envUint("DAPP_ID6");  // CTMRWASENTRY
-        
+    vm.startBroadcast(deployerPrivateKey);
 
-        address txSender = deployer;
+    // deploy fee manager
+    feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID2);
+    feeManagerAddr = address(feeManager);
 
-        vm.startBroadcast(deployerPrivateKey);
+    console.log("feeManager");
+    console.log(feeManagerAddr);
 
-        // deploy fee manager
-        feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID2);
-        feeManagerAddr = address(feeManager);
+    // deploy gateway
+    gateway = new CTMRWAGateway(govAddr, c3callerProxyAddr, txSender, dappID1);
 
-        console.log("feeManager");
-        console.log(feeManagerAddr);
+    console.log("gateway address");
+    console.log(address(gateway));
 
+    // deploy RWA1X
+    ctmRwa1X =
+      new CTMRWA1X(address(gateway), feeManagerAddr, govAddr, c3callerProxyAddr, txSender, dappID3);
 
-        // deploy gateway
-        gateway = new CTMRWAGateway(
-            govAddr, 
-            c3callerProxyAddr, 
-            txSender,
-            dappID1
-        );
+    console.log("ctmRwa1X address");
+    console.log(address(ctmRwa1X));
 
-        console.log("gateway address");
-        console.log(address(gateway));
+    ctmRwaFallback = new CTMRWA1XFallback(address(ctmRwa1X));
 
+    ctmRwa1X.setFallback(address(ctmRwaFallback));
+    console.log("ctmRwaFallback address");
+    console.log(address(ctmRwaFallback));
 
-        // deploy RWA001X
-        ctmRwa001X = new CTMRWA001X(
-            address(gateway),
-            feeManagerAddr,
-            govAddr,
-            c3callerProxyAddr,
-            txSender,
-            dappID3
-        );
+    address ctmRwa1Map = deployMap();
 
-        console.log("ctmRwa001X address");
-        console.log(address(ctmRwa001X));
+    console.log("CTMRWAMap");
+    console.log(ctmRwa1Map);
 
-        ctmRwaFallback = new CTMRWA001XFallback(address(ctmRwa001X));
+    (
+      address ctmDeployer,
+      address ctmStorage,
+      address ctmSentry,
+      address ctmDividend,
+      address ctmRWA1Factory
+    ) = deployCTMRWADeployer(
+      1,
+      1,
+      govAddr,
+      address(ctmRwa1X),
+      ctmRwa1Map,
+      c3callerProxyAddr,
+      txSender,
+      dappID4,
+      dappID5,
+      dappID6
+    );
 
-        ctmRwa001X.setFallback(address(ctmRwaFallback));
-        console.log("ctmRwaFallback address");
-        console.log(address(ctmRwaFallback));
+    console.log("ctmRWADeployer");
+    console.log(ctmDeployer);
+    console.log("CTM Storage Manager");
+    console.log(ctmStorage);
+    console.log("Dividend Factory");
+    console.log(ctmDividend);
+    console.log("Sentry Factory");
+    console.log(ctmSentry);
+    console.log("CTMRWA1Factory");
+    console.log(ctmRWA1Factory);
 
+    vm.stopBroadcast();
+  }
 
-        address ctmRwa001Map = deployMap();
+  function deployCTMRWADeployer(
+    uint256 _rwaType,
+    uint256 _version,
+    address _gov,
+    address _rwa1X,
+    address _ctmRwa1Map,
+    address _c3callerProxy,
+    address _txSender,
+    uint256 _dappIDDeployer,
+    uint256 _dappIDStorageManager,
+    uint256 _dappIDSentryManager
+  ) internal returns (address, address, address, address, address) {
+    ctmRwaDeployer = new CTMRWADeployer(
+      _gov,
+      address(gateway),
+      feeManagerAddr,
+      _rwa1X,
+      _ctmRwa1Map,
+      _c3callerProxy,
+      _txSender,
+      _dappIDDeployer
+    );
 
-        console.log("CTMRWAMap");
-        console.log(ctmRwa001Map);
+    ctmRwaDeployInvest =
+      new CTMRWADeployInvest(_ctmRwa1Map, address(ctmRwaDeployer), 0, feeManagerAddr);
 
+    ctmRwaErc20Deployer = new CTMRWAERC20Deployer(_ctmRwa1Map, feeManagerAddr);
 
-        (
-            address ctmDeployer, 
-            address ctmStorage,
-            address ctmSentry,
-            address ctmDividend, 
-            address ctmRWA001Factory
-        ) = deployCTMRWADeployer(
-            1,
-            1,
-            govAddr,
-            address(ctmRwa001X),
-            ctmRwa001Map,
-            c3callerProxyAddr,
-            txSender,
-            dappID4,
-            dappID5,
-            dappID6
-        );
+    ctmRwa1X.setCtmRwaDeployer(address(ctmRwaDeployer));
+    ctmRwa1X.setCtmRwaMap(_ctmRwa1Map);
 
-        console.log("ctmRWADeployer");
-        console.log(ctmDeployer);
-        console.log("CTM Storage Manager");
-        console.log(ctmStorage);
-        console.log("Dividend Factory");
-        console.log(ctmDividend);
-        console.log("Sentry Factory");
-        console.log(ctmSentry);
-        console.log("CTMRWA001Factory");
-        console.log(ctmRWA001Factory);
+    tokenFactory = new CTMRWA1TokenFactory(_ctmRwa1Map, address(ctmRwaDeployer));
 
-        vm.stopBroadcast();
-    }
+    ctmRwaDeployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
 
-    function deployCTMRWADeployer(
-        uint256 _rwaType,
-        uint256 _version,
-        address _gov,
-        address _rwa001X,
-        address _ctmRwa001Map,
-        address _c3callerProxy,
-        address _txSender,
-        uint256 _dappIDDeployer,
-        uint256 _dappIDStorageManager,
-        uint256 _dappIDSentryManager
-    ) internal returns(address, address, address, address, address) {
-        ctmRwaDeployer = new CTMRWADeployer(
-            _gov,
-            address(gateway),
-            feeManagerAddr,
-            _rwa001X,
-            _ctmRwa001Map,
-            _c3callerProxy,
-            _txSender,
-            _dappIDDeployer
-        );
+    ctmRwaDeployer.setDeployInvest(address(ctmRwaDeployInvest));
+    ctmRwaDeployer.setErc20DeployerAddress(address(ctmRwaErc20Deployer));
 
-        ctmRwaDeployInvest = new CTMRWADeployInvest(
-            _ctmRwa001Map,
-            address(ctmRwaDeployer),
-            0,
-            feeManagerAddr
-        );
+    storageManager = new CTMRWA1StorageManager(
+      _gov,
+      _rwaType,
+      _version,
+      _c3callerProxy,
+      _txSender,
+      _dappIDStorageManager,
+      address(ctmRwaDeployer),
+      address(gateway),
+      feeManagerAddr
+    );
 
-        ctmRwaErc20Deployer = new CTMRWAERC20Deployer(
-            _ctmRwa001Map,
-            feeManagerAddr
-        );
+    address storageManagerAddr = address(storageManager);
 
-        ctmRwa001X.setCtmRwaDeployer(address(ctmRwaDeployer));
-        ctmRwa001X.setCtmRwaMap(_ctmRwa001Map);
+    storageUtils = new CTMRWA1StorageUtils(_rwaType, _version, _ctmRwa1Map, storageManagerAddr);
 
-        tokenFactory = new CTMRWA001TokenFactory(_ctmRwa001Map, address(ctmRwaDeployer));
+    sentryManager = new CTMRWA1SentryManager(
+      _gov,
+      _rwaType,
+      _version,
+      _c3callerProxy,
+      _txSender,
+      _dappIDSentryManager,
+      address(ctmRwaDeployer),
+      address(gateway),
+      feeManagerAddr
+    );
 
-        ctmRwaDeployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
+    address sentryManagerAddr = address(sentryManager);
 
-        ctmRwaDeployer.setDeployInvest(address(ctmRwaDeployInvest));
-        ctmRwaDeployer.setErc20DeployerAddress(address(ctmRwaErc20Deployer));
+    sentryUtils = new CTMRWA1SentryUtils(_rwaType, _version, _ctmRwa1Map, sentryManagerAddr);
 
-        storageManager = new CTMRWA001StorageManager(
-            _gov,
-            _rwaType,
-            _version,
-            _c3callerProxy,
-            _txSender,
-            _dappIDStorageManager,
-            address(ctmRwaDeployer),
-            address(gateway),
-            feeManagerAddr
-        );
+    dividendFactory = new CTMRWA1DividendFactory(address(ctmRwaDeployer));
 
-        address storageManagerAddr = address(storageManager);
+    storageManager.setStorageUtils(address(storageUtils));
+    storageManager.setCtmRwaDeployer(address(ctmRwaDeployer));
+    storageManager.setCtmRwaMap(_ctmRwa1Map);
 
-        storageUtils = new CTMRWA001StorageUtils(
-            _rwaType,
-            _version,
-            _ctmRwa001Map,
-            storageManagerAddr
-        );
+    sentryManager.setSentryUtils(address(sentryUtils));
+    sentryManager.setCtmRwaDeployer(address(ctmRwaDeployer));
+    sentryManager.setCtmRwaMap(_ctmRwa1Map);
 
+    ctmRwaDeployer.setStorageFactory(_rwaType, _version, address(storageManager));
+    ctmRwaDeployer.setSentryFactory(_rwaType, _version, address(sentryManager));
+    ctmRwaDeployer.setDividendFactory(_rwaType, _version, address(dividendFactory));
 
-        sentryManager = new CTMRWA001SentryManager(
-            _gov,
-            _rwaType,
-            _version,
-            _c3callerProxy,
-            _txSender,
-            _dappIDSentryManager,
-            address(ctmRwaDeployer),
-            address(gateway),
-            feeManagerAddr
-        );
+    return (
+      address(ctmRwaDeployer),
+      address(storageManager),
+      address(sentryManager),
+      address(dividendFactory),
+      address(tokenFactory)
+    );
+  }
 
-        address sentryManagerAddr = address(sentryManager);
+  function deployMap() internal returns (address) {
+    ctmRwaMap = new CTMRWAMap(address(gateway), address(ctmRwa1X));
 
-        sentryUtils = new CTMRWA001SentryUtils(
-            _rwaType,
-            _version,
-            _ctmRwa001Map,
-            sentryManagerAddr
-        );
-
-        dividendFactory = new CTMRWA001DividendFactory(address(ctmRwaDeployer));
-
-        storageManager.setStorageUtils(address(storageUtils));
-        storageManager.setCtmRwaDeployer(address(ctmRwaDeployer));
-        storageManager.setCtmRwaMap(_ctmRwa001Map);
-        
-        sentryManager.setSentryUtils(address(sentryUtils));
-        sentryManager.setCtmRwaDeployer(address(ctmRwaDeployer));
-        sentryManager.setCtmRwaMap(_ctmRwa001Map);
-
-        ctmRwaDeployer.setStorageFactory(_rwaType, _version, address(storageManager));
-        ctmRwaDeployer.setSentryFactory(_rwaType, _version, address(sentryManager));
-        ctmRwaDeployer.setDividendFactory(_rwaType, _version, address(dividendFactory));
-
-        return(address(ctmRwaDeployer), address(storageManager), address(sentryManager), address(dividendFactory), address(tokenFactory));
-    }
-
-    function deployMap() internal returns(address) {
-
-        ctmRwaMap = new CTMRWAMap(
-            address(gateway),
-            address(ctmRwa001X)
-        );
-
-        return(address(ctmRwaMap));
-    }
-    
+    return (address(ctmRwaMap));
+  }
 }

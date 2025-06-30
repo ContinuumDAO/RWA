@@ -315,7 +315,7 @@ contract DappConfig is Script {
             if(dappID == 61) {  // FeeManager
                 thisAddress = newchains[i].feeManager;
                 wList = _stringToArray(newchains[i].feeManager.toHexString());
-            } else if(dappID == 62) {  // CTMRWA001X
+            } else if(dappID == 62) {  // CTMRWA1X
                 thisAddress = newchains[i].rwaX;
                 wList = _stringToArray(newchains[i].rwaX.toHexString());
             } else if(dappID == 63) {  // CTMRWADeployer
@@ -324,10 +324,10 @@ contract DappConfig is Script {
             } else if(dappID == 60) {  // CTMRWAGateway
                 thisAddress = newchains[i].gateway;
                 wList = _stringToArray(newchains[i].gateway.toHexString());
-            } else if(dappID == 64) {  // CTMRWA001Storage
+            } else if(dappID == 64) {  // CTMRWA1Storage
                 thisAddress = newchains[i].storageManager;
                 wList = _stringToArray(newchains[i].storageManager.toHexString());
-            } else if(dappID == 65) {  // CTMRWA001Sentry
+            } else if(dappID == 65) {  // CTMRWA1Sentry
                 thisAddress = newchains[i].sentryManager;
                 wList = _stringToArray(newchains[i].sentryManager.toHexString());
             }
@@ -393,15 +393,15 @@ contract DappConfig is Script {
 
         if(dappID == 61) {  // FeeManager
             wList.push(newchains[indx].feeManager.toHexString());
-        } else if(dappID == 62) {  // CTMRWA001X
+        } else if(dappID == 62) {  // CTMRWA1X
             wList.push(newchains[indx].rwaX.toHexString());
         } else if(dappID == 63) {  // CTMRWADeployer
             wList.push(newchains[indx].deployer.toHexString());
         } else if(dappID == 60) {  // CTMRWAGateway
             wList.push(newchains[indx].gateway.toHexString());
-        } else if(dappID == 64) {  // CTMRWA001Storage
+        } else if(dappID == 64) {  // CTMRWA1Storage
             wList.push(newchains[indx].storageManager.toHexString());
-        } else if(dappID == 65) {  // CTMRWA001Sentry
+        } else if(dappID == 65) {  // CTMRWA1Sentry
             wList.push(newchains[indx].sentryManager.toHexString());
         }
 
