@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.19;
 
-import {URICategory, URIType} from "./ICTMRWA001Storage.sol";
+import {URICategory, URIType} from "./ICTMRWA1Storage.sol";
 
-interface ICTMRWA001StorageManager {
+interface ICTMRWA1StorageManager {
 
     function ctmRwaDeployer() external returns(address);
-    function ctmRwa001Map() external returns(address);
+    function ctmRwa1Map() external returns(address);
     function utilsAddr() external returns(address);
 
     function setGateway(address gateway) external;

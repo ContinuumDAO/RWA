@@ -10,11 +10,11 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
-import {ICTMRWA001X} from "./interfaces/ICTMRWA001X.sol";
+import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
+import {ICTMRWA1X} from "./interfaces/ICTMRWA1X.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {ICTMRWA001Dividend} from "./interfaces/ICTMRWA001Dividend.sol";
-import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
+import {ICTMRWA1Dividend} from "./interfaces/ICTMRWA1Dividend.sol";
+import {ICTMRWA1Sentry} from "./interfaces/ICTMRWA1Sentry.sol";
 import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
 
 import {Offering, Holding} from "./interfaces/ICTMRWADeployInvest.sol";
@@ -88,7 +88,7 @@ contract CTMRWADeployInvest is Context {
 
         bytes32 salt = keccak256(abi.encode(_ID, _rwaType, _version));
 
-        CTMRWA001InvestWithTimeLock newInvest = new CTMRWA001InvestWithTimeLock {
+        CTMRWA1InvestWithTimeLock newInvest = new CTMRWA1InvestWithTimeLock {
             salt: salt
         }(
             _ID,
@@ -135,14 +135,14 @@ contract CTMRWADeployInvest is Context {
 
 
 
-contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
+contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
     using Strings for *;
     using SafeERC20 for IERC20;
 
     /// @dev Unique ID of the CTMRWA token contract
     uint256 public ID;
 
-    /// @dev rwaType is the RWA type defining CTMRWA001
+    /// @dev rwaType is the RWA type defining CTMRWA1
     uint256 public rwaType;
 
     /// @dev version is the single integer version of this RWA type
@@ -160,7 +160,7 @@ contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
     /// @dev The token contract address corresponding to this ID
     address ctmRwaToken;
 
-    /// @dev the decimals of the CTMRWA001
+    /// @dev the decimals of the CTMRWA1
     uint8 decimalsRwa;
 
     /// @dev The Dividend contract address corresponding to this ID
@@ -169,14 +169,14 @@ contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
     /// @dev The Sentry contract address corresponding to this ID
     address public ctmRwaSentry;
 
-    /** @dev ctmRwa001X is the single contract on each chain responsible for 
-     *   Initiating deployment of an CTMRWA001 and its components
+    /** @dev ctmRwa1X is the single contract on each chain responsible for 
+     *   Initiating deployment of an CTMRWA1 and its components
      *   Changing the tokenAdmin
      *   Defining Asset Classes (slots)
      *   Minting new value to slots
-     *   Transfering value cross-chain via other ctmRwa001X contracts on other chains
+     *   Transfering value cross-chain via other ctmRwa1X contracts on other chains
      */
-    address public ctmRwa001X; 
+    address public ctmRwa1X; 
 
     /// @dev Address of the CTMRWAMap contract
     address public ctmRwaMap;
@@ -233,17 +233,17 @@ contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
         bool ok;
 
         (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, rwaType, version);
-        require(ok, "CTMInvest: There is no CTMRWA001 contract backing this ID");
+        require(ok, "CTMInvest: There is no CTMRWA1 contract backing this ID");
 
-        decimalsRwa = ICTMRWA001(ctmRwaToken).valueDecimals();
+        decimalsRwa = ICTMRWA1(ctmRwaToken).valueDecimals();
 
         (ok, ctmRwaDividend) = ICTMRWAMap(ctmRwaMap).getDividendContract(ID, rwaType, version);
-        require(ok, "CTMInvest: There is no CTMRWA001Dividend contract backing this ID");
+        require(ok, "CTMInvest: There is no CTMRWA1Dividend contract backing this ID");
 
         (ok, ctmRwaSentry) = ICTMRWAMap(ctmRwaMap).getSentryContract(ID, rwaType, version);
-        require(ok, "CTMInvest: There is no CTMRWA001Sentry contract backing this ID");
+        require(ok, "CTMInvest: There is no CTMRWA1Sentry contract backing this ID");
 
-        ctmRwa001X = ICTMRWA001(ctmRwaToken).ctmRwa001X();
+        ctmRwa1X = ICTMRWA1(ctmRwaToken).ctmRwa1X();
 
         cIDStr = block.chainid.toString();
 
@@ -285,13 +285,13 @@ contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
         address _feeToken
     ) public onlyTokenAdmin(ctmRwaToken) {
 
-        require(ICTMRWA001(ctmRwaToken).requireMinted(_tokenId), "CTMInvest: Token does not exist");
+        require(ICTMRWA1(ctmRwaToken).requireMinted(_tokenId), "CTMInvest: Token does not exist");
         require(offerings.length < MAX_OFFERINGS, "CTMInvest: Max offerings reached");
         require(bytes(_regulatorCountry).length <= 2, "CTMInvest: not 2 digit country code");
         require(bytes(_offeringType).length <= 128, "CTMInvest: offering Type length > 128");
 
-        uint256 offer = ICTMRWA001(ctmRwaToken).balanceOf(_tokenId);
-        uint256 slot = ICTMRWA001(ctmRwaToken).slotOf(_tokenId);
+        uint256 offer = ICTMRWA1(ctmRwaToken).balanceOf(_tokenId);
+        uint256 slot = ICTMRWA1(ctmRwaToken).slotOf(_tokenId);
 
         require(_minInvestment <= offer*_price/10**decimalsRwa, "CTMInvest: minInvestment too high");
         require(_maxInvestment > _minInvestment, "CTMInvest: minInvestment>maxInvestment");
@@ -299,7 +299,7 @@ contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
 
         _payFee(FeeType.OFFERING, _feeToken);
 
-        ICTMRWA001X(ctmRwa001X).transferWholeTokenX(
+        ICTMRWA1X(ctmRwa1X).transferWholeTokenX(
             tokenAdmin.toHexString(), 
             address(this).toHexString(), 
             cIDStr, 
@@ -355,7 +355,7 @@ contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
         }
         require(offerings[_indx].balRemaining >= _investment, "CTMInvest: Investment > balance left");
 
-        bool permitted = ICTMRWA001Sentry(ctmRwaSentry).isAllowableTransfer(_msgSender().toHexString());
+        bool permitted = ICTMRWA1Sentry(ctmRwaSentry).isAllowableTransfer(_msgSender().toHexString());
         require(permitted, "CTMInvest: Not whitelisted");
 
         uint256 tokenId = offerings[_indx].tokenId;
@@ -370,7 +370,7 @@ contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
         IERC20(currency).transferFrom(_msgSender(), address(this), _investment);
         offerings[_indx].investment += _investment;
 
-        uint256 newTokenId = ICTMRWA001X(ctmRwa001X).transferPartialTokenX(
+        uint256 newTokenId = ICTMRWA1X(ctmRwa1X).transferPartialTokenX(
             tokenId, 
             address(this).toHexString(), 
             cIDStr, 
@@ -437,14 +437,14 @@ contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
         Holding memory thisHolding = holdingsByAddress[_msgSender()][_myIndx];
 
         uint256 tokenId = thisHolding.tokenId;
-        address owner = ICTMRWA001(ctmRwaToken).ownerOf(tokenId);
+        address owner = ICTMRWA1(ctmRwaToken).ownerOf(tokenId);
 
         if(owner == address(this)) {
             require(block.timestamp >= thisHolding.escrowTime, "CTMInvest: tokenId is still locked");
 
-            ICTMRWA001Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
+            ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
 
-            ICTMRWA001X(ctmRwa001X).transferWholeTokenX( 
+            ICTMRWA1X(ctmRwa1X).transferWholeTokenX( 
                 address(this).toHexString(),
                 _msgSender().toHexString(),
                 cIDStr, 
@@ -468,23 +468,23 @@ contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
         Holding memory thisHolding = holdingsByAddress[_msgSender()][_myIndx];
 
         uint256 tokenId = thisHolding.tokenId;
-        address owner = ICTMRWA001(ctmRwaToken).ownerOf(tokenId);
+        address owner = ICTMRWA1(ctmRwaToken).ownerOf(tokenId);
 
-        uint256 unclaimed = ICTMRWA001Dividend(ctmRwaDividend).dividendByTokenId(tokenId);
+        uint256 unclaimed = ICTMRWA1Dividend(ctmRwaDividend).dividendByTokenId(tokenId);
 
         if(owner == address(this)) {
             if(unclaimed == 0) {
                 return 0;
             }
 
-            if(ICTMRWA001Dividend(ctmRwaDividend).unclaimedDividend(address(this)) > 0) {
-                ICTMRWA001Dividend(ctmRwaDividend).claimDividend();
+            if(ICTMRWA1Dividend(ctmRwaDividend).unclaimedDividend(address(this)) > 0) {
+                ICTMRWA1Dividend(ctmRwaDividend).claimDividend();
             }
 
-            address dividendToken = ICTMRWA001Dividend(ctmRwaDividend).dividendToken();
+            address dividendToken = ICTMRWA1Dividend(ctmRwaDividend).dividendToken();
 
             require(IERC20(dividendToken).balanceOf(address(this)) >= unclaimed, "CTMInvest: insufficient dividend to payout");
-            ICTMRWA001Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
+            ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
             IERC20(dividendToken).transfer(_msgSender(), unclaimed);
 
             emit ClaimDividendInEscrow(ID, _msgSender(), unclaimed);
@@ -529,7 +529,7 @@ contract CTMRWA001InvestWithTimeLock is ReentrancyGuard, Context {
     }
 
     function _checkTokenAdmin(address _ctmRwaToken) internal {
-        tokenAdmin = ICTMRWA001(_ctmRwaToken).tokenAdmin();
+        tokenAdmin = ICTMRWA1(_ctmRwaToken).tokenAdmin();
         require(_msgSender() == tokenAdmin, "CTMInvest: Not tokenAdmin");
     }
 

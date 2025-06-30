@@ -38,13 +38,13 @@ struct URIData {
     uint256 timeStamp;
 }
 
-interface ICTMRWA001Storage {
+interface ICTMRWA1Storage {
     function ID() external returns(uint256);
     function regulatorWallet() external returns(address);
     function nonce() external returns(uint256);
     function tokenAdmin() external returns(address);
-    function ctmRwa001X() external returns(address);
-    function ctmRwa001Map() external returns(address);
+    function ctmRwa1X() external returns(address);
+    function ctmRwa1Map() external returns(address);
     function storageManagerAddr() external returns(address);
     function uriData() external returns(URIData[] memory);
     function popURILocal(uint256 toPop) external;

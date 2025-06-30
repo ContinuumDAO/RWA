@@ -14,34 +14,34 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
 import {ICTMRWAGateway} from "./interfaces/ICTMRWAGateway.sol";
-import {ICTMRWA001, SlotData, TokenContract, ITokenContract} from "./interfaces/ICTMRWA001.sol";
+import {ICTMRWA1, SlotData, TokenContract, ITokenContract} from "./interfaces/ICTMRWA1.sol";
 import {ICTMRWADeployer} from "./interfaces/ICTMRWADeployer.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {URICategory, URIType, ICTMRWA001Storage} from "./interfaces/ICTMRWA001Storage.sol";
-import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
-import {ICTMRWA001XFallback} from "./interfaces/ICTMRWA001XFallback.sol";
-import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
+import {URICategory, URIType, ICTMRWA1Storage} from "./interfaces/ICTMRWA1Storage.sol";
+import {ICTMRWA1Sentry} from "./interfaces/ICTMRWA1Sentry.sol";
+import {ICTMRWA1XFallback} from "./interfaces/ICTMRWA1XFallback.sol";
+import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
  * @author @Selqui ContinuumDAO
  *
- * @notice This contract manages the basic cross-chain deployment of CTMRWA001
+ * @notice This contract manages the basic cross-chain deployment of CTMRWA1
  * as well as the creation of Asset Classes (slots), minting value on local chains,
  * changing tokenAdmin (Issuer), transferring value cross-chain.
  *
- * This contract is only deployed ONCE on each chain and manages all CTMRWA001 contract interactions
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
 
 
-contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
+contract CTMRWA1X is ReentrancyGuard, Context, GovernDapp {
     using Strings for *;
     using SafeERC20 for IERC20;
 
     /// @dev The address of the CTMRWAGateway contract
     address public gateway;
 
-    /// @dev rwaType is the RWA type defining CTMRWA001
+    /// @dev rwaType is the RWA type defining CTMRWA1
     uint256 rwaType;
 
     /// @dev version is the single integer version of this RWA type
@@ -54,9 +54,9 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
     address public ctmRwaDeployer;
 
     /// @dev The address of the CTMRWAMap contract
-    address public ctmRwa001Map;
+    address public ctmRwa1Map;
 
-    /// @dev The address of the CTMRWA001XFallback contract
+    /// @dev The address of the CTMRWA1XFallback contract
     address public fallbackAddr;
 
     /// @dev string representation of the chainID
@@ -65,20 +65,20 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
     /// @dev Addresses of routers, including ContinuumDAO, permitted to bridge tokens cross-chain
     mapping(address => bool) public isMinter;
 
-    /// @dev tokenAdmin address => array of CTMRWA001 contracts. List of contracts controlled by each tokenAdmin
+    /// @dev tokenAdmin address => array of CTMRWA1 contracts. List of contracts controlled by each tokenAdmin
     mapping(address => address[]) public adminTokens;
 
     /**
-     * @dev owner address => array of CTMRWA001 contracts.
-     * List of CTMRWA001 contracts that an owner address has one or more tokenIds
+     * @dev owner address => array of CTMRWA1 contracts.
+     * List of CTMRWA1 contracts that an owner address has one or more tokenIds
      */
-    mapping(address => address[]) public ownedCtmRwa001;
+    mapping(address => address[]) public ownedCtmRwa1;
 
-    /// @dev New c3call for CTMRWA001 deployment on destination chain toChainIdStr
-    event DeployCTMRWA001(uint256 ID, string toChainIdStr);
+    /// @dev New c3call for CTMRWA1 deployment on destination chain toChainIdStr
+    event DeployCTMRWA1(uint256 ID, string toChainIdStr);
 
-    /// @dev New CTMRWA001 deployed on the local chain
-    event CreateNewCTMRWA001(uint256 ID);
+    /// @dev New CTMRWA1 deployed on the local chain
+    event CreateNewCTMRWA1(uint256 ID);
 
     /// @dev New c3call to create a new Asset Class (slot) on chain toChainIdStr
     event CreateSlot(uint256 ID, uint256 slot, string toChainIdStr);
@@ -149,8 +149,8 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
      */
     function setCtmRwaMap(address _map) external onlyGov {
         require(ctmRwaDeployer != address(0), "RWAX: address ctmRwaDeployer is zero");
-        ctmRwa001Map = _map;
-        ICTMRWAMap(ctmRwa001Map).setCtmRwaDeployer(ctmRwaDeployer, gateway, address(this));
+        ctmRwa1Map = _map;
+        ICTMRWAMap(ctmRwa1Map).setCtmRwaDeployer(ctmRwaDeployer, gateway, address(this));
     }
 
     /**
@@ -162,8 +162,8 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
     }
 
     /**
-     * @notice Governance can change to a new CTMRWA001Fallback contract
-     * @param _fallbackAddr address of the new CTMRWA001Fallback contract
+     * @notice Governance can change to a new CTMRWA1Fallback contract
+     * @param _fallbackAddr address of the new CTMRWA1Fallback contract
      */
     function setFallback(address _fallbackAddr) external onlyGov {
         // require(_fallbackAddr != address(this) && _fallbackAddr != address(0), "RWAX: Invalid fallBackAddr");
@@ -174,14 +174,14 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
 
     /**
      * @notice Deploy, or extend the deployment of an RWA.
-     * If _includeLocal is TRUE, a new CTMRWA001 is deployed on the local chain and optionally on other chains.
+     * If _includeLocal is TRUE, a new CTMRWA1 is deployed on the local chain and optionally on other chains.
      * If _includeLocal is FALSE, an EXISTING RWA on the local chain with ID is extended from the 
      * local chain to other chains.
      * NOTE A RWA can only be extended to other chains if it already exists on the locally connected chain.
      * @param _includeLocal If set, a new RWA is created. If not set, an existing one is expanded to other chains.
      * @param _existingID Set to ZERO to create a new RWA, or set to an existing ID to extend it.
      * @dev A user cannot determine the ID for a new RWA. It is effectively random (keccak256)
-     * @param _rwaType Type of RWA. For CTMRWA001, set to 1 etc.
+     * @param _rwaType Type of RWA. For CTMRWA1, set to 1 etc.
      * @param _version Version of this RWA. The current version is 1
      * @param _tokenName The name of the RWA. The name must be between 10 and 512 characters
      * @param _symbol The symbol name for the RWA. 
@@ -200,7 +200,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * NOTE For EVM chains, the address of the fee token must be converted to a string
      */
-    function deployAllCTMRWA001X(
+    function deployAllCTMRWA1X(
         bool _includeLocal,
         uint256 _existingID,
         uint256 _rwaType,
@@ -219,8 +219,8 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         }
         uint256 nChains = _toChainIdsStr.length;
 
-        string memory ctmRwa001AddrStr;
-        address ctmRwa001Addr;
+        string memory ctmRwa1AddrStr;
+        address ctmRwa1Addr;
         address currentAdmin;
         uint256 ID;
         string memory tokenName;
@@ -248,7 +248,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
             baseURI = _baseURI;
 
             currentAdmin = _msgSender();
-            ctmRwa001Addr = _deployCTMRWA001Local(
+            ctmRwa1Addr = _deployCTMRWA1Local(
                 ID, 
                 _tokenName, 
                 _symbol, 
@@ -260,34 +260,34 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
             );
             
 
-            emit CreateNewCTMRWA001(ID);
-        } else {  // a CTMRWA001 token must be deployed already, so use the existing ID
+            emit CreateNewCTMRWA1(ID);
+        } else {  // a CTMRWA1 token must be deployed already, so use the existing ID
             ID = _existingID;
-            (bool ok, address rwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(ID, _rwaType, _version);
+            (bool ok, address rwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(ID, _rwaType, _version);
             require(ok, "RWAX: The token is not on this chain");
-            ctmRwa001Addr = rwa001Addr;
+            ctmRwa1Addr = rwa1Addr;
 
-            _checkTokenAdmin(ctmRwa001Addr);
+            _checkTokenAdmin(ctmRwa1Addr);
 
-            (, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(ID, _rwaType, _version);
-            bool whitelist = ICTMRWA001Sentry(sentryAddr).whitelistSwitch();
-            bool kyc = ICTMRWA001Sentry(sentryAddr).kycSwitch();
+            (, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(ID, _rwaType, _version);
+            bool whitelist = ICTMRWA1Sentry(sentryAddr).whitelistSwitch();
+            bool kyc = ICTMRWA1Sentry(sentryAddr).kycSwitch();
             require((!whitelist && !kyc), "RWAX: Whitelist or kyc set No new chains");
 
-            tokenName = ICTMRWA001(ctmRwa001Addr).name();
-            symbol = ICTMRWA001(ctmRwa001Addr).symbol();
-            decimals = ICTMRWA001(ctmRwa001Addr).valueDecimals();
-            baseURI = ICTMRWA001(ctmRwa001Addr).baseURI();
+            tokenName = ICTMRWA1(ctmRwa1Addr).name();
+            symbol = ICTMRWA1(ctmRwa1Addr).symbol();
+            decimals = ICTMRWA1(ctmRwa1Addr).valueDecimals();
+            baseURI = ICTMRWA1(ctmRwa1Addr).baseURI();
 
-            (slotNumbers, slotNames) = ICTMRWA001(ctmRwa001Addr).getAllSlots();
+            (slotNumbers, slotNames) = ICTMRWA1(ctmRwa1Addr).getAllSlots();
         }
 
-        ctmRwa001AddrStr = _toLower(ctmRwa001Addr.toHexString());
+        ctmRwa1AddrStr = _toLower(ctmRwa1Addr.toHexString());
 
         _payFee(FeeType.DEPLOY, _feeTokenStr, _toChainIdsStr, _includeLocal);
 
         for(uint256 i=0; i<nChains; i++){
-            _deployCTMRWA001X(
+            _deployCTMRWA1X(
                 tokenName, 
                 symbol,
                 decimals, 
@@ -295,7 +295,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
                 _toChainIdsStr[i],
                 slotNumbers,
                 slotNames,
-                ctmRwa001AddrStr
+                ctmRwa1AddrStr
             );
         }
 
@@ -304,9 +304,9 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
     }
 
     /**
-     * @dev This function deploys a new RWA on the local chain. It is called ONLY by deployCTMRWA001
+     * @dev This function deploys a new RWA on the local chain. It is called ONLY by deployCTMRWA1
      */
-    function _deployCTMRWA001Local(
+    function _deployCTMRWA1Local(
         uint256 _ID,
         string memory _tokenName, 
         string memory _symbol, 
@@ -316,7 +316,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         string[] memory _slotNames,
         address _tokenAdmin
     ) internal returns(address) {
-        (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+        (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(!ok, "RWAX: ID already exists");
 
         bytes memory deployData = abi.encode(
@@ -331,32 +331,32 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
             address(this)
         );
 
-        address ctmRwa001Token = ICTMRWADeployer(ctmRwaDeployer).deploy(
+        address ctmRwa1Token = ICTMRWADeployer(ctmRwaDeployer).deploy(
             _ID,
             rwaType,
             version,
             deployData
         );
 
-        ICTMRWA001(ctmRwa001Token).changeAdmin(_tokenAdmin);
+        ICTMRWA1(ctmRwa1Token).changeAdmin(_tokenAdmin);
 
-        ok = ICTMRWA001(ctmRwa001Token).attachId(_ID, _tokenAdmin);
+        ok = ICTMRWA1(ctmRwa1Token).attachId(_ID, _tokenAdmin);
         require(ok, "RWAX: Could not attachId");
 
-        adminTokens[_tokenAdmin].push(ctmRwa001Token);
+        adminTokens[_tokenAdmin].push(ctmRwa1Token);
 
-        emit CreateNewCTMRWA001(_ID);
+        emit CreateNewCTMRWA1(_ID);
 
-        return(ctmRwa001Token);
+        return(ctmRwa1Token);
     }
 
 
     /**
-     * Deploys a new CTMRWA001 instance on a destination chain, recovering the ID from
-     * a required local instance of CTMRWA001, owned by tokenAdmin.
-     * NOTE This function is ONLY called by deployAllCTMRWA001X
+     * Deploys a new CTMRWA1 instance on a destination chain, recovering the ID from
+     * a required local instance of CTMRWA1, owned by tokenAdmin.
+     * NOTE This function is ONLY called by deployAllCTMRWA1X
      */ 
-    function _deployCTMRWA001X(
+    function _deployCTMRWA1X(
         string memory _tokenName, 
         string memory _symbol, 
         uint8 _decimals,
@@ -364,20 +364,20 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         string memory _toChainIdStr,
         uint256[] memory _slotNumbers,
         string[] memory _slotNames,
-        string memory _ctmRwa001AddrStr
+        string memory _ctmRwa1AddrStr
     ) internal returns (bool) {
         require(!stringsEqual(_toChainIdStr, cID().toString()), "RWAX: Not cross-chain");
-        address ctmRwa001Addr = stringToAddress(_ctmRwa001AddrStr);
+        address ctmRwa1Addr = stringToAddress(_ctmRwa1AddrStr);
 
-        (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
+        (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa1Addr);
 
-        uint256 ID = ICTMRWA001(ctmRwa001Addr).ID();
+        uint256 ID = ICTMRWA1(ctmRwa1Addr).ID();
 
         string memory toChainIdStr = _toLower(_toChainIdStr);
 
         (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
 
-        string memory funcCall = "deployCTMRWA001(string,uint256,string,string,uint8,string,uint256[],string[])";
+        string memory funcCall = "deployCTMRWA1(string,uint256,string,string,uint8,string,uint256[],string[])";
         bytes memory callData = abi.encodeWithSignature(
             funcCall,
             currentAdminStr,
@@ -392,18 +392,18 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
 
         c3call(toRwaXStr, toChainIdStr, callData);
 
-        emit DeployCTMRWA001(ID, toChainIdStr);
+        emit DeployCTMRWA1(ID, toChainIdStr);
 
         return(true);
         
     }
 
     /**
-     * @dev Deploys a new CTMRWA001 instance on a destination chain, with the ID sent from a required
-     * local instance of CTMRWA001 on the source chain, owned by tokenAdmin.
+     * @dev Deploys a new CTMRWA1 instance on a destination chain, with the ID sent from a required
+     * local instance of CTMRWA1 on the source chain, owned by tokenAdmin.
      * NOTE This function is ONLY called by the MPC network.
      */
-    function deployCTMRWA001(
+    function deployCTMRWA1(
         string memory _newAdminStr,
         uint256 _ID,
         string memory _tokenName, 
@@ -414,12 +414,12 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         string[] memory _slotNames
     ) external onlyCaller returns(bool) { 
 
-        (bool ok,) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+        (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(!ok, "RWAX: ID already exists");
 
         address newAdmin = stringToAddress(_newAdminStr);
 
-        _deployCTMRWA001Local(
+        _deployCTMRWA1Local(
             _ID, 
             _tokenName, 
             _symbol, 
@@ -435,29 +435,29 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
 
     /**
      * @dev Change the tokenAdmin (Issuer) on the local chain for an RWA with _ID
-     * NOTE The tokenAdmin is also changed in the linked contracts CTMRWA001Storage and CTMRWA001Sentry 
+     * NOTE The tokenAdmin is also changed in the linked contracts CTMRWA1Storage and CTMRWA1Sentry 
      */
     function _changeAdmin(address _currentAdmin, address _newAdmin, uint256 _ID) internal returns(bool) {
 
-        (address ctmRwa001Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
 
-        ICTMRWA001(ctmRwa001Addr).changeAdmin(_newAdmin);
-        (, address ctmRwa001StorageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
-        ICTMRWA001Storage(ctmRwa001StorageAddr).setTokenAdmin(_newAdmin);
+        ICTMRWA1(ctmRwa1Addr).changeAdmin(_newAdmin);
+        (, address ctmRwa1StorageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, rwaType, version);
+        ICTMRWA1Storage(ctmRwa1StorageAddr).setTokenAdmin(_newAdmin);
         
-        (, address ctmRwa001SentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, rwaType, version);
+        (, address ctmRwa1SentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, rwaType, version);
        
-        ICTMRWA001Sentry(ctmRwa001SentryAddr).setTokenAdmin(_newAdmin);
+        ICTMRWA1Sentry(ctmRwa1SentryAddr).setTokenAdmin(_newAdmin);
 
-        ICTMRWA001(ctmRwa001Addr).changeAdmin(_newAdmin);
+        ICTMRWA1(ctmRwa1Addr).changeAdmin(_newAdmin);
 
-        swapAdminAddress(_currentAdmin, _newAdmin, ctmRwa001Addr);
+        swapAdminAddress(_currentAdmin, _newAdmin, ctmRwa1Addr);
         return(true);
 
     }
 
     /**
-     * @notice Change the tokenAdmin address of a deployed CTMRWA001. Only the current tokenAdmin can call.
+     * @notice Change the tokenAdmin address of a deployed CTMRWA1. Only the current tokenAdmin can call.
      * @param _newAdminStr The new tokenAdmin. NOTE This is a string, not an address.
      * @param _toChainIdsStr An array of chainID strings for which to change to tokenAdmin address.
      * NOTE This INCLUDES the local chain
@@ -478,8 +478,8 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         string memory funcCall;
         bytes memory callData;
         
-        (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
-        (address currentAdmin, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa001Addr);
+        (address ctmRwa1Addr, ) = _getTokenAddr(_ID);
+        (address currentAdmin, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa1Addr);
         address newAdmin = stringToAddress(_newAdminStr);
 
         bool includeLocal = false;
@@ -520,7 +520,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         string memory _newAdminStr
     ) external onlyCaller returns(bool) {
         
-        (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(ok, "RWAX: Destination ID does not exist");
 
         address newAdmin = stringToAddress(_newAdminStr);
@@ -528,7 +528,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         (, string memory fromChainIdStr,) = context();
         fromChainIdStr = _toLower(fromChainIdStr);
 
-        address currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
+        address currentAdmin = ICTMRWA1(ctmRwa1Addr).tokenAdmin();
         address oldAdmin = stringToAddress(_oldAdminStr);
         require(currentAdmin == oldAdmin, "RWAX: Not admin or token is locked");
 
@@ -545,7 +545,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
      * @param _toAddress Address to mint new value for
      * @param _toTokenId The tokenId to add the new value to. If set to 0, create a new tokenId
      * @param _slot The Asset Class (slot) for which to mint value.
-     * @param _value The fungible value to create. This is in wei if CTMRWA001().valueDecimals() == 18
+     * @param _value The fungible value to create. This is in wei if CTMRWA1().valueDecimals() == 18
      * @param _ID The ID to create new value in
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
@@ -561,22 +561,22 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         string memory _feeTokenStr
     ) public returns(uint256) {
 
-        (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
-        _checkTokenAdmin(ctmRwa001Addr);
+        (address ctmRwa1Addr, ) = _getTokenAddr(_ID);
+        _checkTokenAdmin(ctmRwa1Addr);
 
         _payFee(FeeType.MINT, _feeTokenStr, _stringToArray(cIDStr), false);
 
         if(_toTokenId>0) {
-            ICTMRWA001(ctmRwa001Addr).mintValueX(_toTokenId, _slot, _value);
+            ICTMRWA1(ctmRwa1Addr).mintValueX(_toTokenId, _slot, _value);
             return(_toTokenId);
         } else {
-            bool slotExists = ICTMRWA001(ctmRwa001Addr).slotExists(_slot);
+            bool slotExists = ICTMRWA1(ctmRwa1Addr).slotExists(_slot);
             require(slotExists, "RWAX: Slot not exist");
-            string memory thisSlotName = ICTMRWA001(ctmRwa001Addr).slotName(_slot);
+            string memory thisSlotName = ICTMRWA1(ctmRwa1Addr).slotName(_slot);
            
-            uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).mintFromX(_toAddress, _slot, thisSlotName, _value);
-            address owner = ICTMRWA001(ctmRwa001Addr).ownerOf(newTokenId);
-            _updateOwnedCtmRwa001(owner, ctmRwa001Addr);
+            uint256 newTokenId = ICTMRWA1(ctmRwa1Addr).mintFromX(_toAddress, _slot, thisSlotName, _value);
+            address owner = ICTMRWA1(ctmRwa1Addr).ownerOf(newTokenId);
+            _updateOwnedCtmRwa1(owner, ctmRwa1Addr);
 
             return(newTokenId);
         }
@@ -602,10 +602,10 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         string memory _feeTokenStr
     ) public returns(bool) {
         require(bytes(_slotName).length <= 256, "RWAX: Slot > 256");
-        (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
-        require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "RWAX: Slot that already exists");
+        (address ctmRwa1Addr, ) = _getTokenAddr(_ID);
+        require(!ICTMRWA1(ctmRwa1Addr).slotExists(_slot), "RWAX: Slot that already exists");
         
-        _checkTokenAdmin(ctmRwa001Addr);
+        _checkTokenAdmin(ctmRwa1Addr);
 
         string memory toChainIdStr;
         string memory toRwaXStr;
@@ -634,7 +634,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
             }
         }
 
-        ICTMRWA001(ctmRwa001Addr).createSlotX(_slot, _slotName);
+        ICTMRWA1(ctmRwa1Addr).createSlotX(_slot, _slotName);
 
         return(true);
     }
@@ -650,18 +650,18 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         uint256 _slot,
         string memory _slotName
     ) external onlyCaller returns(bool) {
-        (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(ok, "RWAX: ID does not exist");
-        require(!ICTMRWA001(ctmRwa001Addr).slotExists(_slot), "RWAX: Slot that already exists");
+        require(!ICTMRWA1(ctmRwa1Addr).slotExists(_slot), "RWAX: Slot that already exists");
 
         (, string memory fromChainIdStr,) = context();
 
         address fromAddress = stringToAddress(_fromAddressStr);
 
-        address currentAdmin = ICTMRWA001(ctmRwa001Addr).tokenAdmin();
+        address currentAdmin = ICTMRWA1(ctmRwa1Addr).tokenAdmin();
         require(fromAddress == currentAdmin, "RWAX: Only tokenAdmin can add slots, or locked");
 
-        ICTMRWA001(ctmRwa001Addr).createSlotX(_slot, _slotName);
+        ICTMRWA1(ctmRwa1Addr).createSlotX(_slot, _slotName);
 
         emit SlotCreated(_ID, _slot, fromChainIdStr);
 
@@ -674,13 +674,13 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
      * @param _fromTokenId The tokenId from which to transfer. The caller must own it or be approved
      * @param _toAddressStr The address AS A STRING to which to send the value on the destination chain
      * @param _toChainIdStr The destination chainID AS A STRING
-     * @param _value The fungible value to send. This is in wei if CTMRWA001().valueDecimals() == 18
+     * @param _value The fungible value to send. This is in wei if CTMRWA1().valueDecimals() == 18
      * @param _ID The ID of the RWA
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * NOTE For EVM chains, the address of the fee token must be converted to a string.
      * NOTE A new tokenId will be created for the _toAddressStr on the destination chain. They can then
-     * move this balance to an existing tokenId if they wish to using CTMRWA001().transferFrom
+     * move this balance to an existing tokenId if they wish to using CTMRWA1().transferFrom
      */
     function transferPartialTokenX(
         uint256 _fromTokenId,
@@ -693,28 +693,28 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         
         string memory toChainIdStr = _toLower(_toChainIdStr);
 
-        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
-        require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "RWAX: Not approved or owner");
+        (address ctmRwa1Addr, string memory ctmRwa1AddrStr) = _getTokenAddr(_ID);
+        require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "RWAX: Not approved or owner");
 
         if(stringsEqual(toChainIdStr, cIDStr)) {
             address toAddr = stringToAddress(_toAddressStr);
-            ICTMRWA001(ctmRwa001Addr).approveFromX(address(this), _fromTokenId);
-            uint256 newTokenId = ICTMRWA001(ctmRwa001Addr).transferFrom(_fromTokenId, toAddr, _value);
-            ICTMRWA001(ctmRwa001Addr).approveFromX(address(0), _fromTokenId);
-            _updateOwnedCtmRwa001(toAddr, ctmRwa001Addr);
+            ICTMRWA1(ctmRwa1Addr).approveFromX(address(this), _fromTokenId);
+            uint256 newTokenId = ICTMRWA1(ctmRwa1Addr).transferFrom(_fromTokenId, toAddr, _value);
+            ICTMRWA1(ctmRwa1Addr).approveFromX(address(0), _fromTokenId);
+            _updateOwnedCtmRwa1(toAddr, ctmRwa1Addr);
 
             return newTokenId;
         } else {
 
             (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
             
-            ICTMRWA001(ctmRwa001Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
+            ICTMRWA1(ctmRwa1Addr).spendAllowance(_msgSender(), _fromTokenId, _value);
 
             _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
-            uint256 slot = ICTMRWA001(ctmRwa001Addr).slotOf(_fromTokenId);
+            uint256 slot = ICTMRWA1(ctmRwa1Addr).slotOf(_fromTokenId);
 
-            ICTMRWA001(ctmRwa001Addr).burnValueX(_fromTokenId, _value);
+            ICTMRWA1(ctmRwa1Addr).burnValueX(_fromTokenId, _value);
 
             string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
             
@@ -726,7 +726,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
                 _fromTokenId,
                 slot,
                 _value,
-                ctmRwa001AddrStr
+                ctmRwa1AddrStr
             );
             
             c3call(toRwaXStr, toChainIdStr, callData);
@@ -758,28 +758,28 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         
         string memory toChainIdStr = _toLower(_toChainIdStr);
 
-        (address ctmRwa001Addr, string memory ctmRwa001AddrStr) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr, string memory ctmRwa1AddrStr) = _getTokenAddr(_ID);
         address fromAddr = stringToAddress(_fromAddrStr);
-        require(ICTMRWA001(ctmRwa001Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "RWAX: Not owner/approved");
+        require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(_msgSender(), _fromTokenId), "RWAX: Not owner/approved");
 
         if(stringsEqual(toChainIdStr, cIDStr)) {
             address toAddr = stringToAddress(_toAddressStr);
-            ICTMRWA001(ctmRwa001Addr).approveFromX(address(this), _fromTokenId);
-            ICTMRWA001(ctmRwa001Addr).transferFrom(fromAddr, toAddr, _fromTokenId);
-            ICTMRWA001(ctmRwa001Addr).approveFromX(toAddr, _fromTokenId);
-            _updateOwnedCtmRwa001(toAddr, ctmRwa001Addr);
+            ICTMRWA1(ctmRwa1Addr).approveFromX(address(this), _fromTokenId);
+            ICTMRWA1(ctmRwa1Addr).transferFrom(fromAddr, toAddr, _fromTokenId);
+            ICTMRWA1(ctmRwa1Addr).approveFromX(toAddr, _fromTokenId);
+            _updateOwnedCtmRwa1(toAddr, ctmRwa1Addr);
         } else {
 
             (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
             
             _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
 
-            (,uint256 value,,uint256 slot,,) = ICTMRWA001(ctmRwa001Addr).getTokenInfo(_fromTokenId);
+            (,uint256 value,,uint256 slot,,) = ICTMRWA1(ctmRwa1Addr).getTokenInfo(_fromTokenId);
 
-            ICTMRWA001(ctmRwa001Addr).approveFromX(address(0), _fromTokenId);
-            ICTMRWA001(ctmRwa001Addr).clearApprovedValues(_fromTokenId);
+            ICTMRWA1(ctmRwa1Addr).approveFromX(address(0), _fromTokenId);
+            ICTMRWA1(ctmRwa1Addr).clearApprovedValues(_fromTokenId);
 
-            ICTMRWA001(ctmRwa001Addr).removeTokenFromOwnerEnumeration(_msgSender(), _fromTokenId);
+            ICTMRWA1(ctmRwa1Addr).removeTokenFromOwnerEnumeration(_msgSender(), _fromTokenId);
 
             string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
             bytes memory callData = abi.encodeWithSignature(
@@ -790,7 +790,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
                 _fromTokenId,
                 slot,
                 value,
-                ctmRwa001AddrStr
+                ctmRwa1AddrStr
             );
 
             c3call(toRwaXStr, toChainIdStr, callData);
@@ -819,17 +819,17 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
 
         address toAddr = stringToAddress(_toAddressStr);
 
-        (bool ok, address ctmRwa001Addr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(ok, "RWAX: ID does not exist"); 
 
-        bool slotExists = ICTMRWA001(ctmRwa001Addr).slotExists(_slot);
+        bool slotExists = ICTMRWA1(ctmRwa1Addr).slotExists(_slot);
         require(slotExists, "RWAX: Slot does not exist");
 
-        string memory thisSlotName = ICTMRWA001(ctmRwa001Addr).slotName(_slot);
+        string memory thisSlotName = ICTMRWA1(ctmRwa1Addr).slotName(_slot);
 
-        ICTMRWA001(ctmRwa001Addr).mintFromX(toAddr, _slot, thisSlotName, _balance);
+        ICTMRWA1(ctmRwa1Addr).mintFromX(toAddr, _slot, thisSlotName, _balance);
 
-        _updateOwnedCtmRwa001(toAddr, ctmRwa001Addr);
+        _updateOwnedCtmRwa1(toAddr, ctmRwa1Addr);
 
         emit Minted(_ID, fromChainIdStr, _fromAddressStr);
 
@@ -839,20 +839,20 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
 
     // End of cross chain transfers
 
-    /// @dev Update a list of CTMRWA001 addresses that _ownerAddr has one or more tokenIds in
-    function _updateOwnedCtmRwa001(address _ownerAddr, address _tokenAddr) internal returns(bool) {
-        uint256 len = ownedCtmRwa001[_ownerAddr].length;
+    /// @dev Update a list of CTMRWA1 addresses that _ownerAddr has one or more tokenIds in
+    function _updateOwnedCtmRwa1(address _ownerAddr, address _tokenAddr) internal returns(bool) {
+        uint256 len = ownedCtmRwa1[_ownerAddr].length;
         
         for(uint256 i=0; i<len; i++) {
-            if(ownedCtmRwa001[_ownerAddr][i] == _tokenAddr) return(true);
+            if(ownedCtmRwa1[_ownerAddr][i] == _tokenAddr) return(true);
         }
 
-        ownedCtmRwa001[_ownerAddr].push(_tokenAddr);
+        ownedCtmRwa1[_ownerAddr].push(_tokenAddr);
         return(false);
     }
 
     /**
-     * @notice Get a list of CTMRWA001 addresses that has a tokenAdmin of _admin on this chain
+     * @notice Get a list of CTMRWA1 addresses that has a tokenAdmin of _admin on this chain
      * @param _admin The tokenAdmin address that you want to check 
      */
     function getAllTokensByAdminAddress(address _admin) public view returns(address[] memory) {
@@ -860,34 +860,34 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
     }
 
     /**
-     * @notice Get a list of CTMRWA001 addresses that an address owns one or more tokenIds in
+     * @notice Get a list of CTMRWA1 addresses that an address owns one or more tokenIds in
      * on this chain.
      * @param _owner The owner address that you want to check
      */
     function getAllTokensByOwnerAddress(address _owner) public view returns(address[] memory) {
-        return(ownedCtmRwa001[_owner]);
+        return(ownedCtmRwa1[_owner]);
     }
 
     /**
-     * @notice Check if an address has any tokenIds in a CTMRWA001 on this chain.
+     * @notice Check if an address has any tokenIds in a CTMRWA1 on this chain.
      * @param _owner The address that you want to check ownership for.
-     * @param _ctmRwa001Addr The CTMRWA001 address on this chain that you are checking
+     * @param _ctmRwa1Addr The CTMRWA1 address on this chain that you are checking
      */
-    function isOwnedToken(address _owner, address _ctmRwa001Addr) public view returns(bool) {
-        if(ICTMRWA001(_ctmRwa001Addr).balanceOf(_owner) > 0) return(true);
+    function isOwnedToken(address _owner, address _ctmRwa1Addr) public view returns(bool) {
+        if(ICTMRWA1(_ctmRwa1Addr).balanceOf(_owner) > 0) return(true);
         else return(false);
     }
 
-    /// @dev Get the CTMRWA001 address and string version on this chain for an ID
+    /// @dev Get the CTMRWA1 address and string version on this chain for an ID
     function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(ok, "RWAX: tokenID not exist");
         string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
 
         return(tokenAddr, tokenAddrStr);
     }
 
-    /// @dev Get the corresponding CTMRWA001X address on another chain with chainId _toChainIdStr
+    /// @dev Get the corresponding CTMRWA1X address on another chain with chainId _toChainIdStr
     function _getRWAX(string memory _toChainIdStr) internal view returns(string memory, string memory) {
         require(!stringsEqual(_toChainIdStr, cIDStr), "RWAX: Not Xchain");
 
@@ -900,11 +900,11 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
     }
 
     /**
-     * @dev Return the tokenAdmin address for a CTMRWA001 with address _tokenAddr and
+     * @dev Return the tokenAdmin address for a CTMRWA1 with address _tokenAddr and
      * check that the msg.sender is the tokenAdmin and revert if not so.
      */
     function _checkTokenAdmin(address _tokenAddr) internal returns(address, string memory) {
-        address currentAdmin = ICTMRWA001(_tokenAddr).tokenAdmin();
+        address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = _toLower(currentAdmin.toHexString());
 
         require(_msgSender() == currentAdmin, "RWAX: Not tokenAdmin or locked");
@@ -912,17 +912,17 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         return(currentAdmin, currentAdminStr);
     }
 
-    /// @dev Swap two tokenAdmins for a CTMRWA001
-    function swapAdminAddress(address _oldAdmin, address _newAdmin, address _ctmRwa001Addr) internal {
+    /// @dev Swap two tokenAdmins for a CTMRWA1
+    function swapAdminAddress(address _oldAdmin, address _newAdmin, address _ctmRwa1Addr) internal {
         uint256 len = adminTokens[_oldAdmin].length;
 
         for(uint256 i=0; i<len; i++) {
-            if(adminTokens[_oldAdmin][i] == _ctmRwa001Addr) {
+            if(adminTokens[_oldAdmin][i] == _ctmRwa1Addr) {
                 if(i != len-1) {
                     adminTokens[_oldAdmin][i] = adminTokens[_oldAdmin][len-1];
                 } 
                 adminTokens[_oldAdmin].pop();
-                adminTokens[_newAdmin].push(_ctmRwa001Addr);
+                adminTokens[_newAdmin].push(_ctmRwa1Addr);
                 break;
             }
         }
@@ -1025,7 +1025,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
 
     /**
      * @dev Handle failures in a cross-chain call. The logic is managed in a separate contract
-     * CTMRWA001XFallback. See there for details.
+     * CTMRWA1XFallback. See there for details.
      */
     function _c3Fallback(
         bytes4 _selector,
@@ -1033,7 +1033,7 @@ contract CTMRWA001X is ReentrancyGuard, Context, GovernDapp {
         bytes calldata _reason
     ) internal override returns (bool) {
 
-        bool ok = ICTMRWA001XFallback(fallbackAddr).rwa001XC3Fallback(
+        bool ok = ICTMRWA1XFallback(fallbackAddr).rwa1XC3Fallback(
             _selector,
             _data,
             _reason

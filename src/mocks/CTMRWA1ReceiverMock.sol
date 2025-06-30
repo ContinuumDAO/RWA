@@ -3,9 +3,9 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import "../interfaces/ICTMRWA001Receiver.sol";
+import "../interfaces/ICTMRWA1Receiver.sol";
 
-contract CTMRWA001ReceiverMock is IERC165, ICTMRWA001Receiver {
+contract CTMRWA1ReceiverMock is IERC165, ICTMRWA1Receiver {
     enum Error {
         None,
         RevertWithMessage,
@@ -26,10 +26,10 @@ contract CTMRWA001ReceiverMock is IERC165, ICTMRWA001Receiver {
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return
             interfaceId == type(IERC165).interfaceId || 
-            interfaceId == type(ICTMRWA001Receiver).interfaceId;
+            interfaceId == type(ICTMRWA1Receiver).interfaceId;
     } 
 
-    function onCTMRWA001Received(
+    function onCTMRWA1Received(
         address operator, 
         uint256 fromTokenId, 
         uint256 toTokenId, 
@@ -37,7 +37,7 @@ contract CTMRWA001ReceiverMock is IERC165, ICTMRWA001Receiver {
         bytes calldata data
     ) public override returns (bytes4) {
         if (_error == Error.RevertWithMessage) {
-            revert("CTMRWA001ReceiverMock: reverting");
+            revert("CTMRWA1ReceiverMock: reverting");
         } else if (_error == Error.RevertWithoutMessage) {
             revert();
         } else if (_error == Error.Panic) {

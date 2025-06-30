@@ -9,10 +9,10 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 
-import {ICTMRWA001, ITokenContract} from "./interfaces/ICTMRWA001.sol";
+import {ICTMRWA1, ITokenContract} from "./interfaces/ICTMRWA1.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 
-contract CTMRWA001Sentry is Context {
+contract CTMRWA1Sentry is Context {
     using Strings for *;
 
     address public tokenAddr;
@@ -21,8 +21,8 @@ contract CTMRWA001Sentry is Context {
     uint256 version;
     address sentryManagerAddr;
     address public tokenAdmin;
-    address public ctmRwa001X;
-    address public ctmRwa001Map;
+    address public ctmRwa1X;
+    address public ctmRwa1Map;
 
     string merchantNo;
     string programNo;
@@ -30,7 +30,7 @@ contract CTMRWA001Sentry is Context {
 
     bool public sentryOptionsSet;
 
-    // // Whitelist of wallets permitted to hold CTMRWA001
+    // // Whitelist of wallets permitted to hold CTMRWA1
     string[] public ctmWhitelist;
     mapping(string => uint256) private whitelistIndx;
 
@@ -51,8 +51,8 @@ contract CTMRWA001Sentry is Context {
 
     modifier onlyTokenAdmin() {
         require(
-            _msgSender() == tokenAdmin || _msgSender() == ctmRwa001X, 
-            "CTMRWA001Storage: onlyTokenAdmin function"
+            _msgSender() == tokenAdmin || _msgSender() == ctmRwa1X, 
+            "CTMRWA1Storage: onlyTokenAdmin function"
         );
         _;
     }
@@ -60,7 +60,7 @@ contract CTMRWA001Sentry is Context {
     modifier onlySentryManager() {
         require(
             _msgSender() == sentryManagerAddr,
-            "CTMRWA001Sentry: onlySentryManager function"
+            "CTMRWA1Sentry: onlySentryManager function"
         );
         _;
     }
@@ -77,12 +77,12 @@ contract CTMRWA001Sentry is Context {
         ID = _ID;
         rwaType = _rwaType;
         version = _version;
-        ctmRwa001Map = _map;
+        ctmRwa1Map = _map;
 
         tokenAddr = _tokenAddr;
 
-        tokenAdmin = ICTMRWA001(tokenAddr).tokenAdmin();
-        ctmRwa001X = ICTMRWA001(tokenAddr).ctmRwa001X();
+        tokenAdmin = ICTMRWA1(tokenAddr).tokenAdmin();
+        ctmRwa1X = ICTMRWA1(tokenAddr).ctmRwa1X();
         
         sentryManagerAddr = _sentryManager;
 
@@ -132,7 +132,7 @@ contract CTMRWA001Sentry is Context {
         bool _countryBL
     ) external onlySentryManager {
 
-        require(_ID == ID, "CTMRWA001Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
+        require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
 
         if (_whitelist) {
             whitelistSwitch = true;
@@ -162,7 +162,7 @@ contract CTMRWA001Sentry is Context {
 
 
     function setWhitelistSentry(uint256 _ID, string[] memory _wallets, bool[] memory _choices) external onlySentryManager {
-        require(_ID == ID, "CTMRWA001Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
+        require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
         _setWhitelist(_wallets, _choices);
     }
 
@@ -172,7 +172,7 @@ contract CTMRWA001Sentry is Context {
         bool[] memory _choices
     ) external onlySentryManager {
 
-        require(_ID == ID, "CTMRWA001Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
+        require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
 
         _setCountryList(_countryList, _choices);
     }
@@ -192,7 +192,7 @@ contract CTMRWA001Sentry is Context {
             indx = whitelistIndx[walletStr];
             
             if (stringsEqual(walletStr, adminStr) && !_choices[i]) {
-                revert("CTMRWA001Sentry: Cannot remove tokenAdmin from the whitelist");
+                revert("CTMRWA1Sentry: Cannot remove tokenAdmin from the whitelist");
             } else if (
                 indx != 0 && 
                 indx == ctmWhitelist.length - 1 && 
@@ -225,7 +225,7 @@ contract CTMRWA001Sentry is Context {
         string memory oldLastStr;
 
         for (uint256 i=0; i<len; i++) {
-            require(bytes(_countries[i]).length == 2, "CTMRWA001Sentry: ISO Country must have 2 letters");
+            require(bytes(_countries[i]).length == 2, "CTMRWA1Sentry: ISO Country must have 2 letters");
 
             indx = countryIndx[_countries[i]];
 
@@ -253,10 +253,10 @@ contract CTMRWA001Sentry is Context {
 
         bool ok;
         address dividendContract;
-        (ok, dividendContract) = ICTMRWAMap(ctmRwa001Map).getDividendContract(ID, rwaType, version);
+        (ok, dividendContract) = ICTMRWAMap(ctmRwa1Map).getDividendContract(ID, rwaType, version);
 
         address investContract;
-        (ok, investContract) = ICTMRWAMap(ctmRwa001Map).getInvestContract(ID, rwaType, version);
+        (ok, investContract) = ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, rwaType, version);
 
         if (!whitelistSwitch || stringToAddress(_user) == address(0)) {
             return(true);
@@ -317,7 +317,7 @@ contract CTMRWA001Sentry is Context {
 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001Sentry: Invalid address length");
+        require(strBytes.length == 42, "CTMRWA1Sentry: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {

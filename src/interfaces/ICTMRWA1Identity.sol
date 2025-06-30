@@ -10,7 +10,7 @@ enum RequestId {
     COUNTRY    
 }
 
-interface ICTMRWA001Identity {
+interface ICTMRWA1Identity {
 
     function setVerifierAddress(address _verifierAddress) external;
     function setZkMeVerifierAddress(address verifierAddress) external;

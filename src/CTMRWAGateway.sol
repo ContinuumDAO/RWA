@@ -16,10 +16,10 @@ import {GovernDapp} from "./routerV2/GovernDapp.sol";
  *
  * @notice This contract is the gateway between any blockchain that can have an RWA deployed
  * to it. It stores the contract addresses of CTMRWAGateway contracts on other chians, as well
- * as the contract addresses of CTMRWA001X, CTMRWA001StorageManager and CTMRWA001SentryMananager
+ * as the contract addresses of CTMRWA1X, CTMRWA1StorageManager and CTMRWA1SentryMananager
  * contracts. This enables c3calls to be made between all the c3Caller dApps that make up AssetX
  *
- * This contract is only deployed ONCE on each chain and manages all CTMRWA001 contract interactions
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
 
 contract CTMRWAGateway is Context, GovernDapp {
@@ -30,13 +30,13 @@ contract CTMRWAGateway is Context, GovernDapp {
     /// @dev rwaType => version => ChainContract. Addresses of other CTMRWAGateway contracts
     mapping(uint256 => mapping(uint256 => ChainContract[])) rwaX;
 
-    /// @dev rwaType => version => chainStr array. ChainIds of other CTMRWA001X contracts
+    /// @dev rwaType => version => chainStr array. ChainIds of other CTMRWA1X contracts
     mapping(uint256 => mapping(uint256 => string[])) rwaXChains;
 
-    /// @dev rwaType => version => chainStr array. Addresses of other CTMRWA001StorageManager contracts
+    /// @dev rwaType => version => chainStr array. Addresses of other CTMRWA1StorageManager contracts
     mapping(uint256 => mapping(uint256 => ChainContract[])) storageManager;
 
-    /// @dev rwaType => version => chainStr array. Addresses of other CTMRWA001SentryManager contracts
+    /// @dev rwaType => version => chainStr array. Addresses of other CTMRWA1SentryManager contracts
     mapping(uint256 => mapping(uint256 => ChainContract[])) sentryManager;
 
     /// @dev Record that a c3Caller cross-chain transfer failed with fallback
@@ -120,8 +120,8 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice Get all the chainIds of all CTMRWA001X contracts
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @notice Get all the chainIds of all CTMRWA1X contracts
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      */
     function getAllRwaXChains(
@@ -132,8 +132,8 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice Check the existence of a stored CTMRWA001X contract on chainId _chainIdStr
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @notice Check the existence of a stored CTMRWA1X contract on chainId _chainIdStr
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdStr The chainId converted to a string to check for
      */
@@ -145,9 +145,9 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice Return all chainIds as an array and the corresponding CTMRWA001X contract addresses
+     * @notice Return all chainIds as an array and the corresponding CTMRWA1X contract addresses
      * as another array at an index position
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _indx The index position to return data from
      */
@@ -163,8 +163,8 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice get the total number of stored CTMRWA001X contracts for all chainIds (including this one)
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @notice get the total number of stored CTMRWA1X contracts for all chainIds (including this one)
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      */
     function getRWAXCount(
@@ -175,8 +175,8 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
         
     /**
-     * @notice Get the attached CTMRWA001X contract address for chainId _chainIdStr as a string
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @notice Get the attached CTMRWA1X contract address for chainId _chainIdStr as a string
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdStr The chainId (as a string) being examined
      */
@@ -196,9 +196,9 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice Return all chainIds as an array and the corresponding CTMRWA001StorageManager
+     * @notice Return all chainIds as an array and the corresponding CTMRWA1StorageManager
      * contract addresses as another array at an index position
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _indx The index position to return data from
      */
@@ -214,9 +214,9 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice get the total number of stored CTMRWA001StorageManager contracts for all
+     * @notice get the total number of stored CTMRWA1StorageManager contracts for all
      * chainIds (including this one)
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      */
     function getStorageManagerCount(
@@ -227,9 +227,9 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice Get the attached CTMRWA001StorageManager contract address for chainId _chainIdStr
+     * @notice Get the attached CTMRWA1StorageManager contract address for chainId _chainIdStr
      * as a string
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdStr The chainId (as a string) being examined
      */
@@ -249,9 +249,9 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice Return all chainIds as an array and the corresponding CTMRWA001SentryManager
+     * @notice Return all chainIds as an array and the corresponding CTMRWA1SentryManager
      * contract addresses as another array at an index position
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _indx The index position to return data from
      */
@@ -267,9 +267,9 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice get the total number of stored CTMRWA001SentryManager contracts for all
+     * @notice get the total number of stored CTMRWA1SentryManager contracts for all
      * chainIds (including this one)
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      */
     function getSentryManagerCount(
@@ -280,9 +280,9 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice Get the attached CTMRWA001SentryManager contract address for chainId _chainIdStr
+     * @notice Get the attached CTMRWA1SentryManager contract address for chainId _chainIdStr
      * as a string
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdStr The chainId (as a string) being examined
      */
@@ -302,11 +302,11 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice Governor function. Attach new CTMRWA001X contracts for chainIds
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @notice Governor function. Attach new CTMRWA1X contracts for chainIds
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdsStr Array of chainIds converted to strings
-     * @param _rwaXAddrsStr Array of the CTMRWA001X contract addresses converted to strings
+     * @param _rwaXAddrsStr Array of the CTMRWA1X contract addresses converted to strings
      */
     function attachRWAX (
         uint256 _rwaType,
@@ -344,11 +344,11 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice Governor function. Attach new CTMRWA001StorageManager contracts for chainIds
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @notice Governor function. Attach new CTMRWA1StorageManager contracts for chainIds
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdsStr Array of chainIds converted to strings
-     * @param _storageManagerAddrsStr Array of the CTMRWA001StorageManager contract addresses 
+     * @param _storageManagerAddrsStr Array of the CTMRWA1StorageManager contract addresses 
      * converted to strings
      */
     function attachStorageManager (
@@ -385,11 +385,11 @@ contract CTMRWAGateway is Context, GovernDapp {
     }
 
     /**
-     * @notice Governor function. Attach new CTMRWA001SentryManager contracts for chainIds
-     * @param _rwaType The type of RWA. CTMRWA001 is 1
+     * @notice Governor function. Attach new CTMRWA1SentryManager contracts for chainIds
+     * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdsStr Array of chainIds converted to strings
-     * @param _sentryManagerAddrsStr Array of the CTMRWA001SentryManager contract addresses 
+     * @param _sentryManagerAddrsStr Array of the CTMRWA1SentryManager contract addresses 
      * converted to strings
      */
     function attachSentryManager (
@@ -432,7 +432,7 @@ contract CTMRWAGateway is Context, GovernDapp {
     /// @dev Convert a string to an EVM address. Also checks the string length
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001X: Invalid address length");
+        require(strBytes.length == 42, "CTMRWA1X: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {

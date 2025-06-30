@@ -6,14 +6,14 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import {ICTMRWA001, SlotData} from "./interfaces/ICTMRWA001.sol";
-import {ICTMRWA001Receiver} from "./interfaces/ICTMRWA001Receiver.sol";
+import {ICTMRWA1, SlotData} from "./interfaces/ICTMRWA1.sol";
+import {ICTMRWA1Receiver} from "./interfaces/ICTMRWA1Receiver.sol";
 
-import {ICTMRWA001X} from "./interfaces/ICTMRWA001X.sol";
+import {ICTMRWA1X} from "./interfaces/ICTMRWA1X.sol";
 import {ICTMRWADeployer} from "./interfaces/ICTMRWADeployer.sol";
 import {ICTMRWAERC20Deployer} from "./interfaces/ICTMRWAERC20Deployer.sol";
-import {ICTMRWA001Storage} from "./interfaces/ICTMRWA001Storage.sol";
-import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
+import {ICTMRWA1Storage} from "./interfaces/ICTMRWA1Storage.sol";
+import {ICTMRWA1Sentry} from "./interfaces/ICTMRWA1Sentry.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -22,69 +22,69 @@ import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
  * @notice The basic functionality relating to the Semi Fungible Token is derived from ERC3525
  *  https://eips.ethereum.org/EIPS/eip-3525
  *
- * CTMRWA001 is NOT ERC3525 compliant
+ * CTMRWA1 is NOT ERC3525 compliant
  *
- * This token can be deployed many times and on multiple chains from CTMRWA001X
+ * This token can be deployed many times and on multiple chains from CTMRWA1X
  */
 
-contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
+contract CTMRWA1 is ReentrancyGuard, Context, ICTMRWA1 {
     using Strings for *;
 
-    /// @notice Each CTMRWA001 corresponds to a single RWA. It is deployed on each chain
+    /// @notice Each CTMRWA1 corresponds to a single RWA. It is deployed on each chain
 
-    /// @dev ID is a unique identifier linking CTMRWA001 across chains - same ID on every chain
+    /// @dev ID is a unique identifier linking CTMRWA1 across chains - same ID on every chain
     uint256 public ID;
 
     /// @dev version is the single integer version of this RWA type
     uint256 public constant version = 1;
 
-    /// @dev rwaType is the RWA type defining CTMRWA001
+    /// @dev rwaType is the RWA type defining CTMRWA1
     uint256 public constant rwaType = 1;
 
     /// @dev tokenAdmin is the address of the wallet controlling the RWA, also known as the Issuer
     address public tokenAdmin;
 
-    /// @dev ctmRwaDeployer is the single contract on each chain which deploys the components of a CTMRWA001
+    /// @dev ctmRwaDeployer is the single contract on each chain which deploys the components of a CTMRWA1
     address public ctmRwaDeployer;
     
     /// @dev overrideWallet IF DEFINED by the tokenAdmin, is a wallet that can forceTransfer assets from any holder
     address public overrideWallet;
 
-    /// @dev ctmRwaMap is the single contract which maps the multi-chain ID to the component address of each part of the CTMRWA001
+    /// @dev ctmRwaMap is the single contract which maps the multi-chain ID to the component address of each part of the CTMRWA1
     address ctmRwaMap;
 
-    /** @dev ctmRwa001X is the single contract on each chain responsible for 
-     *   Initiating deployment of an CTMRWA001 and its components
+    /** @dev ctmRwa1X is the single contract on each chain responsible for 
+     *   Initiating deployment of an CTMRWA1 and its components
      *   Changing the tokenAdmin
      *   Defining Asset Classes (slots)
      *   Minting new value to slots
-     *   Transfering value cross-chain via other ctmRwa001X contracts on other chains
+     *   Transfering value cross-chain via other ctmRwa1X contracts on other chains
      */
-    address public ctmRwa001X;
+    address public ctmRwa1X;
 
-    /// @dev rwa001XFallback is the contract responsible for dealing with failed cross-chain calls from ctmRwa001X
-    address public rwa001XFallback;
+    /// @dev rwa1XFallback is the contract responsible for dealing with failed cross-chain calls from ctmRwa1X
+    address public rwa1XFallback;
 
-    /// @dev dividendAddr is the contract managing dividend payments to CTMRWA001 holders
+    /// @dev dividendAddr is the contract managing dividend payments to CTMRWA1 holders
     address public dividendAddr;
 
-    /// @dev storageAddr is the contract managing decentralized storage of information for CTMRWA001
+    /// @dev storageAddr is the contract managing decentralized storage of information for CTMRWA1
     address public storageAddr;
 
-    /// @dev sentryAddr is the contract controlling access to the CTMRWA001
+    /// @dev sentryAddr is the contract controlling access to the CTMRWA1
     address public sentryAddr;
 
-    /// @dev erc20Deployer is the contract which allows deployment an ERC20 representing any slot of a CTMRWA001
+    /// @dev erc20Deployer is the contract which allows deployment an ERC20 representing any slot of a CTMRWA1
     address public erc20Deployer;
 
-    /// @dev slotNumbers is an array holding the slots defined for this CTMRWA001
+    /// @dev slotNumbers is an array holding the slots defined for this CTMRWA1
     uint256[] slotNumbers;
-    /// @dev slotNames is an array holding the names of each slot in this CTMRWA001
+    /// @dev slotNames is an array holding the names of each slot in this CTMRWA1
     string[] slotNames;
     uint256[] emptyUint256;
 
 
-    /// @param TokenData is the struct defining tokens in the CTMRWA001
+    /// @param TokenData is the struct defining tokens in the CTMRWA1
     struct TokenData {
         uint256 id;
         uint256 slot;
@@ -121,7 +121,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     uint8 private _decimals;
 
     /** 
-     *   @dev baseURI is a string identifying how information is stored about the CTMRWA001
+     *   @dev baseURI is a string identifying how information is stored about the CTMRWA1
      *   baseURI can be set to one of "GFLD", "IPFS", or "NONE"
      */
     string public baseURI;
@@ -155,7 +155,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
         string memory symbol_, 
         uint8 decimals_,
         string memory baseURI_,
-        address _ctmRwa001X
+        address _ctmRwa1X
     ) {
         tokenAdmin = _tokenAdmin;
         ctmRwaMap = _map;
@@ -164,15 +164,15 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
         _symbol = symbol_;
         _decimals = decimals_;
         baseURI = baseURI_;
-        ctmRwa001X = _ctmRwa001X;
-        rwa001XFallback = ICTMRWA001X(ctmRwa001X).fallbackAddr();
-        ctmRwaDeployer = ICTMRWA001X(ctmRwa001X).ctmRwaDeployer();
+        ctmRwa1X = _ctmRwa1X;
+        rwa1XFallback = ICTMRWA1X(ctmRwa1X).fallbackAddr();
+        ctmRwaDeployer = ICTMRWA1X(ctmRwa1X).ctmRwaDeployer();
         erc20Deployer = ICTMRWADeployer(ctmRwaDeployer).erc20Deployer();
 
     }
     
     modifier onlyTokenAdmin() {
-        require(_msgSender() == tokenAdmin||_msgSender() == ctmRwa001X, "RWA: onlyTokenAdmin");
+        require(_msgSender() == tokenAdmin||_msgSender() == ctmRwa1X, "RWA: onlyTokenAdmin");
         _;
     }
 
@@ -189,17 +189,17 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
         _;
     }
 
-    modifier onlyRwa001X() {
+    modifier onlyRwa1X() {
         require(
-            _msgSender() == ctmRwa001X || 
-            _msgSender() == rwa001XFallback,
-            "RWA: Only CTMRWA001X");
+            _msgSender() == ctmRwa1X || 
+            _msgSender() == rwa1XFallback,
+            "RWA: Only CTMRWA1X");
         _;
     }
 
     modifier onlyMinter() {
         require(
-            ICTMRWA001X(ctmRwa001X).isMinter(_msgSender()) ||
+            ICTMRWA1X(ctmRwa1X).isMinter(_msgSender()) ||
             _erc20s[_msgSender()],
             "RWA: onlyMinter");
         _;
@@ -216,11 +216,11 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
     
     /**
-     * @param _tokenAdmin is the new tokenAdmin, or Issuer for this CTMRWA001
-     * @dev This function can be called by the cross-chain CTMRWA001X architecture
+     * @param _tokenAdmin is the new tokenAdmin, or Issuer for this CTMRWA1
+     * @dev This function can be called by the cross-chain CTMRWA1X architecture
      * @dev The override wallet for forceTransfer is reset for safety, but can be set up by the new admin
      */
-    function changeAdmin(address _tokenAdmin) public onlyRwa001X returns(bool) {
+    function changeAdmin(address _tokenAdmin) public onlyRwa1X returns(bool) {
         tokenAdmin = _tokenAdmin;
         overrideWallet = address(0);
         return true;
@@ -229,16 +229,16 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     /**
      * @param _overrideWallet is the wallet address that can force transfers of any wallet
      * @dev The token admin can only call this if -
-     *      They have fully described the Issuer details in CTMRWA001Storage
+     *      They have fully described the Issuer details in CTMRWA1Storage
      *      They have gained a Security License from a Regulator, with the license details stored in LICENSE
-     *      They have added the Regulator's wallet address in CTMRWA001Storage, which is public.
+     *      They have added the Regulator's wallet address in CTMRWA1Storage, which is public.
      * @dev override wallet should be a multi-sig or MPC TSS wallet with 2 out of -
      *      The Regulator wallet address
      *      The ContinuumDAO Governor address (requires a vote to sign)
-     *      A reputable law firm's signature, with the law firm described in LEGAL in CTMRWA001Storage
+     *      A reputable law firm's signature, with the law firm described in LEGAL in CTMRWA1Storage
      */
     function setOverrideWallet(address _overrideWallet) public onlyTokenAdmin {
-        require(ICTMRWA001Storage(storageAddr).regulatorWallet() != address(0), "RWA: Not a Security");
+        require(ICTMRWA1Storage(storageAddr).regulatorWallet() != address(0), "RWA: Not a Security");
         overrideWallet = _overrideWallet;
     }
 
@@ -264,12 +264,12 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @dev Sets the ID for this new CTMRWA001 after it has been deployed
-     * @param nextID The ID for this CTMRWA001
+     * @dev Sets the ID for this new CTMRWA1 after it has been deployed
+     * @param nextID The ID for this CTMRWA1
      * @param _tokenAdmin The address requesting the setting of the ID
-     * NOTE Only callable from CTMRWA001X
+     * NOTE Only callable from CTMRWA1X
      */
-    function attachId(uint256 nextID, address _tokenAdmin) external onlyRwa001X returns(bool) {
+    function attachId(uint256 nextID, address _tokenAdmin) external onlyRwa1X returns(bool) {
         require(_tokenAdmin == tokenAdmin, "RWA: attachId is AdminOnly");
         if(ID == 0) { // not yet attached
             ID = nextID;
@@ -278,8 +278,8 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @dev Connects the CTMRWA001Dividend contract to this CTMRWA001
-     * @param _dividendAddr The new CTMRWA001Dividend contract address
+     * @dev Connects the CTMRWA1Dividend contract to this CTMRWA1
+     * @param _dividendAddr The new CTMRWA1Dividend contract address
      */
     function attachDividend(address _dividendAddr) external onlyCtmMap returns(bool) {
         require(dividendAddr == address(0), "RWA: Cannot reset dividend contract");
@@ -288,8 +288,8 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @dev Connects the CTMRWA001Storage contract to this CTMRWA001
-     * @param _storageAddr The new CTMRWA001Storage contract address
+     * @dev Connects the CTMRWA1Storage contract to this CTMRWA1
+     * @param _storageAddr The new CTMRWA1Storage contract address
      */
     function attachStorage(address _storageAddr) external onlyCtmMap returns(bool) {
         require(storageAddr == address(0), "RWA: Cannot reset storage contract");
@@ -298,8 +298,8 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @dev Connects the CTMRWA001Sentry contract to this CTMRWA001
-     * @param _sentryAddr The new CTMRWA001Sentry contract address
+     * @dev Connects the CTMRWA1Sentry contract to this CTMRWA1
+     * @param _sentryAddr The new CTMRWA1Sentry contract address
      */
     function attachSentry(address _sentryAddr) external onlyCtmMap returns(bool) {
         require(sentryAddr == address(0), "RWA: Cannot reset sentry contract");
@@ -308,7 +308,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @notice Returns the id (NOT ID) of a user held token in this CTMRWA001
+     * @notice Returns the id (NOT ID) of a user held token in this CTMRWA1
      * @param _tokenId The unique tokenId (instance of TokenData)
      */
     function idOf(uint256 _tokenId) public view virtual returns(uint256) {
@@ -317,7 +317,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
    
     /**
-     * @notice Returns the fungible balance of a user held token in this CTMRWA001
+     * @notice Returns the fungible balance of a user held token in this CTMRWA1
      * @param _tokenId The unique tokenId (instance of TokenData)
      */
     function balanceOf(uint256 _tokenId) public view virtual override returns (uint256) {
@@ -346,7 +346,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @notice Returns the address of the owner of a token in this CTMRWA001
+     * @notice Returns the address of the owner of a token in this CTMRWA1
      * @param _tokenId The unique tokenId (instance of TokenData)
      */
     function ownerOf(uint256 _tokenId) public view virtual returns (address owner_) {
@@ -356,7 +356,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @notice Returns the slot of a token in this CTMRWA001
+     * @notice Returns the slot of a token in this CTMRWA1
      * @param _tokenId The unique tokenId (instance of TokenData)
      */
     function slotOf(uint256 _tokenId) public view virtual override returns (uint256) {
@@ -365,7 +365,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @notice Returns the name of a slot of a token in this CTMRWA001
+     * @notice Returns the name of a slot of a token in this CTMRWA1
      * @param _tokenId The unique tokenId (instance of TokenData)
      */
     function slotNameOf(uint256 _tokenId) public view virtual returns(string memory) {
@@ -374,7 +374,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @notice Returns an object with attributes of a token in this CTMRWA001
+     * @notice Returns an object with attributes of a token in this CTMRWA1
      * @param _tokenId The unique tokenId (instance of TokenData)
      */
     function getTokenInfo(uint256 _tokenId) external view returns(uint256,uint256,address,uint256,string memory, address) {
@@ -394,8 +394,8 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @dev Lower level function, called from CTMRWA001Dividend to change the dividend rate for a slot
-     * @param _slot The slot number in this CTMRWA001
+     * @dev Lower level function, called from CTMRWA1Dividend to change the dividend rate for a slot
+     * @param _slot The slot number in this CTMRWA1
      * @param _dividend The dividend rate per unit of this slot that can be claimed by holders
      */
     function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyDividend returns(bool) {
@@ -405,8 +405,8 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @notice Returns the dividend rate for a slot in this CTMRWA001
-     * @param _slot The slot number in this CTMRWA001
+     * @notice Returns the dividend rate for a slot in this CTMRWA1
+     * @param _slot The slot number in this CTMRWA1
      */
     function getDividendRateBySlot(uint256 _slot) external view returns(uint256) {
         require(slotExists(_slot), "RWA: slot not exist");
@@ -415,7 +415,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
 
     /**
      * @notice Allows a tokenAdmin to deploy an ERC20 that is an interface to ONE existing
-     * slot of this CTMRWA001. It allows interaction with lending/markeplace protocols.
+     * slot of this CTMRWA1. It allows interaction with lending/markeplace protocols.
      * This function can only be called ONCE per slot.
      * @param _slot The slot number for which to create an ERC20
      * @param _erc20Name The name of this ERC20. It is automatically pre-pended with the slot number
@@ -444,7 +444,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @notice Get the address of the ERC20 token representing a slot in this CTMRWA001
+     * @notice Get the address of the ERC20 token representing a slot in this CTMRWA1
      * @param _slot The slot number
      */
     function getErc20(uint256 _slot) public view returns(address) {
@@ -452,13 +452,13 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
    /**
-    * @notice Approve the spending of the fungible balance of a tokenId in this CTMRWA001
+    * @notice Approve the spending of the fungible balance of a tokenId in this CTMRWA1
     * @param _tokenId The tokenId
     * @param _to The address being given approval to spend from this tokenId
     * @param _value The fungible amount being given approval to spend by _to
     */
     function approve(uint256 _tokenId, address _to, uint256 _value) public payable virtual override {
-        address owner = CTMRWA001.ownerOf(_tokenId);
+        address owner = CTMRWA1.ownerOf(_tokenId);
         require(_to != owner, "RWA: approval current owner");
 
         require(isApprovedOrOwner(_msgSender(), _tokenId), "RWA: approve caller not owner/approved");
@@ -468,7 +468,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
 
     /**
      * @notice The allowance to spend from fungible balance of a tokenId by a wallet address
-     * @param _tokenId The tokenId in this CTMRWA001
+     * @param _tokenId The tokenId in this CTMRWA1
      * @param _operator The wallet address for which the allowance is sought
      */
     function allowance(uint256 _tokenId, address _operator) public view virtual override returns (uint256) {
@@ -477,7 +477,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @dev This lower level function is called by CTMRWA001X to transfer from the fungible balance of
+     * @dev This lower level function is called by CTMRWA1X to transfer from the fungible balance of
      * a tokenId to another address
      * @param _fromTokenId The tokenId that the value id being transferred from
      * @param _to The wallet address that the value is being transferred to
@@ -487,13 +487,13 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
         uint256 _fromTokenId,
         address _to,
         uint256 _value
-    ) public override onlyRwa001X returns (uint256 newTokenId) {
+    ) public override onlyRwa1X returns (uint256 newTokenId) {
         spendAllowance(_msgSender(), _fromTokenId, _value);
 
         string memory thisSlotName = slotNameOf(_fromTokenId);
 
         newTokenId = _createOriginalTokenId();
-        _mint(_to, newTokenId, CTMRWA001.slotOf(_fromTokenId), thisSlotName, 0);
+        _mint(_to, newTokenId, CTMRWA1.slotOf(_fromTokenId), thisSlotName, 0);
         _transferValue(_fromTokenId, newTokenId, _value);
 
     }
@@ -518,7 +518,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
    /**
-    * @dev This lower level function is called by CTMRWA001X to transfer a tokenId from
+    * @dev This lower level function is called by CTMRWA1X to transfer a tokenId from
     * one wallet addres to another. The tokenId must be approved for transfer, or owned by _from
     * @param _from The wallet address from which the tokenId is being fransferred from
     * @param _to The wallet adddress to which the tokenId is being transferred to
@@ -528,7 +528,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
         address _from,
         address _to,
         uint256 _tokenId
-    ) public onlyRwa001X {
+    ) public onlyRwa1X {
         require(isApprovedOrOwner(_msgSender(), _tokenId), "RWA: transfer caller not owner/approved");
         _transferTokenId(_from, _to, _tokenId);
 
@@ -558,14 +558,14 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @notice Returns the total number of tokenIds in this CTMRWA001
+     * @notice Returns the total number of tokenIds in this CTMRWA1
      */
     function totalSupply() external view virtual returns (uint256) {
         return _allTokens.length;
     }
 
     /**
-     * @notice Returns the id (NOT ID) of a tokenId at an index for this CTMRWA001
+     * @notice Returns the id (NOT ID) of a tokenId at an index for this CTMRWA1
      * @dev Deprecated
      */
     function tokenByIndex(uint256 _index) public view virtual returns (uint256) {
@@ -579,7 +579,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
      * @param _index The index into the wallet address
      */
     function tokenOfOwnerByIndex(address _owner, uint256 _index) external view virtual override returns (uint256) {
-        require(_index < CTMRWA001.balanceOf(_owner), "RWA: owner index out of bounds");
+        require(_index < CTMRWA1.balanceOf(_owner), "RWA: owner index out of bounds");
         return _addressData[_owner].ownedTokens[_index];
     }
 
@@ -590,7 +590,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
      * @param _value The fungible value being given approval to spend
      */
     function spendAllowance(address _operator, uint256 _tokenId, uint256 _value) public virtual {
-        uint256 currentAllowance = CTMRWA001.allowance(_tokenId, _operator);
+        uint256 currentAllowance = CTMRWA1.allowance(_tokenId, _operator);
         if (!isApprovedOrOwner(_operator, _tokenId) && currentAllowance != type(uint256).max) {
             require(currentAllowance >= _value, "RWA: insufficient allowance");
             _approveValue(_tokenId, _operator, currentAllowance - _value);
@@ -636,7 +636,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
      */
     function isApprovedOrOwner(address _operator, uint256 _tokenId) public view virtual returns (bool) {
         requireMinted(_tokenId);
-        address owner = CTMRWA001.ownerOf(_tokenId);
+        address owner = CTMRWA1.ownerOf(_tokenId);
         return (
             _operator == owner ||
             getApproved(_tokenId) == _operator ||
@@ -653,7 +653,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @dev A lower level function calling _mint from CTMRWA001X, creating a NEW tokenId
+     * @dev A lower level function calling _mint from CTMRWA1X, creating a NEW tokenId
      */
     function mintFromX(address _to, uint256 _slot, string memory _slotName, uint256 _value) external onlyMinter returns (uint256 tokenId) {
         return(_mint(_to, _slot, _slotName, _value));
@@ -661,7 +661,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
 
     /**
      * @dev Low level function to mint, being passed a new tokenId that does not already exist.
-     * If whitelists are enabled, then _to is checked in CTMRWA001Sentry
+     * If whitelists are enabled, then _to is checked in CTMRWA1Sentry
      */
     function _mint(address _to, uint256 _tokenId, uint256 _slot, string memory _slotName, uint256 _value) internal {
         require(_to != address(0), "RWA: mint to zero address");
@@ -687,9 +687,9 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
      * @dev Mint value to an existing tokenId
      */
     function _mintValue(uint256 _tokenId, uint256 _value) private {
-        address owner = CTMRWA001.ownerOf(_tokenId);
-        uint256 slot = CTMRWA001.slotOf(_tokenId);
-        string memory thisSlotName = CTMRWA001.slotNameOf(_tokenId);
+        address owner = CTMRWA1.ownerOf(_tokenId);
+        uint256 slot = CTMRWA1.slotOf(_tokenId);
+        string memory thisSlotName = CTMRWA1.slotNameOf(_tokenId);
         _beforeValueTransfer(address(0), owner, 0, _tokenId, slot, thisSlotName, _value);
         __mintValue(_tokenId, _value);
         _balance[owner][slot] += _value;
@@ -792,8 +792,8 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
         ownerData.ownedTokens.pop();
     }
 
-    /// @dev Call _removeTokenFromOwnerEnumeration from CTMRWA001X
-    function removeTokenFromOwnerEnumeration(address _from, uint256 _tokenId) external onlyRwa001X {
+    /// @dev Call _removeTokenFromOwnerEnumeration from CTMRWA1X
+    function removeTokenFromOwnerEnumeration(address _from, uint256 _tokenId) external onlyRwa1X {
         _removeTokenFromOwnerEnumeration(_from, _tokenId);
     }
 
@@ -827,11 +827,11 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     /// @dev Lowest level approve to spend any amount from tokenId by an address function
     function _approve(address _to, uint256 _tokenId) private {
         _allTokens[_allTokensIndex[_tokenId]].approved = _to;
-        emit Approval(CTMRWA001.ownerOf(_tokenId), _to, _tokenId);
+        emit Approval(CTMRWA1.ownerOf(_tokenId), _to, _tokenId);
     }
 
-    /// @dev Version of _approve callable from CTMRWA001X
-    function approveFromX(address _to, uint256 _tokenId) external onlyRwa001X {
+    /// @dev Version of _approve callable from CTMRWA1X
+    function approveFromX(address _to, uint256 _tokenId) external onlyRwa1X {
         _approve(_to, _tokenId);
     }
 
@@ -861,8 +861,8 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
         delete tokenData.valueApprovals;
     }
 
-    /// @dev Version of _clearApprovedValues callable by CTMRWA001X
-    function clearApprovedValues(uint256 _tokenId) external onlyRwa001X {
+    /// @dev Version of _clearApprovedValues callable by CTMRWA1X
+    function clearApprovedValues(uint256 _tokenId) external onlyRwa1X {
         _clearApprovedValues(_tokenId);
     }
 
@@ -930,7 +930,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
         );
 
         require(
-            _checkOnCTMRWA001Received(_fromTokenId, _toTokenId, _value, ""),
+            _checkOnCTMRWA1Received(_fromTokenId, _toTokenId, _value, ""),
             "RWA: transfer rejected by receiver"
         );
     }
@@ -954,7 +954,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
         string memory toAddressStr = ownerOf(_toTokenId).toHexString();
 
         if(sentryAddr != address(0)) {
-            require(ICTMRWA001Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
+            require(ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
                 "RWA: Transfer not WL"
             );
         }
@@ -975,8 +975,8 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
         require(ownerOf(_tokenId) == _from, "RWA: transfer from invalid owner");
         require(_to != address(0), "RWA: transfer to the zero address");
 
-        uint256 slot = CTMRWA001.slotOf(_tokenId);
-        uint256 value = CTMRWA001.balanceOf(_tokenId);
+        uint256 slot = CTMRWA1.slotOf(_tokenId);
+        uint256 value = CTMRWA1.balanceOf(_tokenId);
         string memory thisSlotName = slotNameOf(_tokenId);
 
         _beforeValueTransfer(_from, _to, _tokenId, _tokenId, slot, thisSlotName, value);
@@ -1000,7 +1000,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /// @dev A function called when _toTokenId receives some 'value'. Designed to be overriden
-    function _checkOnCTMRWA001Received( 
+    function _checkOnCTMRWA1Received( 
         uint256 _fromTokenId, 
         uint256 _toTokenId, 
         uint256 _value, 
@@ -1023,18 +1023,18 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
    
-    /// @notice Return the number of slots in the CTMRWA001
+    /// @notice Return the number of slots in the CTMRWA1
     function slotCount() public view returns (uint256) {
         return _allSlots.length;
     }
 
-    /// @notice Return arrays of all slot numbers and the corresponding slot names in this CTMRWA001
+    /// @notice Return arrays of all slot numbers and the corresponding slot names in this CTMRWA1
     function getAllSlots() public view returns(uint256[] memory, string[] memory) {
        return(slotNumbers, slotNames);
     }
 
     /**
-     * @notice Returns the struct describing a slot in this CTMRWA001 by an index
+     * @notice Returns the struct describing a slot in this CTMRWA1 by an index
      * @param _indx The index into the slot struct array
      */
     function getSlotInfoByIndex(uint256 _indx) public view returns(SlotData memory) {
@@ -1090,7 +1090,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
     }
 
     /**
-     * @notice Returns the total fungible balance in a slot in this CTMRWA001
+     * @notice Returns the total fungible balance in a slot in this CTMRWA1
      * @param _slot The slot being examined
      */
     function totalSupplyInSlot(uint256 _slot) external view returns (uint256) {
@@ -1123,8 +1123,8 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
         return slotData.slotTokens.length > 0 && slotData.slotTokens[_slotTokensIndex[_slot][_tokenId]] == _tokenId;
     }
 
-    /// @dev Interface to _createSlot from only CTMRWA001X
-    function createSlotX(uint256 _slot, string memory _slotName) external onlyRwa001X {
+    /// @dev Interface to _createSlot from only CTMRWA1X
+    function createSlotX(uint256 _slot, string memory _slotName) external onlyRwa1X {
         _createSlot(_slot, _slotName);
     }
 
@@ -1160,7 +1160,7 @@ contract CTMRWA001 is ReentrancyGuard, Context, ICTMRWA001 {
 
         if(sentryAddr != address(0)) {
             string memory toAddressStr = _to.toHexString();
-            require(ICTMRWA001Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
+            require(ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr), 
                 "RWA: Transfer token to address is not allowable"
             );
         }

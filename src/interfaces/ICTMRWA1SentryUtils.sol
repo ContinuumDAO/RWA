@@ -3,14 +3,14 @@
 pragma solidity ^0.8.19;
 
 
-interface ICTMRWA001StorageUtils {
+interface ICTMRWA1SentryUtils {
 
-    function ctmRwa001Map() external returns(address);
+    function ctmRwa1Map() external returns(address);
     function storageManager() external returns(address);
     function lastSelector() external returns(bytes4);
     function lastData() external returns(bytes calldata);
 
-    function deployStorage(
+    function deploySentry(
         uint256 ID,
         address tokenAddr,
         uint256 rwaType,
@@ -20,7 +20,7 @@ interface ICTMRWA001StorageUtils {
 
     function getLastReason() external view returns(string memory);
 
-    function smC3Fallback(
+    function sentryC3Fallback(
         bytes4 selector,
         bytes calldata data,
         bytes calldata reason

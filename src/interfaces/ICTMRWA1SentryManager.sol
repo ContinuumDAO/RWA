@@ -3,7 +3,7 @@
 pragma solidity ^0.8.19;
 
 
-interface ICTMRWA001SentryManager {
+interface ICTMRWA1SentryManager {
 
     function setGateway(address gateway) external;
     function setFeeManager(address feeManager) external;

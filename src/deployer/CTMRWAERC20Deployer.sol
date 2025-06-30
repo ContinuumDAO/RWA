@@ -9,8 +9,8 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
-import {ICTMRWA001X} from "./interfaces/ICTMRWA001X.sol";
+import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
+import {ICTMRWA1X} from "./interfaces/ICTMRWA1X.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
 
@@ -19,13 +19,13 @@ import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol
  * @author @Selqui ContinuumDAO
  *
  * @notice This contract manages the deployment of an ERC20 token that is an interface to the 
- * underlying CTMRWA001 token. It allows the tokenAdmin (Issuer) to deploy a unique ERC20 representing
+ * underlying CTMRWA1 token. It allows the tokenAdmin (Issuer) to deploy a unique ERC20 representing
  * a single Asset Class (slot).
  *
  * Whereas anyone could call deployERC20() in this contract, there is no point, since it has to be
- * called by CTMRWA001 to be valid and linked to the CTMRWA001.
+ * called by CTMRWA1 to be valid and linked to the CTMRWA1.
  *
- * This contract is only deployed ONCE on each chain and manages all CTMRWA001Dividend contract 
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA1Dividend contract 
  * deployments.
  */
 
@@ -55,15 +55,15 @@ contract CTMRWAERC20Deployer is ReentrancyGuard, Context {
     }
 
     /**
-     * @notice Deploy a new ERC20 contract linked to a CTMRWA001 with ID, for ONE slot
-     * @param _ID The unique ID number for the CTMRWA001
+     * @notice Deploy a new ERC20 contract linked to a CTMRWA1 with ID, for ONE slot
+     * @param _ID The unique ID number for the CTMRWA1
      * @param _slot The slot number selected for this ERC20.
      * @param _name The name for the ERC20. This will be pre-pended with "slot X | ", where X is
      * the slot number
      * @param  _symbol The symbol to use for the ERC20
      * @param  _feeToken The fee token address to pay. The contract address must be 
      * in the return from feeTokenList() in FeeManager
-     * NOTE The resulting ERC20 is only valid if this function is called from a CTMRWA001 contract
+     * NOTE The resulting ERC20 is only valid if this function is called from a CTMRWA1 contract
      * otherwise it will not be linked to it.
      */
     function deployERC20(
@@ -77,8 +77,8 @@ contract CTMRWAERC20Deployer is ReentrancyGuard, Context {
     ) external returns(address) {
 
         (bool ok, address ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
-        require(ok, "CTMRWAERC20: the ID does not link to a valid CTMRWA001");
-        require(_msgSender() == ctmRwaToken, "CTMRWAERC20: Deployer is not CTMRWA001");
+        require(ok, "CTMRWAERC20: the ID does not link to a valid CTMRWA1");
+        require(_msgSender() == ctmRwaToken, "CTMRWAERC20: Deployer is not CTMRWA1");
 
         _payFee(FeeType.ERC20, _feeToken);
 
@@ -130,15 +130,15 @@ contract CTMRWAERC20Deployer is ReentrancyGuard, Context {
 
 /**
  * This contract is an ERC20. The required interface functions are directly linked to various
- * functions in CTMRWA001. This contract is deployed by deployERC20() in the contract CTMRWAERC20Deployer
+ * functions in CTMRWA1. This contract is deployed by deployERC20() in the contract CTMRWAERC20Deployer
  * which uses CREATE2. 
  */
 contract CTMRWAERC20 is ReentrancyGuard, Context, ERC20 {
 
-    /// @dev The ID of the CTMRWA001 that created this ERC20 is stored here
+    /// @dev The ID of the CTMRWA1 that created this ERC20 is stored here
     uint256 public ID;
 
-    /// @dev rwaType is the type of RWA token contract, e.g. CTMRWA001 has rwaType == 1
+    /// @dev rwaType is the type of RWA token contract, e.g. CTMRWA1 has rwaType == 1
     uint256 rwaType;
 
     /// @dev version is the version of the rwaType
@@ -156,13 +156,13 @@ contract CTMRWAERC20 is ReentrancyGuard, Context, ERC20 {
     /// @dev The symbol of this ERC20
     string ctmRwaSymbol;
 
-    /// @dev The decimals of this ERC20 are the same as for the CTMRWA001
+    /// @dev The decimals of this ERC20 are the same as for the CTMRWA1
     uint8 ctmRwaDecimals;
 
     /// @dev The address of the CTMRWAMap contract
     address ctmRwaMap;
 
-    /// @dev The address of the CTMRWA001 contract that called this
+    /// @dev The address of the CTMRWA1 contract that called this
     address ctmRwaToken;
 
     constructor(
@@ -186,12 +186,12 @@ contract CTMRWAERC20 is ReentrancyGuard, Context, ERC20 {
         bool ok;
 
         (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, rwaType, version);
-        require(ok, "CTMRWAERC20: There is no CTMRWA001 contract backing this ID");
+        require(ok, "CTMRWAERC20: There is no CTMRWA1 contract backing this ID");
 
-        require(ICTMRWA001(ctmRwaToken).slotExists(slot), "CTMRWAERC20: Slot does not exist");
+        require(ICTMRWA1(ctmRwaToken).slotExists(slot), "CTMRWAERC20: Slot does not exist");
 
-        slotName = ICTMRWA001(ctmRwaToken).slotName(slot);
-        ctmRwaDecimals = ICTMRWA001(ctmRwaToken).valueDecimals();
+        slotName = ICTMRWA1(ctmRwaToken).slotName(slot);
+        ctmRwaDecimals = ICTMRWA1(ctmRwaToken).valueDecimals();
     }
 
     /**
@@ -217,22 +217,22 @@ contract CTMRWAERC20 is ReentrancyGuard, Context, ERC20 {
     }
 
     /**
-     * @notice The ERC20 totalSupply. This is derived from the CTMRWA001 and is the 
+     * @notice The ERC20 totalSupply. This is derived from the CTMRWA1 and is the 
      * total fungible balance summed over all tokenIds in the slot of this ERC20
      */
     function totalSupply() public view override returns (uint256) {
 
-        uint256 total = ICTMRWA001(ctmRwaToken).totalSupplyInSlot(slot);
+        uint256 total = ICTMRWA1(ctmRwaToken).totalSupplyInSlot(slot);
         return total;
     }
 
     /**
-     * @notice The ERC20 balanceOf. This is derived from the CTMRWA001 and is the sum of
+     * @notice The ERC20 balanceOf. This is derived from the CTMRWA1 and is the sum of
      * the fungible balances of all tokenIds in this slot for this _account
      * @param _account The wallet address of the balanceOf being sought
      */
     function balanceOf(address _account) public view override returns (uint256) {
-        uint256 bal = ICTMRWA001(ctmRwaToken).balanceOf(_account, slot);
+        uint256 bal = ICTMRWA1(ctmRwaToken).balanceOf(_account, slot);
         return (bal);
     }
 
@@ -292,11 +292,11 @@ contract CTMRWAERC20 is ReentrancyGuard, Context, ERC20 {
 
 
     /**
-     * @dev Low level function calling transferFrom in CTMRWA001 to adjust the balances
+     * @dev Low level function calling transferFrom in CTMRWA1 to adjust the balances
      * of both the _from tokenIds and creating a new tokenId for the _to wallet
      */
     function _update(address _from, address _to, uint256 _value) internal override {
-        uint256 fromBalance = ICTMRWA001(ctmRwaToken).balanceOf(_from, slot);
+        uint256 fromBalance = ICTMRWA1(ctmRwaToken).balanceOf(_from, slot);
 
         if (fromBalance < _value) {
             revert ERC20InsufficientBalance(_from, fromBalance, _value);
@@ -306,25 +306,25 @@ contract CTMRWAERC20 is ReentrancyGuard, Context, ERC20 {
         uint256 tokenIdBal;
         uint256 valRemaining = _value;
 
-        uint256 len = ICTMRWA001(ctmRwaToken).balanceOf(_from);
+        uint256 len = ICTMRWA1(ctmRwaToken).balanceOf(_from);
 
         for(uint256 i=0; i<len; i++) {
-            tokenId = ICTMRWA001(ctmRwaToken).tokenOfOwnerByIndex(_from, i);
+            tokenId = ICTMRWA1(ctmRwaToken).tokenOfOwnerByIndex(_from, i);
 
-            if(ICTMRWA001(ctmRwaToken).slotOf(tokenId) == slot) {
-                tokenIdBal = ICTMRWA001(ctmRwaToken).balanceOf(tokenId);
+            if(ICTMRWA1(ctmRwaToken).slotOf(tokenId) == slot) {
+                tokenIdBal = ICTMRWA1(ctmRwaToken).balanceOf(tokenId);
 
-                uint256 newTokenId = ICTMRWA001(ctmRwaToken).mintFromX(_to, slot, slotName, 0);
+                uint256 newTokenId = ICTMRWA1(ctmRwaToken).mintFromX(_to, slot, slotName, 0);
 
                 if(tokenIdBal >= valRemaining) {
-                    ICTMRWA001(ctmRwaToken).approve(tokenId, _to, valRemaining);
-                    ICTMRWA001(ctmRwaToken).transferFrom(tokenId, newTokenId, valRemaining);
-                    ICTMRWA001(ctmRwaToken).clearApprovedValuesErc20(tokenId);
+                    ICTMRWA1(ctmRwaToken).approve(tokenId, _to, valRemaining);
+                    ICTMRWA1(ctmRwaToken).transferFrom(tokenId, newTokenId, valRemaining);
+                    ICTMRWA1(ctmRwaToken).clearApprovedValuesErc20(tokenId);
                     emit Transfer(_from, _to, _value);
                     return;
                 } else {
-                    ICTMRWA001(ctmRwaToken).approve(tokenId, _to, tokenIdBal);
-                    ICTMRWA001(ctmRwaToken).transferFrom(tokenId, newTokenId, tokenIdBal);
+                    ICTMRWA1(ctmRwaToken).approve(tokenId, _to, tokenIdBal);
+                    ICTMRWA1(ctmRwaToken).transferFrom(tokenId, newTokenId, tokenIdBal);
                     valRemaining -= tokenIdBal;
                     if(valRemaining == 0) {
                         emit Transfer(_from, _to, _value);

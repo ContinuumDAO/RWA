@@ -5,19 +5,19 @@ pragma solidity ^0.8.19;
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
+import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
+import {ICTMRWA1Sentry} from "./interfaces/ICTMRWA1Sentry.sol";
 
-import {CTMRWA001Sentry} from "./CTMRWA001Sentry.sol";
+import {CTMRWA1Sentry} from "./CTMRWA1Sentry.sol";
 
 
-contract CTMRWA001SentryUtils is Context {
+contract CTMRWA1SentryUtils is Context {
     using Strings for *;
 
     uint256 rwaType;
     uint256 version;
-    address public ctmRwa001Map;
+    address public ctmRwa1Map;
     address public sentryManager;
 
     bytes4 public lastSelector;
@@ -25,7 +25,7 @@ contract CTMRWA001SentryUtils is Context {
     bytes public lastReason;
 
     modifier onlySentryManager {
-        require(_msgSender() == sentryManager, "CTMRWA001SentryUtils: onlySentryManager function");
+        require(_msgSender() == sentryManager, "CTMRWA1SentryUtils: onlySentryManager function");
         _;
     }
 
@@ -40,7 +40,7 @@ contract CTMRWA001SentryUtils is Context {
     ) {
         rwaType = _rwaType;
         version = _version;
-        ctmRwa001Map = _map;
+        ctmRwa1Map = _map;
         sentryManager = _sentryManager;
     }
 
@@ -53,7 +53,7 @@ contract CTMRWA001SentryUtils is Context {
         address _map
     ) external onlySentryManager returns(address) {
 
-        CTMRWA001Sentry ctmRwa001Sentry = new CTMRWA001Sentry{
+        CTMRWA1Sentry ctmRwa1Sentry = new CTMRWA1Sentry{
             salt: bytes32(_ID) 
         }(
             _ID,
@@ -64,7 +64,7 @@ contract CTMRWA001SentryUtils is Context {
             _map
         );
 
-        return(address(ctmRwa001Sentry));
+        return(address(ctmRwa1Sentry));
     }
 
     function getLastReason() public view returns(string memory) {
@@ -87,8 +87,8 @@ contract CTMRWA001SentryUtils is Context {
     }
 
     function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001StorageFallback: The requested tokenID does not exist");
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        require(ok, "CTMRWA1StorageFallback: The requested tokenID does not exist");
         string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
 
         return(tokenAddr, tokenAddrStr);
@@ -96,7 +96,7 @@ contract CTMRWA001SentryUtils is Context {
 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001StorageFallback: Invalid address length");
+        require(strBytes.length == 42, "CTMRWA1StorageFallback: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {

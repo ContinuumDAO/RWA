@@ -4,27 +4,27 @@ pragma solidity ^0.8.19;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
-import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
+import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
  * @author @Selqui ContinuumDAO
  *
- * @notice This contract is a helper contract for CTMRWA001X. It manages any cross-chain call failures
+ * @notice This contract is a helper contract for CTMRWA1X. It manages any cross-chain call failures
  *
- * This contract is only deployed ONCE on each chain and manages all CTMRWA001 contract interactions
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
 
-contract CTMRWA001XFallback is Context {
+contract CTMRWA1XFallback is Context {
 
-    address public rwa001X;
+    address public rwa1X;
 
     bytes4 public lastSelector;
     bytes public lastData;
     bytes public lastReason;
 
-    modifier onlyRwa001X {
-        require(_msgSender() == rwa001X, "CTMRWA001XFallback: onlyRwa001X function");
+    modifier onlyRwa1X {
+        require(_msgSender() == rwa1X, "CTMRWA1XFallback: onlyRwa1X function");
         _;
     }
 
@@ -41,9 +41,9 @@ contract CTMRWA001XFallback is Context {
 
 
     constructor(
-        address _rwa001X
+        address _rwa1X
     ) {
-        rwa001X = _rwa001X;
+        rwa1X = _rwa1X;
     }
 
     /// @dev Returns the last revert string after c3Fallback from another chain
@@ -57,14 +57,14 @@ contract CTMRWA001XFallback is Context {
      * @param _data is the abi encoded data sent to the destinatin chain
      * @param _reason is the revert string from the destination chain
      * @dev If the failing function was mintX (used for transferFrom), then this function will mint the fungible 
-     * balance in the CTMRWA001 with ID, as a new tokenId, effectively replacing the value that was
+     * balance in the CTMRWA1 with ID, as a new tokenId, effectively replacing the value that was
      * burned. 
      */
-    function rwa001XC3Fallback(
+    function rwa1XC3Fallback(
         bytes4 _selector,
         bytes calldata _data,
         bytes calldata _reason
-    ) external onlyRwa001X returns(bool) {
+    ) external onlyRwa1X returns(bool) {
 
         lastSelector = _selector;
         lastData = _data;
@@ -79,7 +79,7 @@ contract CTMRWA001XFallback is Context {
             uint256 fromTokenId_;
             uint256 slot_;
             uint256 value_;
-            string memory ctmRwa001AddrStr_;
+            string memory ctmRwa1AddrStr_;
 
             (
                 ID_,
@@ -88,17 +88,17 @@ contract CTMRWA001XFallback is Context {
                 fromTokenId_,
                 slot_,
                 value_,
-                ctmRwa001AddrStr_
+                ctmRwa1AddrStr_
             ) = abi.decode(_data,
                 (uint256,string,string,uint256,uint256,uint256,string)
             );
 
-            address ctmRwa001Addr = stringToAddress(ctmRwa001AddrStr_);
+            address ctmRwa1Addr = stringToAddress(ctmRwa1AddrStr_);
             address fromAddr = stringToAddress(fromAddressStr_);
 
-            string memory thisSlotName = ICTMRWA001(ctmRwa001Addr).slotName(slot_);
+            string memory thisSlotName = ICTMRWA1(ctmRwa1Addr).slotName(slot_);
 
-            ICTMRWA001(ctmRwa001Addr).mintFromX(fromAddr, slot_, thisSlotName, value_);
+            ICTMRWA1(ctmRwa1Addr).mintFromX(fromAddr, slot_, thisSlotName, value_);
 
             emit ReturnValueFallback(fromAddr, slot_, value_);
         }
@@ -111,7 +111,7 @@ contract CTMRWA001XFallback is Context {
     /// @dev Convert a string to an EVM address. Also checks the string length 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001X: Invalid addr length");
+        require(strBytes.length == 42, "CTMRWA1X: Invalid addr length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {

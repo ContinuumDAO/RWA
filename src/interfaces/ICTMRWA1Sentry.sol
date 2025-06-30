@@ -3,7 +3,7 @@
 pragma solidity ^0.8.19;
 
 
-interface ICTMRWA001Sentry {
+interface ICTMRWA1Sentry {
     function ID() external returns(uint256);
     function tokenAdmin() external returns(address);
     function setTokenAdmin(address _tokenAdmin) external returns(bool);

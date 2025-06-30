@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.19;
 
-import {SlotData} from "./ICTMRWA001.sol";
+import {SlotData} from "./ICTMRWA1.sol";
 
-interface ICTMRWA001X {
+interface ICTMRWA1X {
 
     function isMinter(address) external returns(bool);
     function changeMinterStatus(address minter, bool set) external;
@@ -27,7 +27,7 @@ interface ICTMRWA001X {
     function ctmRwaDeployer() external returns(address);
 
     
-    function deployAllCTMRWA001X(
+    function deployAllCTMRWA1X(
         bool includeLocal,
         uint256 existingID,
         uint256 rwaType,
@@ -40,7 +40,7 @@ interface ICTMRWA001X {
         string memory feeTokenStr
     ) external returns(uint256);
 
-    function deployCTMRWA001(
+    function deployCTMRWA1(
         string memory newAdminStr,
         uint256 ID,
         string memory tokenName, 

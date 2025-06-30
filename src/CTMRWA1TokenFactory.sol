@@ -2,21 +2,21 @@
 
 pragma solidity ^0.8.19;
 
-import "./CTMRWA001.sol";
-import {SlotData, ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
+import "./CTMRWA1.sol";
+import {SlotData, ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
  * @author @Selqui ContinuumDAO
  *
- * @notice This contract has one task, which is to deploy a new CTMRWA001 contract on one chain
+ * @notice This contract has one task, which is to deploy a new CTMRWA1 contract on one chain
  * The deploy function is called by CTMRWADeployer. It uses the CREATE2 instruction to deploy the
  * contract, returning its address.
  *
- * This contract is only deployed ONCE on each chain and manages all CTMRWA001 contract deployments
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract deployments
  */
 
-contract CTMRWA001TokenFactory {
+contract CTMRWA1TokenFactory {
 
     address public ctmRwaMap;
     address public ctmRwaDeployer;
@@ -35,7 +35,7 @@ contract CTMRWA001TokenFactory {
     }
 
     /**
-     * @dev Deploy a new CTMRWA001 using 'salt' ID to ensure a unique contract address
+     * @dev Deploy a new CTMRWA1 using 'salt' ID to ensure a unique contract address
      */
     function deploy(
         bytes memory _deployData
@@ -50,10 +50,10 @@ contract CTMRWA001TokenFactory {
             string memory baseURI,
             uint256[] memory slotNumbers,
             string[] memory slotNames,
-            address ctmRwa001X
+            address ctmRwa1X
         ) = abi.decode(_deployData, (uint256, address, string, string, uint8, string, uint256[], string[], address));
 
-        CTMRWA001 ctmRwa001Token = new CTMRWA001{
+        CTMRWA1 ctmRwa1Token = new CTMRWA1{
             salt: bytes32(ID) 
         }(
             admin,
@@ -62,15 +62,15 @@ contract CTMRWA001TokenFactory {
             symbol,
             decimals,
             baseURI,
-            ctmRwa001X
+            ctmRwa1X
         );
 
-        address ctmRwa001Addr = address(ctmRwa001Token);
+        address ctmRwa1Addr = address(ctmRwa1Token);
         if(slotNumbers.length >0 ) {
-            ICTMRWA001(ctmRwa001Addr).initializeSlotData(slotNumbers, slotNames);
+            ICTMRWA1(ctmRwa1Addr).initializeSlotData(slotNumbers, slotNames);
         }
 
-        return(ctmRwa001Addr);
+        return(ctmRwa1Addr);
     }
 
 }

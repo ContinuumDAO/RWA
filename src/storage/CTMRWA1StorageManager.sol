@@ -12,11 +12,11 @@ import {GovernDapp} from "./routerV2/GovernDapp.sol";
 
 import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
 import {ICTMRWAGateway} from "./interfaces/ICTMRWAGateway.sol";
-import {ICTMRWA001, TokenContract, ITokenContract} from "./interfaces/ICTMRWA001.sol";
-import {ICTMRWA001Storage, URICategory, URIType, URIData} from "./interfaces/ICTMRWA001Storage.sol";
+import {ICTMRWA1, TokenContract, ITokenContract} from "./interfaces/ICTMRWA1.sol";
+import {ICTMRWA1Storage, URICategory, URIType, URIData} from "./interfaces/ICTMRWA1Storage.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {ITokenContract} from "./interfaces/ICTMRWA001.sol";
-import {ICTMRWA001StorageUtils} from "./interfaces/ICTMRWA001StorageUtils.sol";
+import {ITokenContract} from "./interfaces/ICTMRWA1.sol";
+import {ICTMRWA1StorageUtils} from "./interfaces/ICTMRWA1StorageUtils.sol";
 
 
 interface TokenID {
@@ -28,14 +28,14 @@ interface TokenID {
  * @author @Selqui ContinuumDAO
  *
  * @notice This contract handles the cross-chain interactions for decentralized storage of data
- * relating to the RWA, updating the CTMRWA001Storage contract for each ID with checksum and other data
- * and ensuring that the CTMRWA001Storage for every RWA with the same ID on each chain stores the 
+ * relating to the RWA, updating the CTMRWA1Storage contract for each ID with checksum and other data
+ * and ensuring that the CTMRWA1Storage for every RWA with the same ID on each chain stores the 
  * exact same information.
  *
- * This contract is only deployed ONCE on each chain and manages all CTMRWA001 contract interactions
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
 
-contract CTMRWA001StorageManager is Context, GovernDapp {
+contract CTMRWA1StorageManager is Context, GovernDapp {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -43,12 +43,12 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     address public ctmRwaDeployer;
 
     /// @dev The address of the CTMRWAMap contract
-    address public ctmRwa001Map;
+    address public ctmRwa1Map;
 
-    /// @dev The address of the CTMRWA001StorageUtils contract on this chain
+    /// @dev The address of the CTMRWA1StorageUtils contract on this chain
     address public utilsAddr;
 
-    /// @dev rwaType is the RWA type defining CTMRWA001
+    /// @dev rwaType is the RWA type defining CTMRWA1
     uint256 public rwaType;
 
     /// @dev version is the single integer version of this RWA type
@@ -70,7 +70,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     event URIAdded(uint256 ID);
     
     modifier onlyDeployer {
-        require(msg.sender == ctmRwaDeployer, "CTMRWA001StorageManager: onlyDeployer function");
+        require(msg.sender == ctmRwaDeployer, "CTMRWA1StorageManager: onlyDeployer function");
         _;
     }
 
@@ -124,20 +124,20 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
      * @param _map address of the new CTMRWAMap contract
      */
     function setCtmRwaMap(address _map) external onlyGov {
-        ctmRwa001Map = _map;
+        ctmRwa1Map = _map;
     }
 
     /**
-     * @notice Governance can change to a new CTMRWA001StorageUtils contract
-     * @param _utilsAddr address of the new CTMRWA001StorageUtils contract
+     * @notice Governance can change to a new CTMRWA1StorageUtils contract
+     * @param _utilsAddr address of the new CTMRWA1StorageUtils contract
      */
     function setStorageUtils(address _utilsAddr) external onlyGov {
         utilsAddr = _utilsAddr;
     }
 
     /**
-     * @dev This function is called by CTMRWADeployer, allowing CTMRWA001StorageUtils to 
-     * deploy a CTMRWA001Storage contract with the same ID as for the CTMRWA001 contract
+     * @dev This function is called by CTMRWADeployer, allowing CTMRWA1StorageUtils to 
+     * deploy a CTMRWA1Storage contract with the same ID as for the CTMRWA1 contract
      */
     function deployStorage(
         uint256 _ID,
@@ -147,7 +147,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         address _map
     ) external onlyDeployer returns(address) {
 
-        address storageAddr = ICTMRWA001StorageUtils(utilsAddr).deployStorage(
+        address storageAddr = ICTMRWA1StorageUtils(utilsAddr).deployStorage(
             _ID,
             _tokenAddr,
             _rwaType,
@@ -159,16 +159,16 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     }
 
     /**
-     * @notice Add a data storage record to the RWA's CTMRWA001Storage contract on this chain and
+     * @notice Add a data storage record to the RWA's CTMRWA1Storage contract on this chain and
      * identically on every other chain that the RWA is deployed to. The bulk of the data is stored
      * in an object in decentralized storage (e.g. BNB Greenfield) in an object with name _objectName.
-     * Also stored in the CTMRWA001Storage are the title of the record, the type of information, the
+     * Also stored in the CTMRWA1Storage are the title of the record, the type of information, the
      * Asset Class (slot) and a hash of the checksum of the stored data.
      * @param _ID The ID of the RWA
      * @param _objectName The name of the object stored in decentralized storage (e.g. BNB Greenfield)
-     * It should be identical to the string version of the nonce() in the RWA's CTMRWA001Storage contract.
+     * It should be identical to the string version of the nonce() in the RWA's CTMRWA1Storage contract.
      * @param _uriCategory The category type of the data being stored. The allowable values are the enums
-     * in URICategory defined in ICTMRWA001Storage
+     * in URICategory defined in ICTMRWA1Storage
      * @param _uriType The type of storage information. It can either relate the the entire RWA
      * (URIType.CONTRACT), or to an individual Asset Class (URIType.SLOT)
      * @param _title The title of this storage record. It has to be between 10 and 256 charcters in length.
@@ -185,7 +185,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
      * Issuer of the RWA
      * NOTE The tokenAdmin (Issuer) of the RWA must register the RWA as a Security and add a 
      * URICategory.LICENSE record before they can create a wallet address able to forceTransfer value
-     * in CTMRWA001.
+     * in CTMRWA1.
      */
     function addURI(
         uint256 _ID,
@@ -198,32 +198,32 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001StorageManager: Could not find _ID or its storage address");
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, rwaType, version);
+        require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
 
-        (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
-        _checkTokenAdmin(ctmRwa001Addr);
+        (address ctmRwa1Addr, ) = _getTokenAddr(_ID);
+        _checkTokenAdmin(ctmRwa1Addr);
 
-        require(bytes(ICTMRWA001(ctmRwa001Addr).baseURI()).length > 0, "CTMRWA001StorageManager: This token does not have storage");
+        require(bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length > 0, "CTMRWA1StorageManager: This token does not have storage");
 
         uint256 fee;
         uint256 titleLength;
 
         titleLength = bytes(_title).length;
-        require(!ICTMRWA001Storage(storageAddr).existObjectName(_objectName), "CTMRWA001StorageManager: Object already exists in Storage");
-        require(titleLength >= 10 && titleLength <= 256, "CTMRWA001StorageManager: The title parameter must be between 10 and 256 characters");
+        require(!ICTMRWA1Storage(storageAddr).existObjectName(_objectName), "CTMRWA1StorageManager: Object already exists in Storage");
+        require(titleLength >= 10 && titleLength <= 256, "CTMRWA1StorageManager: The title parameter must be between 10 and 256 characters");
         
         fee = _individualFee(_uriCategory, _feeTokenStr, _chainIdsStr, false);
 
         _payFee(fee, _feeTokenStr);
 
-        uint256 startNonce = ICTMRWA001Storage(storageAddr).nonce();
+        uint256 startNonce = ICTMRWA1Storage(storageAddr).nonce();
 
         for(uint256 i=0; i<_chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
             if(stringsEqual(chainIdStr, cIdStr)) {
-                ICTMRWA001Storage(storageAddr).addURILocal(
+                ICTMRWA1Storage(storageAddr).addURILocal(
                     _ID, 
                     _objectName, 
                     _uriCategory, 
@@ -259,7 +259,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
     /**
      * @notice When new chains are added to the RWA with _ID, this function transfers all the existing storage
-     * data from the CTMRWA001Storage contract for the ID on the local chain to the newly added chains.
+     * data from the CTMRWA1Storage contract for the ID on the local chain to the newly added chains.
      * In this way, the storage data is synced on all chains of the RWA for this ID, all pointing to the same 
      * decentralized storage objects on e.g. BNB Greenfield.
      * @param _ID The ID of this RWA
@@ -274,13 +274,13 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001StorageManager: Could not find _ID or its storage address");
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, rwaType, version);
+        require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
 
-        (address ctmRwa001Addr, ) = _getTokenAddr(_ID);
-        _checkTokenAdmin(ctmRwa001Addr);
+        (address ctmRwa1Addr, ) = _getTokenAddr(_ID);
+        _checkTokenAdmin(ctmRwa1Addr);
 
-        require(bytes(ICTMRWA001(ctmRwa001Addr).baseURI()).length > 0, "CTMRWA001StorageManager: This token does not have storage");
+        require(bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length > 0, "CTMRWA1StorageManager: This token does not have storage");
 
 
         (
@@ -291,7 +291,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
             string[] memory objectName,
             bytes32[] memory uriDataHash,
             uint256[] memory timestamp
-        ) = ICTMRWA001Storage(storageAddr).getAllURIData();
+        ) = ICTMRWA1Storage(storageAddr).getAllURIData();
 
         uint256 len = objectName.length;
 
@@ -311,7 +311,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
             if(stringsEqual(chainIdStr, cIdStr)) {
-                revert("CTMRWA001StorageManager: Cannot transferURI to the local chain");
+                revert("CTMRWA1StorageManager: Cannot transferURI to the local chain");
             } else {
                 (, string memory toRwaSMStr) = _getSM(chainIdStr);
 
@@ -337,7 +337,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     }
 
     /**
-     * @dev Adds the storage information for a storage object to the CTMRWA001Storage
+     * @dev Adds the storage information for a storage object to the CTMRWA1Storage
      * contract on this chain, being a copy of that on the source chain. This function 
      * can only be called by the MPC network.
      */
@@ -353,18 +353,18 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         bytes32[] memory _uriDataHash
     ) external onlyCaller returns(bool) {
 
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa001Map).getStorageContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001StorageManager: Could not find _ID or its storage address");
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, rwaType, version);
+        require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
 
-        uint256 currentNonce = ICTMRWA001Storage(storageAddr).nonce();
+        uint256 currentNonce = ICTMRWA1Storage(storageAddr).nonce();
         require(_startNonce == currentNonce,
-            "CTMRWA0CTMRWA001StorageManager: addURI Starting nonce mismatch"
+            "CTMRWA0CTMRWA1StorageManager: addURI Starting nonce mismatch"
         );
 
         uint256 len =_objectName.length;
 
         for(uint256 i=0; i<len; i++) {
-            ICTMRWA001Storage(storageAddr).addURILocal(_ID, _objectName[i], _uToCat(_uriCategory[i]), _uToType(_uriType[i]), _title[i], _slot[i], _timestamp[i], _uriDataHash[i]);
+            ICTMRWA1Storage(storageAddr).addURILocal(_ID, _objectName[i], _uToCat(_uriCategory[i]), _uToType(_uriType[i]), _title[i], _slot[i], _timestamp[i], _uriDataHash[i]);
         }
 
         emit URIAdded(_ID);
@@ -372,39 +372,39 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(true);
     }
 
-    /// @dev Get the address of the CTMRWA001 corresponding to the _ID
+    /// @dev Get the address of the CTMRWA1 corresponding to the _ID
     function _getTokenAddr(uint256 _ID) internal view returns(address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa001Map).getTokenContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001StorageManager: The requested tokenID does not exist");
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        require(ok, "CTMRWA1StorageManager: The requested tokenID does not exist");
         string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
 
         return(tokenAddr, tokenAddrStr);
     }
 
     /**
-     * @dev  Get the address of the corresponding CTMRWA001StorageManager contract on another chain
+     * @dev  Get the address of the corresponding CTMRWA1StorageManager contract on another chain
      * with chainID (converted to a string) of _toChainIdStr
      */
     function _getSM(string memory _toChainIdStr) internal view returns(string memory, string memory) {
-        require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA001StorageManager: Not a cross-chain tokenAdmin change");
+        require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA1StorageManager: Not a cross-chain tokenAdmin change");
 
         string memory fromAddressStr = _toLower(_msgSender().toHexString());
 
         (bool ok, string memory toSMStr) = ICTMRWAGateway(gateway).getAttachedStorageManager(rwaType, version, _toChainIdStr);
-        require(ok, "CTMRWA001StorageManager: Target contract address not found");
+        require(ok, "CTMRWA1StorageManager: Target contract address not found");
 
         return(fromAddressStr, toSMStr);
     }
 
     /**
-     * @dev Return the tokenAdmin address for a CTMRWA001 with address _tokenAddr and
+     * @dev Return the tokenAdmin address for a CTMRWA1 with address _tokenAddr and
      * check that the msg.sender is the tokenAdmin and revert if not so.
      */
     function _checkTokenAdmin(address _tokenAddr) internal returns(address, string memory) {
-        address currentAdmin = ICTMRWA001(_tokenAddr).tokenAdmin();
+        address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = _toLower(currentAdmin.toHexString());
 
-        require(_msgSender() == currentAdmin, "CTMRWA001StorageManager: Not tokenAdmin");
+        require(_msgSender() == currentAdmin, "CTMRWA1StorageManager: Not tokenAdmin");
 
         return(currentAdmin, currentAdminStr);
     }
@@ -500,7 +500,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
 
     /// @dev Get the last revert string from a cross-chain c3Fallback
     function getLastReason() public view returns(string memory) {
-        string memory lastReason = ICTMRWA001StorageUtils(utilsAddr).getLastReason();
+        string memory lastReason = ICTMRWA1StorageUtils(utilsAddr).getLastReason();
         return(lastReason);
     }
 
@@ -511,7 +511,7 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
     /// @dev Convert a string to an EVM address. Also checks the string length
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001StorageManager: Invalid address length");
+        require(strBytes.length == 42, "CTMRWA1StorageManager: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {
@@ -597,13 +597,13 @@ contract CTMRWA001StorageManager is Context, GovernDapp {
         return(bytes32Array);
     }
 
-    /// @dev Manage a cross0chain fallback from c3Caller. See CTMRWA001StorageUtils
+    /// @dev Manage a cross0chain fallback from c3Caller. See CTMRWA1StorageUtils
     function _c3Fallback(bytes4 _selector,
         bytes calldata _data,
         bytes calldata _reason) internal override returns (bool) {
 
 
-        bool ok = ICTMRWA001StorageUtils(utilsAddr).smC3Fallback(
+        bool ok = ICTMRWA1StorageUtils(utilsAddr).smC3Fallback(
             _selector,
             _data,
             _reason

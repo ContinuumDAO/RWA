@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 import {GovernDapp} from "./routerV2/GovernDapp.sol";
 
-import {ICTMRWA001} from "./interfaces/ICTMRWA001.sol";
+import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
 import {ICTMRWAFactory} from "./interfaces/ICTMRWAFactory.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {ICTMRWADeployInvest} from "./interfaces/ICTMRWADeployInvest.sol";
@@ -17,16 +17,16 @@ import {ICTMRWADeployInvest} from "./interfaces/ICTMRWADeployInvest.sol";
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
  * @author @Selqui ContinuumDAO
  *
- * @notice The deploy function in this contract is called by CTMRWA001X on each chain that an 
+ * @notice The deploy function in this contract is called by CTMRWA1X on each chain that an 
  * RWA is deployed to. It calls other contracts that use CREATE2 to deploy the suite of contracts for the RWA.
- * These are CTMRWA001TokenFactory to deploy CTMRWA001, CTMRWA001StorageManager to deploy CTMRWA001Storage,
- * CTMRWA001DividendFactory to deploy CTMRWA001Dividend and CTMRWA001SentryManager to deploy CTMRWA001Sentry.
+ * These are CTMRWA1TokenFactory to deploy CTMRWA1, CTMRWA1StorageManager to deploy CTMRWA1Storage,
+ * CTMRWA1DividendFactory to deploy CTMRWA1Dividend and CTMRWA1SentryManager to deploy CTMRWA1Sentry.
  * This unique set of contracts is deployed for every ID and then the contract addresses are stored in CTMRWAMap.
  * The contracts that do the deployment can be updated by Governance, with different addresses dependent on
- * the rwaType and version. The data passed to CTMRWA001TokenFactory is abi encoded deployData for maximum
+ * the rwaType and version. The data passed to CTMRWA1TokenFactory is abi encoded deployData for maximum
  * flexibility for future types of RWA.
  *
- * This contract is only deployed ONCE on each chain and manages all CTMRWA001 contract interactions
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
 
 contract CTMRWADeployer is Context, GovernDapp {
@@ -38,7 +38,7 @@ contract CTMRWADeployer is Context, GovernDapp {
     /// @dev The address the FeeManager contract
     address feeManager;
 
-    /// @dev The address of the CTMRWA001X contract
+    /// @dev The address of the CTMRWA1X contract
     address public rwaX;
 
     /// @dev The address of the CTMRWAMap contract
@@ -50,16 +50,16 @@ contract CTMRWADeployer is Context, GovernDapp {
     /// @dev The address of the CTMRWADeployInvest contract
     address public deployInvest;
 
-    /// @dev Storage for the addresses of the CTMRWA001TokenFactory contracts
+    /// @dev Storage for the addresses of the CTMRWA1TokenFactory contracts
     mapping(uint256 => address[1_000_000_000]) public tokenFactory;
 
-    /// @dev Storage for the addresses of the CTMRWA001DividendFactory addresses
+    /// @dev Storage for the addresses of the CTMRWA1DividendFactory addresses
     mapping(uint256 => address[1_000_000_000]) public dividendFactory;
 
-    /// @dev Storage for the addresses of the CTMRWA001StorageManager addresses
+    /// @dev Storage for the addresses of the CTMRWA1StorageManager addresses
     mapping(uint256 => address[1_000_000_000]) public storageFactory;
 
-    /// @dev Storage for the addresses of the CTMRWA001SentryManager addresses
+    /// @dev Storage for the addresses of the CTMRWA1SentryManager addresses
     mapping(uint256 => address[1_000_000_000]) public sentryFactory;
 
 
@@ -96,7 +96,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         feeManager = _feeManager;
     }
 
-    /// @notice Governance function to change the CTMRWA001X contract address
+    /// @notice Governance function to change the CTMRWA1X contract address
     function setRwaX(address _rwaX) external onlyGov {
         rwaX = _rwaX;
     }
@@ -129,8 +129,8 @@ contract CTMRWADeployer is Context, GovernDapp {
     ) external onlyRwaX returns(address, address, address, address) {
         address tokenAddr = ICTMRWAFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
 
-        require(ICTMRWA001(tokenAddr).rwaType() == _rwaType, "CTMRWADeployer: Wrong RWA type");
-        require(ICTMRWA001(tokenAddr).version() == _version, "CTMRWADeployer: Wrong RWA version");
+        require(ICTMRWA1(tokenAddr).rwaType() == _rwaType, "CTMRWADeployer: Wrong RWA type");
+        require(ICTMRWA1(tokenAddr).version() == _version, "CTMRWADeployer: Wrong RWA version");
         
         address dividendAddr = deployDividend(_ID, tokenAddr, _rwaType, _version);
         address storageAddr = deployStorage(_ID, tokenAddr, _rwaType, _version);
@@ -141,7 +141,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         return(tokenAddr, dividendAddr, storageAddr, sentryAddr);
     }
 
-    /// @dev Calls the contract function to deploy the CTMRWA001Dividend for this _ID
+    /// @dev Calls the contract function to deploy the CTMRWA1Dividend for this _ID
     function deployDividend(
         uint256 _ID,
         address _tokenAddr,
@@ -161,7 +161,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         else return(address(0));
     }
 
-    /// @dev Calls the contract function to deploy the CTMRWA001Storage for this _ID
+    /// @dev Calls the contract function to deploy the CTMRWA1Storage for this _ID
     function deployStorage(
         uint256 _ID,
         address _tokenAddr,
@@ -181,7 +181,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         else return(address(0));
     }
 
-    /// @notice Governance function to change the CTMRWA001Sentry contract address
+    /// @notice Governance function to change the CTMRWA1Sentry contract address
     function deploySentry(
         uint256 _ID,
         address _tokenAddr,
@@ -201,22 +201,22 @@ contract CTMRWADeployer is Context, GovernDapp {
         else return(address(0));
     }
 
-    /// @dev Governance function to set a new CTMRWA001TokenFactory
+    /// @dev Governance function to set a new CTMRWA1TokenFactory
     function setTokenFactory(uint256 _rwaType, uint256 _version, address _tokenFactory) external onlyGov {
         tokenFactory[_rwaType][_version] = _tokenFactory;
     }
 
-    /// @dev Governance function to set a new CTMRWA001DividendFactory
+    /// @dev Governance function to set a new CTMRWA1DividendFactory
     function setDividendFactory(uint256 _rwaType, uint256 _version, address _dividendFactory) external onlyGov {
         dividendFactory[_rwaType][_version] = _dividendFactory;
     }
 
-    /// @dev Governance function to set a new CTMRWA001StorageManager
+    /// @dev Governance function to set a new CTMRWA1StorageManager
     function setStorageFactory(uint256 _rwaType, uint256 _version, address _storageFactory) external onlyGov {
         storageFactory[_rwaType][_version] = _storageFactory;
     }
 
-    /// @dev Governance function to set a new CTMRWA001SentryManager
+    /// @dev Governance function to set a new CTMRWA1SentryManager
     function setSentryFactory(uint256 _rwaType, uint256 _version, address _sentryFactory) external onlyGov {
         sentryFactory[_rwaType][_version] = _sentryFactory;
     }

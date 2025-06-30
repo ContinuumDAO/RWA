@@ -47,7 +47,7 @@ interface ICTMRWADeployInvest {
     ) external returns(address);
 }
 
-interface ICTMRWA001InvestWithTimeLock {
+interface ICTMRWA1InvestWithTimeLock {
     function holdingsByAddress(address) external view returns(Holding[] memory);
     function commissionRate() external view returns(uint256);
 

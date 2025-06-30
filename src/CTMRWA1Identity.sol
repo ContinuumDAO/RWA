@@ -11,12 +11,12 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {ICTMRWA001, ITokenContract} from "./interfaces/ICTMRWA001.sol";
+import {ICTMRWA1, ITokenContract} from "./interfaces/ICTMRWA1.sol";
 import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
 import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
-import {ICTMRWA001Sentry} from "./interfaces/ICTMRWA001Sentry.sol";
-import {ICTMRWA001SentryManager} from "./interfaces/ICTMRWA001SentryManager.sol";
-import {RequestId} from "./interfaces/ICTMRWA001Identity.sol";
+import {ICTMRWA1Sentry} from "./interfaces/ICTMRWA1Sentry.sol";
+import {ICTMRWA1SentryManager} from "./interfaces/ICTMRWA1SentryManager.sol";
+import {RequestId} from "./interfaces/ICTMRWA1Identity.sol";
 
 import {PrimitiveTypeUtils} from '@iden3/contracts/lib/PrimitiveTypeUtils.sol';
 import {ICircuitValidator} from '@iden3/contracts/interfaces/ICircuitValidator.sol';
@@ -32,13 +32,13 @@ interface IZkMeVerify {
 }
 
 
-contract CTMRWA001Identity is Context, GovernDapp {
+contract CTMRWA1Identity is Context, GovernDapp {
     using Strings for *;
     using SafeERC20 for IERC20;
 
     uint256 rwaType;
     uint256 version;
-    address public ctmRwa001Map;
+    address public ctmRwa1Map;
     address public sentryManager;
     address public verifierAddress;
     address public zkMeVerifierAddress;
@@ -78,7 +78,7 @@ contract CTMRWA001Identity is Context, GovernDapp {
     ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
         rwaType = _rwaType;
         version = _version;
-        ctmRwa001Map = _map;
+        ctmRwa1Map = _map;
         sentryManager = _sentryManager;
         feeManager = _feeManager;
 
@@ -87,14 +87,14 @@ contract CTMRWA001Identity is Context, GovernDapp {
 
     /// @dev Use setVerifierAddress for PrivadoID verifier only
     function setVerifierAddress(address _verifierAddress) external onlyGov {
-        require(_verifierAddress != address(0), "CTMRWA001Identity: Invalid verifier address");
+        require(_verifierAddress != address(0), "CTMRWA1Identity: Invalid verifier address");
         verifierAddress = _verifierAddress;
         verifier = UniversalVerifier(_verifierAddress);
     }
 
     /// @dev Use setZkMeVerifierAddress for zkMe verifier only
     function setZkMeVerifierAddress(address _verifierAddress) external onlyGov {
-        require(_verifierAddress != address(0), "CTMRWA001Identity: Invalid verifier address");
+        require(_verifierAddress != address(0), "CTMRWA1Identity: Invalid verifier address");
         zkMeVerifierAddress = _verifierAddress;
     }
 
@@ -107,11 +107,11 @@ contract CTMRWA001Identity is Context, GovernDapp {
     }
 
     function setCtmRwaMap(address _map) external onlyGov {
-        ctmRwa001Map = _map;
+        ctmRwa1Map = _map;
     }
 
     function setRequestId(RequestId _requestId, uint64 _value) public onlyGov returns(bool) {
-        require(_value > 0, "CTMRWA001Identity: Request ID cannot be zero");
+        require(_value > 0, "CTMRWA1Identity: Request ID cannot be zero");
 
         if (_requestId == RequestId.PERSONHOOD) {
             personhoodRequestId = _value;
@@ -124,7 +124,7 @@ contract CTMRWA001Identity is Context, GovernDapp {
         } else if (_requestId == RequestId.COUNTRY) {
             countryRequestId = _value;
         } else {
-            revert("CTMRWA001Identity: Invalid zkProof set Request ID");
+            revert("CTMRWA1Identity: Invalid zkProof set Request ID");
         }
 
         return(true);
@@ -139,62 +139,62 @@ contract CTMRWA001Identity is Context, GovernDapp {
     ) onlyIdChain public returns(bool) {
 
         require(verifierAddress != address(0) || zkMeVerifierAddress != address(0),
-            "CTMRWA001Identity: Either PrivadoId or zkMe verifier has to be set"
+            "CTMRWA1Identity: Either PrivadoId or zkMe verifier has to be set"
         );
         
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa001Map).getSentryContract(_ID, rwaType, version);
-        require(ok, "CTMRWA001Identity: Could not find _ID or its sentry address");
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, rwaType, version);
+        require(ok, "CTMRWA1Identity: Could not find _ID or its sentry address");
 
-        require(ICTMRWA001Sentry(sentryAddr).kycSwitch(),
-            "CTMRWA001Identity: KYC is not enabled for this CTMRWA001"
+        require(ICTMRWA1Sentry(sentryAddr).kycSwitch(),
+            "CTMRWA1Identity: KYC is not enabled for this CTMRWA1"
         );
         
-        require(!ICTMRWA001Sentry(sentryAddr).isAllowableTransfer(_msgSender().toHexString()),
-            "CTMRWA001Identity: User is already whitelisted"
+        require(!ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(_msgSender().toHexString()),
+            "CTMRWA1Identity: User is already whitelisted"
         );
 
 
         bool isValid;
 
         if (verifierAddress != address(0)) {
-            if (ICTMRWA001Sentry(sentryAddr).kybSwitch()) {
+            if (ICTMRWA1Sentry(sentryAddr).kybSwitch()) {
                 isValid = isVerifiedBusiness(_msgSender());
-                require(isValid, "CTMRWA001Identity: Invalid proof of business");
+                require(isValid, "CTMRWA1Identity: Invalid proof of business");
             } else {
                 isValid = isVerifiedPerson(_msgSender());
-                require(isValid, "CTMRWA001Identity: Invalid proof of personhood");
+                require(isValid, "CTMRWA1Identity: Invalid proof of personhood");
             }
 
-            if (ICTMRWA001Sentry(sentryAddr).accreditedSwitch()) {
+            if (ICTMRWA1Sentry(sentryAddr).accreditedSwitch()) {
                 isValid = isAccreditedPerson(_msgSender());
-                require(isValid, "CTMRWA001Identity: Invalid proof of being an Accredited Investor");
+                require(isValid, "CTMRWA1Identity: Invalid proof of being an Accredited Investor");
             }
 
-            if (ICTMRWA001Sentry(sentryAddr).age18Switch()) {
+            if (ICTMRWA1Sentry(sentryAddr).age18Switch()) {
                 isValid = isOver18(_msgSender());
-                require(isValid, "CTMRWA001Identity: Invalid proof of being over 18 years of age");
+                require(isValid, "CTMRWA1Identity: Invalid proof of being over 18 years of age");
             }
 
-            if (ICTMRWA001Sentry(sentryAddr).countryWLSwitch()) {
+            if (ICTMRWA1Sentry(sentryAddr).countryWLSwitch()) {
                 isValid = isVerifiedCountry(_msgSender());
-                require(isValid, "CTMRWA001Identity: Invalid proof of residency in whitelisted country");
-            } else if (ICTMRWA001Sentry(sentryAddr).countryBLSwitch()) {
+                require(isValid, "CTMRWA1Identity: Invalid proof of residency in whitelisted country");
+            } else if (ICTMRWA1Sentry(sentryAddr).countryBLSwitch()) {
                 isValid = isVerifiedCountry(_msgSender());
-                require(!isValid, "CTMRWA001Identity: Invalid proof of not residing in blacklisted country");
+                require(!isValid, "CTMRWA1Identity: Invalid proof of not residing in blacklisted country");
             }
         } else { // zkMe solution
-            (,, address cooperator) = ICTMRWA001Sentry(sentryAddr).getZkMeParams();
-            require(cooperator != address(0), "CTMRWA001Identity: zkMe cooperator address has not been set");
+            (,, address cooperator) = ICTMRWA1Sentry(sentryAddr).getZkMeParams();
+            require(cooperator != address(0), "CTMRWA1Identity: zkMe cooperator address has not been set");
             isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, _msgSender());
 
-            require(!isValid, "CTMRWA001Identity: Invalid KYC");
+            require(!isValid, "CTMRWA1Identity: Invalid KYC");
         }
 
 
         uint256 fee = _getFee(FeeType.KYC, 1, _chainIdsStr, _feeTokenStr);
         _payFee(fee, _feeTokenStr);
 
-        ICTMRWA001SentryManager(sentryManager).addWhitelist(
+        ICTMRWA1SentryManager(sentryManager).addWhitelist(
             _ID, 
             _stringToArray(_msgSender().toHexString()), 
             _boolToArray(true), 
@@ -212,28 +212,28 @@ contract CTMRWA001Identity is Context, GovernDapp {
     }
 
     function isVerifiedPerson(address _wallet) public view returns (bool) {
-        require(personhoodRequestId != 0, "CTMRWA001Identity: personhoodRequestId has not been set");
+        require(personhoodRequestId != 0, "CTMRWA1Identity: personhoodRequestId has not been set");
         return verifier.getProofStatus(_wallet, personhoodRequestId).isVerified;
     }
 
     function isVerifiedBusiness(address _wallet) public view returns (bool) {
-        require(businessRequestId != 0, "CTMRWA001Identity: businessRequestId has not been set");
+        require(businessRequestId != 0, "CTMRWA1Identity: businessRequestId has not been set");
         return verifier.getProofStatus(_wallet, businessRequestId).isVerified;
     }
 
     function isOver18(address _wallet) public view returns (bool) {
-        require(over18RequestId != 0, "CTMRWA001Identity: over18RequestId has not been set");
+        require(over18RequestId != 0, "CTMRWA1Identity: over18RequestId has not been set");
         return verifier.getProofStatus(_wallet, over18RequestId).isVerified;
     }
 
     // TODO enforce accreditation per country and possibly only for 12 months
     function isAccreditedPerson(address _wallet) public view returns (bool) {
-        require(accreditedRequestId != 0, "CTMRWA001Identity: accreditedRequestId has not been set");
+        require(accreditedRequestId != 0, "CTMRWA1Identity: accreditedRequestId has not been set");
         return verifier.getProofStatus(_wallet, accreditedRequestId).isVerified;
     }
 
     function isVerifiedCountry(address _wallet) public view returns (bool) {
-        require(countryRequestId != 0, "CTMRWA001Identity: countryRequestId has not been set");
+        require(countryRequestId != 0, "CTMRWA1Identity: countryRequestId has not been set");
         return verifier.getProofStatus(_wallet, countryRequestId).isVerified;
     }
 
@@ -272,7 +272,7 @@ contract CTMRWA001Identity is Context, GovernDapp {
 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA001StorageManager: Invalid address length");
+        require(strBytes.length == 42, "CTMRWA1StorageManager: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {

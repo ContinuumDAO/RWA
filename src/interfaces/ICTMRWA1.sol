@@ -3,7 +3,7 @@
 pragma solidity ^0.8.19;
 
 /**
- * @title CTMRWA001 Semi-Fungible Token Standard
+ * @title CTMRWA1 Semi-Fungible Token Standard
  * @dev See https://docs.continuumdao.org
  * Note: the ERC-165 identifier for this interface is 0xd5358140.
  */
@@ -25,7 +25,7 @@ interface ITokenContract {
     function tokenChainIdStrs() external returns(string[] memory);
 }
 
-interface ICTMRWA001 {
+interface ICTMRWA1 {
 
     function ID() external view returns(uint256);
     function tokenAdmin() external returns(address);
@@ -33,7 +33,7 @@ interface ICTMRWA001 {
     function overrideWallet() external returns(address);
     function rwaType() external returns(uint256);
     function version() external returns(uint256);
-    function ctmRwa001X() external returns(address);
+    function ctmRwa1X() external returns(address);
     function changeAdmin(address _admin) external returns(bool);
     function attachId(uint256 nextID, address tokenAdmin) external returns(bool);
 

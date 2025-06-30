@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-interface ICTMRWA001Dividend {
+interface ICTMRWA1Dividend {
     function ID() external view returns(uint256);
     function setDividendToken(address dividendToken) external returns(bool);
     function dividendToken() external returns(address);
