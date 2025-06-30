@@ -19,8 +19,7 @@ flattened/
 saved-libs/
 
 # Docs
-docs/
-ERC3252-standard/
+ERC3525-standard/
 
 # Dotenv files
 .env

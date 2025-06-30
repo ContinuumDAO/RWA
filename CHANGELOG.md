@@ -13,3 +13,11 @@ Committed.
 ### Remove Stellar contracts from source directory
 
 ### Remove `typechain-types` directory
+
+### Replace c3caller local directory with c3caller dependency
+
+### Update openzeppelin-contracts to v5.3.0
+
+### Update all instances of 001 to 1 in src/
+
+### Create modular folder structure in src/
