@@ -10,5 +10,5 @@ forge verify-contract \
     --compiler-version v0.8.20+commit.a1b79de6 \
     --show-standard-json-input > etherscan.json \
     0x92A2f66274fB9E5db9017A300ae9AD5469dF7Fe5 \
-    flattened/CTMRWA001X.sol:CTMRWA001X
+    flattened/CTMRWA1X.sol:CTMRWA1X
 
