@@ -1,7 +1,0 @@
-# Rust's output directory
-target
-
-# Local settings
-.soroban
-.stellar
-contracts/ctmrwa001/test_snapshots/
