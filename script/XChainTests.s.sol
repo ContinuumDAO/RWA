@@ -7,8 +7,8 @@ import "forge-std/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import {IC3Caller} from "../src/c3Caller/IC3Caller.sol";
-import {IUUIDKeeper} from "../src/c3Caller/IUUIDKeeper.sol";
+import {IC3Caller} from "@c3caller/IC3Caller.sol";
+import {IUUIDKeeper} from "@c3caller/IUUIDKeeper.sol";
 import {ITheiaERC20} from "../src/routerV2/ITheiaERC20.sol";
 
 import {ICTMRWA1, SlotData} from "../src/interfaces/ICTMRWA1.sol";

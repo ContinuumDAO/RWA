@@ -6,14 +6,14 @@ import "forge-std/console.sol";
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import {C3UUIDKeeper} from "../src/c3Caller/C3UUIDKeeper.sol";
-import {IUUIDKeeper} from "../src/c3Caller/IUUIDKeeper.sol";
-import {C3CallerDapp} from "../src/c3Caller/C3CallerDapp.sol";
-import {C3Caller} from "../src/c3Caller/C3Caller.sol";
-import {IC3Caller, IC3CallerProxy, IC3GovClient} from "../src/c3Caller/IC3Caller.sol";
-import {C3CallerProxy} from "../src/c3Caller/C3CallerProxy.sol";
-import {C3CallerProxyERC1967} from "../src/c3Caller/C3CallerProxyERC1967.sol";
-import {C3GovClient} from "../src/c3Caller/C3GovClient.sol";
+import {C3UUIDKeeper} from "@c3caller/C3UUIDKeeper.sol";
+import {IUUIDKeeper} from "@c3caller/IUUIDKeeper.sol";
+import {C3CallerDapp} from "@c3caller/C3CallerDapp.sol";
+import {C3Caller} from "@c3caller/C3Caller.sol";
+import {IC3Caller, IC3CallerProxy, IC3GovClient} from "@c3caller/IC3Caller.sol";
+import {C3CallerProxy} from "@c3caller/C3CallerProxy.sol";
+// import {C3CallerProxyERC1967} from "@c3caller/C3CallerProxyERC1967.sol";
+import {C3GovClient} from "@c3caller/C3GovClient.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -53,7 +53,7 @@ import {ICTMRWA001SentryManager} from "../src/interfaces/ICTMRWA001SentryManager
 import {Offering, Holding, ICTMRWA001InvestWithTimeLock} from "../src/interfaces/ICTMRWADeployInvest.sol";
 import {ICTMRWAERC20} from "../src/interfaces/ICTMRWAERC20.sol";
 
-import {C3CallerStructLib, IC3GovClient} from "../src/c3Caller/IC3Caller.sol";
+import {C3CallerStructLib, IC3GovClient} from "@c3caller/IC3Caller.sol";
 
 
 
@@ -119,7 +119,7 @@ contract SetUp is Test {
 
     C3UUIDKeeper c3UUIDKeeper;
 
-    C3CallerProxyERC1967 c3CallerProxy;
+    // C3CallerProxyERC1967 c3CallerProxy;
     C3CallerProxy c3CallerImpl;
     C3Caller c3CallerLogic;
     IC3CallerProxy c3;
@@ -459,33 +459,33 @@ contract SetUp is Test {
     }
 
 
-    function deployC3Caller() internal {
-        vm.startPrank(gov);
-        c3UUIDKeeper = new C3UUIDKeeper();
+    // function deployC3Caller() internal {
+    //     vm.startPrank(gov);
+    //     c3UUIDKeeper = new C3UUIDKeeper();
 
-        // this is actually the c3Caller address that gets passed to c3CallerProxy
-        c3CallerLogic = new C3Caller(address(c3UUIDKeeper));
+    //     // this is actually the c3Caller address that gets passed to c3CallerProxy
+    //     c3CallerLogic = new C3Caller(address(c3UUIDKeeper));
 
-        // this is actually the C3CallerProxy, but is implementation in the eyes of UUPS
-        c3CallerImpl = new C3CallerProxy();
+    //     // this is actually the C3CallerProxy, but is implementation in the eyes of UUPS
+    //     c3CallerImpl = new C3CallerProxy();
 
-        // initialize the "implementation" (actually C3CallerProxy) with address of logic contract
-        bytes memory implInitializerData = abi.encodeWithSignature("initialize(address)", address(c3CallerLogic));
-        // this is actually not C3CallerProxy, but a simple instance of ERC1967
-        c3CallerProxy = new C3CallerProxyERC1967(address(c3CallerImpl), implInitializerData);
+    //     // initialize the "implementation" (actually C3CallerProxy) with address of logic contract
+    //     bytes memory implInitializerData = abi.encodeWithSignature("initialize(address)", address(c3CallerLogic));
+    //     // this is actually not C3CallerProxy, but a simple instance of ERC1967
+    //     c3CallerProxy = new C3CallerProxyERC1967(address(c3CallerImpl), implInitializerData);
 
-        // this is just an instance of the proxy, callable with functions found in C3CallerProxy purely for the sake of testing here.
-        c3 = IC3CallerProxy(address(c3CallerProxy));
+    //     // this is just an instance of the proxy, callable with functions found in C3CallerProxy purely for the sake of testing here.
+    //     c3 = IC3CallerProxy(address(c3CallerProxy));
 
-        c3Gov = IC3GovClient(address(c3));
+    //     c3Gov = IC3GovClient(address(c3));
 
-        c3Gov.addOperator(gov);
-        c3UUIDKeeper.addOperator(address(c3CallerLogic));
+    //     c3Gov.addOperator(gov);
+    //     c3UUIDKeeper.addOperator(address(c3CallerLogic));
 
-        vm.stopPrank();
+    //     vm.stopPrank();
 
-        assertEq(c3.isCaller(address(c3CallerLogic)), true);
-    }
+    //     assertEq(c3.isCaller(address(c3CallerLogic)), true);
+    // }
 
     function getRevert(bytes calldata _payload) external pure returns(bytes memory) {
         return(abi.decode(_payload[4:], (bytes)));
