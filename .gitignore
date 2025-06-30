@@ -6,7 +6,6 @@ out/
 .vscode/
 
 # Dependencies
-lib/
 node_modules/
 Greenfield/node_modules/
 
@@ -27,7 +26,3 @@ ERC3252-standard/
 .env
 Greenfield/.env
 
-# contracts/Stellar/stellar-testnet-account.txt
-# contracts/Stellar/ctmrwa001/target/
-# contracts/Stellar/ctmrwa001/testnet-snapshots/
-# contracts/Stellar/ctmrwa001/example_usage.rs
