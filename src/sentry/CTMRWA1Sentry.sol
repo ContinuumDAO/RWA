@@ -2,15 +2,11 @@
 
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
-
-
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-
-import {ICTMRWA1, ITokenContract} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
+import {ICTMRWA1, ITokenContract} from "../core/ICTMRWA1.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
 
 contract CTMRWA1Sentry is Context {
     using Strings for *;
@@ -384,5 +380,4 @@ contract CTMRWA1Sentry is Context {
         boolArray[0] = _bool;
         return(boolArray);
     }
-
 }

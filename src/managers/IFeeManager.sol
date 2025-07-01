@@ -41,7 +41,7 @@ interface IFeeManager {
         string memory _feeTokenStr
     ) external view returns (uint256);
 
-    
+
     function addFeeToken(
         string memory dstChainIDStr,
         string[] memory feeTokensStr,

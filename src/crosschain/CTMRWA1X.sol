@@ -2,25 +2,22 @@
 
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
-
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import {GovernDapp} from "./routerV2/GovernDapp.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+import {C3GovernDapp} from "@c3caller/C3GovernDapp.sol";
 
-import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
-import {ICTMRWAGateway} from "./interfaces/ICTMRWAGateway.sol";
-import {ICTMRWA1, SlotData, TokenContract, ITokenContract} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWADeployer} from "./interfaces/ICTMRWADeployer.sol";
-import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {URICategory, URIType, ICTMRWA1Storage} from "./interfaces/ICTMRWA1Storage.sol";
-import {ICTMRWA1Sentry} from "./interfaces/ICTMRWA1Sentry.sol";
-import {ICTMRWA1XFallback} from "./interfaces/ICTMRWA1XFallback.sol";
-import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
+import {IFeeManager, FeeType, IERC20Extended} from "../managers/IFeeManager.sol";
+import {ICTMRWAGateway} from "../crosschain/ICTMRWAGateway.sol";
+import {ICTMRWA1XFallback} from "../crosschain/ICTMRWA1XFallback.sol";
+import {ICTMRWA1, SlotData, TokenContract, ITokenContract} from "../core/ICTMRWA1.sol";
+import {ICTMRWADeployer} from "../deployment/ICTMRWADeployer.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {URICategory, URIType, ICTMRWA1Storage} from "../storage/ICTMRWA1Storage.sol";
+import {ICTMRWA1Sentry} from "../sentry/ICTMRWA1Sentry.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -34,7 +31,7 @@ import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
  */
 
 
-contract CTMRWA1X is ReentrancyGuard, Context, GovernDapp {
+contract CTMRWA1X is ReentrancyGuard, Context, C3GovernDapp {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -106,7 +103,7 @@ contract CTMRWA1X is ReentrancyGuard, Context, GovernDapp {
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID
-    ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+    ) C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
         gateway = _gateway;
         rwaType = 1;
         version = 1;

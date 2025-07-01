@@ -4,21 +4,18 @@ pragma solidity ^0.8.19;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import {C3GovernDapp} from "@c3caller/C3GovernDapp.sol";
 
-import {GovernDapp} from "./routerV2/GovernDapp.sol";
-
-import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
-import {ICTMRWAGateway} from "./interfaces/ICTMRWAGateway.sol";
-import {ICTMRWA1, TokenContract, ITokenContract} from "./interfaces/ICTMRWA1.sol";
-
-import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {ITokenContract} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWA1SentryUtils} from "./interfaces/ICTMRWA1SentryUtils.sol";
-
-import {ICTMRWA1Sentry} from "./interfaces/ICTMRWA1Sentry.sol";
+import {IFeeManager, FeeType, IERC20Extended} from "../managers/IFeeManager.sol";
+import {ICTMRWAGateway} from "../crosschain/ICTMRWAGateway.sol";
+import {ICTMRWA1, TokenContract, ITokenContract} from "../core/ICTMRWA1.sol";
+import {ITokenContract} from "../core/ICTMRWA1.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {ICTMRWA1SentryUtils} from "../sentry/ICTMRWA1SentryUtils.sol";
+import {ICTMRWA1Sentry} from "../sentry/ICTMRWA1Sentry.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -32,7 +29,7 @@ import {ICTMRWA1Sentry} from "./interfaces/ICTMRWA1Sentry.sol";
  * deployments and functions.
  */
 
-contract CTMRWA1SentryManager is Context, GovernDapp {
+contract CTMRWA1SentryManager is Context, C3GovernDapp {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -97,7 +94,7 @@ contract CTMRWA1SentryManager is Context, GovernDapp {
         address _ctmRwaDeployer,
         address _gateway,
         address _feeManager
-    ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+    ) C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
         ctmRwaDeployer = _ctmRwaDeployer;
         rwaType = _rwaType;
         version = _version;
@@ -592,7 +589,6 @@ contract CTMRWA1SentryManager is Context, GovernDapp {
         return(currentAdmin, currentAdminStr);
     }
 
-
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         require(strBytes.length == 42, "CTMRWA1StorageManager: Invalid address length");
@@ -651,7 +647,6 @@ contract CTMRWA1SentryManager is Context, GovernDapp {
         return string(bLower);
     }
 
-
     function _c3Fallback(bytes4 _selector,
         bytes calldata _data,
         bytes calldata _reason) internal override returns (bool) {
@@ -663,6 +658,4 @@ contract CTMRWA1SentryManager is Context, GovernDapp {
         );
         return ok;
     }
-
-
 }

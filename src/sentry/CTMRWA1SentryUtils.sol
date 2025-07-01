@@ -5,12 +5,10 @@ pragma solidity ^0.8.19;
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {ICTMRWA1Sentry} from "./interfaces/ICTMRWA1Sentry.sol";
-
-import {CTMRWA1Sentry} from "./CTMRWA1Sentry.sol";
-
+import {ICTMRWA1} from "../core/ICTMRWA1.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {ICTMRWA1Sentry} from "../sentry/ICTMRWA1Sentry.sol";
+import {CTMRWA1Sentry} from "../sentry/CTMRWA1Sentry.sol";
 
 contract CTMRWA1SentryUtils is Context {
     using Strings for *;
@@ -142,6 +140,4 @@ contract CTMRWA1SentryUtils is Context {
         }
         return string(bLower);
     }
-
-
 }

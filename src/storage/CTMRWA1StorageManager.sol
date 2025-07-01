@@ -4,19 +4,18 @@ pragma solidity ^0.8.19;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import {C3GovernDapp} from "@c3caller/C3GovernDapp.sol";
 
-import {GovernDapp} from "./routerV2/GovernDapp.sol";
-
-import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
-import {ICTMRWAGateway} from "./interfaces/ICTMRWAGateway.sol";
-import {ICTMRWA1, TokenContract, ITokenContract} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWA1Storage, URICategory, URIType, URIData} from "./interfaces/ICTMRWA1Storage.sol";
-import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {ITokenContract} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWA1StorageUtils} from "./interfaces/ICTMRWA1StorageUtils.sol";
+import {IFeeManager, FeeType, IERC20Extended} from "../managers/IFeeManager.sol";
+import {ICTMRWAGateway} from "../crosschain/ICTMRWAGateway.sol";
+import {ICTMRWA1, TokenContract, ITokenContract} from "../core/ICTMRWA1.sol";
+import {ITokenContract} from "../core/ICTMRWA1.sol";
+import {ICTMRWA1Storage, URICategory, URIType, URIData} from "./ICTMRWA1Storage.sol";
+import {ICTMRWA1StorageUtils} from "./ICTMRWA1StorageUtils.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
 
 
 interface TokenID {
@@ -35,7 +34,7 @@ interface TokenID {
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
 
-contract CTMRWA1StorageManager is Context, GovernDapp {
+contract CTMRWA1StorageManager is Context, C3GovernDapp {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -86,7 +85,7 @@ contract CTMRWA1StorageManager is Context, GovernDapp {
         address _ctmRwaDeployer,
         address _gateway,
         address _feeManager
-    ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+    ) C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
         ctmRwaDeployer = _ctmRwaDeployer;
         rwaType = _rwaType;
         version = _version;

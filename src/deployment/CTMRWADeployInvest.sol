@@ -5,20 +5,17 @@ pragma solidity ^0.8.19;
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWA1X} from "./interfaces/ICTMRWA1X.sol";
-import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {ICTMRWA1Dividend} from "./interfaces/ICTMRWA1Dividend.sol";
-import {ICTMRWA1Sentry} from "./interfaces/ICTMRWA1Sentry.sol";
-import {IFeeManager, FeeType, IERC20Extended} from "./interfaces/IFeeManager.sol";
-
-import {Offering, Holding} from "./interfaces/ICTMRWADeployInvest.sol";
-
+import {ICTMRWA1} from "../core/ICTMRWA1.sol";
+import {ICTMRWA1X} from "../crosschain/ICTMRWA1X.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {ICTMRWA1Dividend} from "../core/ICTMRWA1Dividend.sol";
+import {ICTMRWA1Sentry} from "../sentry/ICTMRWA1Sentry.sol";
+import {IFeeManager, FeeType, IERC20Extended} from "../managers/IFeeManager.sol";
+import {Offering, Holding} from "../deployment/ICTMRWADeployInvest.sol";
 
 interface IRwaMap {
     function ctmRwaMap() external returns(address);

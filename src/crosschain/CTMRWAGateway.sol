@@ -3,12 +3,11 @@
 pragma solidity ^0.8.19;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {ChainContract} from "./interfaces/ICTMRWAGateway.sol";
+import {C3GovernDapp} from "@c3caller/C3GovernDapp.sol";
 
-
-import {GovernDapp} from "./routerV2/GovernDapp.sol";
+import {ChainContract} from "../crosschain/ICTMRWAGateway.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -22,7 +21,7 @@ import {GovernDapp} from "./routerV2/GovernDapp.sol";
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
 
-contract CTMRWAGateway is Context, GovernDapp {
+contract CTMRWAGateway is Context, C3GovernDapp {
     using Strings for *;
 
     string public cIdStr;
@@ -51,7 +50,7 @@ contract CTMRWAGateway is Context, GovernDapp {
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID
-    ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+    ) C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
         cIdStr = cID().toString();
         _addChainContract(cID(), address(this));
     }

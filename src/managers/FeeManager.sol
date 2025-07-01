@@ -1,21 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+import {C3GovernDapp} from "@c3caller/C3GovernDapp.sol";
 
-import "./routerV2/GovernDapp.sol";
-import "./interfaces/IFeeManager.sol";
+import {IFeeManager, FeeType} from "./IFeeManager.sol";
 
-
-
-contract FeeManager is ReentrancyGuard, Context, GovernDapp, IFeeManager {
+contract FeeManager is ReentrancyGuard, Context, C3GovernDapp, IFeeManager {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -40,14 +37,12 @@ contract FeeManager is ReentrancyGuard, Context, GovernDapp, IFeeManager {
         uint256 veryHighGasFee;
     }
 
-    
-
     constructor(
         address _gov,
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID
-    ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {}
+    ) C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {}
 
     event Withdrawal(
         address _oldFeeToken,
@@ -294,7 +289,7 @@ contract FeeManager is ReentrancyGuard, Context, GovernDapp, IFeeManager {
         FeeType _feeType,
         string memory _feeTokenStr
     ) public view returns (uint256) {
-        
+
         require(isValidFeeToken(_feeTokenStr), "FeeManager: Not a valid fee token");
         uint256 baseFee;
 
@@ -306,9 +301,9 @@ contract FeeManager is ReentrancyGuard, Context, GovernDapp, IFeeManager {
         if(_includeLocal) {
             baseFee += getToChainBaseFee(block.chainid.toString(), _feeTokenStr);
         }
-        
+
         uint256 fee = baseFee*getFeeMultiplier(_feeType);
-        
+
         return fee;
     }
 

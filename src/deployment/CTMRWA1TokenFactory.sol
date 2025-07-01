@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.19;
 
-import "./CTMRWA1.sol";
-import {SlotData, ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
+import {CTMRWA1} from "../core/CTMRWA1.sol";
+import {SlotData, ICTMRWA1} from "../core/ICTMRWA1.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)

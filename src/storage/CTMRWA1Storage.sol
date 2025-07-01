@@ -6,10 +6,10 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 
-import {ICTMRWA1, ITokenContract} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {ICTMRWA1StorageManager} from "./interfaces/ICTMRWA1StorageManager.sol";
-import {URIData, URIType, URICategory} from "./interfaces/ICTMRWA1Storage.sol";
+import {ICTMRWA1, ITokenContract} from "../core/ICTMRWA1.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {ICTMRWA1StorageManager} from "./ICTMRWA1StorageManager.sol";
+import {URIData, URIType, URICategory} from "./ICTMRWA1Storage.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -452,5 +452,4 @@ contract CTMRWA1Storage is Context {
         }
         return string(bLower);
     }
-    
 }

@@ -2,13 +2,12 @@
 
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
-
-import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {ICTMRWA1Dividend} from "./interfaces/ICTMRWA1Dividend.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+import {ICTMRWA1} from "./ICTMRWA1.sol";
+import {ICTMRWA1Dividend} from "./ICTMRWA1Dividend.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)

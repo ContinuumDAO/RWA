@@ -4,14 +4,14 @@ pragma solidity ^0.8.19;
 
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {GovernDapp} from "./routerV2/GovernDapp.sol";
+import {C3GovernDapp} from "@c3caller/C3GovernDapp.sol";
 
-import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWAFactory} from "./interfaces/ICTMRWAFactory.sol";
-import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-import {ICTMRWADeployInvest} from "./interfaces/ICTMRWADeployInvest.sol";
+import {ICTMRWA1} from "../core/ICTMRWA1.sol";
+import {ICTMRWAFactory} from "../deployment/ICTMRWAFactory.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {ICTMRWADeployInvest} from "../deployment/ICTMRWADeployInvest.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -29,7 +29,7 @@ import {ICTMRWADeployInvest} from "./interfaces/ICTMRWADeployInvest.sol";
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
 
-contract CTMRWADeployer is Context, GovernDapp {
+contract CTMRWADeployer is Context, C3GovernDapp {
     using Strings for *;
 
     /// @dev The address of the CTMRWAGateway contract
@@ -79,7 +79,7 @@ contract CTMRWADeployer is Context, GovernDapp {
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID
-    ) GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+    ) C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
         gateway = _gateway;
         feeManager = _feeManager;
         rwaX = _rwaX;

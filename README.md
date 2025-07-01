@@ -205,3 +205,81 @@ restrictions determined by the CTMRWA1SentryManager and CTMRWA1Sentry contracts.
 
 The purpose of the CTMRWAERC20 contracts is to allow 'normal' interaction with
 other protocols, such as DEXes and Lending platforms.
+
+## Modular Contracts Hierarchy
+
+### Sentry
+
+#### CTMRWA1Sentry & ICTMRWA1Sentry
+
+#### CTMRWA1SentryManager & ICTMRWA1SentryManager
+
+#### CTMRWASentryUtils & ICTMRWASentryUtils
+
+### Core
+
+#### CTMRWA1 & ICTMRWA1
+
+#### CTMRWA1Dividend & ICTMRWA1Dividend
+
+#### CTMRWADividendFactory
+
+#### CTMRWAERC20Deployer & ICTMRWAERC20Deployer
+
+#### ICTMRWAReceiver
+
+#### ICTMRWAERC20
+
+### Cross-chain
+
+#### CTMRWA1X & ICTMRWA1X
+
+#### CTMRWA1XFallback & ICTMRWA1XFallback
+
+#### CTMRWAGateway & ICTMRWAGateway
+
+### Deployment
+
+#### CTMRWA1TokenFactory
+
+#### CTMRWADeployInvest & ICTMRWADeployInvest
+
+#### CTMRWADeployer & ICTMRWADeployer
+
+#### ICTMRWAFactory
+
+### Identity
+
+#### CTMRWA1Identity & ICTMRWA1Identity
+
+### Managers
+
+#### FeeManager & IFeeManager
+
+### Mocks
+
+#### CTMRWA1ReceiverMock
+
+#### NonReceiverMock
+
+#### TestERC20
+
+### RouterV2
+
+#### GovernDapp
+
+#### ITheiaERC20
+
+#### TheiaUtils
+
+### Shared
+
+#### CTMRWAMap & ICTMRWAMap
+
+### Storage
+
+#### CTMRWA1Storage & ICTMRWAStorage
+
+#### CTMRWA1StorageManager & ICTMRWAStorageManager
+
+#### CTMRWA1StorageUtils & ICTMRWA1StorageUtils

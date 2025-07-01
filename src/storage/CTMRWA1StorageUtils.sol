@@ -5,11 +5,10 @@ pragma solidity ^0.8.19;
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {ICTMRWA1} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWA1Storage, URICategory, URIType, URIData} from "./interfaces/ICTMRWA1Storage.sol";
-import {ICTMRWAMap} from "./interfaces/ICTMRWAMap.sol";
-
+import {ICTMRWA1} from "../core/ICTMRWA1.sol";
+import {ICTMRWA1Storage, URICategory, URIType, URIData} from "./ICTMRWA1Storage.sol";
 import {CTMRWA1Storage} from "./CTMRWA1Storage.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)

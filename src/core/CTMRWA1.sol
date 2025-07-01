@@ -4,16 +4,16 @@ pragma solidity ^0.8.19;
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import {ICTMRWA1, SlotData} from "./interfaces/ICTMRWA1.sol";
-import {ICTMRWA1Receiver} from "./interfaces/ICTMRWA1Receiver.sol";
+import {ICTMRWA1, SlotData} from "./ICTMRWA1.sol";
+import {ICTMRWA1Receiver} from "./ICTMRWA1Receiver.sol";
 
-import {ICTMRWA1X} from "./interfaces/ICTMRWA1X.sol";
-import {ICTMRWADeployer} from "./interfaces/ICTMRWADeployer.sol";
-import {ICTMRWAERC20Deployer} from "./interfaces/ICTMRWAERC20Deployer.sol";
-import {ICTMRWA1Storage} from "./interfaces/ICTMRWA1Storage.sol";
-import {ICTMRWA1Sentry} from "./interfaces/ICTMRWA1Sentry.sol";
+import {ICTMRWA1X} from "../crosschain/ICTMRWA1X.sol";
+import {ICTMRWADeployer} from "../deployment/ICTMRWADeployer.sol";
+import {ICTMRWAERC20Deployer} from "./ICTMRWAERC20Deployer.sol";
+import {ICTMRWA1Storage} from "../storage/ICTMRWA1Storage.sol";
+import {ICTMRWA1Sentry} from "../sentry/ICTMRWA1Sentry.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)

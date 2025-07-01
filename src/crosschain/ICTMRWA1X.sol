@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-import {SlotData} from "./ICTMRWA1.sol";
+import {SlotData} from "../core/ICTMRWA1.sol";
 
 interface ICTMRWA1X {
 

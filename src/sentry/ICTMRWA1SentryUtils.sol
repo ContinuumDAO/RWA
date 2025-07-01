@@ -2,9 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-
 interface ICTMRWA1SentryUtils {
-
     function ctmRwa1Map() external returns(address);
     function storageManager() external returns(address);
     function lastSelector() external returns(bytes4);
@@ -25,6 +23,4 @@ interface ICTMRWA1SentryUtils {
         bytes calldata data,
         bytes calldata reason
     ) external returns(bool);
-
-
 }

@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.19;
 
-
 interface ICTMRWA1StorageUtils {
 
     function ctmRwa1Map() external returns(address);
@@ -25,6 +24,4 @@ interface ICTMRWA1StorageUtils {
         bytes calldata data,
         bytes calldata reason
     ) external returns(bool);
-
-
 }

@@ -7,7 +7,7 @@ enum RequestId {
     KYB,
     OVER18,
     ACCREDITED,
-    COUNTRY    
+    COUNTRY
 }
 
 interface ICTMRWA1Identity {
