@@ -1,30 +1,32 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
+import "forge-std/console.sol";
 
-// import {CTMRWADeployer} from "../src/CTMRWADeployer.sol";
-// import {CTMRWAMap} from "../src/CTMRWAMap.sol";
-// import {CTMRWA1TokenFactory} from "../src/CTMRWA1TokenFactory.sol";
-// import {CTMRWA1XFallback} from "../src/CTMRWA1XFallback.sol";
-// import {CTMRWA1DividendFactory} from "../src/CTMRWA1DividendFactory.sol";
-// import {CTMRWA1StorageManager} from "../src/CTMRWA1StorageManager.sol";
-// import {CTMRWA1SentryManager} from "../src/CTMRWA1SentryManager.sol";
-// import {FeeManager} from "../src/FeeManager.sol";
-// import {CTMRWAGateway} from "../src/CTMRWAGateway.sol";
-// import {CTMRWA1X} from "../src/CTMRWA1X.sol";
+import {CTMRWA1DividendFactory} from "../src/core/CTMRWA1DividendFactory.sol";
 
-import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
-import {CTMRWA1TokenFactory} from "../flattened/CTMRWA1TokenFactory.sol";
-import {CTMRWA1XFallback} from "../flattened/CTMRWA1XFallback.sol";
-import {FeeManager} from "../flattened/FeeManager.sol";
-import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
-import {CTMRWA1X} from "../flattened/CTMRWA1X.sol";
+import {CTMRWA1XFallback} from "../src/crosschain/CTMRWA1XFallback.sol";
+import {CTMRWAGateway} from "../src/crosschain/CTMRWAGateway.sol";
+import {CTMRWA1X} from "../src/crosschain/CTMRWA1X.sol";
 
+import {CTMRWADeployer} from "../src/deployment/CTMRWADeployer.sol";
+import {CTMRWA1TokenFactory} from "../src/deployment/CTMRWA1TokenFactory.sol";
 
+import {FeeManager} from "../src/managers/FeeManager.sol";
 
+import {CTMRWA1SentryManager} from "../src/sentry/CTMRWA1SentryManager.sol";
 
+import {CTMRWAMap} from "../src/shared/CTMRWAMap.sol";
+
+import {CTMRWA1StorageManager} from "../src/storage/CTMRWA1StorageManager.sol";
+
+// import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
+// import {CTMRWA1TokenFactory} from "../flattened/CTMRWA1TokenFactory.sol";
+// import {CTMRWA1XFallback} from "../flattened/CTMRWA1XFallback.sol";
+// import {FeeManager} from "../flattened/FeeManager.sol";
+// import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
+// import {CTMRWA1X} from "../flattened/CTMRWA1X.sol";
 
 contract DeployPart1 is Script {
 

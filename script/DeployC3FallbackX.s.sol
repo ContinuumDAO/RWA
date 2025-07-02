@@ -4,9 +4,9 @@ pragma solidity ^0.8.19;
 import {Script} from "forge-std/Script.sol";
 import "forge-std/console.sol";
 
-import {ICTMRWA1X} from "../src/interfaces/ICTMRWA1X.sol";
-import {CTMRWA1X} from "../src/x/CTMRWA1X.sol";
-import {CTMRWA1XFallback} from "../src/x/CTMRWA1XFallback.sol";
+import {ICTMRWA1X} from "../src/crosschain/ICTMRWA1X.sol";
+import {CTMRWA1X} from "../src/crosschain/CTMRWA1X.sol";
+import {CTMRWA1XFallback} from "../src/crosschain/CTMRWA1XFallback.sol";
 
 contract DeployC3FallbackX is Script {
   CTMRWA1XFallback ctmRwaFallback;

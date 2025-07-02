@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
+import "forge-std/console.sol";
 
-import "@openzeppelin/contracts/utils/Strings.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 interface IDapp {
     function addDappAddr(uint256 dappID, string[] memory whitelist) external;
     function delWhitelists(uint256 dappID, string[] memory) external;
 }
-
-
 
 contract DeleteDappConfig is Script {
 

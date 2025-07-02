@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity >=0.8.19;
 
-import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
+import "forge-std/console.sol";
 
-import {CTMRWA1Identity} from "../src/CTMRWA1Identity.sol";
-
-import {RequestId, ICTMRWA1Identity} from "../src/interfaces/ICTMRWA1Identity.sol";
-
+import {CTMRWA1Identity} from "../src/identity/CTMRWA1Identity.sol";
+import {RequestId, ICTMRWA1Identity} from "../src/identity/ICTMRWA1Identity.sol";
 
 contract DeployPolygonId is Script {
     uint256 rwaType = 1;

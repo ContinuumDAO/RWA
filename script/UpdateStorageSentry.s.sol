@@ -1,21 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
+import "forge-std/console.sol";
 
-// import {CTMRWA1StorageManager} from "../src/CTMRWA1StorageManager.sol";
-// import {CTMRWA1SentryManager} from "../src/CTMRWA1SentryManager.sol";
-import {ICTMRWADeployer} from "../src/interfaces/ICTMRWADeployer.sol";
+import {ICTMRWADeployer} from "../src/deployment/ICTMRWADeployer.sol";
 
-import {CTMRWA1StorageManager} from "../flattened/CTMRWA1StorageManager.sol";
-import {CTMRWA1StorageUtils} from "../src/CTMRWA1StorageUtils.sol";
-import {CTMRWA1SentryManager} from "../flattened/CTMRWA1SentryManager.sol";
-import {CTMRWA1SentryUtils} from "../src/CTMRWA1SentryUtils.sol";
+import {CTMRWA1SentryManager} from "../src/sentry/CTMRWA1SentryManager.sol";
+import {CTMRWA1SentryUtils} from "../src/sentry/CTMRWA1SentryUtils.sol";
 
-import {ICTMRWA1StorageManager} from "../src/interfaces/ICTMRWA1StorageManager.sol";
-
-
+import {ICTMRWA1StorageManager} from "../src/storage/ICTMRWA1StorageManager.sol";
+import {CTMRWA1StorageManager} from "../src/storage/CTMRWA1StorageManager.sol";
+import {CTMRWA1StorageUtils} from "../src/storage/CTMRWA1StorageUtils.sol";
 
 contract UpdateStorageSentry is Script {
 
@@ -66,7 +62,7 @@ contract UpdateStorageSentry is Script {
             mapAddr = 0x18433A774aF5d473191903A5AF156f3Eb205bBA4;
         } else if (chainId == 11155111) {
             c3callerProxyAddr = vm.envAddress("C3_DEPLOY_SEPOLIA");
-            feeManagerAddr = 0xee53A0AD7f17715774Acc3963693B370409019;
+            // feeManagerAddr = 0xee53A0AD7f17715774Acc3963693B370409019;
             gatewayAddr = 0xF8fe7804AE6DBC7306AB5A97aE2302706170530C;
             deployerAddr = 0x0A91De653d4c09E7bC757eD794a03e4b40A1D057;
             mapAddr = 0xd546A3a98D86d22e28d688FAf3a074D000F2612B;

@@ -4,23 +4,26 @@ pragma solidity ^0.8.19;
 import {Script} from "forge-std/Script.sol";
 import "forge-std/console.sol";
 
-import {CTMRWADeployInvest} from "../src/deployer/CTMRWADeployInvest.sol";
-import {CTMRWADeployer} from "../src/deployer/CTMRWADeployer.sol";
-import {CTMRWAERC20Deployer} from "../src/deployer/CTMRWAERC20Deployer.sol";
+import {CTMRWAERC20Deployer} from "../src/core/CTMRWAERC20Deployer.sol";
+import {CTMRWA1DividendFactory} from "../src/core/CTMRWA1DividendFactory.sol";
 
-import {CTMRWA1DividendFactory} from "../src/factories/CTMRWA1DividendFactory.sol";
-import {CTMRWA1TokenFactory} from "../src/factories/CTMRWA1TokenFactory.sol";
+import {CTMRWAGateway} from "../src/crosschain/CTMRWAGateway.sol";
+import {CTMRWA1X} from "../src/crosschain/CTMRWA1X.sol";
+import {CTMRWA1XFallback} from "../src/crosschain/CTMRWA1XFallback.sol";
+
+import {CTMRWADeployInvest} from "../src/deployment/CTMRWADeployInvest.sol";
+import {CTMRWADeployer} from "../src/deployment/CTMRWADeployer.sol";
+import {CTMRWA1TokenFactory} from "../src/deployment/CTMRWA1TokenFactory.sol";
 
 import {FeeManager} from "../src/managers/FeeManager.sol";
-import {CTMRWAGateway} from "../src/protocol/CTMRWAGateway.sol";
-import {CTMRWAMap} from "../src/protocol/CTMRWAMap.sol";
+
 import {CTMRWA1SentryManager} from "../src/sentry/CTMRWA1SentryManager.sol";
 import {CTMRWA1SentryUtils} from "../src/sentry/CTMRWA1SentryUtils.sol";
+
+import {CTMRWAMap} from "../src/shared/CTMRWAMap.sol";
+
 import {CTMRWA1StorageManager} from "../src/storage/CTMRWA1StorageManager.sol";
 import {CTMRWA1StorageUtils} from "../src/storage/CTMRWA1StorageUtils.sol";
-
-import {CTMRWA1X} from "../src/x/CTMRWA1X.sol";
-import {CTMRWA1XFallback} from "../src/x/CTMRWA1XFallback.sol";
 
 // import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
 // import {CTMRWAMap} from "../flattened/CTMRWAMap.sol";

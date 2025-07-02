@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
+import "forge-std/console.sol";
 
-import "@openzeppelin/contracts/utils/Strings.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+
+import {ICTMRWAGateway} from "../src/crosschain/ICTMRWAGateway.sol";
+
+import {IFeeManager, FeeType} from "../src/managers/IFeeManager.sol";
 
 // import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
 // import {FeeManager} from "../flattened/FeeManager.sol";
-import {ICTMRWAGateway} from "../src/interfaces/ICTMRWAGateway.sol";
-import {IFeeManager, FeeType} from "../src/interfaces/IFeeManager.sol";
 
 struct NewChain {
     uint256 chainId;

@@ -4,29 +4,30 @@ pragma solidity ^0.8.19;
 import {Script} from "forge-std/Script.sol";
 import "forge-std/console.sol";
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {IC3Caller} from "@c3caller/IC3Caller.sol";
 import {IUUIDKeeper} from "@c3caller/IUUIDKeeper.sol";
-import {ITheiaERC20} from "../src/routerV2/ITheiaERC20.sol";
+import {ITheiaERC20} from "@c3caller/ITheiaERC20.sol";
 
-import {ICTMRWA1, SlotData} from "../src/interfaces/ICTMRWA1.sol";
-import {ICTMRWA1Dividend} from "../src/interfaces/ICTMRWA1Dividend.sol";
-import {ICTMRWA1Sentry} from "../src/interfaces/ICTMRWA1Sentry.sol";
-import {ICTMRWA1SentryManager} from "../src/interfaces/ICTMRWA1SentryManager.sol";
+import {ICTMRWA1, SlotData} from "../src/core/ICTMRWA1.sol";
+import {ICTMRWA1Dividend} from "../src/core/ICTMRWA1Dividend.sol";
 
-import {URICategory, URIType} from "../src/interfaces/ICTMRWA1Storage.sol";
-import {
-  ICTMRWA1Storage, URICategory, URIData, URIType
-} from "../src/interfaces/ICTMRWA1Storage.sol";
-import {ICTMRWA1StorageManager} from "../src/interfaces/ICTMRWA1StorageManager.sol";
-import {ICTMRWA1X} from "../src/interfaces/ICTMRWA1X.sol";
+import {ICTMRWA1X} from "../src/crosschain/ICTMRWA1X.sol";
+import {ICTMRWA1XFallback} from "../src/crosschain/ICTMRWA1XFallback.sol";
+import {ICTMRWAGateway} from "../src/crosschain/ICTMRWAGateway.sol";
 
-import {ICTMRWA1XFallback} from "../src/interfaces/ICTMRWA1XFallback.sol";
-import {ICTMRWADeployer} from "../src/interfaces/ICTMRWADeployer.sol";
-import {ICTMRWAGateway} from "../src/interfaces/ICTMRWAGateway.sol";
-import {ICTMRWAMap} from "../src/interfaces/ICTMRWAMap.sol";
+import {ICTMRWADeployer} from "../src/deployment/ICTMRWADeployer.sol";
+
+import {ICTMRWA1Sentry} from "../src/sentry/ICTMRWA1Sentry.sol";
+import {ICTMRWA1SentryManager} from "../src/sentry/ICTMRWA1SentryManager.sol";
+
+import {ICTMRWAMap} from "../src/shared/ICTMRWAMap.sol";
+
+import {URICategory, URIType} from "../src/storage/ICTMRWA1Storage.sol";
+import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../src/storage/ICTMRWA1Storage.sol";
+import {ICTMRWA1StorageManager} from "../src/storage/ICTMRWA1StorageManager.sol";
 
 interface IDKeeper {
   function isUUIDExist(bytes32) external returns (bool);
@@ -735,8 +736,8 @@ contract XChainTests is Script {
     (
       string memory currentAdminStr,
       uint256 ID,
-      uint256 rwaType,
-      uint256 version,
+      uint256 _rwaType,
+      uint256 _version,
       string memory _tokenName,
       string memory _symbol,
       uint8 _decimals,
@@ -798,8 +799,8 @@ contract XChainTests is Script {
     (
       string memory currentAdminStr,
       uint256 ID,
-      uint256 rwaType,
-      uint256 version,
+      uint256 _rwaType,
+      uint256 _version,
       string memory _tokenName,
       string memory _symbol,
       uint8 _decimals,

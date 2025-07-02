@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
+import "forge-std/console.sol";
 
-import {ICTMRWAGateway} from "../src/interfaces/ICTMRWAGateway.sol";
-
-
+import {ICTMRWAGateway} from "../src/crosschain/ICTMRWAGateway.sol";
 
 contract UpdateChainSetup is Script {
 
