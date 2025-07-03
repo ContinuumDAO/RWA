@@ -1,30 +1,28 @@
 # Compiler files
-CTMRWA001/cache/
-CTMRWA001/out/
-CTMRWA001/node_modules/
+cache/
+out/
+
+# User
+.vscode/
+
+# Dependencies
 node_modules/
-CTMRWA001/lib
+Greenfield/node_modules/
 
 # Ignores development broadcast logs
-CTMRWA001/broadcast
-CTMRWA001/broadcast/*/31337/
-CTMRWA001/broadcast/**/dry-run/
-CTMRWA001/flattened
-CTMRWA001/Greenfield/node_modules/
-CTMRWA001/Greenfield/.env
-CTMRWA001/saved-libs
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
 
-CTMRWA001/contracts/Stellar/stellar-testnet-account.txt
-CTMRWA001/contracts/Stellar/ctmrwa001/target/
-CTMRWA001/contracts/Stellar/ctmrwa001/testnet-snapshots/
-CTMRWA001/contracts/Stellar/ctmrwa001/example_usage.rs
-
+# External Solidity files
+flattened/
+saved-libs/
+save-test/
 
 # Docs
-CTMRWA001/docs
+ERC3525-standard/
 
-ERC3252-standard/
-
-# Dotenv file
+# Dotenv files
 .env
-CTMRWA001/.env
+Greenfield/.env
+
