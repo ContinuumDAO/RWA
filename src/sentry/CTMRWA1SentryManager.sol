@@ -272,7 +272,7 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
 
     function setZkMeParams(
         uint256 _ID,
-        string memory _merchantNo,
+        string memory _appId,
         string memory _programNo,
         address _cooperator
     ) public {
@@ -283,7 +283,7 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
 
         (address sentryAddr,) = _getSentryAddr(_ID);
 
-        ICTMRWA1Sentry(sentryAddr).setZkMeParams(_merchantNo, _programNo, _cooperator);
+        ICTMRWA1Sentry(sentryAddr).setZkMeParams(_appId, _programNo, _cooperator);
         
     }
 

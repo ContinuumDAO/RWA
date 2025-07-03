@@ -12,7 +12,7 @@ interface ICTMRWA1Sentry {
     function setSentryOptionsFlag() external;
     function sentryOptionsSet() external returns(bool);
 
-    function setZkMeParams(string memory merchantNo, string memory programNo, address cooperator) external;
+    function setZkMeParams(string memory appId, string memory programNo, address cooperator) external;
     function getZkMeParams() external view returns(string memory, string memory, address);
 
     function whitelistSwitch() external view returns(bool);

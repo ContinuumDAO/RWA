@@ -28,23 +28,6 @@ interface ICTMRWA1Identity {
         string memory feeTokenStr
     ) external returns(bool);
 
-    function submitCountryProof(
-        uint256 ID,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
-    ) external returns(bool);
-
-    function submitProof(
-        RequestId requestIdType,
-        uint64 requestId,
-        uint256[] calldata inputs,
-        uint256[2] calldata a,
-        uint256[2][2] calldata b,
-        uint256[2] calldata c
-    ) external returns(bool);
-
     function isKycChain() external view returns(bool);
 
     function isVerifiedPerson(address wallet) external view returns (bool);

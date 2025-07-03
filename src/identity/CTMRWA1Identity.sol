@@ -138,8 +138,8 @@ contract CTMRWA1Identity is Context, C3GovernDapp {
         string memory _feeTokenStr
     ) onlyIdChain public returns(bool) {
 
-        require(verifierAddress != address(0) || zkMeVerifierAddress != address(0),
-            "CTMRWA1Identity: Either PrivadoId or zkMe verifier has to be set"
+        require(zkMeVerifierAddress != address(0),
+            "CTMRWA1Identity: zkMe verifier has to be set"
         );
 
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, rwaType, version);
@@ -154,41 +154,11 @@ contract CTMRWA1Identity is Context, C3GovernDapp {
         );
 
 
-        bool isValid;
+        (,, address cooperator) = ICTMRWA1Sentry(sentryAddr).getZkMeParams();
+        require(cooperator != address(0), "CTMRWA1Identity: zkMe cooperator address has not been set");
+        bool isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, _msgSender());
 
-        if (verifierAddress != address(0)) {
-            if (ICTMRWA1Sentry(sentryAddr).kybSwitch()) {
-                // isValid = isVerifiedBusiness(_msgSender());
-                // require(isValid, "CTMRWA1Identity: Invalid proof of business");
-            } else {
-                // isValid = isVerifiedPerson(_msgSender());
-                // require(isValid, "CTMRWA1Identity: Invalid proof of personhood");
-            }
-
-            if (ICTMRWA1Sentry(sentryAddr).accreditedSwitch()) {
-                // isValid = isAccreditedPerson(_msgSender());
-                // require(isValid, "CTMRWA1Identity: Invalid proof of being an Accredited Investor");
-            }
-
-            if (ICTMRWA1Sentry(sentryAddr).age18Switch()) {
-                // isValid = isOver18(_msgSender());
-                // require(isValid, "CTMRWA1Identity: Invalid proof of being over 18 years of age");
-            }
-
-            if (ICTMRWA1Sentry(sentryAddr).countryWLSwitch()) {
-                // isValid = isVerifiedCountry(_msgSender());
-                // require(isValid, "CTMRWA1Identity: Invalid proof of residency in whitelisted country");
-            } else if (ICTMRWA1Sentry(sentryAddr).countryBLSwitch()) {
-                // isValid = isVerifiedCountry(_msgSender());
-                // require(!isValid, "CTMRWA1Identity: Invalid proof of not residing in blacklisted country");
-            }
-        } else { // zkMe solution
-            (,, address cooperator) = ICTMRWA1Sentry(sentryAddr).getZkMeParams();
-            require(cooperator != address(0), "CTMRWA1Identity: zkMe cooperator address has not been set");
-            isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, _msgSender());
-
-            require(!isValid, "CTMRWA1Identity: Invalid KYC");
-        }
+        require(!isValid, "CTMRWA1Identity: Invalid KYC");
 
 
         uint256 fee = _getFee(FeeType.KYC, 1, _chainIdsStr, _feeTokenStr);
