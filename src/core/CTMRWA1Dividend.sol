@@ -160,10 +160,10 @@ contract CTMRWA1Dividend is Context {
     function fundDividend() public onlyTokenAdmin returns(uint256) {
         uint256 dividendPayable = getTotalDividend();
 
-        uint8 decimals = ICTMRWA1(tokenAddr).valueDecimals();
+        // uint8 decimals = ICTMRWA1(tokenAddr).valueDecimals();
 
         require(IERC20(dividendToken).transferFrom(_msgSender(), address(this), dividendPayable), "CTMRWA1Dividend: Did not fund the dividend");
-    
+
         uint256 tokenId;
         address holder;
         uint256 dividend;

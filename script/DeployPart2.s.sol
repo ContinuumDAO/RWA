@@ -69,7 +69,7 @@ contract DeployPart2 is Script {
     require(rwa1XAddr != address(0));
     ctmRwa1X = ICTMRWA1X(rwa1XAddr);
 
-    address ctmRwa1Map = deployMap(govAddr);
+    address ctmRwa1Map = deployMap(/*govAddr*/);
 
     console.log("CTMRWAMap");
     console.log(ctmRwa1Map);
@@ -196,7 +196,7 @@ contract DeployPart2 is Script {
     );
   }
 
-  function deployMap(address _gov) internal returns (address) {
+  function deployMap(/*address _gov*/) internal returns (address) {
     ctmRwaMap = new CTMRWAMap(address(gateway), address(ctmRwa1X));
 
     return (address(ctmRwaMap));

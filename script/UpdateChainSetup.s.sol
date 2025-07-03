@@ -32,7 +32,7 @@ contract UpdateChainSetup is Script {
         string memory chainIdStr = "200810";
         string memory gatewayDestAddrStr = "0x005c5Fd1585A73817107bFd3929f7e559750ceEd";
         string memory rwa1XAddrStr = "0xDef5D31e4b2E0BF38Af3E8092a5ABF51Db484Eec";
-        address feeManager = 0x6EE5C158882857c7F52b37FCe37B1CF39944f22E;
+        // address feeManager = 0x6EE5C158882857c7F52b37FCe37B1CF39944f22E;
 
         console.log("For Arb Sepolia");
         chainIdsStr.push(chainIdStr);

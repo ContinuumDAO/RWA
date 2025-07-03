@@ -484,12 +484,12 @@ contract NewChainSetup is Script {
             string memory storageManagerStr = storageManager.toHexString();
             address sentryManager = newchains[i].sentryManager;
             string memory sentryManagerStr = sentryManager.toHexString();
-            address feeManager = newchains[i].feeManager;
-            address feeToken = newchains[i].feeToken;
-            string memory feeTokenStr = feeToken.toHexString();
+            // address feeManager = newchains[i].feeManager;
+            // address feeToken = newchains[i].feeToken;
+            // string memory feeTokenStr = feeToken.toHexString();
 
             if(newchains[i].chainId == chainId) {
-                string memory storedContract = ICTMRWAGateway(thisGway).getChainContract(chainIdStr);
+                // string memory storedContract = ICTMRWAGateway(thisGway).getChainContract(chainIdStr);
                 require(stringsEqual(
                     _toLower(gway.toHexString()), 
                     ICTMRWAGateway(gway).getChainContract(newchains[i].chainId.toString())

@@ -21,3 +21,9 @@ Committed.
 ### Update all instances of 001 to 1 in src/
 
 ### Create modular folder structure in src/
+
+### Fix import statements in src/, script/, test/
+
+### Remove unused variables in src/, script/, test/
+
+### Move BasicTest out of compile path to prevent stack too deep errors

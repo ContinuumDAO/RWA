@@ -806,10 +806,10 @@ contract CTMRWA1X is ReentrancyGuard, Context, C3GovernDapp {
         uint256 _ID,
         string memory _fromAddressStr,
         string memory _toAddressStr,
-        uint256 _fromTokenId,
+        // uint256 _fromTokenId,
         uint256 _slot,
-        uint256 _balance,
-        string memory _fromTokenStr
+        uint256 _balance/*,
+        string memory _fromTokenStr*/
     ) external onlyCaller returns(bool){
 
         (, string memory fromChainIdStr,) = context();

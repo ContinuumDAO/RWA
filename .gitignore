@@ -17,6 +17,7 @@ Greenfield/node_modules/
 # External Solidity files
 flattened/
 saved-libs/
+save-test/
 
 # Docs
 ERC3525-standard/
