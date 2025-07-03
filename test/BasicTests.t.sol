@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
@@ -43,7 +44,6 @@ import {TestERC20} from "../src/mocks/TestERC20.sol";
 
 import {CTMRWA1SentryManager} from "../src/sentry/CTMRWA1SentryManager.sol";
 import {CTMRWA1SentryUtils} from "../src/sentry/CTMRWA1SentryUtils.sol";
-
 import {ICTMRWA1Sentry} from "../src/sentry/ICTMRWA1Sentry.sol";
 import {ICTMRWA1SentryManager} from "../src/sentry/ICTMRWA1SentryManager.sol";
 
