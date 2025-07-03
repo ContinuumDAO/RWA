@@ -2,8 +2,9 @@
 pragma solidity ^0.8.19;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ITestERC20} from "./ITestERC20.sol";
 
-contract TestERC20 is ERC20 {
+contract TestERC20 is ITestERC20, ERC20 {
     uint8 _decimals;
     address public admin;
 
@@ -12,7 +13,7 @@ contract TestERC20 is ERC20 {
         _decimals = decimals_;
     }
 
-    function decimals() public view override returns (uint8) {
+    function decimals() public view override(ITestERC20, ERC20) returns (uint8) {
         return _decimals;
     }
 
