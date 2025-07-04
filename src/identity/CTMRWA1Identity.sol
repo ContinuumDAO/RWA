@@ -4,7 +4,6 @@ pragma solidity ^0.8.27;
 
 // import "forge-std/console.sol";
 
-import {C3GovernDapp} from "@c3caller/C3GovernDapp.sol";
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -16,23 +15,14 @@ import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
 import {IFeeManager, FeeType, IERC20Extended} from "../managers/IFeeManager.sol";
 import {ICTMRWA1Sentry} from "../sentry/ICTMRWA1Sentry.sol";
 import {ICTMRWA1SentryManager} from "../sentry/ICTMRWA1SentryManager.sol";
-import {RequestId} from "./ICTMRWA1Identity.sol";
 
-// import {PrimitiveTypeUtils} from '@iden3/contracts/lib/PrimitiveTypeUtils.sol';
-// import {ICircuitValidator} from '@iden3/contracts/interfaces/ICircuitValidator.sol';
-// import {EmbeddedZKPVerifier} from '@iden3/contracts/verifiers/EmbeddedZKPVerifier.sol';
-// import {UniversalVerifier} from '@iden3/contracts/verifiers/UniversalVerifier.sol';
-
-interface IPolygonIDVerifier {
-    function verifyProof(address user, bytes memory proof) external view returns (bool);
-}
 
 interface IZkMeVerify {
     function hasApproved(address cooperator, address user) external view returns (bool);
 }
 
 
-contract CTMRWA1Identity is Context, C3GovernDapp {
+contract CTMRWA1Identity is Context {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -40,23 +30,12 @@ contract CTMRWA1Identity is Context, C3GovernDapp {
     uint256 version;
     address public ctmRwa1Map;
     address public sentryManager;
-    address public verifierAddress;
     address public zkMeVerifierAddress;
-    // UniversalVerifier public verifier;
     address public feeManager;
-    string cIdStr;
-    string public lastReason;
 
-    IPolygonIDVerifier public polygonIDVerifier;
-
-    uint64 public personhoodRequestId;
-    uint64 public businessRequestId;
-    uint64 public over18RequestId;
-    uint64 public accreditedRequestId;
-    uint64 public countryRequestId;
 
     modifier onlyIdChain() {
-        require(verifierAddress != address(0));
+        require(zkMeVerifierAddress != address(0));
         _;
     }
 
@@ -66,70 +45,22 @@ contract CTMRWA1Identity is Context, C3GovernDapp {
 
 
     constructor(
-        address _gov,
         uint256 _rwaType,
         uint256 _version,
-        address _c3callerProxy,
-        address _txSender,
-        uint256 _dappID,
         address _map,
         address _sentryManager,
+        address _verifierAddress,
         address _feeManager
-    ) C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+    ) {
         rwaType = _rwaType;
         version = _version;
         ctmRwa1Map = _map;
         sentryManager = _sentryManager;
-        feeManager = _feeManager;
-
-        cIdStr = block.chainid.toString();
-    }
-
-    // /// @dev Use setVerifierAddress for PrivadoID verifier only
-    // function setVerifierAddress(address _verifierAddress) external onlyGov {
-    //     require(_verifierAddress != address(0), "CTMRWA1Identity: Invalid verifier address");
-    //     verifierAddress = _verifierAddress;
-    //     verifier = UniversalVerifier(_verifierAddress);
-    // }
-
-    /// @dev Use setZkMeVerifierAddress for zkMe verifier only
-    function setZkMeVerifierAddress(address _verifierAddress) external onlyGov {
-        require(_verifierAddress != address(0), "CTMRWA1Identity: Invalid verifier address");
         zkMeVerifierAddress = _verifierAddress;
-    }
-
-    function setSentryManager(address _sentryManager) external onlyGov {
-        sentryManager = _sentryManager;
-    }
-
-    function setFeeManager(address _feeManager) external onlyGov {
         feeManager = _feeManager;
-    }
-
-    function setCtmRwaMap(address _map) external onlyGov {
-        ctmRwa1Map = _map;
-    }
-
-    function setRequestId(RequestId _requestId, uint64 _value) public onlyGov returns(bool) {
-        require(_value > 0, "CTMRWA1Identity: Request ID cannot be zero");
-
-        if (_requestId == RequestId.PERSONHOOD) {
-            personhoodRequestId = _value;
-        } else if (_requestId == RequestId.KYB) {
-            businessRequestId = _value;
-        } else if (_requestId == RequestId.OVER18) {
-            over18RequestId = _value;
-        } else if (_requestId == RequestId.ACCREDITED) {
-            accreditedRequestId = _value;
-        } else if (_requestId == RequestId.COUNTRY) {
-            countryRequestId = _value;
-        } else {
-            revert("CTMRWA1Identity: Invalid zkProof set Request ID");
-        }
-
-        return(true);
 
     }
+
 
 
     function verifyPerson(
@@ -176,34 +107,22 @@ contract CTMRWA1Identity is Context, C3GovernDapp {
     }
 
     function isKycChain() public view returns(bool) {
-        return(verifierAddress != address(0));
+        return(zkMeVerifierAddress != address(0));
     }
 
-    // function isVerifiedPerson(address _wallet) public view returns (bool) {
-    //     require(personhoodRequestId != 0, "CTMRWA1Identity: personhoodRequestId has not been set");
-    //     return verifier.getProofStatus(_wallet, personhoodRequestId).isVerified;
-    // }
+    function isVerifiedPerson(uint256 _ID, address _wallet) onlyIdChain public view returns (bool) {
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, rwaType, version);
+        require(ok, "CTMRWA1Identity: Could not find _ID or its sentry address");
+        require(ICTMRWA1Sentry(sentryAddr).kycSwitch(), "CTMRWA1Identity: KYC not set");
 
-    // function isVerifiedBusiness(address _wallet) public view returns (bool) {
-    //     require(businessRequestId != 0, "CTMRWA1Identity: businessRequestId has not been set");
-    //     return verifier.getProofStatus(_wallet, businessRequestId).isVerified;
-    // }
+        (,, address cooperator) = ICTMRWA1Sentry(sentryAddr).getZkMeParams();
+        require(cooperator != address(0), "CTMRWA1Identity: zkMe cooperator address not set");
 
-    // function isOver18(address _wallet) public view returns (bool) {
-    //     require(over18RequestId != 0, "CTMRWA1Identity: over18RequestId has not been set");
-    //     return verifier.getProofStatus(_wallet, over18RequestId).isVerified;
-    // }
+        bool isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, _wallet);
 
-    // TODO enforce accreditation per country and possibly only for 12 months
-    // function isAccreditedPerson(address _wallet) public view returns (bool) {
-    //     require(accreditedRequestId != 0, "CTMRWA1Identity: accreditedRequestId has not been set");
-    //     return verifier.getProofStatus(_wallet, accreditedRequestId).isVerified;
-    // }
+        return isValid;
+    }
 
-    // function isVerifiedCountry(address _wallet) public view returns (bool) {
-    //     require(countryRequestId != 0, "CTMRWA1Identity: countryRequestId has not been set");
-    //     return verifier.getProofStatus(_wallet, countryRequestId).isVerified;
-    // }
 
     function _payFee(
         uint256 _fee,
@@ -239,7 +158,7 @@ contract CTMRWA1Identity is Context, C3GovernDapp {
 
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA1StorageManager: Invalid address length");
+        require(strBytes.length == 42, "CTMRWA1Identity: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
         for (uint i = 0; i < 20; i++) {
@@ -281,17 +200,6 @@ contract CTMRWA1Identity is Context, C3GovernDapp {
         bool[] memory boolArray = new bool[](1);
         boolArray[0] = _bool;
         return(boolArray);
-    }
-
-
-    function _c3Fallback(bytes4 _selector,
-        bytes calldata _data,
-        bytes calldata _reason) internal override returns (bool) {
-
-        lastReason = string(_reason);
-
-        emit LogFallback(_selector, _data, _reason);
-        return true;
     }
 
 }

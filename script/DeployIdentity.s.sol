@@ -20,12 +20,6 @@ contract DeployPolygonId is Script {
 
         require(block.chainid == 534351, "Must be connected to Scroll Sepolia");
 
-        // env variables (changes based on deployment chain, edit in .env)
-        address c3callerProxyAddr = vm.envAddress("C3_DEPLOY_SCROLL_SEPOLIA");
-        address govAddr = deployer;
-        uint256 dappID6 = vm.envUint("DAPP_ID6");
-        
-        address txSender = deployer; 
         address mapAddr = 0x18433A774aF5d473191903A5AF156f3Eb205bBA4;
         address sentryManagerAddr = 0xBa59F04dbdcB1B74d601fbBF3E7e1ca82081c536;
         address feeManagerAddr = 0x2D2112DE9801EAf71B6D1cBf40A99E57AFc235a7;
@@ -38,14 +32,11 @@ contract DeployPolygonId is Script {
         console.log("Deploying Identity contract...");
 
         CTMRWA1Identity ctmIdentity = new CTMRWA1Identity (
-            govAddr,
             rwaType,
             version,
-            c3callerProxyAddr,
-            txSender,
-            dappID6,
             mapAddr,
             sentryManagerAddr,
+            verifierAddr,
             feeManagerAddr
         );
 
@@ -56,14 +47,10 @@ contract DeployPolygonId is Script {
 
         console.log("Setting zKMe verifier address");
 
-        ICTMRWA1Identity(ctmIdAddr).setZkMeVerifierAddress(verifierAddr);
-
         console.log("Finished");
 
         vm.stopBroadcast();
 
     }
-
-        
 
 }
