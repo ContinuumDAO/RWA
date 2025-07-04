@@ -101,12 +101,12 @@ contract SetUp is Test {
     uint256[] slotNumbers;
     string[] slotNames;
 
-    
+
     TestERC20 ctm;
     TestERC20 usdc;
 
     address ADDRESS_ZERO = address(0);
-    
+
     uint256 chainID;
     uint256 dappId = 1;
 
@@ -251,7 +251,6 @@ contract SetUp is Test {
 
         rwa1X.setCtmRwaMap(address(map));
 
-       
         chainIdsStr.push("1");
         gwaysStr.push("ethereumGateway");
         gateway.addChainContract(chainIdsStr, gwaysStr);
@@ -273,7 +272,7 @@ contract SetUp is Test {
 
         vm.prank(user1);
         ctm.approve(address(rwa1X), ctmBal);
-        
+
     }
 
     function deployGateway() internal {
@@ -378,9 +377,9 @@ contract SetUp is Test {
 
         storageManager.setCtmRwaDeployer(deployerAddr);
         storageManager.setCtmRwaMap(_map);
-       
+
         deployer.setStorageFactory(_rwaType, _version, storageManagerAddr);
-        
+
 
         sentryManager = new CTMRWA1SentryManager(
             _gov,
@@ -439,10 +438,10 @@ contract SetUp is Test {
         string memory destChain = "1";
         string memory ctmAddrStr = _toLower(address(ctm).toHexString());
         string memory usdcAddrStr = _toLower(address(usdc).toHexString());
-        
+
         tokensStr.push(ctmAddrStr);
         tokensStr.push(usdcAddrStr);
-        
+
         fees.push(1000);
         fees.push(1000);
 
@@ -453,7 +452,6 @@ contract SetUp is Test {
         );
         vm.stopPrank();
     }
-
 
     // function deployC3Caller() internal {
     //     vm.startPrank(gov);
@@ -498,7 +496,7 @@ contract SetUp is Test {
 
         return address(uint160(bytes20(addrBytes)));
     }
-    
+
 
     function hexCharToByte(bytes1 char) internal pure returns (uint8) {
         uint8 byteValue = uint8(char);
@@ -736,7 +734,7 @@ contract TestBasicToken is SetUp {
             FeeType.TX,
             tokenStr
         );
-        
+
         assertEq(fee, 1000);
 
         fee = fee*10**usdc.decimals()/100;
@@ -889,7 +887,7 @@ contract TestBasicToken is SetUp {
         bool ok;
         address investContract;
 
-        
+
         address ctmInvest = deployer.deployNewInvestment(
             ID,
             rwaType,
@@ -911,7 +909,7 @@ contract TestBasicToken is SetUp {
 
         vm.stopPrank();
 
-        
+
         uint256 price = 200000*oneUsdc; // price of an apartment
         address currency = address(usdc);
         uint256 minInvest = 1000*oneUsdc;
@@ -924,7 +922,7 @@ contract TestBasicToken is SetUp {
         uint256 lockDuration = 366*24*3600;
 
         vm.startPrank(user1);
-        
+
         vm.expectRevert("CTMInvest: Not tokenAdmin");
         ICTMRWA1InvestWithTimeLock(investContract).createOffering(
             tokenIdAdmin, 
@@ -1192,14 +1190,6 @@ contract TestBasicToken is SetUp {
 
     }
 
-
-
-
-
-
-
-
-
     function test_deployErc20() public {
 
         vm.startPrank(tokenAdmin);
@@ -1303,7 +1293,7 @@ contract TestBasicToken is SetUp {
             tokenStr
         );
         vm.stopPrank();
-        
+
         vm.startPrank(user1);
         uint256 balTokenId2 = ICTMRWA1(ctmRwaAddr).balanceOf(tokenId2User1);
         assertEq(balTokenId2, 3000);
@@ -1469,7 +1459,7 @@ contract TestBasicToken is SetUp {
             tokenStr
         );
 
-        
+
         storageManager.addURI(
             ID,
             "1",
@@ -1619,14 +1609,14 @@ contract TestBasicToken is SetUp {
         ICTMRWA1Dividend(ctmDividend).changeDividendRate(1, divRate1);
 
         uint256 balSlot1 = ICTMRWA1(ctmRwaAddr).totalSupplyInSlot(1);
-        
+
         uint256 dividend = ICTMRWA1Dividend(ctmDividend).getTotalDividendBySlot(1);
         assertEq(dividend, balSlot1*divRate1);
 
         uint256 balSlot3 = ICTMRWA1(ctmRwaAddr).totalSupplyInSlot(3);
-         
+
         uint256 balSlot5 = ICTMRWA1(ctmRwaAddr).totalSupplyInSlot(5);
-        
+
         uint256 divRate5 = ICTMRWA1Dividend(ctmDividend).getDividendRateBySlot(5);
 
         uint256 dividendTotal = ICTMRWA1Dividend(ctmDividend).getTotalDividend();
@@ -1910,7 +1900,7 @@ contract TestBasicToken is SetUp {
         string memory user1Str = user1.toHexString();
         string memory user2Str = user2.toHexString();
 
-        
+
         ok = ICTMRWA1Sentry(sentry).isAllowableTransfer(user2Str);
         assertEq(ok, true); // whitelistSwitch not called yet, so all addresses are allowable
 
@@ -2026,7 +2016,7 @@ contract TestBasicToken is SetUp {
             tokenStr
         );
 
-       
+
         vm.stopPrank();
 
         // here we can test transferring some tokens owned by user2
@@ -2322,7 +2312,7 @@ contract TestBasicToken is SetUp {
         );
 
         assertEq(ok, true);
-        
+
         address tokenAddr;
 
         (ok, tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(ID, rwaType, version);
@@ -2341,7 +2331,7 @@ contract TestBasicToken is SetUp {
 
         vm.startPrank(user1);
         (uint256 ID, address ctmRwaAddr) = CTMRWA1Deploy();
-       
+
         (, uint256 tokenId2,) = deployAFewTokensLocal(ctmRwaAddr);
          vm.stopPrank();
 
@@ -2383,7 +2373,7 @@ contract TestBasicToken is SetUp {
         //     }
         // }
 
-        
+
         C3CallerStructLib.C3EvmMessage memory c3message = C3CallerStructLib.C3EvmMessage(
             0x0dd256c5649d5658f91dc4fe936c407ab6dd42183a795d5a256f4508631d0ccb,
             address(rwa1X),
@@ -2490,7 +2480,7 @@ contract TestBasicToken is SetUp {
             token addr: _ctmRwaAddr
         */
 
-        
+
 
         string memory user1Str = user1.toHexString();
         address[] memory feeTokenList = feeManager.getFeeTokenList();
@@ -2594,7 +2584,7 @@ contract TestBasicToken is SetUp {
         //     ctmRwa1AddrStr
         // );
 
-       
+
         console.log("SLOTNAME");
         console.log(thisSlotName);
 
@@ -2610,7 +2600,6 @@ contract TestBasicToken is SetUp {
             ctmRwaAddrStr
         );
 
-
         bytes32 testUUID = keccak256(abi.encode(
             address(c3UUIDKeeper),
             address(c3CallerLogic),
@@ -2625,18 +2614,17 @@ contract TestBasicToken is SetUp {
         vm.expectEmit(true, true, false, true);
         emit LogC3Call(2, testUUID, address(rwa1X), toChainIdStr, toRwaXStr, callData, bytes(""));
 
-    //    function transferPartialTokenX(
-    //         uint256 _fromTokenId,
-    //         string memory _toAddressStr,
-    //         string memory _toChainIdStr,
-    //         uint256 _value,
-    //         uint256 _ID,
-    //         string memory _feeTokenStr
-    //     ) public 
+        // function transferPartialTokenX(
+        //      uint256 _fromTokenId,
+        //      string memory _toAddressStr,
+        //      string memory _toChainIdStr,
+        //      uint256 _value,
+        //      uint256 _ID,
+        //      string memory _feeTokenStr
+        // ) public 
 
         vm.prank(user1);
         rwa1X.transferPartialTokenX(tokenId1, user1Str, toChainIdStr, value/2, ID, feeTokenStr);
 
     }
-
 }

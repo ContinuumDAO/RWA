@@ -18,61 +18,40 @@ contract Accounts is Test {
     address issuer3;
     address extra;
 
-    error InvalidLabelLength();
+    uint256 constant _100_000 = 100_000;
 
-    uint256 constant INITIAL_TOKEN_BALANCE = 100_000;
-
-    function getAccounts() public returns (
-        address, address, address, address, address, address, address, address, address, address
-    ) {
+    function _getAccounts() internal returns (address[] memory accounts) {
         string memory mnemonic = "test test test test test test test test test test test junk";
 
-        uint256 pk0 = vm.deriveKey(mnemonic, 0);
-        address pub0 = vm.addr(pk0);
-        vm.label(pub0, "Admin");
-        uint256 pk1 = vm.deriveKey(mnemonic, 1);
-        address pub1 = vm.addr(pk1);
-        vm.label(pub1, "Governor");
-        uint256 pk2 = vm.deriveKey(mnemonic, 2);
-        address pub2 = vm.addr(pk2);
-        vm.label(pub2, "Treasury");
-        uint256 pk3 = vm.deriveKey(mnemonic, 3);
-        address pub3 = vm.addr(pk3);
-        vm.label(pub3, "User 1");
-        uint256 pk4 = vm.deriveKey(mnemonic, 4);
-        address pub4 = vm.addr(pk4);
-        vm.label(pub4, "User 2");
-        uint256 pk5 = vm.deriveKey(mnemonic, 5);
-        address pub5 = vm.addr(pk5);
-        vm.label(pub5, "User 3");
-        uint256 pk6 = vm.deriveKey(mnemonic, 6);
-        address pub6 = vm.addr(pk6);
-        vm.label(pub6, "Issuer 1");
-        uint256 pk7 = vm.deriveKey(mnemonic, 7);
-        address pub7 = vm.addr(pk7);
-        vm.label(pub7, "Issuer 2");
-        uint256 pk8 = vm.deriveKey(mnemonic, 8);
-        address pub8 = vm.addr(pk8);
-        vm.label(pub8, "Issuer 3");
-        uint256 pk9 = vm.deriveKey(mnemonic, 9);
-        address pub9 = vm.addr(pk9);
-        vm.label(pub9, "Extra");
+        string[] memory labels = new string[](7);
+        labels[0] = "Admin";
+        labels[1] = "Governor";
+        labels[2] = "Treasury";
+        labels[3] = "User1";
+        labels[4] = "User2";
+        labels[5] = "Issuer1";
+        labels[6] = "Issuer2";
 
-        return (pub0, pub1, pub2, pub3, pub4, pub5, pub6, pub7, pub8, pub9);
+        for (uint8 i = 0; i < 7; i++) {
+            uint256 pk = vm.deriveKey(mnemonic, i);
+            address pub = vm.addr(pk);
+            vm.label(pub, labels[i]);
+            accounts[i] = pub;
+        }
     }
 
-    function dealAllERC20(address token) internal {
-        uint256 decimals = ITestERC20(token).decimals();
-        uint256 amount = INITIAL_TOKEN_BALANCE * 10 ** decimals;
-        deal(token, admin, amount, true);
-        deal(token, gov, amount, true);
-        deal(token, treasury, amount, true);
-        deal(token, user1, amount, true);
-        deal(token, user2, amount, true);
-        deal(token, user3, amount, true);
-        deal(token, issuer1, amount, true);
-        deal(token, issuer2, amount, true);
-        deal(token, issuer3, amount, true);
-        deal(token, extra, amount, true);
+    function dealAllERC20(address _token, uint256 _amount) internal {
+        uint256 decimals = ITestERC20(_token).decimals();
+        uint256 amount = _amount * 10 ** decimals;
+        deal(_token, admin, amount, true);
+        deal(_token, gov, amount, true);
+        deal(_token, treasury, amount, true);
+        deal(_token, user1, amount, true);
+        deal(_token, user2, amount, true);
+        deal(_token, user3, amount, true);
+        deal(_token, issuer1, amount, true);
+        deal(_token, issuer2, amount, true);
+        deal(_token, issuer3, amount, true);
+        deal(_token, extra, amount, true);
     }
 }
