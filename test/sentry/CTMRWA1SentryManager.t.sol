@@ -451,7 +451,5 @@ contract TestSentryManager is SetUp {
         string memory adminStr = admin.toHexString();
         string memory user1Str = user1.toHexString();
         string memory user2Str = user2.toHexString();
-
-
-
+    }
 }

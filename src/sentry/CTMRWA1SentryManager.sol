@@ -77,7 +77,7 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
 
     /// @dev New Country List added on local chain for ID
     event CountryListAdded(uint256 ID);
-    
+
 
     modifier onlyDeployer {
         require(msg.sender == ctmRwaDeployer, "CTMRWA1SentryManager: onlyDeployer function");
@@ -446,7 +446,7 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
         return(true);
     }
 
-    
+
     function addCountrylist(
         uint256 _ID,
         string[] memory _countries,
@@ -517,13 +517,13 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
         string memory _feeTokenStr
     ) internal returns(bool) {
 
-               
+
         if(_fee>0) {
             address feeToken = stringToAddress(_feeTokenStr);
             uint256 feeWei = _fee*10**(IERC20Extended(feeToken).decimals()-2);
 
             IERC20(feeToken).transferFrom(_msgSender(), address(this), feeWei);
-            
+
             IERC20(feeToken).approve(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);
         }
@@ -538,7 +538,7 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
     ) internal view returns(uint256) {
 
         bool includeLocal = false; // local chain is already included in _toChainIdsStr
-        
+
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, includeLocal, _feeType, _feeTokenStr);
  
         return(fee * _nItems);

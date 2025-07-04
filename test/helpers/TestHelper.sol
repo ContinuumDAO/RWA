@@ -6,6 +6,8 @@ import {Test} from "forge-std/Test.sol";
 import {Accounts} from "./Accounts.sol";
 import {Deployer} from "./Deployer.sol";
 
+import {TestERC20} from "../../src/mocks/TestERC20.sol";
+
 contract TestHelper is Test, Accounts, Deployer {
     function setUp() public {
         (admin, gov, treasury, user1, user2, issuer1, issuer2) = abi.decode(
@@ -13,7 +15,12 @@ contract TestHelper is Test, Accounts, Deployer {
             (address, address, address, address, address, address, address)
         );
 
-        _dealAllERC20(usdc, _100_000);
-        _dealAllERC20(ctm, _100_000);
+        TestERC20 ctm = new TestERC20("Continuum", "CTM", 18);
+        TestERC20 usdc = new TestERC20("Circle USD", "USDC", 6);
+
+        _dealAllERC20(address(usdc), _100_000);
+        _dealAllERC20(address(ctm), _100_000);
+
+        _deployC3Caller(gov);
     }
 }

@@ -40,7 +40,7 @@ contract Accounts is Test {
         }
     }
 
-    function dealAllERC20(address _token, uint256 _amount) internal {
+    function _dealAllERC20(address _token, uint256 _amount) internal {
         uint256 decimals = ITestERC20(_token).decimals();
         uint256 amount = _amount * 10 ** decimals;
         deal(_token, admin, amount, true);
