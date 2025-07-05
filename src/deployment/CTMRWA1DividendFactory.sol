@@ -3,7 +3,7 @@
 pragma solidity ^0.8.19;
 
 
-import {CTMRWA1Dividend} from "./CTMRWA1Dividend.sol";
+import {CTMRWA1Dividend} from "../core/CTMRWA1Dividend.sol";
 
 interface TokenID {
     function ID() external view returns(uint256);

@@ -21,7 +21,6 @@ interface IRwaMap {
     function ctmRwaMap() external returns(address);
 }
 
-
 contract CTMRWADeployInvest is Context {
     using Strings for *;
 
