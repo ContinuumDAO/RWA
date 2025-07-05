@@ -259,10 +259,10 @@ contract SetUp is Test {
 
         vm.stopPrank();
 
-
         vm.startPrank(user1);
         uint256 initialUserBal = usdc.balanceOf(address(user1));
         usdc.approve(address(feeManager), initialUserBal);
+        ctm.approve(address(rwa1X), ctmBal);
         vm.stopPrank();
 
         vm.startPrank(admin);
@@ -271,8 +271,6 @@ contract SetUp is Test {
         vm.stopPrank();
 
         vm.prank(user1);
-        ctm.approve(address(rwa1X), ctmBal);
-
     }
 
     function deployGateway() internal {

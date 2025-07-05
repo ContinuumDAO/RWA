@@ -14,16 +14,28 @@ contract TestHelper is Test, Helpers {
             (address, address, address, address, address, address, address)
         );
 
-        TestERC20 ctm = new TestERC20("Continuum", "CTM", 18);
-        TestERC20 usdc = new TestERC20("Circle USD", "USDC", 6);
+        (ctm, usdc) = _deployFeeTokens();
 
         _dealAllERC20(address(usdc), _100_000);
         _dealAllERC20(address(ctm), _100_000);
 
         _deployC3Caller(gov);
+
+        // TODO: remove
+        assertEq(c3caller.isCaller(address(c3callerProxy)), true);
+
         _deployFeeManager(gov, admin, address(ctm), address(usdc));
         _deployGateway(gov, admin);
         _deployCTMRWA1X(gov, admin);
         _deployMap();
+        _deployCTMRWADeployer(gov, admin);
+        _deployTokenFactory();
+        _deployDividendFactory();
+        _deployStorage(gov, admin);
+        _deploySentry(gov, admin);
+        _setFeeContracts();
+
+        _approveAllERC20(address(usdc), _100_000, feeContracts);
+        _approveAllERC20(address(ctm), _100_000, feeContracts);
     }
 }

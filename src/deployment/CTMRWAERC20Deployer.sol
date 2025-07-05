@@ -82,7 +82,7 @@ contract CTMRWAERC20Deployer is ReentrancyGuard, Context {
         _payFee(FeeType.ERC20, _feeToken);
 
         bytes32 salt = keccak256(abi.encode(_ID, _rwaType, _version, _slot));
-        
+
         CTMRWAERC20 newErc20 = new CTMRWAERC20 {
             salt: salt 
         }(
@@ -337,7 +337,7 @@ contract CTMRWAERC20 is ReentrancyGuard, Context, ERC20 {
     /// @dev Low level function granting approval IF the spender has enough allowance from _owner
     function _spendAllowance(address _owner, address _spender, uint256 _value) internal override {
         uint256 currentAllowance = allowance(_owner, _spender);
-        
+
         if (currentAllowance != type(uint256).max) {
             if(currentAllowance < _value) {
                 revert ERC20InsufficientAllowance(_spender, currentAllowance, _value);

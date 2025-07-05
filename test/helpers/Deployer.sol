@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.19;
 
-// import {Test} from "forge-std/Test.sol";
-
 import {Utils} from "./Utils.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -13,18 +11,27 @@ import {C3CallerProxy} from "@c3caller/C3CallerProxy.sol";
 import {C3Caller} from "@c3caller/C3Caller.sol";
 import {IC3Caller} from "@c3caller/IC3Caller.sol";
 
-import {FeeManager} from "../../src/managers/FeeManager.sol";
-import {FeeType} from "../../src/managers/IFeeManager.sol";
-
 import {CTMRWAGateway} from "../../src/crosschain/CTMRWAGateway.sol";
-
 import {CTMRWA1X} from "../../src/crosschain/CTMRWA1X.sol";
 import {CTMRWA1XFallback} from "../../src/crosschain/CTMRWA1XFallback.sol";
 
-import {CTMRWAMap} from "../../src/shared/CTMRWAMap.sol";
-
 import {CTMRWADeployer} from "../../src/deployment/CTMRWADeployer.sol";
 import {CTMRWADeployInvest} from "../../src/deployment/CTMRWADeployInvest.sol";
+import {CTMRWA1TokenFactory} from "../../src/deployment/CTMRWA1TokenFactory.sol";
+import {CTMRWAERC20Deployer} from "../../src/deployment/CTMRWAERC20Deployer.sol";
+
+import {CTMRWA1DividendFactory} from "../../src/dividend/CTMRWA1DividendFactory.sol";
+
+import {FeeManager} from "../../src/managers/FeeManager.sol";
+import {FeeType} from "../../src/managers/IFeeManager.sol";
+
+import {CTMRWA1SentryManager} from "../../src/sentry/CTMRWA1SentryManager.sol";
+import {CTMRWA1SentryUtils} from "../../src/sentry/CTMRWA1SentryUtils.sol";
+
+import {CTMRWAMap} from "../../src/shared/CTMRWAMap.sol";
+
+import {CTMRWA1StorageManager} from "../../src/storage/CTMRWA1StorageManager.sol";
+import {CTMRWA1StorageUtils} from "../../src/storage/CTMRWA1StorageUtils.sol";
 
 contract Deployer is Utils {
     using Strings for *;
@@ -47,6 +54,19 @@ contract Deployer is Utils {
 
     CTMRWADeployer deployer;
     CTMRWADeployInvest ctmRwaDeployInvest;
+    CTMRWAERC20Deployer ctmRwaErc20Deployer;
+
+    CTMRWA1TokenFactory tokenFactory;
+
+    CTMRWA1DividendFactory dividendFactory;
+
+    CTMRWA1StorageManager storageManager;
+    CTMRWA1StorageUtils storageUtils;
+
+    CTMRWA1SentryManager sentryManager;
+    CTMRWA1SentryUtils sentryUtils;
+
+    FeeContracts feeContracts;
 
     function _deployC3Caller(address gov) internal {
         vm.startPrank(gov);
@@ -61,8 +81,6 @@ contract Deployer is Utils {
         c3caller = IC3Caller(address(c3callerProxy));
 
         vm.stopPrank();
-
-        assertEq(c3caller.isCaller(address(c3callerProxy)), true);
     }
 
     function _deployFeeManager(address gov, address admin, address ctm, address usdc) internal {
@@ -112,6 +130,10 @@ contract Deployer is Utils {
             admin,
             4 // dappID = 4
         );
+
+        string[] memory chainIdsStr = _stringToArray("1");
+        string[] memory gwaysStr = _stringToArray("ethereumGateway");
+        gateway.addChainContract(chainIdsStr, gwaysStr);
     }
 
     function _deployCTMRWA1X(address gov, address admin) internal {
@@ -132,14 +154,12 @@ contract Deployer is Utils {
         string[] memory chainIdsStr = _stringToArray("1");
         string[] memory rwaXsStr = _stringToArray(address(rwa1X).toHexString());
 
-        bool ok = gateway.attachRWAX(
+        gateway.attachRWAX(
             RWA_TYPE,
             VERSION,
             chainIdsStr,
             rwaXsStr
         );
-
-        assertEq(ok, true);
     }
 
     function _deployMap() internal {
@@ -147,6 +167,8 @@ contract Deployer is Utils {
             address(gateway),
             address(rwa1X)
         );
+
+        rwa1X.setCtmRwaMap(address(map));
     }
 
     function _deployCTMRWADeployer(address gov, address admin) internal {
@@ -158,7 +180,7 @@ contract Deployer is Utils {
             address(map),
             address(c3caller),
             admin,
-            _dappIDDeployer
+            3 // dappID = 3
         );
 
         ctmRwaDeployInvest = new CTMRWADeployInvest(
@@ -173,70 +195,94 @@ contract Deployer is Utils {
             address(feeManager)
         );
 
-        tokenFactory = new CTMRWA1TokenFactory(_map, address(deployer));
-        deployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
-        address deployerAddr = address(deployer);
+        deployer.setDeployInvest(address(ctmRwaDeployInvest));
+        deployer.setErc20DeployerAddress(address(ctmRwaErc20Deployer));
+        rwa1X.setCtmRwaDeployer(address(deployer));
+    }
+
+    function _deployTokenFactory() internal {
+        tokenFactory = new CTMRWA1TokenFactory(address(map), address(deployer));
+        deployer.setTokenFactory(RWA_TYPE, VERSION, address(tokenFactory));
+    }
+
+    function _deployDividendFactory() internal {
         dividendFactory = new CTMRWA1DividendFactory(address(deployer));
-        ctmDividend = address(dividendFactory);
-        deployer.setDividendFactory(_rwaType, _version, address(dividendFactory));
+        deployer.setDividendFactory(RWA_TYPE, VERSION, address(dividendFactory));
+    }
+
+    function _deployStorage(address gov, address admin) internal {
         storageManager = new CTMRWA1StorageManager(
-            _gov,
-            _rwaType,
-            _version,
-            _c3callerProxy,
-            _txSender,
-            _dappIDStorageManager,
-            _map,
+            gov,
+            RWA_TYPE,
+            VERSION,
+            address(c3caller),
+            admin,
+            88, // dappID = 88
+            address(map),
             address(gateway),
             address(feeManager)
         );
 
-        address storageManagerAddr = address(storageManager);
-
         storageUtils = new CTMRWA1StorageUtils(
-            _rwaType,
-            _version,
-            _map,
-            storageManagerAddr
+            RWA_TYPE,
+            VERSION,
+            address(map),
+            address(storageManager)
         );
 
         storageManager.setStorageUtils(address(storageUtils));
+        storageManager.setCtmRwaDeployer(address(deployer));
+        storageManager.setCtmRwaMap(address(map));
+        deployer.setStorageFactory(RWA_TYPE, VERSION, address(storageManager));
+        gateway.attachStorageManager(
+            RWA_TYPE, 
+            VERSION, 
+            _stringToArray("1"),
+            _stringToArray(address(storageManager).toHexString())
+        );
+    }
 
-        storageManager.setCtmRwaDeployer(deployerAddr);
-        storageManager.setCtmRwaMap(_map);
-
-        deployer.setStorageFactory(_rwaType, _version, storageManagerAddr);
-
-
+    function _deploySentry(address gov, address admin) internal {
         sentryManager = new CTMRWA1SentryManager(
-            _gov,
-            _rwaType,
-            _version,
-            _c3callerProxy,
-            _txSender,
-            _dappIDStorageManager,
-            _map,
+            gov,
+            RWA_TYPE,
+            VERSION,
+            address(c3caller),
+            admin,
+            89, // dappID = 89
+            address(map),
             address(gateway),
             address(feeManager)
         );
 
-        address sentryManagerAddr = address(sentryManager);
-
-        deployer.setSentryFactory(_rwaType, _version, sentryManagerAddr);
-
+        deployer.setSentryFactory(RWA_TYPE, VERSION, address(sentryManager));
 
         sentryUtils = new CTMRWA1SentryUtils(
-            _rwaType,
-            _version,
-            _map,
-            sentryManagerAddr
+            RWA_TYPE,
+            VERSION,
+            address(map),
+            address(sentryManager)
         );
 
         sentryManager.setSentryUtils(address(sentryUtils));
+        sentryManager.setCtmRwaDeployer(address(deployer));
+        sentryManager.setCtmRwaMap(address(map));
+        gateway.attachSentryManager(
+            RWA_TYPE, 
+            VERSION, 
+            _stringToArray("1"),
+            _stringToArray(address(sentryManager).toHexString())
+        );
+    }
 
-        sentryManager.setCtmRwaDeployer(deployerAddr);
-        sentryManager.setCtmRwaMap(_map);
-
-        ICTMRWAFactory(address(sentryManager)).setCtmRwaDeployer(address(deployer));
+    function _setFeeContracts() internal {
+        feeContracts = FeeContracts(
+            address(rwa1X),
+            address(ctmRwaDeployInvest),
+            address(ctmRwaErc20Deployer),
+            // address(identity),
+            address(sentryManager),
+            address(storageManager)
+        );
     }
 }

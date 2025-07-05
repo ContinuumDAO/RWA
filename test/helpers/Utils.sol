@@ -7,6 +7,14 @@ import {Test} from "forge-std/Test.sol";
 import {URIType, URICategory, URIData, ICTMRWA1Storage} from "../../src/storage/ICTMRWA1Storage.sol";
 
 contract Utils is Test {
+    struct FeeContracts {
+        address rwa1X;
+        address ctmRwaDeployInvest;
+        address ctmRwaERC20Deployer;
+        // address identity;
+        address sentryManager;
+        address storageManager;
+    }
 
     uint256 constant RWA_TYPE = 1;
     uint256 constant VERSION = 1;

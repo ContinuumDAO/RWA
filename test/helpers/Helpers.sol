@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-import {Accounts} from "./Accounts.sol";
 import {Deployer} from "./Deployer.sol";
+import {Accounts} from "./Accounts.sol";
 
-contract Helpers is Accounts, Deployer {}
+contract Helpers is Deployer, Accounts {}

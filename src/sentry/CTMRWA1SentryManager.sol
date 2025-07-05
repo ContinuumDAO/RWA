@@ -314,7 +314,7 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
 
         _payFee(fee, _feeTokenStr);
 
-         for(uint256 i=0; i<_chainIdsStr.length; i++) {
+        for(uint256 i=0; i<_chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
             if(stringsEqual(chainIdStr, cIdStr)) {
