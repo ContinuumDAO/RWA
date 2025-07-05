@@ -2,11 +2,13 @@
 
 pragma solidity ^0.8.19;
 
-import "forge-std/Test.sol";
+// import {Test} from "forge-std/Test.sol";
+
+import {Utils} from "./Utils.sol";
 
 import {ITestERC20} from "../../src/mocks/ITestERC20.sol";
 
-contract Accounts is Test {
+contract Accounts is Utils {
     address admin;
     address gov;
     address treasury;

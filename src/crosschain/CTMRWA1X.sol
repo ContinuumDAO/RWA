@@ -8,7 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import {C3GovernDapp} from "@c3caller/C3GovernDapp.sol";
+import {C3GovernDapp} from "@c3caller/gov/C3GovernDapp.sol";
 
 import {IFeeManager, FeeType, IERC20Extended} from "../managers/IFeeManager.sol";
 import {ICTMRWAGateway} from "../crosschain/ICTMRWAGateway.sol";

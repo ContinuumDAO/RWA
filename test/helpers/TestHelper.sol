@@ -3,12 +3,11 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {Accounts} from "./Accounts.sol";
-import {Deployer} from "./Deployer.sol";
+import {Helpers} from "./Helpers.sol";
 
 import {TestERC20} from "../../src/mocks/TestERC20.sol";
 
-contract TestHelper is Test, Accounts, Deployer {
+contract TestHelper is Test, Helpers {
     function setUp() public {
         (admin, gov, treasury, user1, user2, issuer1, issuer2) = abi.decode(
             abi.encode(_getAccounts()),
@@ -22,5 +21,9 @@ contract TestHelper is Test, Accounts, Deployer {
         _dealAllERC20(address(ctm), _100_000);
 
         _deployC3Caller(gov);
+        _deployFeeManager(gov, admin, address(ctm), address(usdc));
+        _deployGateway(gov, admin);
+        _deployCTMRWA1X(gov, admin);
+        _deployMap();
     }
 }

@@ -8,7 +8,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import {C3GovernDapp} from "@c3caller/C3GovernDapp.sol";
+import {C3GovernDapp} from "@c3caller/gov/C3GovernDapp.sol";
 
 import {IFeeManager, FeeType} from "./IFeeManager.sol";
 
