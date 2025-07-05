@@ -14,6 +14,6 @@ interface ICTMRWA1Dividend {
     function fundDividend() external returns(uint256);
     function dividendByTokenId(uint256 tokenId) external returns(uint256);
     function resetDividendByToken(uint256 tokenId) external;
-    
+
     function claimDividend() external returns(bool);
 }

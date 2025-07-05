@@ -23,6 +23,9 @@ import {CTMRWA1XFallback} from "../../src/crosschain/CTMRWA1XFallback.sol";
 
 import {CTMRWAMap} from "../../src/shared/CTMRWAMap.sol";
 
+import {CTMRWADeployer} from "../../src/deployment/CTMRWADeployer.sol";
+import {CTMRWADeployInvest} from "../../src/deployment/CTMRWADeployInvest.sol";
+
 contract Deployer is Utils {
     using Strings for *;
 
@@ -41,6 +44,9 @@ contract Deployer is Utils {
     CTMRWA1XFallback rwa1XFallback;
 
     CTMRWAMap map;
+
+    CTMRWADeployer deployer;
+    CTMRWADeployInvest ctmRwaDeployInvest;
 
     function _deployC3Caller(address gov) internal {
         vm.startPrank(gov);
@@ -141,5 +147,96 @@ contract Deployer is Utils {
             address(gateway),
             address(rwa1X)
         );
+    }
+
+    function _deployCTMRWADeployer(address gov, address admin) internal {
+        deployer = new CTMRWADeployer(
+            gov,
+            address(gateway),
+            address(feeManager),
+            address(rwa1X),
+            address(map),
+            address(c3caller),
+            admin,
+            _dappIDDeployer
+        );
+
+        ctmRwaDeployInvest = new CTMRWADeployInvest(
+            address(map),
+            address(deployer),
+            0, // commission rate = 0
+            address(feeManager)
+        );
+
+        ctmRwaErc20Deployer = new CTMRWAERC20Deployer(
+            address(map),
+            address(feeManager)
+        );
+
+        tokenFactory = new CTMRWA1TokenFactory(_map, address(deployer));
+        deployer.setTokenFactory(_rwaType, _version, address(tokenFactory));
+        address deployerAddr = address(deployer);
+        dividendFactory = new CTMRWA1DividendFactory(address(deployer));
+        ctmDividend = address(dividendFactory);
+        deployer.setDividendFactory(_rwaType, _version, address(dividendFactory));
+        storageManager = new CTMRWA1StorageManager(
+            _gov,
+            _rwaType,
+            _version,
+            _c3callerProxy,
+            _txSender,
+            _dappIDStorageManager,
+            _map,
+            address(gateway),
+            address(feeManager)
+        );
+
+        address storageManagerAddr = address(storageManager);
+
+        storageUtils = new CTMRWA1StorageUtils(
+            _rwaType,
+            _version,
+            _map,
+            storageManagerAddr
+        );
+
+        storageManager.setStorageUtils(address(storageUtils));
+
+        storageManager.setCtmRwaDeployer(deployerAddr);
+        storageManager.setCtmRwaMap(_map);
+
+        deployer.setStorageFactory(_rwaType, _version, storageManagerAddr);
+
+
+        sentryManager = new CTMRWA1SentryManager(
+            _gov,
+            _rwaType,
+            _version,
+            _c3callerProxy,
+            _txSender,
+            _dappIDStorageManager,
+            _map,
+            address(gateway),
+            address(feeManager)
+        );
+
+        address sentryManagerAddr = address(sentryManager);
+
+        deployer.setSentryFactory(_rwaType, _version, sentryManagerAddr);
+
+
+        sentryUtils = new CTMRWA1SentryUtils(
+            _rwaType,
+            _version,
+            _map,
+            sentryManagerAddr
+        );
+
+        sentryManager.setSentryUtils(address(sentryUtils));
+
+        sentryManager.setCtmRwaDeployer(deployerAddr);
+        sentryManager.setCtmRwaMap(_map);
+
+        ICTMRWAFactory(address(sentryManager)).setCtmRwaDeployer(address(deployer));
     }
 }

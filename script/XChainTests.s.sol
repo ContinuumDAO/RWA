@@ -8,8 +8,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {IC3Caller} from "@c3caller/IC3Caller.sol";
-import {IUUIDKeeper} from "@c3caller/IUUIDKeeper.sol";
-import {ITheiaERC20} from "@c3caller/ITheiaERC20.sol";
+import {IUUIDKeeper} from "@c3caller/uuid/IUUIDKeeper.sol";
+import {ITheiaERC20} from "@c3caller/theia/ITheiaERC20.sol";
 
 import {ICTMRWA1, SlotData} from "../src/core/ICTMRWA1.sol";
 import {ICTMRWA1Dividend} from "../src/core/ICTMRWA1Dividend.sol";
