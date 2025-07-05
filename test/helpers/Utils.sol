@@ -2,11 +2,15 @@
 
 pragma solidity ^0.8.19;
 
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+
 import {Test} from "forge-std/Test.sol";
 
 import {URIType, URICategory, URIData, ICTMRWA1Storage} from "../../src/storage/ICTMRWA1Storage.sol";
 
 contract Utils is Test {
+    using Strings for *;
+
     struct FeeContracts {
         address rwa1X;
         address ctmRwaDeployInvest;
@@ -18,6 +22,8 @@ contract Utils is Test {
 
     uint256 constant RWA_TYPE = 1;
     uint256 constant VERSION = 1;
+
+    string cIdStr = block.chainid.toHexString();
 
     function getRevert(bytes calldata _payload) external pure returns (bytes memory) {
         return(abi.decode(_payload[4:], (bytes)));

@@ -7,7 +7,7 @@ import {Helpers} from "./Helpers.sol";
 
 contract SetUp is Test, Helpers {
     function setUp() public {
-        (admin, gov, treasury, user1, user2, issuer1, issuer2) = abi.decode(
+        (admin, gov, treasury, user1, user2, tokenAdmin, tokenAdmin) = abi.decode(
             abi.encode(_getAccounts()),
             (address, address, address, address, address, address, address)
         );

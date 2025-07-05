@@ -16,8 +16,8 @@ contract Accounts is Utils {
     address treasury;
     address user1;
     address user2;
-    address issuer1;
-    address issuer2;
+    address tokenAdmin;
+    address tokenAdmin2;
 
     uint256 constant _100_000 = 100_000;
 
@@ -59,8 +59,8 @@ contract Accounts is Utils {
         deal(_token, treasury, amount, true);
         deal(_token, user1, amount, true);
         deal(_token, user2, amount, true);
-        deal(_token, issuer1, amount, true);
-        deal(_token, issuer2, amount, true);
+        deal(_token, tokenAdmin, amount, true);
+        deal(_token, tokenAdmin2, amount, true);
     }
 
     function _approveAllERC20(address _token, uint256 _amount, FeeContracts memory feeContracts) internal {
@@ -73,8 +73,8 @@ contract Accounts is Utils {
         _approveERC20(treasury, token, amount, feeContracts);
         _approveERC20(user1, token, amount, feeContracts);
         _approveERC20(user2, token, amount, feeContracts);
-        _approveERC20(issuer1, token, amount, feeContracts);
-        _approveERC20(issuer2, token, amount, feeContracts);
+        _approveERC20(tokenAdmin, token, amount, feeContracts);
+        _approveERC20(tokenAdmin2, token, amount, feeContracts);
     }
 
     function _approveERC20(address account, ITestERC20 token, uint256 amount, FeeContracts memory feeContracts) private {
