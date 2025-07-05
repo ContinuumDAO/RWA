@@ -2,13 +2,42 @@
 
 pragma solidity ^0.8.19;
 
-import {Test} from "forge-std/Test.sol";
+// import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
+import {SetUp} from "../helpers/SetUp.sol";
+
 contract TestERC20Deployer is SetUp {
     using Strings for *;
+
+    function setUp() public {
+        (admin, gov, treasury, user1, user2, issuer1, issuer2) = abi.decode(
+            abi.encode(_getAccounts()),
+            (address, address, address, address, address, address, address)
+        );
+
+        (ctm, usdc) = _deployFeeTokens();
+
+        _dealAllERC20(address(usdc), _100_000);
+        _dealAllERC20(address(ctm), _100_000);
+
+        _deployC3Caller(gov);
+        _deployFeeManager(gov, admin, address(ctm), address(usdc));
+        _deployGateway(gov, admin);
+        _deployCTMRWA1X(gov, admin);
+        _deployMap();
+        _deployCTMRWADeployer(gov, admin);
+        _deployTokenFactory();
+        _deployDividendFactory();
+        _deployStorage(gov, admin);
+        _deploySentry(gov, admin);
+        _setFeeContracts();
+
+        _approveAllERC20(address(usdc), _100_000, feeContracts);
+        _approveAllERC20(address(ctm), _100_000, feeContracts);
+    }
 
     function test_deployErc20() public {
 

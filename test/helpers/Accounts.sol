@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 
 import {Utils} from "./Utils.sol";
 
+import {TestERC20} from "../../src/mocks/TestERC20.sol";
 import {ITestERC20} from "../../src/mocks/ITestERC20.sol";
 
 contract Accounts is Utils {
@@ -20,7 +21,7 @@ contract Accounts is Utils {
 
     uint256 constant _100_000 = 100_000;
 
-    function _getAccounts() internal returns (address[] memory accounts) {
+    function _getAccounts() internal returns (address[] memory) {
         string memory mnemonic = "test test test test test test test test test test test junk";
 
         string[] memory labels = new string[](7);
@@ -32,12 +33,16 @@ contract Accounts is Utils {
         labels[5] = "Issuer1";
         labels[6] = "Issuer2";
 
+        address[] memory accounts = new address[](7);
+
         for (uint8 i = 0; i < 7; i++) {
             uint256 pk = vm.deriveKey(mnemonic, i);
             address pub = vm.addr(pk);
             vm.label(pub, labels[i]);
             accounts[i] = pub;
         }
+
+        return accounts;
     }
 
     function _deployFeeTokens() internal returns (TestERC20, TestERC20) {

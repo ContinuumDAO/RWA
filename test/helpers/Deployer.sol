@@ -69,8 +69,6 @@ contract Deployer is Utils {
     FeeContracts feeContracts;
 
     function _deployC3Caller(address gov) internal {
-        vm.startPrank(gov);
-
         c3UUIDKeeper = new C3UUIDKeeper();
         c3callerImpl = new C3Caller();
         bytes memory initializerData = abi.encodeWithSignature(
@@ -79,8 +77,6 @@ contract Deployer is Utils {
         );
         c3callerProxy = new C3CallerProxy(address(c3callerImpl), initializerData);
         c3caller = IC3Caller(address(c3callerProxy));
-
-        vm.stopPrank();
     }
 
     function _deployFeeManager(address gov, address admin, address ctm, address usdc) internal {
@@ -90,8 +86,6 @@ contract Deployer is Utils {
             admin,
             1 // dappID = 1
         );
-
-        vm.startPrank(gov);
 
         feeManager.addFeeToken(address(ctm).toHexString());
         feeManager.addFeeToken(address(usdc).toHexString());
@@ -119,8 +113,6 @@ contract Deployer is Utils {
             tokensStr,
             fees
         );
-
-        vm.stopPrank();
     }
 
     function _deployGateway(address gov, address admin) internal {
@@ -148,7 +140,6 @@ contract Deployer is Utils {
 
         rwa1XFallback = new CTMRWA1XFallback(address(rwa1X));
 
-        vm.prank(gov);
         rwa1X.setFallback(address(rwa1XFallback));
 
         string[] memory chainIdsStr = _stringToArray("1");
@@ -167,8 +158,6 @@ contract Deployer is Utils {
             address(gateway),
             address(rwa1X)
         );
-
-        rwa1X.setCtmRwaMap(address(map));
     }
 
     function _deployCTMRWADeployer(address gov, address admin) internal {
@@ -198,6 +187,7 @@ contract Deployer is Utils {
         deployer.setDeployInvest(address(ctmRwaDeployInvest));
         deployer.setErc20DeployerAddress(address(ctmRwaErc20Deployer));
         rwa1X.setCtmRwaDeployer(address(deployer));
+        rwa1X.setCtmRwaMap(address(map));
     }
 
     function _deployTokenFactory() internal {
@@ -284,5 +274,27 @@ contract Deployer is Utils {
             address(sentryManager),
             address(storageManager)
         );
+    }
+
+    function _deployCTMRWA1(address feeToken) public returns (uint256, address) {
+        string memory feeTokenStr = _toLower((address(feeToken).toHexString()));
+        string[] memory dummyChainIdsStr;
+
+        uint256 ID = rwa1X.deployAllCTMRWA1X(
+            true, // include local mint
+            0,
+            RWA_TYPE,
+            VERSION,
+            "Semi Fungible Token XChain",
+            "SFTX",
+            18,
+            "GFLD",
+            dummyChainIdsStr, // empty array - no cross-chain minting
+            feeTokenStr
+        );
+
+        (, address tokenAddress) =  map.getTokenContract(ID, RWA_TYPE, VERSION);
+
+        return (ID, tokenAddress);
     }
 }

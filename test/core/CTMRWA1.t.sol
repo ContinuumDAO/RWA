@@ -2,18 +2,19 @@
 
 pragma solidity ^0.8.19;
 
-import {Test} from "forge-std/Test.sol";
+// import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
+import {SetUp} from "../helpers/SetUp.sol";
+
 contract TestCTMRWA1 is SetUp {
     using Strings for *;
 
-
     function test_getTokenList() public {
         vm.startPrank(user1);
-        (, address ctmRwaAddr) = CTMRWA1Deploy();
+        (uint256 ID, address ctmRwaAddr) = _deployCTMRWA1(address(usdc));
         deployAFewTokensLocal(ctmRwaAddr);
         vm.stopPrank();
 
