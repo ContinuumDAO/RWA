@@ -11,7 +11,7 @@ import {ICTMRWA1Receiver} from "./ICTMRWA1Receiver.sol";
 
 import {ICTMRWA1X} from "../crosschain/ICTMRWA1X.sol";
 import {ICTMRWADeployer} from "../deployment/ICTMRWADeployer.sol";
-import {ICTMRWAERC20Deployer} from "./ICTMRWAERC20Deployer.sol";
+import {ICTMRWAERC20Deployer} from "../deployment/ICTMRWAERC20Deployer.sol";
 import {ICTMRWA1Storage} from "../storage/ICTMRWA1Storage.sol";
 import {ICTMRWA1Sentry} from "../sentry/ICTMRWA1Sentry.sol";
 

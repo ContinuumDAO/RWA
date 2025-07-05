@@ -10,9 +10,9 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {ICTMRWA1} from "../core/ICTMRWA1.sol";
+import {ICTMRWA1Dividend} from "../dividend/ICTMRWA1Dividend.sol";
 import {ICTMRWA1X} from "../crosschain/ICTMRWA1X.sol";
 import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
-import {ICTMRWA1Dividend} from "../core/ICTMRWA1Dividend.sol";
 import {ICTMRWA1Sentry} from "../sentry/ICTMRWA1Sentry.sol";
 import {IFeeManager, FeeType, IERC20Extended} from "../managers/IFeeManager.sol";
 import {Offering, Holding} from "../deployment/ICTMRWADeployInvest.sol";

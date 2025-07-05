@@ -4,9 +4,6 @@ pragma solidity ^0.8.19;
 import {Script} from "forge-std/Script.sol";
 import "forge-std/console.sol";
 
-import {CTMRWAERC20Deployer} from "../src/core/CTMRWAERC20Deployer.sol";
-import {CTMRWA1DividendFactory} from "../src/core/CTMRWA1DividendFactory.sol";
-
 import {CTMRWAGateway} from "../src/crosschain/CTMRWAGateway.sol";
 import {CTMRWA1X} from "../src/crosschain/CTMRWA1X.sol";
 import {ICTMRWA1X} from "../src/crosschain/ICTMRWA1X.sol";
@@ -16,6 +13,9 @@ import {ICTMRWAGateway} from "../src/crosschain/ICTMRWAGateway.sol";
 import {CTMRWADeployInvest} from "../src/deployment/CTMRWADeployInvest.sol";
 import {CTMRWADeployer} from "../src/deployment/CTMRWADeployer.sol";
 import {CTMRWA1TokenFactory} from "../src/deployment/CTMRWA1TokenFactory.sol";
+import {CTMRWAERC20Deployer} from "../src/deployment/CTMRWAERC20Deployer.sol";
+
+import {CTMRWA1DividendFactory} from "../src/dividend/CTMRWA1DividendFactory.sol";
 
 import {FeeManager} from "../src/managers/FeeManager.sol";
 

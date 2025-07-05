@@ -6,7 +6,7 @@ pragma solidity ^0.8.19;
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {C3GovernDapp} from "@c3caller/C3GovernDapp.sol";
+import {C3GovernDapp} from "@c3caller/gov/C3GovernDapp.sol";
 
 import {ICTMRWA1} from "../core/ICTMRWA1.sol";
 import {ICTMRWAFactory} from "../deployment/ICTMRWAFactory.sol";

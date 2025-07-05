@@ -12,13 +12,14 @@ import {IUUIDKeeper} from "@c3caller/uuid/IUUIDKeeper.sol";
 import {ITheiaERC20} from "@c3caller/theia/ITheiaERC20.sol";
 
 import {ICTMRWA1, SlotData} from "../src/core/ICTMRWA1.sol";
-import {ICTMRWA1Dividend} from "../src/core/ICTMRWA1Dividend.sol";
 
 import {ICTMRWA1X} from "../src/crosschain/ICTMRWA1X.sol";
 import {ICTMRWA1XFallback} from "../src/crosschain/ICTMRWA1XFallback.sol";
 import {ICTMRWAGateway} from "../src/crosschain/ICTMRWAGateway.sol";
 
 import {ICTMRWADeployer} from "../src/deployment/ICTMRWADeployer.sol";
+
+import {ICTMRWA1Dividend} from "../src/dividend/ICTMRWA1Dividend.sol";
 
 import {ICTMRWA1Sentry} from "../src/sentry/ICTMRWA1Sentry.sol";
 import {ICTMRWA1SentryManager} from "../src/sentry/ICTMRWA1SentryManager.sol";
