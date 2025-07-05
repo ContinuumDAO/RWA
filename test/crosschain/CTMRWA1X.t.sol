@@ -7,7 +7,9 @@ import {console} from "forge-std/console.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract TestCTMRWA1X is SetUp {
+import {Helpers} from "../helpers/Helpers.sol";
+
+contract TestCTMRWA1X is Helpers {
     using Strings for *;
 
     function test_CTMRWA1Deploy() public {

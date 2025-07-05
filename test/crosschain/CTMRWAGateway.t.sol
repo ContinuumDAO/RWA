@@ -7,7 +7,9 @@ import {console} from "forge-std/console.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract TestGateway is SetUp {
+import {Helpers} from "../helpers/Helpers.sol";
+
+contract TestGateway is Helpers {
     using Strings for *;
 
     function test_CTMRWAGateway() public view {

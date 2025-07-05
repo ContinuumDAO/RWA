@@ -7,7 +7,9 @@ import {console} from "forge-std/console.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract TestSentryManager is SetUp {
+import {Helpers} from "../helpers/Helpers.sol";
+
+contract TestSentryManager is Helpers {
     using Strings for *;
 
     function test_sentryOptions() public {

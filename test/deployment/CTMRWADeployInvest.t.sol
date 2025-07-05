@@ -7,7 +7,9 @@ import {console} from  "forge-std/console.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-contract TestInvest is SetUp {
+import {Helpers} from "../helpers/Helpers.sol";
+
+contract TestInvest is Helpers {
     using Strings for *;
 
     function test_invest() public {

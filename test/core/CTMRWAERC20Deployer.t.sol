@@ -7,42 +7,15 @@ import {console} from "forge-std/console.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {SetUp} from "../helpers/SetUp.sol";
+import {Helpers} from "../helpers/Helpers.sol";
 
-contract TestERC20Deployer is SetUp {
+contract TestERC20Deployer is Helpers {
     using Strings for *;
-
-    function setUp() public {
-        (admin, gov, treasury, user1, user2, issuer1, issuer2) = abi.decode(
-            abi.encode(_getAccounts()),
-            (address, address, address, address, address, address, address)
-        );
-
-        (ctm, usdc) = _deployFeeTokens();
-
-        _dealAllERC20(address(usdc), _100_000);
-        _dealAllERC20(address(ctm), _100_000);
-
-        _deployC3Caller(gov);
-        _deployFeeManager(gov, admin, address(ctm), address(usdc));
-        _deployGateway(gov, admin);
-        _deployCTMRWA1X(gov, admin);
-        _deployMap();
-        _deployCTMRWADeployer(gov, admin);
-        _deployTokenFactory();
-        _deployDividendFactory();
-        _deployStorage(gov, admin);
-        _deploySentry(gov, admin);
-        _setFeeContracts();
-
-        _approveAllERC20(address(usdc), _100_000, feeContracts);
-        _approveAllERC20(address(ctm), _100_000, feeContracts);
-    }
 
     function test_deployErc20() public {
 
         vm.startPrank(tokenAdmin);
-        (uint256 ID, address ctmRwaAddr) = CTMRWA1Deploy();
+        (ID, token) = CTMRWA1Deploy();
         createSomeSlots(ID);
 
         uint256 slot = 1;
@@ -51,9 +24,9 @@ contract TestERC20Deployer is SetUp {
         string memory tokenStr = _toLower((address(usdc).toHexString()));
 
 
-        ICTMRWA1(ctmRwaAddr).deployErc20(slot, name, address(usdc));
+        token.deployErc20(slot, name, address(usdc));
 
-        address newErc20 = ICTMRWA1(ctmRwaAddr).getErc20(slot);
+        address newErc20 = token.getErc20(slot);
 
         // console.log(newErc20);
         string memory newName = ICTMRWAERC20(newErc20).name();
@@ -68,10 +41,10 @@ contract TestERC20Deployer is SetUp {
         assertEq(ts, 0);
 
         vm.expectRevert("RWA: ERC20 slot already exists");
-        ICTMRWA1(ctmRwaAddr).deployErc20(slot, name, address(usdc));
+        token.deployErc20(slot, name, address(usdc));
 
         vm.expectRevert("RWA: Slot does not exist");
-        ICTMRWA1(ctmRwaAddr).deployErc20(99, name, address(usdc));
+        token.deployErc20(99, name, address(usdc));
 
         uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(
             user1,
@@ -142,13 +115,13 @@ contract TestERC20Deployer is SetUp {
             tokenStr
         );
         vm.stopPrank();
-        
+
         vm.startPrank(user1);
-        uint256 balTokenId2 = ICTMRWA1(ctmRwaAddr).balanceOf(tokenId2User1);
+        uint256 balTokenId2 = token.balanceOf(tokenId2User1);
         assertEq(balTokenId2, 3000);
         ICTMRWAERC20(newErc20).transfer(user2, 2000);
-        assertEq(ICTMRWA1(ctmRwaAddr).balanceOf(tokenId1User1), 0); // 1000 - 1000
-        assertEq(ICTMRWA1(ctmRwaAddr).balanceOf(tokenId2User1), 2000); // 3000 - 1000
+        assertEq(token.balanceOf(tokenId1User1), 0); // 1000 - 1000
+        assertEq(token.balanceOf(tokenId2User1), 2000); // 3000 - 1000
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 2000); // 4000 => 2000
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 10000); // 3000 + 4000 + 1000 + 2000
         assertEq(ts + 3000, ICTMRWAERC20(newErc20).totalSupply());
@@ -176,5 +149,4 @@ contract TestERC20Deployer is SetUp {
         vm.stopPrank();
 
     }
-
 }

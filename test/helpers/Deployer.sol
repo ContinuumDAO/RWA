@@ -11,6 +11,9 @@ import {C3CallerProxy} from "@c3caller/C3CallerProxy.sol";
 import {C3Caller} from "@c3caller/C3Caller.sol";
 import {IC3Caller} from "@c3caller/IC3Caller.sol";
 
+import {CTMRWA1} from "../../src/core/CTMRWA1.sol";
+import {ICTMRWA1} from "../../src/core/ICTMRWA1.sol";
+
 import {CTMRWAGateway} from "../../src/crosschain/CTMRWAGateway.sol";
 import {CTMRWA1X} from "../../src/crosschain/CTMRWA1X.sol";
 import {CTMRWA1XFallback} from "../../src/crosschain/CTMRWA1XFallback.sol";
@@ -67,6 +70,9 @@ contract Deployer is Utils {
     CTMRWA1SentryUtils sentryUtils;
 
     FeeContracts feeContracts;
+
+    uint256 ID;
+    CTMRWA1 token;
 
     function _deployC3Caller(address gov) internal {
         c3UUIDKeeper = new C3UUIDKeeper();
@@ -276,11 +282,11 @@ contract Deployer is Utils {
         );
     }
 
-    function _deployCTMRWA1(address feeToken) public returns (uint256, address) {
+    function _deployCTMRWA1(address feeToken) public returns (uint256, CTMRWA1) {
         string memory feeTokenStr = _toLower((address(feeToken).toHexString()));
         string[] memory dummyChainIdsStr;
 
-        uint256 ID = rwa1X.deployAllCTMRWA1X(
+        ID = rwa1X.deployAllCTMRWA1X(
             true, // include local mint
             0,
             RWA_TYPE,
@@ -295,6 +301,8 @@ contract Deployer is Utils {
 
         (, address tokenAddress) =  map.getTokenContract(ID, RWA_TYPE, VERSION);
 
-        return (ID, tokenAddress);
+        token = ICTMRWA1(tokenAddress);
+
+        return (ID, token);
     }
 }

@@ -2,7 +2,43 @@
 
 pragma solidity ^0.8.19;
 
-import {Deployer} from "./Deployer.sol";
-import {Accounts} from "./Accounts.sol";
+import {Test} from "forge-std/Test.sol";
+import {Helpers} from "./Helpers.sol";
 
-contract Helpers is Deployer, Accounts {}
+import {Accounts} from "./Accounts.sol";
+import {Deployer} from "./Deployer.sol";
+import {RWA} from "./RWA.sol";
+
+contract Helpers is Test, Accounts, Deployer, RWA {
+    function setUp() public {
+        (admin, gov, treasury, user1, user2, tokenAdmin, tokenAdmin) = abi.decode(
+            abi.encode(_getAccounts()),
+            (address, address, address, address, address, address, address)
+        );
+
+        (ctm, usdc) = _deployFeeTokens();
+
+        _dealAllERC20(address(usdc), _100_000);
+        _dealAllERC20(address(ctm), _100_000);
+
+        vm.startPrank(gov);
+
+        _deployC3Caller(gov);
+        _deployFeeManager(gov, admin, address(ctm), address(usdc));
+        _deployGateway(gov, admin);
+        _deployCTMRWA1X(gov, admin);
+        _deployMap();
+        _deployCTMRWADeployer(gov, admin);
+        _deployTokenFactory();
+        _deployDividendFactory();
+        _deployStorage(gov, admin);
+        _deploySentry(gov, admin);
+
+        vm.stopPrank();
+
+        _setFeeContracts();
+
+        _approveAllERC20(address(usdc), _100_000, feeContracts);
+        _approveAllERC20(address(ctm), _100_000, feeContracts);
+    }
+}

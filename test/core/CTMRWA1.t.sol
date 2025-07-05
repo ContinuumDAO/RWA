@@ -7,20 +7,22 @@ import {console} from "forge-std/console.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {SetUp} from "../helpers/SetUp.sol";
+import {Helpers} from "../helpers/Helpers.sol";
 
-contract TestCTMRWA1 is SetUp {
+import {ICTMRWA1} from "../../src/core/ICTMRWA1.sol";
+
+contract TestCTMRWA1 is Helpers {
     using Strings for *;
 
     function test_getTokenList() public {
         vm.startPrank(user1);
-        (uint256 ID, address ctmRwaAddr) = _deployCTMRWA1(address(usdc));
-        deployAFewTokensLocal(ctmRwaAddr);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
         vm.stopPrank();
 
         address[] memory adminTokens = rwa1X.getAllTokensByAdminAddress(user1);
         assertEq(adminTokens.length, 1);  // only one CTMRWA1 token deployed
-        assertEq(ctmRwaAddr, adminTokens[0]);
+        assertEq(address(token), adminTokens[0]);
 
         address[] memory nRWA1 = rwa1X.getAllTokensByOwnerAddress(user1);  // List of CTMRWA1 tokens that user1 has or still has tokens in
         assertEq(nRWA1.length, 1);
@@ -56,8 +58,8 @@ contract TestCTMRWA1 is SetUp {
 
     function test_forceTransfer() public {
         vm.startPrank(tokenAdmin);
-        (uint256 ID, address ctmRwaAddr) = CTMRWA1Deploy();
-        createSomeSlots(ID);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
 
         uint256 slot = 1;
         string memory name = "Basic Stuff";
@@ -83,7 +85,7 @@ contract TestCTMRWA1 is SetUp {
         );
 
         vm.expectRevert("RWA: Licensed Security override not set up");
-        ICTMRWA1(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
+        token.forceTransfer(user1, user2, tokenId1User1);
 
         string memory randomData = "this is any old data";
         bytes32 junkHash = keccak256(abi.encode(randomData));
@@ -122,7 +124,7 @@ contract TestCTMRWA1 is SetUp {
         );
 
         vm.expectRevert("RWA: Licensed Security override not set up");
-        ICTMRWA1(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
+        token.forceTransfer(user1, user2, tokenId1User1);
 
 
         // set admin as the Regulator's wallet
@@ -130,24 +132,24 @@ contract TestCTMRWA1 is SetUp {
         assertEq(ICTMRWA1Storage(stor).regulatorWallet(), admin);
 
         vm.expectRevert("RWA: Licensed Security override not set up");
-        ICTMRWA1(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
+        token.forceTransfer(user1, user2, tokenId1User1);
 
-        ICTMRWA1(ctmRwaAddr).setOverrideWallet(tokenAdmin2);
-        assertEq(ICTMRWA1(ctmRwaAddr).overrideWallet(), tokenAdmin2);
+        token.setOverrideWallet(tokenAdmin2);
+        assertEq(token.overrideWallet(), tokenAdmin2);
 
         vm.expectRevert("RWA: Cannot forceTransfer");
-        ICTMRWA1(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
+        token.forceTransfer(user1, user2, tokenId1User1);
 
         vm.stopPrank();
 
         vm.startPrank(tokenAdmin2);  // tokenAdmin2 is the override wallet
-        ICTMRWA1(ctmRwaAddr).forceTransfer(user1, user2, tokenId1User1);
-        assertEq(ICTMRWA1(ctmRwaAddr).ownerOf(tokenId1User1), user2); // successful forceTransfer
+        token.forceTransfer(user1, user2, tokenId1User1);
+        assertEq(token.ownerOf(tokenId1User1), user2); // successful forceTransfer
         vm.stopPrank();
 
         vm.startPrank(user2);
         vm.expectRevert("RWA: Cannot forceTransfer");
-        ICTMRWA1(ctmRwaAddr).forceTransfer(user1, user2, tokenId2User1);
+        token.forceTransfer(user1, user2, tokenId2User1);
 
         vm.stopPrank();
 
@@ -157,9 +159,7 @@ contract TestCTMRWA1 is SetUp {
 
         vm.startPrank(tokenAdmin2);
         vm.expectRevert("RWA: Licensed Security override not set up"); // Must re-setup override wallet if tokenAdmin has changed
-        ICTMRWA1(ctmRwaAddr).forceTransfer(user1, user2, tokenId2User1);
+        token.forceTransfer(user1, user2, tokenId2User1);
         vm.stopPrank();
-
     }
-
 }
