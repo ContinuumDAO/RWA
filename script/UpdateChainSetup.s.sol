@@ -1,19 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import {Script} from "forge-std/Script.sol";
+import { Script } from "forge-std/Script.sol";
 import "forge-std/console.sol";
 
-import {ICTMRWAGateway} from "../src/crosschain/ICTMRWAGateway.sol";
+import { ICTMRWAGateway } from "../src/crosschain/ICTMRWAGateway.sol";
 
 contract UpdateChainSetup is Script {
-
     uint256 rwaType = 1;
     uint256 version = 1;
 
     string[] feeTokensStr;
     uint256[] fees;
-    
+
     string[] chainIdsStr;
     string[] gwaysStr;
     string[] rwa1XsStr;
@@ -46,5 +45,4 @@ contract UpdateChainSetup is Script {
 
         vm.stopBroadcast();
     }
-
 }

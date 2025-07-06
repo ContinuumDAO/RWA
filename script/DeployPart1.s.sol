@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import {Script} from "forge-std/Script.sol";
+import { Script } from "forge-std/Script.sol";
 import "forge-std/console.sol";
 
-import {CTMRWA1XFallback} from "../src/crosschain/CTMRWA1XFallback.sol";
-import {CTMRWAGateway} from "../src/crosschain/CTMRWAGateway.sol";
-import {CTMRWA1X} from "../src/crosschain/CTMRWA1X.sol";
+import { CTMRWA1X } from "../src/crosschain/CTMRWA1X.sol";
+import { CTMRWA1XFallback } from "../src/crosschain/CTMRWA1XFallback.sol";
+import { CTMRWAGateway } from "../src/crosschain/CTMRWAGateway.sol";
 
-import {CTMRWADeployer} from "../src/deployment/CTMRWADeployer.sol";
-import {CTMRWA1TokenFactory} from "../src/deployment/CTMRWA1TokenFactory.sol";
+import { CTMRWA1TokenFactory } from "../src/deployment/CTMRWA1TokenFactory.sol";
+import { CTMRWADeployer } from "../src/deployment/CTMRWADeployer.sol";
 
-import {CTMRWA1DividendFactory} from "../src/dividend/CTMRWA1DividendFactory.sol";
+import { CTMRWA1DividendFactory } from "../src/dividend/CTMRWA1DividendFactory.sol";
 
-import {FeeManager} from "../src/managers/FeeManager.sol";
+import { FeeManager } from "../src/managers/FeeManager.sol";
 
-import {CTMRWA1SentryManager} from "../src/sentry/CTMRWA1SentryManager.sol";
+import { CTMRWA1SentryManager } from "../src/sentry/CTMRWA1SentryManager.sol";
 
-import {CTMRWAMap} from "../src/shared/CTMRWAMap.sol";
+import { CTMRWAMap } from "../src/shared/CTMRWAMap.sol";
 
-import {CTMRWA1StorageManager} from "../src/storage/CTMRWA1StorageManager.sol";
+import { CTMRWA1StorageManager } from "../src/storage/CTMRWA1StorageManager.sol";
 
 // import {CTMRWADeployer} from "../flattened/CTMRWADeployer.sol";
 // import {CTMRWA1TokenFactory} from "../flattened/CTMRWA1TokenFactory.sol";
@@ -29,7 +29,6 @@ import {CTMRWA1StorageManager} from "../src/storage/CTMRWA1StorageManager.sol";
 // import {CTMRWA1X} from "../flattened/CTMRWA1X.sol";
 
 contract DeployPart1 is Script {
-
     CTMRWADeployer ctmRwaDeployer;
     CTMRWAGateway gateway;
     FeeManager feeManager;
@@ -38,7 +37,6 @@ contract DeployPart1 is Script {
     CTMRWA1XFallback ctmRwaFallback;
 
     address feeManagerAddr;
-
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -55,7 +53,6 @@ contract DeployPart1 is Script {
         // uint256 dappID4 = vm.envUint("DAPP_ID4");
         // uint256 dappID5 = vm.envUint("DAPP_ID5");
         // uint256 dappID6 = vm.envUint("DAPP_ID6");
-        
 
         address txSender = deployer;
 
@@ -68,28 +65,14 @@ contract DeployPart1 is Script {
         console.log("feeManager");
         console.log(feeManagerAddr);
 
-
         // deploy gateway
-        gateway = new CTMRWAGateway(
-            govAddr, 
-            c3callerProxyAddr, 
-            txSender,
-            dappID1
-        );
+        gateway = new CTMRWAGateway(govAddr, c3callerProxyAddr, txSender, dappID1);
 
         console.log("gateway address");
         console.log(address(gateway));
 
-
         // deploy RWA1X
-        ctmRwa1X = new CTMRWA1X(
-            address(gateway),
-            feeManagerAddr,
-            govAddr,
-            c3callerProxyAddr,
-            txSender,
-            dappID3
-        );
+        ctmRwa1X = new CTMRWA1X(address(gateway), feeManagerAddr, govAddr, c3callerProxyAddr, txSender, dappID3);
 
         console.log("ctmRwa1X address");
         console.log(address(ctmRwa1X));
@@ -99,7 +82,5 @@ contract DeployPart1 is Script {
         ctmRwa1X.setFallback(address(ctmRwaFallback));
         console.log("ctmRwaFallback address");
         console.log(address(ctmRwaFallback));
-
     }
-    
 }
