@@ -12,7 +12,6 @@ import { IC3Caller } from "@c3caller/IC3Caller.sol";
 import { C3UUIDKeeper } from "@c3caller/uuid/C3UUIDKeeper.sol";
 
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
-import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 
 import { CTMRWA1X } from "../../src/crosschain/CTMRWA1X.sol";
 import { CTMRWA1XFallback } from "../../src/crosschain/CTMRWA1XFallback.sol";
@@ -75,7 +74,7 @@ contract Deployer is Utils {
     uint256 ID;
     CTMRWA1 token;
 
-    function _deployC3Caller(address gov) internal {
+    function _deployC3Caller() internal {
         c3UUIDKeeper = new C3UUIDKeeper();
         c3callerImpl = new C3Caller();
         bytes memory initializerData = abi.encodeWithSignature("initialize(address)", address(c3UUIDKeeper));
@@ -268,7 +267,7 @@ contract Deployer is Utils {
 
         (, address tokenAddress) = map.getTokenContract(ID, RWA_TYPE, VERSION);
 
-        token = ICTMRWA1(tokenAddress);
+        token = CTMRWA1(tokenAddress);
 
         return (ID, token);
     }

@@ -21,7 +21,7 @@ contract Helpers is Test, Accounts, Deployer, RWA {
 
         vm.startPrank(gov);
 
-        _deployC3Caller(gov);
+        _deployC3Caller();
         _deployFeeManager(gov, admin, address(ctm), address(usdc));
         _deployGateway(gov, admin);
         _deployCTMRWA1X(gov, admin);

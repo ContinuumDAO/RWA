@@ -29,7 +29,7 @@ contract RWA is Utils {
         returns (uint256, uint256, uint256)
     {
         string memory ctmRwaAddrStr = _toLower(_ctmRwaAddr.toHexString());
-        (bool ok, uint256 ID) = ICTMRWAMap(map).getTokenId(ctmRwaAddrStr, RWA_TYPE, VERSION);
+        (, uint256 ID) = ICTMRWAMap(map).getTokenId(ctmRwaAddrStr, RWA_TYPE, VERSION);
 
         _createSomeSlots(ID, usdc, rwa1X);
 
