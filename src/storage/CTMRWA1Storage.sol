@@ -2,14 +2,14 @@
 
 pragma solidity ^0.8.19;
 
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { Context } from "@openzeppelin/contracts/utils/Context.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
+import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
+import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
-import {ICTMRWA1, ITokenContract} from "../core/ICTMRWA1.sol";
-import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
-import {ICTMRWA1StorageManager} from "./ICTMRWA1StorageManager.sol";
-import {URIData, URIType, URICategory} from "./ICTMRWA1Storage.sol";
+import { URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
+import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -24,7 +24,6 @@ import {URIData, URIType, URICategory} from "./ICTMRWA1Storage.sol";
  * Its ID matches the ID in CTMRWA1.
  * The cross-chain functionality is managed by CTMRWA1StorageManager
  */
-
 contract CTMRWA1Storage is Context {
     using Strings for *;
 
@@ -60,14 +59,14 @@ contract CTMRWA1Storage is Context {
 
     /**
      * @dev String describing the type of storage used for this RWA
-     * It can be "GFLD" for BNB Greenfield decentralized storage, or 
+     * It can be "GFLD" for BNB Greenfield decentralized storage, or
      * "IPFS" for Inter-Planetary-File-System storage (not implemented yet), or
      * it can be "NONE" if the Issuer did not want to store any data for the RWA
      */
     string baseURI;
 
     /**
-     * @dev This string stores the shortened 16 character unique id, derived from the ID. 
+     * @dev This string stores the shortened 16 character unique id, derived from the ID.
      * It is used for the BNB Greenfield Bucket Name (if used)
      */
     string idStr;
@@ -84,7 +83,7 @@ contract CTMRWA1Storage is Context {
     /// @dev This string is pre-pended to idStr to create the Bucket Name for BNB Greenfield storage
     string constant TYPE = "ctm-rwa1-";
 
-    /// @dev objectName => uriData index. 
+    /// @dev objectName => uriData index.
     mapping(string => uint256) public uriDataIndex;
 
     /**
@@ -97,22 +96,18 @@ contract CTMRWA1Storage is Context {
     event NewURI(URICategory uriCategory, URIType uriType, uint256 slot, bytes32 uriDataHash);
 
     modifier onlyTokenAdmin() {
-        require(
-            _msgSender() == tokenAdmin || _msgSender() == ctmRwa1X, 
-            "CTMRWA1Storage: onlyTokenAdmin function"
-        );
+        require(_msgSender() == tokenAdmin || _msgSender() == ctmRwa1X, "CTMRWA1Storage: onlyTokenAdmin function");
         _;
     }
 
     modifier onlyStorageManager() {
         require(
-            _msgSender() == storageManagerAddr ||_msgSender() ==  storageUtilsAddr,
+            _msgSender() == storageManagerAddr || _msgSender() == storageUtilsAddr,
             "CTMRWA1Storage: onlyStorageManager function"
         );
         _;
     }
 
-   
     constructor(
         uint256 _ID,
         address _tokenAddr,
@@ -122,7 +117,7 @@ contract CTMRWA1Storage is Context {
         address _map
     ) {
         ID = _ID;
-        idStr = _toLower(((ID<<192)>>192).toHexString());  // shortens string to 16 characters
+        idStr = _toLower(((ID << 192) >> 192).toHexString()); // shortens string to 16 characters
         rwaType = _rwaType;
         version = _version;
         ctmRwa1Map = _map;
@@ -131,7 +126,7 @@ contract CTMRWA1Storage is Context {
 
         tokenAdmin = ICTMRWA1(tokenAddr).tokenAdmin();
         ctmRwa1X = ICTMRWA1(tokenAddr).ctmRwa1X();
-        
+
         storageManagerAddr = _storageManagerAddr;
         storageUtilsAddr = ICTMRWA1StorageManager(storageManagerAddr).utilsAddr();
 
@@ -142,20 +137,17 @@ contract CTMRWA1Storage is Context {
      * @notice Change the tokenAdmin address
      * NOTE This function can only be called by CTMRWA1X, or the existing tokenAdmin
      */
-    function setTokenAdmin(address _tokenAdmin) external onlyTokenAdmin returns(bool) {
+    function setTokenAdmin(address _tokenAdmin) external onlyTokenAdmin returns (bool) {
         tokenAdmin = _tokenAdmin;
-        return(true);
+        return (true);
     }
 
     /**
      * @notice This returns the unique name of the Greenfield of this RWA, if
-     * BNB Greenfield is used for storage. 
+     * BNB Greenfield is used for storage.
      */
     function greenfieldBucket() public view returns (string memory) {
-        return
-            stringsEqual(baseURI, "GFLD")
-                ? string.concat(TYPE, idStr)
-                : "";
+        return stringsEqual(baseURI, "GFLD") ? string.concat(TYPE, idStr) : "";
     }
 
     /**
@@ -177,14 +169,16 @@ contract CTMRWA1Storage is Context {
 
         require(!existURIHash(_uriDataHash), "CTMRWA1Storage: Hash already exists");
 
-        if(_uriType == URIType.SLOT) {
+        if (_uriType == URIType.SLOT) {
             (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
             require(ok && ICTMRWA1(tokenAddr).slotExists(_slot), "CTMRWA1Storage: Slot does not exist");
         }
 
-        if(_uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER) {
-            require(this.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0, 
-            "CTMRWA1Storage: Type CONTRACT and CATEGORY ISSUER must be the first stored element");
+        if (_uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER) {
+            require(
+                this.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0,
+                "CTMRWA1Storage: Type CONTRACT and CATEGORY ISSUER must be the first stored element"
+            );
         }
 
         uriData.push(URIData(_uriCategory, _uriType, _title, _slot, _objectName, _uriDataHash, _timestamp));
@@ -193,18 +187,15 @@ contract CTMRWA1Storage is Context {
         nonce++;
 
         emit NewURI(_uriCategory, _uriType, _slot, _uriDataHash);
-
     }
 
     /// @dev This function is only called by c3Fallback after a cross-chain failure
-    function popURILocal(
-        uint256 _toPop
-    ) external onlyStorageManager {
+    function popURILocal(uint256 _toPop) external onlyStorageManager {
         require(_toPop <= uriData.length, "CTMRWA1Storage: Cannot pop this number of uriData");
 
-        for(uint256 i=0; i<_toPop; i++){
+        for (uint256 i = 0; i < _toPop; i++) {
             uriData.pop();
-        }    
+        }
     }
 
     /**
@@ -212,7 +203,6 @@ contract CTMRWA1Storage is Context {
      * failure.
      * NOTE This will be removed in later versions
      */
-
     function increaseNonce(uint256 _val) public onlyTokenAdmin {
         require(_val > nonce, "CTMRWA1Storage: Can only increase the nonce value");
         nonce = _val;
@@ -256,16 +246,19 @@ contract CTMRWA1Storage is Context {
      * AssetX Explorer
      * (7) timestamp - This is the Linux timestamp of the time that the on-chain record was created.
      */
-    function getAllURIData() public view returns(
-        uint8[] memory,
-        uint8[] memory,
-        string[] memory,
-        uint256[] memory,
-        string[] memory,
-        bytes32[] memory,
-        uint256[] memory
-    ) {
-
+    function getAllURIData()
+        public
+        view
+        returns (
+            uint8[] memory,
+            uint8[] memory,
+            string[] memory,
+            uint256[] memory,
+            string[] memory,
+            bytes32[] memory,
+            uint256[] memory
+        )
+    {
         uint256 len = uriData.length;
 
         uint8[] memory uriCategory = new uint8[](len);
@@ -276,7 +269,7 @@ contract CTMRWA1Storage is Context {
         bytes32[] memory uriHash = new bytes32[](len);
         uint256[] memory timestamp = new uint256[](len);
 
-        for(uint256 i=0; i<len; i++) {
+        for (uint256 i = 0; i < len; i++) {
             uriCategory[i] = uint8(uriData[i].uriCategory);
             uriType[i] = uint8(uriData[i].uriType);
             title[i] = uriData[i].title;
@@ -286,16 +279,7 @@ contract CTMRWA1Storage is Context {
             timestamp[i] = uriData[i].timeStamp;
         }
 
-
-        return(
-            uriCategory,
-            uriType,
-            title,
-            slot,
-            objectName,
-            uriHash,
-            timestamp
-        );
+        return (uriCategory, uriType, title, slot, objectName, uriHash, timestamp);
     }
 
     /**
@@ -304,18 +288,24 @@ contract CTMRWA1Storage is Context {
      * @param _uriTyp The URIType (either URIType.CONTRACT, or URIType.SLOT)
      * @param _index the index of the data sought
      */
-    function getURIHashByIndex(URICategory _uriCat, URIType _uriTyp, uint256 _index) public view returns(bytes32, string memory) {
+    function getURIHashByIndex(URICategory _uriCat, URIType _uriTyp, uint256 _index)
+        public
+        view
+        returns (bytes32, string memory)
+    {
         uint256 currentIndx;
 
-        for(uint256 i=0; i<uriData.length; i++) {
-            if(uriData[i].uriType == _uriTyp && uriData[i].uriCategory == _uriCat) {
-                if(_index == currentIndx) {
-                    return(uriData[i].uriHash, uriData[i].objectName);
-                } else currentIndx++;
+        for (uint256 i = 0; i < uriData.length; i++) {
+            if (uriData[i].uriType == _uriTyp && uriData[i].uriCategory == _uriCat) {
+                if (_index == currentIndx) {
+                    return (uriData[i].uriHash, uriData[i].objectName);
+                } else {
+                    currentIndx++;
+                }
             }
         }
 
-        return(bytes32(0), "");
+        return (bytes32(0), "");
     }
 
     /**
@@ -323,53 +313,55 @@ contract CTMRWA1Storage is Context {
      * @param _uriCat The URICategory (see ICTMRWA1Storage for the list of enums)
      * @param _uriTyp The URIType (either URIType.CONTRACT, or URIType.SLOT)
      */
-    function getURIHashCount(URICategory _uriCat, URIType _uriTyp) external view returns(uint256) {
+    function getURIHashCount(URICategory _uriCat, URIType _uriTyp) external view returns (uint256) {
         uint256 count;
-        for(uint256 i=0; i<uriData.length; i++) {
-            if(uriData[i].uriType == _uriTyp && uriData[i].uriCategory == _uriCat) {
+        for (uint256 i = 0; i < uriData.length; i++) {
+            if (uriData[i].uriType == _uriTyp && uriData[i].uriCategory == _uriCat) {
                 count++;
             }
         }
-        return(count);
+        return (count);
     }
 
     /**
      * @notice Return the full storage struct corresponding to a given hash of a checksum
-     * @param _hash The bytes32 hash of a checksum 
+     * @param _hash The bytes32 hash of a checksum
      * NOTE This function returns an EMPTY record if the hash is not found
      */
-    function getURIHash(bytes32 _hash) public view returns(URIData memory) {
-        for(uint256 i=0; i<uriData.length; i++) {
-            if(uriData[i].uriHash == _hash) {
-                return(uriData[i]);
+    function getURIHash(bytes32 _hash) public view returns (URIData memory) {
+        for (uint256 i = 0; i < uriData.length; i++) {
+            if (uriData[i].uriHash == _hash) {
+                return (uriData[i]);
             }
         }
-        return(URIData(URICategory.EMPTY,URIType.EMPTY,"",0,"",0,0));
+        return (URIData(URICategory.EMPTY, URIType.EMPTY, "", 0, "", 0, 0));
     }
 
     /**
      * @notice Check the existence of a stored hash of a checksum
      * @param _uriHash The requested hash of a checksum
      */
-    function existURIHash(bytes32 _uriHash) public view returns(bool) {
-        for(uint256 i=0; i<uriData.length; i++) {
-            if(uriData[i].uriHash == _uriHash) return(true);
+    function existURIHash(bytes32 _uriHash) public view returns (bool) {
+        for (uint256 i = 0; i < uriData.length; i++) {
+            if (uriData[i].uriHash == _uriHash) {
+                return (true);
+            }
         }
-        return(false);
+        return (false);
     }
 
     /**
      * @notice Check for the existence of a specific storage Object name
-     * @param _objectName The Object name string 
+     * @param _objectName The Object name string
      * NOTE This checks the on-chain existence of an Object, but not if the Object actually
      * exists in decentralized storage such as BNB Greenfield. The AssetX Explorer checks both
      * and matches the stored hash of the checksum against the calculated value from the data
      */
-    function existObjectName(string memory _objectName) public view returns(bool) {
-        if(uriDataIndex[_objectName] == 0) {
-            return(false);
+    function existObjectName(string memory _objectName) public view returns (bool) {
+        if (uriDataIndex[_objectName] == 0) {
+            return (false);
         } else {
-            return(true);
+            return (true);
         }
     }
 
@@ -378,13 +370,13 @@ contract CTMRWA1Storage is Context {
      * @notice Return the full Storage struct corresponding to a given Object name
      * NOTE This function returns an EMPTY record if the Object name was not found
      */
-    function getURIHashByObjectName(string memory _objectName) public view returns(URIData memory) {
+    function getURIHashByObjectName(string memory _objectName) public view returns (URIData memory) {
         uint256 indx = uriDataIndex[_objectName];
 
-        if(indx == 0) {
-            return(URIData(URICategory.EMPTY,URIType.EMPTY,"",0,"",0,0));
+        if (indx == 0) {
+            return (URIData(URICategory.EMPTY, URIType.EMPTY, "", 0, "", 0, 0));
         } else {
-            return(uriData[indx]);
+            return (uriData[indx]);
         }
     }
 
@@ -398,12 +390,8 @@ contract CTMRWA1Storage is Context {
         require(strBytes.length == 42, "CTMRWA1Storage: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
-        for (uint i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(
-                hexCharToByte(strBytes[2 + i * 2]) *
-                    16 +
-                    hexCharToByte(strBytes[3 + i * 2])
-            );
+        for (uint256 i = 0; i < 20; i++) {
+            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
         }
 
         return address(uint160(bytes20(addrBytes)));
@@ -411,27 +399,18 @@ contract CTMRWA1Storage is Context {
 
     function hexCharToByte(bytes1 char) internal pure returns (uint8) {
         uint8 byteValue = uint8(char);
-        if (
-            byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))
-        ) {
+        if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
             return byteValue - uint8(bytes1("0"));
-        } else if (
-            byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))
-        ) {
+        } else if (byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))) {
             return 10 + byteValue - uint8(bytes1("a"));
-        } else if (
-            byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))
-        ) {
+        } else if (byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))) {
             return 10 + byteValue - uint8(bytes1("A"));
         }
         revert("Invalid hex character");
     }
 
     /// @dev Check if two strings are equal (in fact if their hashes are equal)
-    function stringsEqual(
-        string memory a,
-        string memory b
-    ) internal pure returns (bool) {
+    function stringsEqual(string memory a, string memory b) internal pure returns (bool) {
         bytes32 ka = keccak256(abi.encode(a));
         bytes32 kb = keccak256(abi.encode(b));
         return (ka == kb);
@@ -441,7 +420,7 @@ contract CTMRWA1Storage is Context {
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
         bytes memory bLower = new bytes(bStr.length);
-        for (uint i = 0; i < bStr.length; i++) {
+        for (uint256 i = 0; i < bStr.length; i++) {
             // Uppercase character...
             if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
                 // So we add 32 to make it lowercase

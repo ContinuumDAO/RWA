@@ -3,13 +3,12 @@
 pragma solidity ^0.8.19;
 
 interface ICTMRWADeployer {
-
-    function gateway() external view returns(address);
-    function feeManager() external view returns(address);
-    function rwaX() external view returns(address);
-    function ctmRwaMap() external view returns(address);
-    function erc20Deployer() external view returns(address);
-    function deployInvest() external view returns(address);
+    function gateway() external view returns (address);
+    function feeManager() external view returns (address);
+    function rwaX() external view returns (address);
+    function ctmRwaMap() external view returns (address);
+    function erc20Deployer() external view returns (address);
+    function deployInvest() external view returns (address);
 
     function setGateway(address gateway) external;
     function setFeeManager(address _feeManager) external;
@@ -19,25 +18,16 @@ interface ICTMRWADeployer {
     function setDeployerMapFee() external;
     function setInvestCommissionRate(uint256 commissionRate) external;
 
-
-    function deploy(
-        uint256 ID,
-        uint256 rwaType,
-        uint256 version,
-        bytes memory deployData
-    ) external returns(address);
+    function deploy(uint256 ID, uint256 rwaType, uint256 version, bytes memory deployData) external returns (address);
 
     function setTokenFactory(uint256 rwaType, uint256 version, address tokenFactory) external;
     function setDividendFactory(uint256 rwaType, uint256 version, address dividendFactory) external;
     function setStorageFactory(uint256 rwaType, uint256 version, address storageFactory) external;
     function setSentryFactory(uint256 rwaType, uint256 version, address storageFactory) external;
 
-    function deployNewInvestment(
-        uint256 ID,
-        uint256 rwaType,
-        uint256 version,
-        address feeToken
-    ) external returns(address);
+    function deployNewInvestment(uint256 ID, uint256 rwaType, uint256 version, address feeToken)
+        external
+        returns (address);
 
     function setErc20DeployerAddress(address erc20Deployer) external;
 }

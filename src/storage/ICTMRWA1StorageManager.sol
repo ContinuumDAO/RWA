@@ -2,19 +2,19 @@
 
 pragma solidity ^0.8.19;
 
-import {URICategory, URIType} from "./ICTMRWA1Storage.sol";
+import { URICategory, URIType } from "./ICTMRWA1Storage.sol";
 
 interface ICTMRWA1StorageManager {
-    function ctmRwaDeployer() external returns(address);
-    function ctmRwa1Map() external returns(address);
-    function utilsAddr() external returns(address);
+    function ctmRwaDeployer() external returns (address);
+    function ctmRwa1Map() external returns (address);
+    function utilsAddr() external returns (address);
 
     function setGateway(address gateway) external;
     function setFeeManager(address feeManager) external;
     function setCtmRwaDeployer(address deployer) external;
     function setCtmRwaMap(address map) external;
     function setStorageUtils(address utilsAddr) external;
-    function getLastReason() external view returns(string memory);
+    function getLastReason() external view returns (string memory);
 
     function addURI(
         uint256 ID,
@@ -28,11 +28,7 @@ interface ICTMRWA1StorageManager {
         string memory feeTokenStr
     ) external;
 
-    function transferURI(
-        uint256 ID,
-        string[] memory chainIdsStr,
-        string memory feeTokenStr
-    ) external;
+    function transferURI(uint256 ID, string[] memory chainIdsStr, string memory feeTokenStr) external;
 
     function addURIX(
         uint256 ID,
@@ -41,6 +37,5 @@ interface ICTMRWA1StorageManager {
         uint256 slot,
         string memory objectName,
         bytes32 uriDataHash
-    ) external returns(bool);  // onlyCaller
-
+    ) external returns (bool); // onlyCaller
 }

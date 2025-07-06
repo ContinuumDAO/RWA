@@ -8,8 +8,8 @@ interface ICTMRWAERC20Deployer {
         uint256 rwaType,
         uint256 version,
         uint256 slot,
-        string memory name, 
-        string memory symbol, 
+        string memory name,
+        string memory symbol,
         address feeToken
-    ) external returns(address);
+    ) external returns (address);
 }

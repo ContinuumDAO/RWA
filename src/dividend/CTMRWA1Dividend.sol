@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.19;
 
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 
-import {ICTMRWA1Dividend} from "./ICTMRWA1Dividend.sol";
-import {ICTMRWA1} from "../core/ICTMRWA1.sol";
-import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
+import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -20,7 +20,6 @@ import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
  * This contract is deployed by CTMRWADeployer on each chain once for every CTMRWA1 contract.
  * Its ID matches the ID in CTMRWA1. There are no cross-chain functions in this contract.
  */
-
 contract CTMRWA1Dividend is Context {
     using SafeERC20 for IERC20;
 
@@ -55,13 +54,7 @@ contract CTMRWA1Dividend is Context {
         _;
     }
 
-    constructor(
-        uint256 _ID,
-        address _tokenAddr,
-        uint256 _rwaType,
-        uint256 _version,
-        address _map
-    ) {
+    constructor(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _map) {
         tokenAddr = _tokenAddr;
         tokenAdmin = ICTMRWA1(tokenAddr).tokenAdmin();
         ctmRwa1Map = _map;
@@ -83,16 +76,18 @@ contract CTMRWA1Dividend is Context {
      * NOTE This can only be called if their are no outstanding unclaimed dividends.
      * NOTE this function can only be called by the tokenAdmin (Issuer).
      */
-    function setDividendToken(address _dividendToken) external onlyTokenAdmin returns(bool) {
-       
-        if(dividendToken != address(0)) {
-            require(IERC20(dividendToken).balanceOf(address(this)) == 0, "CTMRWA1Dividend: Cannot change dividend token address whilst there is unclaimed dividend");
+    function setDividendToken(address _dividendToken) external onlyTokenAdmin returns (bool) {
+        if (dividendToken != address(0)) {
+            require(
+                IERC20(dividendToken).balanceOf(address(this)) == 0,
+                "CTMRWA1Dividend: Cannot change dividend token address whilst there is unclaimed dividend"
+            );
         }
 
         dividendToken = _dividendToken;
 
         emit NewDividendToken(_dividendToken, tokenAdmin);
-        return(true);
+        return (true);
     }
 
     /**
@@ -103,52 +98,52 @@ contract CTMRWA1Dividend is Context {
      * NOTE This is NOT a cross-chain transaction. This function must be called on each chain
      * separately.
      */
-    function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyTokenAdmin returns(bool) {
+    function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyTokenAdmin returns (bool) {
         ICTMRWA1(tokenAddr).changeDividendRate(_slot, _dividend);
 
         emit ChangeDividendRate(_slot, _dividend, tokenAdmin);
-        return(true);
+        return (true);
     }
 
     /**
      * @notice Get the dividend rate an Asset Class (slot) in the RWA
      * @param _slot The Asset Class (slot).
      */
-    function getDividendRateBySlot(uint256 _slot) public view returns(uint256) {
-        return(ICTMRWA1(tokenAddr).getDividendRateBySlot(_slot));
+    function getDividendRateBySlot(uint256 _slot) public view returns (uint256) {
+        return (ICTMRWA1(tokenAddr).getDividendRateBySlot(_slot));
     }
 
     /**
      * @notice Get the total dividend to be paid out for an Asset Class (slot) to all holders
      * @param _slot The Asset Class (slot)
      */
-    function getTotalDividendBySlot(uint256 _slot) public view returns(uint256) {
+    function getTotalDividendBySlot(uint256 _slot) public view returns (uint256) {
         uint256 totalSupply = ICTMRWA1(tokenAddr).totalSupplyInSlot(_slot);
 
         uint256 slotRate = getDividendRateBySlot(_slot);
 
-        return(totalSupply * slotRate);
+        return (totalSupply * slotRate);
     }
 
     /**
      * @notice Get the total dividend payable for all Asset Classes (slots) in the RWA
      */
-    function getTotalDividend() public view returns(uint256) {
+    function getTotalDividend() public view returns (uint256) {
         uint256 nSlots = ICTMRWA1(tokenAddr).slotCount();
         uint256 dividendPayable;
         uint256 slot;
 
-        for(uint256 i=0; i<nSlots; i++) {
+        for (uint256 i = 0; i < nSlots; i++) {
             slot = ICTMRWA1(tokenAddr).slotByIndex(i);
             dividendPayable += getTotalDividendBySlot(slot);
         }
 
-        return(dividendPayable);
+        return (dividendPayable);
     }
 
     /**
      * @notice This function calculates how much dividend the tokenAdmin needs to transfer
-     * to this contract to pay all holders of tokenIds in the RWA. It takes payment in 
+     * to this contract to pay all holders of tokenIds in the RWA. It takes payment in
      * the current dividend token. Afterwards, the funds will then be available to claim.
      * NOTE This is a tokenAdmin only function.
      * NOTE This is not a cross-chain function. The fundDividend must be called by tokenAdnin
@@ -157,19 +152,22 @@ contract CTMRWA1Dividend is Context {
      * transaction had happened (a few minutes). The function fundDividend should be called with
      * MultiCall on all chains simultaneously by the frontend to prevent such an exploit.
      */
-    function fundDividend() public onlyTokenAdmin returns(uint256) {
+    function fundDividend() public onlyTokenAdmin returns (uint256) {
         uint256 dividendPayable = getTotalDividend();
 
         // uint8 decimals = ICTMRWA1(tokenAddr).valueDecimals();
 
-        require(IERC20(dividendToken).transferFrom(_msgSender(), address(this), dividendPayable), "CTMRWA1Dividend: Did not fund the dividend");
+        require(
+            IERC20(dividendToken).transferFrom(_msgSender(), address(this), dividendPayable),
+            "CTMRWA1Dividend: Did not fund the dividend"
+        );
 
         uint256 tokenId;
         address holder;
         uint256 dividend;
         uint256 totalDividend;
 
-        for(uint256 i=0; i<ICTMRWA1(tokenAddr).totalSupply(); i++) {
+        for (uint256 i = 0; i < ICTMRWA1(tokenAddr).totalSupply(); i++) {
             tokenId = ICTMRWA1(tokenAddr).tokenByIndex(i);
             holder = ICTMRWA1(tokenAddr).ownerOf(tokenId);
             dividend = _getDividendByToken(tokenId);
@@ -178,20 +176,25 @@ contract CTMRWA1Dividend is Context {
             totalDividend += dividend;
         }
 
-        require(dividendPayable == totalDividend, "CTMRWA1Dividend: Dividend to be paid not equal to dividend to be funded");
+        require(
+            dividendPayable == totalDividend, "CTMRWA1Dividend: Dividend to be paid not equal to dividend to be funded"
+        );
         emit FundDividend(dividendPayable, dividendToken, _msgSender());
 
-        return(totalDividend);
+        return (totalDividend);
     }
 
     /**
      * @notice This allows a holder of tokenIds to claim all of their unclaimed dividends
      * NOTE The holder can see the token address using the dividendToken() function
      */
-    function claimDividend() public returns(bool) {
+    function claimDividend() public returns (bool) {
         uint256 dividend = unclaimedDividend[_msgSender()];
-        require(IERC20(dividendToken).balanceOf(address(this)) >= dividend, "CTMRWA1Dividend: Dividend contract has not been supplied with enough tokens to claim the dividend");
-    
+        require(
+            IERC20(dividendToken).balanceOf(address(this)) >= dividend,
+            "CTMRWA1Dividend: Dividend contract has not been supplied with enough tokens to claim the dividend"
+        );
+
         unclaimedDividend[_msgSender()] = 0;
         IERC20(dividendToken).transfer(_msgSender(), dividend);
 
@@ -212,12 +215,8 @@ contract CTMRWA1Dividend is Context {
     }
 
     /// @dev This function returns how much dividend is payable for an individual tokenId
-    function _getDividendByToken(uint256 _tokenId) internal view returns(uint256) {
+    function _getDividendByToken(uint256 _tokenId) internal view returns (uint256) {
         uint256 slot = ICTMRWA1(tokenAddr).slotOf(_tokenId);
-        return(
-            ICTMRWA1(tokenAddr).getDividendRateBySlot(slot) 
-            * ICTMRWA1(tokenAddr).balanceOf(_tokenId)
-        );
+        return (ICTMRWA1(tokenAddr).getDividendRateBySlot(slot) * ICTMRWA1(tokenAddr).balanceOf(_tokenId));
     }
-        
 }

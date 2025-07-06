@@ -2,23 +2,26 @@
 
 pragma solidity ^0.8.19;
 
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import {ICTMRWA1} from "../core/ICTMRWA1.sol";
-import {ICTMRWA1Dividend} from "../dividend/ICTMRWA1Dividend.sol";
-import {ICTMRWA1X} from "../crosschain/ICTMRWA1X.sol";
-import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
-import {ICTMRWA1Sentry} from "../sentry/ICTMRWA1Sentry.sol";
-import {IFeeManager, FeeType, IERC20Extended} from "../managers/IFeeManager.sol";
-import {Offering, Holding} from "../deployment/ICTMRWADeployInvest.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Context } from "@openzeppelin/contracts/utils/Context.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+
+import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
+
+import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
+
+import { Holding, Offering } from "../deployment/ICTMRWADeployInvest.sol";
+import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
+import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
+import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
+import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
 interface IRwaMap {
-    function ctmRwaMap() external returns(address);
+    function ctmRwaMap() external returns (address);
 }
 
 contract CTMRWADeployInvest is Context {
@@ -39,18 +42,12 @@ contract CTMRWADeployInvest is Context {
     /// @dev String representation of the local chainID
     string cIDStr;
 
-    modifier onlyDeployer {
+    modifier onlyDeployer() {
         require(_msgSender() == ctmRwaDeployer);
         _;
     }
 
-
-    constructor(
-        address _ctmRwaMap,
-        address _deployer,
-        uint256 _commissionRate,
-        address _feeManager
-    ) {
+    constructor(address _ctmRwaMap, address _deployer, uint256 _commissionRate, address _feeManager) {
         ctmRwaMap = _ctmRwaMap;
         ctmRwaDeployer = _deployer;
         commissionRate = _commissionRate;
@@ -59,11 +56,7 @@ contract CTMRWADeployInvest is Context {
         cIDStr = block.chainid.toString();
     }
 
-    function setDeployerMapFee(
-        address _deployer, 
-        address _ctmRwaMap, 
-        address _feeManager
-    ) external onlyDeployer {
+    function setDeployerMapFee(address _deployer, address _ctmRwaMap, address _feeManager) external onlyDeployer {
         ctmRwaDeployer = _deployer;
         ctmRwaMap = _ctmRwaMap;
         feeManager = _feeManager;
@@ -73,63 +66,46 @@ contract CTMRWADeployInvest is Context {
         commissionRate = _commissionRate;
     }
 
-    function deployInvest(
-        uint256 _ID,
-        uint256 _rwaType,
-        uint256 _version,
-        address _feeToken
-    ) external onlyDeployer returns(address) {
-
+    function deployInvest(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken)
+        external
+        onlyDeployer
+        returns (address)
+    {
         _payFee(FeeType.DEPLOYINVEST, _feeToken);
 
         bytes32 salt = keccak256(abi.encode(_ID, _rwaType, _version));
 
-        CTMRWA1InvestWithTimeLock newInvest = new CTMRWA1InvestWithTimeLock {
-            salt: salt
-        }(
-            _ID,
-            _rwaType,
-            _version,
-            ctmRwaMap,
-            commissionRate,
-            feeManager
-        );
+        CTMRWA1InvestWithTimeLock newInvest =
+            new CTMRWA1InvestWithTimeLock{ salt: salt }(_ID, _rwaType, _version, ctmRwaMap, commissionRate, feeManager);
 
-        return(address(newInvest));
+        return (address(newInvest));
     }
-       
 
     /// @dev Pay the fee for deploying the Invest contract
-    function _payFee(
-        FeeType _feeType, 
-        address _feeToken
-    ) internal returns(bool) {
+    function _payFee(FeeType _feeType, address _feeToken) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
         uint256 fee = IFeeManager(feeManager).getXChainFee(_stringToArray(cIDStr), false, _feeType, feeTokenStr);
-        
+
         // TODO Remove hardcoded multiplier 10**2
 
-        if(fee>0) {
-            uint256 feeWei = fee*10**(IERC20Extended(_feeToken).decimals()-2);
+        if (fee > 0) {
+            uint256 feeWei = fee * 10 ** (IERC20Extended(_feeToken).decimals() - 2);
 
             IERC20(_feeToken).transferFrom(_msgSender(), address(this), feeWei);
-            
+
             IERC20(_feeToken).approve(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, feeTokenStr);
         }
-        return(true);
+        return (true);
     }
 
-     /// @dev Convert an individual string to an array with a single value
-    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
+    /// @dev Convert an individual string to an array with a single value
+    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
         string[] memory strArray = new string[](1);
         strArray[0] = _string;
-        return(strArray);
+        return (strArray);
     }
-
 }
-
-
 
 contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
     using Strings for *;
@@ -152,7 +128,6 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
 
     mapping(address => Holding[]) private holdingsByAddress;
 
-
     /// @dev The token contract address corresponding to this ID
     address ctmRwaToken;
 
@@ -165,14 +140,15 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
     /// @dev The Sentry contract address corresponding to this ID
     address public ctmRwaSentry;
 
-    /** @dev ctmRwa1X is the single contract on each chain responsible for 
+    /**
+     * @dev ctmRwa1X is the single contract on each chain responsible for 
      *   Initiating deployment of an CTMRWA1 and its components
      *   Changing the tokenAdmin
      *   Defining Asset Classes (slots)
      *   Minting new value to slots
      *   Transfering value cross-chain via other ctmRwa1X contracts on other chains
      */
-    address public ctmRwa1X; 
+    address public ctmRwa1X;
 
     /// @dev Address of the CTMRWAMap contract
     address public ctmRwaMap;
@@ -209,8 +185,6 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
     event UnlockInvestmentToken(uint256 indexed ID, address holder, uint256 holdingIndx);
 
     event ClaimDividendInEscrow(uint256 indexed ID, address holder, uint256 unclaimed);
-    
-
 
     constructor(
         uint256 _ID,
@@ -242,7 +216,6 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
         ctmRwa1X = ICTMRWA1(ctmRwaToken).ctmRwa1X();
 
         cIDStr = block.chainid.toString();
-
     }
 
     // Pause a specific offering (only tokenAdmin)
@@ -265,7 +238,6 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
         return _isOfferingPaused[_indx];
     }
 
-
     function createOffering(
         uint256 _tokenId,
         uint256 _price,
@@ -280,7 +252,6 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
         uint256 _lockDuration,
         address _feeToken
     ) public onlyTokenAdmin(ctmRwaToken) {
-
         require(ICTMRWA1(ctmRwaToken).requireMinted(_tokenId), "CTMInvest: Token does not exist");
         require(offerings.length < MAX_OFFERINGS, "CTMInvest: Max offerings reached");
         require(bytes(_regulatorCountry).length <= 2, "CTMInvest: not 2 digit country code");
@@ -289,56 +260,45 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
         uint256 offer = ICTMRWA1(ctmRwaToken).balanceOf(_tokenId);
         uint256 slot = ICTMRWA1(ctmRwaToken).slotOf(_tokenId);
 
-        require(_minInvestment <= offer*_price/10**decimalsRwa, "CTMInvest: minInvestment too high");
+        require(_minInvestment <= offer * _price / 10 ** decimalsRwa, "CTMInvest: minInvestment too high");
         require(_maxInvestment > _minInvestment, "CTMInvest: minInvestment>maxInvestment");
-
 
         _payFee(FeeType.OFFERING, _feeToken);
 
         ICTMRWA1X(ctmRwa1X).transferWholeTokenX(
-            tokenAdmin.toHexString(), 
-            address(this).toHexString(), 
-            cIDStr, 
-            _tokenId, 
-            ID, 
-            _feeToken.toHexString()
+            tokenAdmin.toHexString(), address(this).toHexString(), cIDStr, _tokenId, ID, _feeToken.toHexString()
         );
 
         Holding[] memory holdings;
 
+        offerings.push(
+            Offering(
+                _tokenId,
+                offer,
+                offer,
+                _price,
+                _currency,
+                _minInvestment,
+                _maxInvestment,
+                0,
+                _regulatorCountry,
+                _regulatorAcronym,
+                _offeringType,
+                _startTime,
+                _endTime,
+                _lockDuration,
+                holdings
+            )
+        );
 
-        offerings.push(Offering (
-            _tokenId,
-            offer,
-            offer,
-            _price,
-            _currency,
-            _minInvestment,
-            _maxInvestment,
-            0,
-            _regulatorCountry,
-            _regulatorAcronym,
-            _offeringType,
-            _startTime,
-            _endTime,
-            _lockDuration,
-            holdings
-        ));
-
-        uint256 indx = offerings.length-1;
+        uint256 indx = offerings.length - 1;
 
         _isOfferingPaused[indx] = false;
 
         emit CreateOffering(ID, indx, slot, offer);
-
     }
 
-
-    function investInOffering(
-        uint256 _indx, 
-        uint256 _investment,
-        address _feeToken
-    ) public returns(uint256) {
+    function investInOffering(uint256 _indx, uint256 _investment, address _feeToken) public returns (uint256) {
         require(_indx < offerings.length, "CTMInvest: Offering index out of bounds");
         require(!_isOfferingPaused[_indx], "CTMInvest: Offering is paused");
         require(block.timestamp >= offerings[_indx].startTime, "CTMInvest: Offer not yet started");
@@ -346,7 +306,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
         address currency = offerings[_indx].currency;
         require(IERC20(currency).balanceOf(_msgSender()) >= _investment, "CTMInvest: Investor has insufficient balance");
         require(_investment >= offerings[_indx].minInvestment, "CTMInvest: investment too low");
-        if(offerings[_indx].maxInvestment > 0) {
+        if (offerings[_indx].maxInvestment > 0) {
             require(_investment <= offerings[_indx].maxInvestment, "CTMInvest: investment too high");
         }
         require(offerings[_indx].balRemaining >= _investment, "CTMInvest: Investment > balance left");
@@ -359,7 +319,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
 
         _payFee(FeeType.INVEST, _feeToken);
 
-        uint256 value = _investment*10**decimalsRwa/offerings[_indx].price;
+        uint256 value = _investment * 10 ** decimalsRwa / offerings[_indx].price;
 
         offerings[_indx].balRemaining -= value;
 
@@ -367,21 +327,11 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
         offerings[_indx].investment += _investment;
 
         uint256 newTokenId = ICTMRWA1X(ctmRwa1X).transferPartialTokenX(
-            tokenId, 
-            address(this).toHexString(), 
-            cIDStr, 
-            value, 
-            ID, 
-            feeTokenStr
+            tokenId, address(this).toHexString(), cIDStr, value, ID, feeTokenStr
         );
 
-
-        Holding memory newHolding = Holding(
-            _indx,
-            _msgSender(),
-            newTokenId,
-            block.timestamp + offerings[_indx].lockDuration
-        );
+        Holding memory newHolding =
+            Holding(_indx, _msgSender(), newTokenId, block.timestamp + offerings[_indx].lockDuration);
 
         offerings[_indx].holdings.push(newHolding);
         uint256 holdingIndx = offerings[_indx].holdings.length - 1;
@@ -393,7 +343,6 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
         return newTokenId;
     }
 
-
     // function withdraw(address _contractAddr) public onlyTokenAdmin(ctmRwaToken) returns(uint256) {
     //     uint256 bal = IERC20(_contractAddr).balanceOf(address(this));
     //     require(bal > 0, "CTMInvest: Zero balance");
@@ -403,17 +352,17 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
     //     return bal;
     // }
 
-    function withdrawInvested(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) returns(uint256) {
+    function withdrawInvested(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) returns (uint256) {
         require(_indx < offerings.length, "CTMInvest: exceed offerings bounds");
 
         uint256 investment = offerings[_indx].investment;
-        uint256 commission = commissionRate * investment/10000;
+        uint256 commission = commissionRate * investment / 10_000;
 
         require(commission > 0 || commissionRate == 0, "CTMInvest: Commission too low");
 
-        if(investment > 0) {
+        if (investment > 0) {
             address currency = offerings[_indx].currency;
-            if(commission > 0) {
+            if (commission > 0) {
                 IERC20(currency).transferFrom(feeManager, _msgSender(), commission);
             }
             uint256 funds = investment - commission;
@@ -427,7 +376,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
         }
     }
 
-    function unlockTokenId(uint256 _myIndx, address _feeToken) public returns(uint256) {
+    function unlockTokenId(uint256 _myIndx, address _feeToken) public returns (uint256) {
         require(_myIndx < holdingsByAddress[_msgSender()].length, "CTMInvest: exceed bounds");
 
         Holding memory thisHolding = holdingsByAddress[_msgSender()][_myIndx];
@@ -435,18 +384,13 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
         uint256 tokenId = thisHolding.tokenId;
         address owner = ICTMRWA1(ctmRwaToken).ownerOf(tokenId);
 
-        if(owner == address(this)) {
+        if (owner == address(this)) {
             require(block.timestamp >= thisHolding.escrowTime, "CTMInvest: tokenId is still locked");
 
             ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
 
-            ICTMRWA1X(ctmRwa1X).transferWholeTokenX( 
-                address(this).toHexString(),
-                _msgSender().toHexString(),
-                cIDStr, 
-                tokenId, 
-                ID, 
-                _feeToken.toHexString()
+            ICTMRWA1X(ctmRwa1X).transferWholeTokenX(
+                address(this).toHexString(), _msgSender().toHexString(), cIDStr, tokenId, ID, _feeToken.toHexString()
             );
 
             emit UnlockInvestmentToken(ID, _msgSender(), _myIndx);
@@ -457,7 +401,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
         }
     }
 
-    function claimDividendInEscrow(uint256 _myIndx) public returns(uint256) {
+    function claimDividendInEscrow(uint256 _myIndx) public returns (uint256) {
         require(_myIndx < holdingsByAddress[_msgSender()].length, "CTMInvest: exceed bounds");
 
         /// @dev caller can only access tokenIds in their holdingsByAddress mapping
@@ -468,60 +412,58 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
 
         uint256 unclaimed = ICTMRWA1Dividend(ctmRwaDividend).dividendByTokenId(tokenId);
 
-        if(owner == address(this)) {
-            if(unclaimed == 0) {
+        if (owner == address(this)) {
+            if (unclaimed == 0) {
                 return 0;
             }
 
-            if(ICTMRWA1Dividend(ctmRwaDividend).unclaimedDividend(address(this)) > 0) {
+            if (ICTMRWA1Dividend(ctmRwaDividend).unclaimedDividend(address(this)) > 0) {
                 ICTMRWA1Dividend(ctmRwaDividend).claimDividend();
             }
 
             address dividendToken = ICTMRWA1Dividend(ctmRwaDividend).dividendToken();
 
-            require(IERC20(dividendToken).balanceOf(address(this)) >= unclaimed, "CTMInvest: insufficient dividend to payout");
+            require(
+                IERC20(dividendToken).balanceOf(address(this)) >= unclaimed,
+                "CTMInvest: insufficient dividend to payout"
+            );
             ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
             IERC20(dividendToken).transfer(_msgSender(), unclaimed);
 
             emit ClaimDividendInEscrow(ID, _msgSender(), unclaimed);
 
             return unclaimed;
-
         } else {
             revert("CTMInvest: tokenId already withdrawn");
         }
     }
 
-
-    function offeringCount() public view returns(uint256) {
-        return(offerings.length);
+    function offeringCount() public view returns (uint256) {
+        return (offerings.length);
     }
 
-    function listOfferings() public view returns(Offering[] memory) {
-        return(offerings);
+    function listOfferings() public view returns (Offering[] memory) {
+        return (offerings);
     }
 
-    function listOffering(uint256 _offerIndx) public view returns(Offering memory) {
+    function listOffering(uint256 _offerIndx) public view returns (Offering memory) {
         require(_offerIndx < offerings.length, "CTMInvest: Offering out of bounds");
-        return(offerings[_offerIndx]);
+        return (offerings[_offerIndx]);
     }
 
-    function escrowHoldingCount(address _holder) public view returns(uint256) {
+    function escrowHoldingCount(address _holder) public view returns (uint256) {
         return holdingsByAddress[_holder].length;
     }
 
-    function listEscrowHoldings(address _holder) public view returns(Holding[] memory) {
-      return holdingsByAddress[_holder];
+    function listEscrowHoldings(address _holder) public view returns (Holding[] memory) {
+        return holdingsByAddress[_holder];
     }
 
-    function listEscrowHolding(
-        address _holder, 
-        uint256 _myIndx
-    ) public view returns(Holding memory) {
+    function listEscrowHolding(address _holder, uint256 _myIndx) public view returns (Holding memory) {
         require(_myIndx < holdingsByAddress[_holder].length, "CTMInvest: exceed bounds");
         Holding memory thisHolding = holdingsByAddress[_holder][_myIndx];
 
-        return(thisHolding);
+        return (thisHolding);
     }
 
     function _checkTokenAdmin(address _ctmRwaToken) internal {
@@ -530,31 +472,27 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
     }
 
     /// @dev Pay offering fees
-    function _payFee(
-        FeeType _feeType,
-        address _feeToken
-    ) internal returns(bool) {
+    function _payFee(FeeType _feeType, address _feeToken) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
         uint256 fee = IFeeManager(feeManager).getXChainFee(_stringToArray(cIDStr), false, _feeType, feeTokenStr);
-        
+
         // TODO Remove hardcoded multiplier 10**2
 
-        if(fee>0) {
-            uint256 feeWei = fee*10**(IERC20Extended(_feeToken).decimals()-2);
+        if (fee > 0) {
+            uint256 feeWei = fee * 10 ** (IERC20Extended(_feeToken).decimals() - 2);
 
             IERC20(_feeToken).transferFrom(_msgSender(), address(this), feeWei);
-            
+
             IERC20(_feeToken).approve(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, feeTokenStr);
         }
-        return(true);
+        return (true);
     }
 
-     /// @dev Convert an individual string to an array with a single value
-    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
+    /// @dev Convert an individual string to an array with a single value
+    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
         string[] memory strArray = new string[](1);
         strArray[0] = _string;
-        return(strArray);
+        return (strArray);
     }
-
 }

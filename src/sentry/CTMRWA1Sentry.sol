@@ -2,11 +2,11 @@
 
 pragma solidity ^0.8.19;
 
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { Context } from "@openzeppelin/contracts/utils/Context.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {ICTMRWA1, ITokenContract} from "../core/ICTMRWA1.sol";
-import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
+import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
 contract CTMRWA1Sentry is Context {
     using Strings for *;
@@ -20,7 +20,7 @@ contract CTMRWA1Sentry is Context {
     address public ctmRwa1X;
     address public ctmRwa1Map;
 
-    string appId;  // same as Merchant No
+    string appId; // same as Merchant No
     string programNo;
     address cooperator;
 
@@ -34,7 +34,6 @@ contract CTMRWA1Sentry is Context {
     string[] public countryList;
     mapping(string => uint256) private countryIndx;
 
-
     // Switches to be set by tokenAdmin
 
     bool public whitelistSwitch;
@@ -46,22 +45,15 @@ contract CTMRWA1Sentry is Context {
     bool public age18Switch;
 
     modifier onlyTokenAdmin() {
-        require(
-            _msgSender() == tokenAdmin || _msgSender() == ctmRwa1X, 
-            "CTMRWA1Storage: onlyTokenAdmin function"
-        );
+        require(_msgSender() == tokenAdmin || _msgSender() == ctmRwa1X, "CTMRWA1Storage: onlyTokenAdmin function");
         _;
     }
 
     modifier onlySentryManager() {
-        require(
-            _msgSender() == sentryManagerAddr,
-            "CTMRWA1Sentry: onlySentryManager function"
-        );
+        require(_msgSender() == sentryManagerAddr, "CTMRWA1Sentry: onlySentryManager function");
         _;
     }
 
-   
     constructor(
         uint256 _ID,
         address _tokenAddr,
@@ -79,43 +71,40 @@ contract CTMRWA1Sentry is Context {
 
         tokenAdmin = ICTMRWA1(tokenAddr).tokenAdmin();
         ctmRwa1X = ICTMRWA1(tokenAddr).ctmRwa1X();
-        
+
         sentryManagerAddr = _sentryManager;
 
         ctmWhitelist.push("0xffffffffffffffffffffffffffffffffffffffff"); // indx 0 is no go
         _setWhitelist(_stringToArray(tokenAdmin.toHexString()), _boolToArray(true));
 
         countryList.push("NOGO");
-
     }
 
-    function setTokenAdmin(address _tokenAdmin) external onlyTokenAdmin returns(bool) {
-
+    function setTokenAdmin(address _tokenAdmin) external onlyTokenAdmin returns (bool) {
         tokenAdmin = _tokenAdmin;
 
         if (tokenAdmin != address(0)) {
             string memory tokenAdminStr = _toLower(tokenAdmin.toHexString());
             tokenAdminStr = _toLower(_tokenAdmin.toHexString());
-            _setWhitelist(_stringToArray(tokenAdminStr), _boolToArray(true)); // don't strand tokens held by the old tokenAdmin
+            _setWhitelist(_stringToArray(tokenAdminStr), _boolToArray(true)); // don't strand tokens held by the old
+                // tokenAdmin
         }
-        
-        return(true);
+
+        return (true);
     }
 
-    function setZkMeParams(
-        string memory _appId, 
-        string memory _programNo, 
-        address _cooperator
-    ) external onlySentryManager {
+    function setZkMeParams(string memory _appId, string memory _programNo, address _cooperator)
+        external
+        onlySentryManager
+    {
         appId = _appId;
         programNo = _programNo;
         cooperator = _cooperator;
     }
 
-    function getZkMeParams() public view returns(string memory, string memory, address) {
-        return(appId, programNo, cooperator);
+    function getZkMeParams() public view returns (string memory, string memory, address) {
+        return (appId, programNo, cooperator);
     }
-
 
     function setSentryOptionsLocal(
         uint256 _ID,
@@ -127,7 +116,6 @@ contract CTMRWA1Sentry is Context {
         bool _countryWL,
         bool _countryBL
     ) external onlySentryManager {
-
         require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
 
         if (_whitelist) {
@@ -136,12 +124,12 @@ contract CTMRWA1Sentry is Context {
 
         if (_kyc) {
             kycSwitch = true;
-        } 
-        
+        }
+
         if (_kyb && _kyc) {
             kybSwitch = true;
         }
-        
+
         if (_over18 && _kyc) {
             age18Switch = true;
         }
@@ -156,97 +144,88 @@ contract CTMRWA1Sentry is Context {
         sentryOptionsSet = true;
     }
 
-
-    function setWhitelistSentry(uint256 _ID, string[] memory _wallets, bool[] memory _choices) external onlySentryManager {
+    function setWhitelistSentry(uint256 _ID, string[] memory _wallets, bool[] memory _choices)
+        external
+        onlySentryManager
+    {
         require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
         _setWhitelist(_wallets, _choices);
     }
 
-    function setCountryListLocal(
-        uint256 _ID,
-        string[] memory _countryList,
-        bool[] memory _choices
-    ) external onlySentryManager {
-
+    function setCountryListLocal(uint256 _ID, string[] memory _countryList, bool[] memory _choices)
+        external
+        onlySentryManager
+    {
         require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
 
         _setCountryList(_countryList, _choices);
     }
 
-
     function _setWhitelist(string[] memory _wallets, bool[] memory _choices) internal {
         uint256 len = _wallets.length;
-        
+
         uint256 indx;
         string memory adminStr = _toLower(tokenAdmin.toHexString());
         string memory walletStr;
         string memory oldLastStr;
-        
 
-        for (uint256 i=0; i<len; i++) {
+        for (uint256 i = 0; i < len; i++) {
             walletStr = _toLower(_wallets[i]);
             indx = whitelistIndx[walletStr];
-            
+
             if (stringsEqual(walletStr, adminStr) && !_choices[i]) {
                 revert("CTMRWA1Sentry: Cannot remove tokenAdmin from the whitelist");
-            } else if (
-                indx != 0 && 
-                indx == ctmWhitelist.length - 1 && 
-                !_choices[i]
-            ) { // last entry to be removed
+            } else if (indx != 0 && indx == ctmWhitelist.length - 1 && !_choices[i]) {
+                // last entry to be removed
                 whitelistIndx[walletStr] = 0;
                 ctmWhitelist.pop();
-            } else if (indx != 0 && !_choices[i]) {  // existing entry to be removed and precludes changing tokenAdmin
+            } else if (indx != 0 && !_choices[i]) {
+                // existing entry to be removed and precludes changing tokenAdmin
                 oldLastStr = ctmWhitelist[ctmWhitelist.length - 1];
                 ctmWhitelist[indx] = oldLastStr;
                 whitelistIndx[walletStr] = 0;
                 whitelistIndx[oldLastStr] = indx;
                 ctmWhitelist.pop();
-            } else if (indx == 0 && _choices[i]) { // New entry
+            } else if (indx == 0 && _choices[i]) {
+                // New entry
                 ctmWhitelist.push(walletStr);
                 whitelistIndx[walletStr] = ctmWhitelist.length - 1;
             }
         }
     }
 
-    // This function uses the 2 letter ISO Country Codes listed here: 
+    // This function uses the 2 letter ISO Country Codes listed here:
     // https://docs.dnb.com/partner/en-US/iso_country_codes
-    function _setCountryList(
-        string[] memory _countries,
-        bool[] memory _choices
-    ) internal {
-
+    function _setCountryList(string[] memory _countries, bool[] memory _choices) internal {
         uint256 len = _countries.length;
         uint256 indx;
         string memory oldLastStr;
 
-        for (uint256 i=0; i<len; i++) {
+        for (uint256 i = 0; i < len; i++) {
             require(bytes(_countries[i]).length == 2, "CTMRWA1Sentry: ISO Country must have 2 letters");
 
             indx = countryIndx[_countries[i]];
 
-            if (
-                indx != 0 && 
-                indx == countryList.length - 1 && 
-                !_choices[i]
-            ) { // last entry to be removed
+            if (indx != 0 && indx == countryList.length - 1 && !_choices[i]) {
+                // last entry to be removed
                 countryIndx[_countries[i]] = 0;
                 countryList.pop();
-            } else if (indx != 0 && !_choices[i]) {  // existing entry to be removed
+            } else if (indx != 0 && !_choices[i]) {
+                // existing entry to be removed
                 oldLastStr = countryList[countryList.length - 1];
                 countryList[indx] = oldLastStr;
                 countryIndx[_countries[i]] = 0;
                 countryIndx[oldLastStr] = indx;
                 countryList.pop();
-            } else if (indx == 0 && _choices[i]) { // New entry
+            } else if (indx == 0 && _choices[i]) {
+                // New entry
                 countryList.push(_countries[i]);
                 countryIndx[_countries[i]] = countryList.length - 1;
             }
         }
     }
 
-    function isAllowableTransfer(string memory _user) public view returns(bool) {
-
+    function isAllowableTransfer(string memory _user) public view returns (bool) {
         bool ok;
         address dividendContract;
         (ok, dividendContract) = ICTMRWAMap(ctmRwa1Map).getDividendContract(ID, rwaType, version);
@@ -255,57 +234,48 @@ contract CTMRWA1Sentry is Context {
         (ok, investContract) = ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, rwaType, version);
 
         if (!whitelistSwitch || stringToAddress(_user) == address(0)) {
-            return(true);
-        } else if(
-            stringsEqual(_user, dividendContract.toHexString()) ||
-            stringsEqual(_user, investContract.toHexString())
+            return (true);
+        } else if (
+            stringsEqual(_user, dividendContract.toHexString()) || stringsEqual(_user, investContract.toHexString())
         ) {
-            return(true);
+            return (true);
         } else {
             string memory walletStr = _toLower(_user);
-            return(_isWhitelisted(walletStr));
+            return (_isWhitelisted(walletStr));
         }
     }
 
-    function getWhitelistLength() public view returns(uint256) {
-        return(ctmWhitelist.length - 1);
+    function getWhitelistLength() public view returns (uint256) {
+        return (ctmWhitelist.length - 1);
     }
 
-    function getWhitelistAddressAtIndx(uint256 _indx) public view returns(string memory) {
-        return(ctmWhitelist[_indx]);
+    function getWhitelistAddressAtIndx(uint256 _indx) public view returns (string memory) {
+        return (ctmWhitelist[_indx]);
     }
 
-    function _isWhitelisted(string memory _walletStr) internal view returns(bool) {
+    function _isWhitelisted(string memory _walletStr) internal view returns (bool) {
         uint256 indx = whitelistIndx[_walletStr];
-       
+
         if (indx == 0) {
-            return(false);
+            return (false);
         } else {
-            return(true);
+            return (true);
         }
     }
 
-
-     function cID() internal view returns (uint256) {
+    function cID() internal view returns (uint256) {
         return block.chainid;
     }
 
-    function strToUint(
-        string memory _str
-    ) internal pure returns (uint256 res, bool err) {
+    function strToUint(string memory _str) internal pure returns (uint256 res, bool err) {
         if (bytes(_str).length == 0) {
             return (0, true);
         }
         for (uint256 i = 0; i < bytes(_str).length; i++) {
-            if (
-                (uint8(bytes(_str)[i]) - 48) < 0 ||
-                (uint8(bytes(_str)[i]) - 48) > 9
-            ) {
+            if ((uint8(bytes(_str)[i]) - 48) < 0 || (uint8(bytes(_str)[i]) - 48) > 9) {
                 return (0, false);
             }
-            res +=
-                (uint8(bytes(_str)[i]) - 48) *
-                10 ** (bytes(_str).length - i - 1);
+            res += (uint8(bytes(_str)[i]) - 48) * 10 ** (bytes(_str).length - i - 1);
         }
 
         return (res, true);
@@ -316,12 +286,8 @@ contract CTMRWA1Sentry is Context {
         require(strBytes.length == 42, "CTMRWA1Sentry: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
-        for (uint i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(
-                hexCharToByte(strBytes[2 + i * 2]) *
-                    16 +
-                    hexCharToByte(strBytes[3 + i * 2])
-            );
+        for (uint256 i = 0; i < 20; i++) {
+            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
         }
 
         return address(uint160(bytes20(addrBytes)));
@@ -329,26 +295,17 @@ contract CTMRWA1Sentry is Context {
 
     function hexCharToByte(bytes1 char) internal pure returns (uint8) {
         uint8 byteValue = uint8(char);
-        if (
-            byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))
-        ) {
+        if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
             return byteValue - uint8(bytes1("0"));
-        } else if (
-            byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))
-        ) {
+        } else if (byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))) {
             return 10 + byteValue - uint8(bytes1("a"));
-        } else if (
-            byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))
-        ) {
+        } else if (byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))) {
             return 10 + byteValue - uint8(bytes1("A"));
         }
         revert("Invalid hex character");
     }
 
-    function stringsEqual(
-        string memory a,
-        string memory b
-    ) internal pure returns (bool) {
+    function stringsEqual(string memory a, string memory b) internal pure returns (bool) {
         bytes32 ka = keccak256(abi.encode(a));
         bytes32 kb = keccak256(abi.encode(b));
         return (ka == kb);
@@ -357,7 +314,7 @@ contract CTMRWA1Sentry is Context {
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
         bytes memory bLower = new bytes(bStr.length);
-        for (uint i = 0; i < bStr.length; i++) {
+        for (uint256 i = 0; i < bStr.length; i++) {
             // Uppercase character...
             if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
                 // So we add 32 to make it lowercase
@@ -368,16 +325,16 @@ contract CTMRWA1Sentry is Context {
         }
         return string(bLower);
     }
-    
-    function _stringToArray(string memory _string) internal pure returns(string[] memory) {
+
+    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
         string[] memory strArray = new string[](1);
         strArray[0] = _string;
-        return(strArray);
+        return (strArray);
     }
 
-    function _boolToArray(bool _bool) internal pure returns(bool[] memory) {
+    function _boolToArray(bool _bool) internal pure returns (bool[] memory) {
         bool[] memory boolArray = new bool[](1);
         boolArray[0] = _bool;
-        return(boolArray);
+        return (boolArray);
     }
 }

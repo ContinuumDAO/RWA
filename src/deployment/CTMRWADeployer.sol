@@ -2,22 +2,22 @@
 
 pragma solidity ^0.8.19;
 
+import { Context } from "@openzeppelin/contracts/utils/Context.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {Context} from "@openzeppelin/contracts/utils/Context.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
-import {C3GovernDapp} from "@c3caller/gov/C3GovernDapp.sol";
+import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 
-import {ICTMRWA1} from "../core/ICTMRWA1.sol";
-import {ICTMRWAFactory} from "../deployment/ICTMRWAFactory.sol";
-import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
-import {ICTMRWADeployInvest} from "../deployment/ICTMRWADeployInvest.sol";
+import { ICTMRWADeployInvest } from "../deployment/ICTMRWADeployInvest.sol";
+import { ICTMRWAFactory } from "../deployment/ICTMRWAFactory.sol";
+import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
  * @author @Selqui ContinuumDAO
  *
- * @notice The deploy function in this contract is called by CTMRWA1X on each chain that an 
+ * @notice The deploy function in this contract is called by CTMRWA1X on each chain that an
  * RWA is deployed to. It calls other contracts that use CREATE2 to deploy the suite of contracts for the RWA.
  * These are CTMRWA1TokenFactory to deploy CTMRWA1, CTMRWA1StorageManager to deploy CTMRWA1Storage,
  * CTMRWA1DividendFactory to deploy CTMRWA1Dividend and CTMRWA1SentryManager to deploy CTMRWA1Sentry.
@@ -28,7 +28,6 @@ import {ICTMRWADeployInvest} from "../deployment/ICTMRWADeployInvest.sol";
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
-
 contract CTMRWADeployer is Context, C3GovernDapp {
     using Strings for *;
 
@@ -62,10 +61,9 @@ contract CTMRWADeployer is Context, C3GovernDapp {
     /// @dev Storage for the addresses of the CTMRWA1SentryManager addresses
     mapping(uint256 => address[1_000_000_000]) public sentryFactory;
 
-
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
-    modifier onlyRwaX {
+    modifier onlyRwaX() {
         require(_msgSender() == rwaX, "CTMRWADeployer: OnlyRwaX function");
         _;
     }
@@ -104,7 +102,7 @@ contract CTMRWADeployer is Context, C3GovernDapp {
     /**
      * @notice Governance can change to a new CTMRWAERC20Deployer contract
      * @param _erc20Deployer address of the new CTMRWAERC20Deployer contract
-    */
+     */
     function setErc20DeployerAddress(address _erc20Deployer) external onlyGov {
         erc20Deployer = _erc20Deployer;
     }
@@ -114,91 +112,75 @@ contract CTMRWADeployer is Context, C3GovernDapp {
         deployInvest = _deployInvest;
     }
 
-    /// @notice Governance function to set the CTMRWADeployInvest contract addresses 
+    /// @notice Governance function to set the CTMRWADeployInvest contract addresses
     /// @notice for this contract (CTMRWADeployer), CTMRWAMap and FeeManager
     function setDeployerMapFee() external onlyGov {
         ICTMRWADeployInvest(deployInvest).setDeployerMapFee(address(this), ctmRwaMap, feeManager);
     }
 
     /// @dev The main deploy function that calls the various deploy functions that call CREATE2 for this ID
-    function deploy(
-        uint256 _ID,
-        uint256 _rwaType,
-        uint256 _version,
-        bytes memory deployData
-    ) external onlyRwaX returns(address, address, address, address) {
+    function deploy(uint256 _ID, uint256 _rwaType, uint256 _version, bytes memory deployData)
+        external
+        onlyRwaX
+        returns (address, address, address, address)
+    {
         address tokenAddr = ICTMRWAFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
 
         require(ICTMRWA1(tokenAddr).rwaType() == _rwaType, "CTMRWADeployer: Wrong RWA type");
         require(ICTMRWA1(tokenAddr).version() == _version, "CTMRWADeployer: Wrong RWA version");
-        
+
         address dividendAddr = deployDividend(_ID, tokenAddr, _rwaType, _version);
         address storageAddr = deployStorage(_ID, tokenAddr, _rwaType, _version);
         address sentryAddr = deploySentry(_ID, tokenAddr, _rwaType, _version);
 
         ICTMRWAMap(ctmRwaMap).attachContracts(_ID, _rwaType, _version, tokenAddr, dividendAddr, storageAddr, sentryAddr);
 
-        return(tokenAddr, dividendAddr, storageAddr, sentryAddr);
+        return (tokenAddr, dividendAddr, storageAddr, sentryAddr);
     }
 
     /// @dev Calls the contract function to deploy the CTMRWA1Dividend for this _ID
-    function deployDividend(
-        uint256 _ID,
-        address _tokenAddr,
-        uint256 _rwaType,
-        uint256 _version
-    ) internal returns(address) {
-        if(dividendFactory[_rwaType][_version] != address(0)) {
+    function deployDividend(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)
+        internal
+        returns (address)
+    {
+        if (dividendFactory[_rwaType][_version] != address(0)) {
             address dividendAddr = ICTMRWAFactory(dividendFactory[_rwaType][_version]).deployDividend(
-                _ID, 
-                _tokenAddr, 
-                _rwaType, 
-                _version, 
-                ctmRwaMap
+                _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
             );
-            return(dividendAddr);
+            return (dividendAddr);
+        } else {
+            return (address(0));
         }
-        else return(address(0));
     }
 
     /// @dev Calls the contract function to deploy the CTMRWA1Storage for this _ID
-    function deployStorage(
-        uint256 _ID,
-        address _tokenAddr,
-        uint256 _rwaType,
-        uint256 _version
-    ) internal returns(address) {
-        if(storageFactory[_rwaType][_version] != address(0)){
+    function deployStorage(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)
+        internal
+        returns (address)
+    {
+        if (storageFactory[_rwaType][_version] != address(0)) {
             address storageAddr = ICTMRWAFactory(storageFactory[_rwaType][_version]).deployStorage(
-                _ID,
-                _tokenAddr,
-                _rwaType, 
-                _version, 
-                ctmRwaMap
+                _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
             );
-            return(storageAddr);
+            return (storageAddr);
+        } else {
+            return (address(0));
         }
-        else return(address(0));
     }
 
     /// @notice Governance function to change the CTMRWA1Sentry contract address
-    function deploySentry(
-        uint256 _ID,
-        address _tokenAddr,
-        uint256 _rwaType,
-        uint256 _version
-    ) internal returns(address) {
-        if(sentryFactory[_rwaType][_version] != address(0)){
+    function deploySentry(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)
+        internal
+        returns (address)
+    {
+        if (sentryFactory[_rwaType][_version] != address(0)) {
             address sentryAddr = ICTMRWAFactory(sentryFactory[_rwaType][_version]).deploySentry(
-                _ID,
-                _tokenAddr,
-                _rwaType, 
-                _version, 
-                ctmRwaMap
+                _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
             );
-            return(sentryAddr);
+            return (sentryAddr);
+        } else {
+            return (address(0));
         }
-        else return(address(0));
     }
 
     /// @dev Governance function to set a new CTMRWA1TokenFactory
@@ -227,12 +209,10 @@ contract CTMRWADeployer is Context, C3GovernDapp {
         ICTMRWADeployInvest(deployInvest).setCommissionRate(_commissionRate);
     }
 
-    function deployNewInvestment(
-        uint256 _ID,
-        uint256 _rwaType,
-        uint256 _version,
-        address _feeToken
-    ) public returns(address) {
+    function deployNewInvestment(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken)
+        public
+        returns (address)
+    {
         (bool ok,) = ICTMRWAMap(ctmRwaMap).getInvestContract(_ID, _rwaType, _version);
         require(!ok, "CTMDeploy: Investment contract already deployed");
 
@@ -254,12 +234,8 @@ contract CTMRWADeployer is Context, C3GovernDapp {
         require(strBytes.length == 42, "CTMRWADeployer: Invalid address length");
         bytes memory addrBytes = new bytes(20);
 
-        for (uint i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(
-                hexCharToByte(strBytes[2 + i * 2]) *
-                    16 +
-                    hexCharToByte(strBytes[3 + i * 2])
-            );
+        for (uint256 i = 0; i < 20; i++) {
+            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
         }
 
         return address(uint160(bytes20(addrBytes)));
@@ -267,27 +243,18 @@ contract CTMRWADeployer is Context, C3GovernDapp {
 
     function hexCharToByte(bytes1 char) internal pure returns (uint8) {
         uint8 byteValue = uint8(char);
-        if (
-            byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))
-        ) {
+        if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
             return byteValue - uint8(bytes1("0"));
-        } else if (
-            byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))
-        ) {
+        } else if (byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))) {
             return 10 + byteValue - uint8(bytes1("a"));
-        } else if (
-            byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))
-        ) {
+        } else if (byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))) {
             return 10 + byteValue - uint8(bytes1("A"));
         }
         revert("Invalid hex character");
     }
 
     /// @dev Check if two strings are equal (in fact if their hashes are equal)
-    function stringsEqual(
-        string memory a,
-        string memory b
-    ) internal pure returns (bool) {
+    function stringsEqual(string memory a, string memory b) internal pure returns (bool) {
         bytes32 ka = keccak256(abi.encode(a));
         bytes32 kb = keccak256(abi.encode(b));
         return (ka == kb);
@@ -297,7 +264,7 @@ contract CTMRWADeployer is Context, C3GovernDapp {
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
         bytes memory bLower = new bytes(bStr.length);
-        for (uint i = 0; i < bStr.length; i++) {
+        for (uint256 i = 0; i < bStr.length; i++) {
             // Uppercase character...
             if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
                 // So we add 32 to make it lowercase
@@ -308,15 +275,14 @@ contract CTMRWADeployer is Context, C3GovernDapp {
         }
         return string(bLower);
     }
-    
+
     /// @dev Fallback function for failed c3call cross-chain. Only emits an event at present
-    function _c3Fallback(bytes4 _selector,
-        bytes calldata _data,
-        bytes calldata _reason) internal override returns (bool) {
-
-
+    function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
+        internal
+        override
+        returns (bool)
+    {
         emit LogFallback(_selector, _data, _reason);
         return true;
     }
-
 }

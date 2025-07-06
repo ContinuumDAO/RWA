@@ -8,17 +8,13 @@ interface ICTMRWA1SentryManager {
     function setCtmRwaDeployer(address deployer) external;
     function setCtmRwaMap(address map) external;
     function setSentryUtils(address utilsAddr) external;
-    function utilsAddr() external returns(address);
+    function utilsAddr() external returns (address);
 
-    function getLastReason() external view returns(string memory);
+    function getLastReason() external view returns (string memory);
 
-    function deploySentry(
-        uint256 ID,
-        address tokenAddr,
-        uint256 rwaType,
-        uint256 version,
-        address map
-    ) external returns(address);
+    function deploySentry(uint256 ID, address tokenAddr, uint256 rwaType, uint256 version, address map)
+        external
+        returns (address);
 
     function setSentryOptions(
         uint256 ID,
@@ -33,11 +29,7 @@ interface ICTMRWA1SentryManager {
         string memory feeTokenStr
     ) external;
 
-    function goPublic(
-        uint256 _ID,
-        string[] memory _chainIdsStr,
-        string memory _feeTokenStr
-    ) external;
+    function goPublic(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr) external;
 
     function addWhitelist(
         uint256 ID,

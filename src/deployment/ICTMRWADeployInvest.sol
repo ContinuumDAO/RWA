@@ -28,28 +28,19 @@ struct Holding {
 }
 
 interface ICTMRWADeployInvest {
-    function ID() external view returns(uint256);
-    function commissionRate() external view returns(uint256);
+    function ID() external view returns (uint256);
+    function commissionRate() external view returns (uint256);
 
     function setCommissionRate(uint256 commissionRate) external;
 
-    function setDeployerMapFee(
-        address deployer, 
-        address ctmRwaMap, 
-        address feeManager
-    ) external;
+    function setDeployerMapFee(address deployer, address ctmRwaMap, address feeManager) external;
 
-    function deployInvest(
-        uint256 ID,
-        uint256 rwaType,
-        uint256 version,
-        address feeToken
-    ) external returns(address);
+    function deployInvest(uint256 ID, uint256 rwaType, uint256 version, address feeToken) external returns (address);
 }
 
 interface ICTMRWA1InvestWithTimeLock {
-    function holdingsByAddress(address) external view returns(Holding[] memory);
-    function commissionRate() external view returns(uint256);
+    function holdingsByAddress(address) external view returns (Holding[] memory);
+    function commissionRate() external view returns (uint256);
 
     function pauseOffering(uint256 _indx) external;
     function unpauseOffering(uint256 _indx) external;
@@ -71,27 +62,20 @@ interface ICTMRWA1InvestWithTimeLock {
         address feeToken
     ) external;
 
-    function investInOffering(
-        uint256 indx, 
-        uint256 investment,
-        address feeToken
-    ) external returns(uint256);
+    function investInOffering(uint256 indx, uint256 investment, address feeToken) external returns (uint256);
 
-    function withdrawInvested(uint256 indx) external returns(uint256);
+    function withdrawInvested(uint256 indx) external returns (uint256);
 
-    function unlockTokenId(uint256 myIndx, address feeToken) external returns(uint256);
+    function unlockTokenId(uint256 myIndx, address feeToken) external returns (uint256);
 
-    function claimDividendInEscrow(uint256 myIndx) external returns(uint256);
+    function claimDividendInEscrow(uint256 myIndx) external returns (uint256);
 
-    function offeringCount() external view returns(uint256);
-    function listOfferings() external view returns(Offering[] memory);
-    function listOffering(uint256 offerIndx) external view returns(Offering memory);
+    function offeringCount() external view returns (uint256);
+    function listOfferings() external view returns (Offering[] memory);
+    function listOffering(uint256 offerIndx) external view returns (Offering memory);
 
-    function escrowHoldingCount(address holder) external view returns(uint256);
-    function listEscrowHoldings(address holder) external view returns(Holding[] memory);
+    function escrowHoldingCount(address holder) external view returns (uint256);
+    function listEscrowHoldings(address holder) external view returns (Holding[] memory);
 
-    function listEscrowHolding(
-        address holder, 
-        uint256 myIndx
-    ) external view returns(Holding memory);
+    function listEscrowHolding(address holder, uint256 myIndx) external view returns (Holding memory);
 }
