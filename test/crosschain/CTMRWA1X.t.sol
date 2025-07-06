@@ -9,22 +9,21 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {Helpers} from "../helpers/Helpers.sol";
 
+import {ICTMRWA1} from "../../src/core/ICTMRWA1.sol";
+
 contract TestCTMRWA1X is Helpers {
     using Strings for *;
 
     function test_CTMRWA1Deploy() public {
-        string memory tokenStr = _toLower((address(usdc).toHexString()));
+        string memory tokenStr = address(usdc).toHexString();
         string[] memory chainIdsStr;
-
-        uint256 rwaType = 1;
-        uint256 version = 1;
 
         vm.startPrank(admin);
         uint256 ID = rwa1X.deployAllCTMRWA1X(
             true,  // include local mint
             0,
-            rwaType,
-            version,
+            RWA_TYPE,
+            VERSION,
             "Semi Fungible Token XChain",
             "SFTX",
             18,
@@ -36,16 +35,16 @@ contract TestCTMRWA1X is Helpers {
         console.log("finished deploy, ID = ");
         console.log(ID);
 
-        (bool ok, address ctmRwaAddr) = map.getTokenContract(ID, rwaType, version);
+        (bool ok, address ctmRwaAddr) = map.getTokenContract(ID, RWA_TYPE, VERSION);
         console.log("ctmRwaAddr");
         console.log(ctmRwaAddr);
         assertEq(ok, true);
 
         uint256 tokenType = ICTMRWA1(ctmRwaAddr).rwaType();
-        assertEq(tokenType, rwaType);
+        assertEq(tokenType, RWA_TYPE);
 
         uint256 deployedVersion = ICTMRWA1(ctmRwaAddr).version();
-        assertEq(deployedVersion, version);
+        assertEq(deployedVersion, VERSION);
 
         address[] memory aTokens = rwa1X.getAllTokensByAdminAddress(admin);
         console.log('aTokens');
@@ -55,9 +54,11 @@ contract TestCTMRWA1X is Helpers {
     }
 
     function test_CTMRWA1Mint() public {
-        (uint256 ID, address ctmRwaAddr) = CTMRWA1Deploy();
 
-        createSomeSlots(ID);
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
 
@@ -69,9 +70,10 @@ contract TestCTMRWA1X is Helpers {
             ID,
             tokenStr
         );
+        vm.stopPrank();
 
         assertEq(tokenId, 1);
-        (uint256 id, uint256 bal, address owner, uint256 slot, string memory slotName,) = ICTMRWA1(ctmRwaAddr).getTokenInfo(tokenId);
+        (uint256 id, uint256 bal, address owner, uint256 slot, string memory slotName,) = token.getTokenInfo(tokenId);
         //console.log(id, bal, owner, slot);
         assertEq(id,1);
         assertEq(bal, 2000);
@@ -80,10 +82,10 @@ contract TestCTMRWA1X is Helpers {
         assertEq(stringsEqual(slotName, "slot 5 is the best RWA"), true);
 
         vm.startPrank(user1);
-        bool exists = ICTMRWA1(ctmRwaAddr).requireMinted(tokenId);
+        bool exists = token.requireMinted(tokenId);
         assertEq(exists, true);
-        ICTMRWA1(ctmRwaAddr).burn(tokenId);
-        exists = ICTMRWA1(ctmRwaAddr).requireMinted(tokenId);
+        token.burn(tokenId);
+        exists = token.requireMinted(tokenId);
         assertEq(exists, false);
         vm.stopPrank();
     }
@@ -91,8 +93,8 @@ contract TestCTMRWA1X is Helpers {
 
     function test_localTransferX() public {
         vm.startPrank(admin);  // this CTMRWA1 has an admin of admin
-        (uint256 ID, address ctmRwaAddr) = CTMRWA1Deploy();
-        (uint256 tokenId, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+         (ID, token) = _deployCTMRWA1(address(usdc));
+        (uint256 tokenId, uint256 tokenId2, uint256 tokenId3) = _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
 
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory feeTokenStr = feeTokenList[0].toHexString();
@@ -104,28 +106,27 @@ contract TestCTMRWA1X is Helpers {
 
 
         vm.startPrank(user1);
-        uint256 balBefore = ICTMRWA1(ctmRwaAddr).balanceOf(tokenId);
+        uint256 balBefore = token.balanceOf(tokenId);
         rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 5, ID, feeTokenStr);
-        uint256 balAfter = ICTMRWA1(ctmRwaAddr).balanceOf(tokenId);
+        uint256 balAfter = token.balanceOf(tokenId);
         assertEq(balBefore, balAfter+5);
 
         address owned = rwa1X.getAllTokensByOwnerAddress(user2)[0];
-        assertEq(owned, ctmRwaAddr);
+        assertEq(owned, address(token));
 
-        uint256 newTokenId = ICTMRWA1(ctmRwaAddr).tokenOfOwnerByIndex(user2,0);
-        assertEq(ICTMRWA1(ctmRwaAddr).ownerOf(newTokenId), user2);
-        uint256 balNewToken = ICTMRWA1(ctmRwaAddr).balanceOf(newTokenId);
+        uint256 newTokenId = token.tokenOfOwnerByIndex(user2,0);
+        assertEq(token.ownerOf(newTokenId), user2);
+        uint256 balNewToken = token.balanceOf(newTokenId);
         assertEq(balNewToken, 5);
 
-        // ICTMRWA1(ctmRwaAddr).approve(tokenId2, user2, 50);
-        ICTMRWA1(ctmRwaAddr).approve(user2, tokenId2);
+        token.approve(user2, tokenId2);
         vm.stopPrank();
 
         vm.startPrank(user2);
         rwa1X.transferWholeTokenX(user1.toHexString(), admin.toHexString(), cIdStr, tokenId2, ID, feeTokenStr);
-        address owner = ICTMRWA1(ctmRwaAddr).ownerOf(tokenId2);
+        address owner = token.ownerOf(tokenId2);
         assertEq(owner, admin);
-        assertEq(ICTMRWA1(ctmRwaAddr).getApproved(tokenId2), admin);
+        assertEq(token.getApproved(tokenId2), admin);
 
         vm.stopPrank();
 

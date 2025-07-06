@@ -9,14 +9,20 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {Helpers} from "../helpers/Helpers.sol";
 
+import {ICTMRWAERC20Deployer} from "../../src/deployment/ICTMRWAERC20Deployer.sol";
+import {ICTMRWAERC20} from "../../src/deployment/ICTMRWAERC20.sol";
+
 contract TestERC20Deployer is Helpers {
     using Strings for *;
 
     function test_deployErc20() public {
 
         vm.startPrank(tokenAdmin);
-        (ID, token) = CTMRWA1Deploy();
-        createSomeSlots(ID);
+        // (ID, token) = CTMRWA1Deploy();
+        // createSomeSlots(ID);
+
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
 
         uint256 slot = 1;
         string memory name = "Basic Stuff";

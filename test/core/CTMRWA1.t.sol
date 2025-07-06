@@ -10,17 +10,18 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Helpers} from "../helpers/Helpers.sol";
 
 import {ICTMRWA1} from "../../src/core/ICTMRWA1.sol";
+import {URIType, URICategory, URIData, ICTMRWA1Storage} from "../../src/storage/ICTMRWA1Storage.sol";
 
 contract TestCTMRWA1 is Helpers {
     using Strings for *;
 
     function test_getTokenList() public {
-        vm.startPrank(user1);
+        vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
         vm.stopPrank();
 
-        address[] memory adminTokens = rwa1X.getAllTokensByAdminAddress(user1);
+        address[] memory adminTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
         assertEq(adminTokens.length, 1);  // only one CTMRWA1 token deployed
         assertEq(address(token), adminTokens[0]);
 
@@ -102,7 +103,7 @@ contract TestCTMRWA1 is Helpers {
             tokenStr
         );
 
-        (, address stor) = map.getStorageContract(ID, rwaType, version);
+        (, address stor) = map.getStorageContract(ID, RWA_TYPE, VERSION);
 
         // Attempt to set admin as the Regulator's wallet
         vm.expectRevert("CTMRWA1Storage: No description of the Security is present");
