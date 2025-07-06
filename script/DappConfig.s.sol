@@ -8,8 +8,8 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // import {CTMRWAGateway} from "../flattened/CTMRWAGateway.sol";
 // import {FeeManager} from "../flattened/FeeManager.sol";
-import { ICTMRWAGateway } from "../contracts/interfaces/ICTMRWAGateway.sol";
-import { FeeType, IFeeManager } from "../contracts/interfaces/IFeeManager.sol";
+import { ICTMRWAGateway } from "../src/crosschain/ICTMRWAGateway.sol";
+import { FeeType, IFeeManager } from "../src/managers/IFeeManager.sol";
 
 struct NewChain {
     uint256 chainId;

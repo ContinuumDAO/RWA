@@ -9,19 +9,25 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
+import { ICTMRWA1InvestWithTimeLock, Offering, Holding } from "../../src/deployment/ICTMRWADeployInvest.sol";
+import { FeeType } from "../../src/managers/IFeeManager.sol";
+import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
+
 contract TestInvest is Helpers {
     using Strings for *;
 
     function test_invest() public {
         vm.startPrank(tokenAdmin);
-        (uint256 ID, address ctmRwaAddr) = CTMRWA1Deploy();
-        createSomeSlots(ID);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        (uint256 tokenId1,,) =
+            _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), tokenAdmin);
+
 
         uint256 oneUsdc = 10 ** usdc.decimals();
-        uint8 decimalsRwa = ICTMRWA1(ctmRwaAddr).valueDecimals();
+        uint8 decimalsRwa = token.valueDecimals();
         uint256 oneRwaUnit = 10 ** decimalsRwa;
 
-        string memory tokenStr = _toLower((address(usdc).toHexString()));
+        string memory feeTokenStr = address(usdc).toHexString();
 
         uint256 slot = 1;
 
@@ -31,7 +37,7 @@ contract TestInvest is Helpers {
             slot,
             4 * oneRwaUnit, // 4 apartments (2 bed)
             ID,
-            tokenStr
+            feeTokenStr
         );
 
         slot = 5;
@@ -42,7 +48,7 @@ contract TestInvest is Helpers {
             slot,
             2 * oneRwaUnit, // 2 apartments (3 bed)
             ID,
-            tokenStr
+            feeTokenStr
         );
 
         feeManager.setFeeMultiplier(FeeType.DEPLOYINVEST, 50);
@@ -52,12 +58,12 @@ contract TestInvest is Helpers {
         bool ok;
         address investContract;
 
-        address ctmInvest = deployer.deployNewInvestment(ID, rwaType, version, address(usdc));
+        address ctmInvest = deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
 
         vm.expectRevert("CTMDeploy: Investment contract already deployed");
-        deployer.deployNewInvestment(ID, rwaType, version, address(usdc));
+        deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
 
-        (ok, investContract) = map.getInvestContract(ID, rwaType, version);
+        (ok, investContract) = map.getInvestContract(ID, RWA_TYPE, VERSION);
         assertEq(ok, true);
         assertEq(investContract, ctmInvest);
 
@@ -112,7 +118,7 @@ contract TestInvest is Helpers {
             address(usdc)
         );
 
-        ICTMRWA1(ctmRwaAddr).approve(investContract, tokenIdAdmin);
+        token.approve(investContract, tokenIdAdmin);
         ICTMRWA1InvestWithTimeLock(investContract).createOffering(
             tokenIdAdmin,
             price,
@@ -135,7 +141,7 @@ contract TestInvest is Helpers {
         assertEq(offerings[0].tokenId, tokenIdAdmin);
         assertEq(offerings[0].currency, currency);
 
-        address tokenOwner = ICTMRWA1(ctmRwaAddr).ownerOf(tokenIdAdmin);
+        address tokenOwner = token.ownerOf(tokenIdAdmin);
         assertEq(tokenOwner, investContract);
 
         // try to add the same tokenId again
@@ -177,7 +183,7 @@ contract TestInvest is Helpers {
         usdc.approve(investContract, investment);
         tokenInEscrow = ICTMRWA1InvestWithTimeLock(investContract).investInOffering(indx, investment, address(usdc));
 
-        uint256 balInEscrow = ICTMRWA1(ctmRwaAddr).balanceOf(tokenInEscrow);
+        uint256 balInEscrow = token.balanceOf(tokenInEscrow);
         assertEq(balInEscrow * price, investment * oneRwaUnit);
 
         Holding memory myHolding = ICTMRWA1InvestWithTimeLock(investContract).listEscrowHolding(user1, 0);
@@ -187,7 +193,7 @@ contract TestInvest is Helpers {
         // block.timestamp hasn't advanced since the investOffering call
         assertEq(myHolding.escrowTime, offerings[myHolding.offerIndex].lockDuration + block.timestamp);
 
-        address owner = ICTMRWA1(ctmRwaAddr).ownerOf(tokenInEscrow);
+        address owner = token.ownerOf(tokenInEscrow);
         assertEq(owner, investContract);
 
         // skip(30*24*3600);
@@ -206,7 +212,7 @@ contract TestInvest is Helpers {
         skip(1 * 24 * 3600);
         ICTMRWA1InvestWithTimeLock(investContract).unlockTokenId(myHolding.offerIndex, address(usdc));
 
-        owner = ICTMRWA1(ctmRwaAddr).ownerOf(tokenInEscrow);
+        owner = token.ownerOf(tokenInEscrow);
         assertEq(owner, user1);
 
         // Try again
@@ -227,11 +233,11 @@ contract TestInvest is Helpers {
             false, // countryWLSwitch
             false, // countryBLSwitch
             _stringToArray(cIdStr),
-            tokenStr
+            feeTokenStr
         );
 
         // Create another holding for slot 5 this time
-        ICTMRWA1(ctmRwaAddr).approve(investContract, tokenIdAdmin2);
+        token.approve(investContract, tokenIdAdmin2);
         ICTMRWA1InvestWithTimeLock(investContract).createOffering(
             tokenIdAdmin2,
             price,
@@ -263,7 +269,7 @@ contract TestInvest is Helpers {
         vm.startPrank(tokenAdmin);
 
         sentryManager.addWhitelist(
-            ID, _stringToArray(user1.toHexString()), _boolToArray(true), _stringToArray(cIdStr), tokenStr
+            ID, _stringToArray(user1.toHexString()), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
         );
 
         vm.stopPrank();
@@ -303,7 +309,7 @@ contract TestInvest is Helpers {
 
         // Test to see if we can claim dividends whilst token is in escrow
 
-        address ctmDividend = ICTMRWA1(ctmRwaAddr).dividendAddr();
+        address ctmDividend = token.dividendAddr();
 
         ICTMRWA1Dividend(ctmDividend).setDividendToken(address(usdc));
 

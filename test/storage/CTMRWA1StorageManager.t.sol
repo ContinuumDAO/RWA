@@ -9,12 +9,16 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
-contract TestFeeManager is Helpers {
+import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
+import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
+
+contract TestStorageManager is Helpers {
     using Strings for *;
 
     function test_addURI() public {
-        (uint256 ID, address ctmRwaAddr) = CTMRWA1Deploy();
-        createSomeSlots(ID);
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
 
@@ -46,7 +50,7 @@ contract TestFeeManager is Helpers {
             tokenStr
         );
 
-        (bool ok, address thisStorage) = map.getStorageContract(ID, rwaType, version);
+        (bool ok, address thisStorage) = map.getStorageContract(ID, RWA_TYPE, VERSION);
 
         bool existObject = ICTMRWA1Storage(thisStorage).existObjectName("1");
         assertEq(existObject, true);
@@ -68,19 +72,23 @@ contract TestFeeManager is Helpers {
         // console.log("Issuer hash");
         // console.logBytes32(issuerHash);
         assertEq(issuerHash, junkHash);
+
+        vm.stopPrank();
     }
 
     function test_addURIX() public {
-        (uint256 ID, address ctmRwaAddr) = CTMRWA1Deploy();
-        createSomeSlots(ID);
-
-        string memory tokenStr = _toLower((address(usdc).toHexString()));
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        vm.stopPrank();
 
         URICategory _uriCategory = URICategory.ISSUER;
         URIType _uriType = URIType.CONTRACT;
 
         string memory randomData = "this is any old data";
         bytes32 junkHash = keccak256(abi.encode(randomData));
+
+        vm.startPrank(address(c3caller));
 
         vm.expectRevert("CTMRWA0CTMRWA1StorageManager: addURI Starting nonce mismatch");
         storageManager.addURIX(
@@ -107,7 +115,7 @@ contract TestFeeManager is Helpers {
             _bytes32ToArray(junkHash)
         );
 
-        (bool ok, address thisStorage) = map.getStorageContract(ID, rwaType, version);
+        (bool ok, address thisStorage) = map.getStorageContract(ID, RWA_TYPE, VERSION);
 
         uint256 newNonce = ICTMRWA1Storage(thisStorage).nonce();
         assertEq(newNonce, 2);
@@ -117,5 +125,7 @@ contract TestFeeManager is Helpers {
 
         URIData memory uri = ICTMRWA1Storage(thisStorage).getURIHash(junkHash);
         assertEq(stringsEqual(uri.title, "A Title"), true);
+
+        vm.stopPrank();
     }
 }
