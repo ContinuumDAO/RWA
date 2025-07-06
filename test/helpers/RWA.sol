@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.19;
 
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+
 import {Utils} from "../helpers/Utils.sol";
 
 import {ICTMRWA1X} from "../../src/crosschain/ICTMRWA1X.sol";
@@ -9,8 +11,10 @@ import {ICTMRWA1X} from "../../src/crosschain/ICTMRWA1X.sol";
 import {ICTMRWAMap} from "../../src/shared/ICTMRWAMap.sol";
 
 contract RWA is Utils {
+    using Strings for *;
+
     function _createSomeSlots(uint256 _ID, address usdc, address rwa1X) internal {
-        string[] memory someChainIdsStr = _stringToArray(cID().toString());
+        string[] memory someChainIdsStr = _stringToArray(cIdStr);
         string memory tokenStr = _toLower(usdc.toHexString());
 
         bool ok = ICTMRWA1X(rwa1X).createNewSlot(
