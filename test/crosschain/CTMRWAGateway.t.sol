@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.19;
 
-import {Test} from "forge-std/Test.sol";
-import {console} from "forge-std/console.sol";
+import { Test } from "forge-std/Test.sol";
+import { console } from "forge-std/console.sol";
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {Helpers} from "../helpers/Helpers.sol";
+import { Helpers } from "../helpers/Helpers.sol";
 
 contract TestGateway is Helpers {
     using Strings for *;
@@ -19,5 +19,4 @@ contract TestGateway is Helpers {
         //console.log(gway);
         assertEq(gway, address(gateway));
     }
-
 }

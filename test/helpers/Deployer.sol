@@ -2,39 +2,40 @@
 
 pragma solidity ^0.8.19;
 
-import {Utils} from "./Utils.sol";
+import { Utils } from "./Utils.sol";
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {C3UUIDKeeper} from "@c3caller/uuid/C3UUIDKeeper.sol";
-import {C3CallerProxy} from "@c3caller/C3CallerProxy.sol";
-import {C3Caller} from "@c3caller/C3Caller.sol";
-import {IC3Caller} from "@c3caller/IC3Caller.sol";
+import { C3Caller } from "@c3caller/C3Caller.sol";
+import { C3CallerProxy } from "@c3caller/C3CallerProxy.sol";
+import { IC3Caller } from "@c3caller/IC3Caller.sol";
+import { C3UUIDKeeper } from "@c3caller/uuid/C3UUIDKeeper.sol";
 
-import {CTMRWA1} from "../../src/core/CTMRWA1.sol";
-import {ICTMRWA1} from "../../src/core/ICTMRWA1.sol";
+import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
+import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 
-import {CTMRWAGateway} from "../../src/crosschain/CTMRWAGateway.sol";
-import {CTMRWA1X} from "../../src/crosschain/CTMRWA1X.sol";
-import {CTMRWA1XFallback} from "../../src/crosschain/CTMRWA1XFallback.sol";
+import { CTMRWA1X } from "../../src/crosschain/CTMRWA1X.sol";
+import { CTMRWA1XFallback } from "../../src/crosschain/CTMRWA1XFallback.sol";
+import { CTMRWAGateway } from "../../src/crosschain/CTMRWAGateway.sol";
 
-import {CTMRWADeployer} from "../../src/deployment/CTMRWADeployer.sol";
-import {CTMRWADeployInvest} from "../../src/deployment/CTMRWADeployInvest.sol";
-import {CTMRWA1TokenFactory} from "../../src/deployment/CTMRWA1TokenFactory.sol";
-import {CTMRWAERC20Deployer} from "../../src/deployment/CTMRWAERC20Deployer.sol";
+import { CTMRWA1TokenFactory } from "../../src/deployment/CTMRWA1TokenFactory.sol";
+import { CTMRWADeployInvest } from "../../src/deployment/CTMRWADeployInvest.sol";
+import { CTMRWADeployer } from "../../src/deployment/CTMRWADeployer.sol";
 
-import {CTMRWA1DividendFactory} from "../../src/dividend/CTMRWA1DividendFactory.sol";
+import { CTMRWAERC20Deployer } from "../../src/deployment/CTMRWAERC20Deployer.sol";
 
-import {FeeManager} from "../../src/managers/FeeManager.sol";
-import {FeeType} from "../../src/managers/IFeeManager.sol";
+import { CTMRWA1DividendFactory } from "../../src/dividend/CTMRWA1DividendFactory.sol";
 
-import {CTMRWA1SentryManager} from "../../src/sentry/CTMRWA1SentryManager.sol";
-import {CTMRWA1SentryUtils} from "../../src/sentry/CTMRWA1SentryUtils.sol";
+import { FeeManager } from "../../src/managers/FeeManager.sol";
+import { FeeType } from "../../src/managers/IFeeManager.sol";
 
-import {CTMRWAMap} from "../../src/shared/CTMRWAMap.sol";
+import { CTMRWA1SentryManager } from "../../src/sentry/CTMRWA1SentryManager.sol";
+import { CTMRWA1SentryUtils } from "../../src/sentry/CTMRWA1SentryUtils.sol";
 
-import {CTMRWA1StorageManager} from "../../src/storage/CTMRWA1StorageManager.sol";
-import {CTMRWA1StorageUtils} from "../../src/storage/CTMRWA1StorageUtils.sol";
+import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
+
+import { CTMRWA1StorageManager } from "../../src/storage/CTMRWA1StorageManager.sol";
+import { CTMRWA1StorageUtils } from "../../src/storage/CTMRWA1StorageUtils.sol";
 
 contract Deployer is Utils {
     using Strings for *;
@@ -45,7 +46,7 @@ contract Deployer is Utils {
     IC3Caller c3caller;
 
     FeeManager feeManager;
-    string[]  tokensStr;
+    string[] tokensStr;
     uint256[] fees;
 
     CTMRWAGateway gateway;
@@ -77,10 +78,7 @@ contract Deployer is Utils {
     function _deployC3Caller(address gov) internal {
         c3UUIDKeeper = new C3UUIDKeeper();
         c3callerImpl = new C3Caller();
-        bytes memory initializerData = abi.encodeWithSignature(
-            "initialize(address)",
-            address(c3UUIDKeeper)
-        );
+        bytes memory initializerData = abi.encodeWithSignature("initialize(address)", address(c3UUIDKeeper));
         c3callerProxy = new C3CallerProxy(address(c3callerImpl), initializerData);
         c3caller = IC3Caller(address(c3callerProxy));
     }
@@ -114,11 +112,7 @@ contract Deployer is Utils {
         fees.push(1000);
         fees.push(1000);
 
-        feeManager.addFeeToken(
-            destChain,
-            tokensStr,
-            fees
-        );
+        feeManager.addFeeToken(destChain, tokensStr, fees);
     }
 
     function _deployGateway(address gov, address admin) internal {
@@ -151,19 +145,11 @@ contract Deployer is Utils {
         string[] memory chainIdsStr = _stringToArray("1");
         string[] memory rwaXsStr = _stringToArray(address(rwa1X).toHexString());
 
-        gateway.attachRWAX(
-            RWA_TYPE,
-            VERSION,
-            chainIdsStr,
-            rwaXsStr
-        );
+        gateway.attachRWAX(RWA_TYPE, VERSION, chainIdsStr, rwaXsStr);
     }
 
     function _deployMap() internal {
-        map = new CTMRWAMap(
-            address(gateway),
-            address(rwa1X)
-        );
+        map = new CTMRWAMap(address(gateway), address(rwa1X));
     }
 
     function _deployCTMRWADeployer(address gov, address admin) internal {
@@ -185,10 +171,7 @@ contract Deployer is Utils {
             address(feeManager)
         );
 
-        ctmRwaErc20Deployer = new CTMRWAERC20Deployer(
-            address(map),
-            address(feeManager)
-        );
+        ctmRwaErc20Deployer = new CTMRWAERC20Deployer(address(map), address(feeManager));
 
         deployer.setDeployInvest(address(ctmRwaDeployInvest));
         deployer.setErc20DeployerAddress(address(ctmRwaErc20Deployer));
@@ -219,22 +202,14 @@ contract Deployer is Utils {
             address(feeManager)
         );
 
-        storageUtils = new CTMRWA1StorageUtils(
-            RWA_TYPE,
-            VERSION,
-            address(map),
-            address(storageManager)
-        );
+        storageUtils = new CTMRWA1StorageUtils(RWA_TYPE, VERSION, address(map), address(storageManager));
 
         storageManager.setStorageUtils(address(storageUtils));
         storageManager.setCtmRwaDeployer(address(deployer));
         storageManager.setCtmRwaMap(address(map));
         deployer.setStorageFactory(RWA_TYPE, VERSION, address(storageManager));
         gateway.attachStorageManager(
-            RWA_TYPE, 
-            VERSION, 
-            _stringToArray("1"),
-            _stringToArray(address(storageManager).toHexString())
+            RWA_TYPE, VERSION, _stringToArray("1"), _stringToArray(address(storageManager).toHexString())
         );
     }
 
@@ -253,21 +228,13 @@ contract Deployer is Utils {
 
         deployer.setSentryFactory(RWA_TYPE, VERSION, address(sentryManager));
 
-        sentryUtils = new CTMRWA1SentryUtils(
-            RWA_TYPE,
-            VERSION,
-            address(map),
-            address(sentryManager)
-        );
+        sentryUtils = new CTMRWA1SentryUtils(RWA_TYPE, VERSION, address(map), address(sentryManager));
 
         sentryManager.setSentryUtils(address(sentryUtils));
         sentryManager.setCtmRwaDeployer(address(deployer));
         sentryManager.setCtmRwaMap(address(map));
         gateway.attachSentryManager(
-            RWA_TYPE, 
-            VERSION, 
-            _stringToArray("1"),
-            _stringToArray(address(sentryManager).toHexString())
+            RWA_TYPE, VERSION, _stringToArray("1"), _stringToArray(address(sentryManager).toHexString())
         );
     }
 
@@ -299,7 +266,7 @@ contract Deployer is Utils {
             feeTokenStr
         );
 
-        (, address tokenAddress) =  map.getTokenContract(ID, RWA_TYPE, VERSION);
+        (, address tokenAddress) = map.getTokenContract(ID, RWA_TYPE, VERSION);
 
         token = ICTMRWA1(tokenAddress);
 

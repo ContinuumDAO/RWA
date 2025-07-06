@@ -2,19 +2,17 @@
 
 pragma solidity ^0.8.19;
 
-import {Test} from "forge-std/Test.sol";
-import {Helpers} from "./Helpers.sol";
+import { Helpers } from "./Helpers.sol";
+import { Test } from "forge-std/Test.sol";
 
-import {Accounts} from "./Accounts.sol";
-import {Deployer} from "./Deployer.sol";
-import {RWA} from "./RWA.sol";
+import { Accounts } from "./Accounts.sol";
+import { Deployer } from "./Deployer.sol";
+import { RWA } from "./RWA.sol";
 
 contract Helpers is Test, Accounts, Deployer, RWA {
     function setUp() public {
-        (admin, gov, treasury, user1, user2, tokenAdmin, tokenAdmin) = abi.decode(
-            abi.encode(_getAccounts()),
-            (address, address, address, address, address, address, address)
-        );
+        (admin, gov, treasury, user1, user2, tokenAdmin, tokenAdmin) =
+            abi.decode(abi.encode(_getAccounts()), (address, address, address, address, address, address, address));
 
         (ctm, usdc) = _deployFeeTokens();
 

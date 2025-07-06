@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.19;
 
-import {Test} from "forge-std/Test.sol";
-import {console} from "forge-std/console.sol";
+import { Test } from "forge-std/Test.sol";
+import { console } from "forge-std/console.sol";
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {Helpers} from "../helpers/Helpers.sol";
+import { Helpers } from "../helpers/Helpers.sol";
 
 contract TestFeeManager is Helpers {
     using Strings for *;
@@ -19,22 +19,17 @@ contract TestFeeManager is Helpers {
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
 
-        uint256 fee = feeManager.getXChainFee(
-            _stringToArray("1"),
-            false,
-            FeeType.TX,
-            tokenStr
-        );
-        
+        uint256 fee = feeManager.getXChainFee(_stringToArray("1"), false, FeeType.TX, tokenStr);
+
         assertEq(fee, 1000);
 
-        fee = fee*10**usdc.decimals()/100;
+        fee = fee * 10 ** usdc.decimals() / 100;
 
         vm.startPrank(user1);
         uint256 initBal = usdc.balanceOf(address(user1));
         uint256 feePaid = feeManager.payFee(fee, tokenStr);
         uint256 endBal = usdc.balanceOf(address(user1));
-        assertEq(initBal-feePaid, endBal);
+        assertEq(initBal - feePaid, endBal);
         vm.stopPrank();
 
         vm.startPrank(gov);
@@ -52,5 +47,4 @@ contract TestFeeManager is Helpers {
         assertEq(feeTokenList[0], address(ctm));
         vm.stopPrank();
     }
-
 }

@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.19;
 
-import {Utils} from "./Utils.sol";
+import { Utils } from "./Utils.sol";
 
-import {TestERC20} from "../../src/mocks/TestERC20.sol";
-import {ITestERC20} from "../../src/mocks/ITestERC20.sol";
+import { ITestERC20 } from "../../src/mocks/ITestERC20.sol";
+import { TestERC20 } from "../../src/mocks/TestERC20.sol";
 
 contract Accounts is Utils {
     TestERC20 usdc;
@@ -77,7 +77,9 @@ contract Accounts is Utils {
         _approveERC20(tokenAdmin2, token, amount, feeContracts);
     }
 
-    function _approveERC20(address account, ITestERC20 token, uint256 amount, FeeContracts memory feeContracts) private {
+    function _approveERC20(address account, ITestERC20 token, uint256 amount, FeeContracts memory feeContracts)
+        private
+    {
         vm.startPrank(account);
 
         token.approve(feeContracts.rwa1X, amount);

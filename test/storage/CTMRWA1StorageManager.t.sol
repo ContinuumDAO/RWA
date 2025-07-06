@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.19;
 
-import {Test} from "forge-std/Test.sol";
-import {console} from "forge-std/console.sol";
+import { Test } from "forge-std/Test.sol";
+import { console } from "forge-std/console.sol";
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {Helpers} from "../helpers/Helpers.sol";
+import { Helpers } from "../helpers/Helpers.sol";
 
 contract TestFeeManager is Helpers {
     using Strings for *;
@@ -17,7 +17,6 @@ contract TestFeeManager is Helpers {
         createSomeSlots(ID);
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
-
 
         string memory randomData = "this is any old data";
         bytes32 junkHash = keccak256(abi.encode(randomData));
@@ -35,7 +34,6 @@ contract TestFeeManager is Helpers {
             tokenStr
         );
 
-        
         storageManager.addURI(
             ID,
             "1",
@@ -63,13 +61,13 @@ contract TestFeeManager is Helpers {
         bytes32 issuerHash;
         string memory objectName;
 
-        (issuerHash, objectName) = ICTMRWA1Storage(thisStorage).getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, indx);
+        (issuerHash, objectName) =
+            ICTMRWA1Storage(thisStorage).getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, indx);
         // console.log("ObjectName");
         // console.log(objectName);
         // console.log("Issuer hash");
         // console.logBytes32(issuerHash);
         assertEq(issuerHash, junkHash);
-
     }
 
     function test_addURIX() public {
@@ -87,7 +85,7 @@ contract TestFeeManager is Helpers {
         vm.expectRevert("CTMRWA0CTMRWA1StorageManager: addURI Starting nonce mismatch");
         storageManager.addURIX(
             ID,
-            2,  // incorrect nonce
+            2, // incorrect nonce
             _stringToArray("1"),
             _uint8ToArray(uint8(_uriCategory)),
             _uint8ToArray(uint8(_uriType)),
@@ -112,14 +110,12 @@ contract TestFeeManager is Helpers {
         (bool ok, address thisStorage) = map.getStorageContract(ID, rwaType, version);
 
         uint256 newNonce = ICTMRWA1Storage(thisStorage).nonce();
-        assertEq(newNonce,2);
+        assertEq(newNonce, 2);
 
         bool exists = ICTMRWA1Storage(thisStorage).existObjectName("1");
         assertEq(exists, true);
 
         URIData memory uri = ICTMRWA1Storage(thisStorage).getURIHash(junkHash);
         assertEq(stringsEqual(uri.title, "A Title"), true);
-
     }
-
 }

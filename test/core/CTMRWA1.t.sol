@@ -3,14 +3,14 @@
 pragma solidity ^0.8.19;
 
 // import {Test} from "forge-std/Test.sol";
-import {console} from "forge-std/console.sol";
+import { console } from "forge-std/console.sol";
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {Helpers} from "../helpers/Helpers.sol";
+import { Helpers } from "../helpers/Helpers.sol";
 
-import {ICTMRWA1} from "../../src/core/ICTMRWA1.sol";
-import {URIType, URICategory, URIData, ICTMRWA1Storage} from "../../src/storage/ICTMRWA1Storage.sol";
+import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 
 contract TestCTMRWA1 is Helpers {
     using Strings for *;
@@ -22,10 +22,11 @@ contract TestCTMRWA1 is Helpers {
         vm.stopPrank();
 
         address[] memory adminTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
-        assertEq(adminTokens.length, 1);  // only one CTMRWA1 token deployed
+        assertEq(adminTokens.length, 1); // only one CTMRWA1 token deployed
         assertEq(address(token), adminTokens[0]);
 
-        address[] memory nRWA1 = rwa1X.getAllTokensByOwnerAddress(user1);  // List of CTMRWA1 tokens that user1 has or still has tokens in
+        address[] memory nRWA1 = rwa1X.getAllTokensByOwnerAddress(user1); // List of CTMRWA1 tokens that user1 has or
+            // still has tokens in
         assertEq(nRWA1.length, 1);
 
         uint256 tokenId;
@@ -35,7 +36,7 @@ contract TestCTMRWA1 is Helpers {
         uint256 slot;
         string memory slotName;
 
-        for(uint256 i=0; i<nRWA1.length; i++) {
+        for (uint256 i = 0; i < nRWA1.length; i++) {
             tokenId = ICTMRWA1(nRWA1[i]).tokenOfOwnerByIndex(user1, i);
             (id, bal, owner, slot, slotName,) = ICTMRWA1(nRWA1[i]).getTokenInfo(tokenId);
             // console.log(tokenId);
@@ -55,8 +56,6 @@ contract TestCTMRWA1 is Helpers {
         }
     }
 
-
-
     function test_forceTransfer() public {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
@@ -67,23 +66,9 @@ contract TestCTMRWA1 is Helpers {
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
 
-        uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(
-            user1,
-            0,
-            slot,
-            2000,
-            ID,
-            tokenStr
-        );
+        uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, tokenStr);
 
-        uint256 tokenId2User1 = rwa1X.mintNewTokenValueLocal(
-            user1,
-            0,
-            slot,
-            1000,
-            ID,
-            tokenStr
-        );
+        uint256 tokenId2User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, tokenStr);
 
         vm.expectRevert("RWA: Licensed Security override not set up");
         token.forceTransfer(user1, user2, tokenId1User1);
@@ -127,7 +112,6 @@ contract TestCTMRWA1 is Helpers {
         vm.expectRevert("RWA: Licensed Security override not set up");
         token.forceTransfer(user1, user2, tokenId1User1);
 
-
         // set admin as the Regulator's wallet
         ICTMRWA1Storage(stor).createSecurity(admin);
         assertEq(ICTMRWA1Storage(stor).regulatorWallet(), admin);
@@ -143,7 +127,7 @@ contract TestCTMRWA1 is Helpers {
 
         vm.stopPrank();
 
-        vm.startPrank(tokenAdmin2);  // tokenAdmin2 is the override wallet
+        vm.startPrank(tokenAdmin2); // tokenAdmin2 is the override wallet
         token.forceTransfer(user1, user2, tokenId1User1);
         assertEq(token.ownerOf(tokenId1User1), user2); // successful forceTransfer
         vm.stopPrank();
@@ -159,7 +143,8 @@ contract TestCTMRWA1 is Helpers {
         vm.stopPrank();
 
         vm.startPrank(tokenAdmin2);
-        vm.expectRevert("RWA: Licensed Security override not set up"); // Must re-setup override wallet if tokenAdmin has changed
+        vm.expectRevert("RWA: Licensed Security override not set up"); // Must re-setup override wallet if tokenAdmin
+            // has changed
         token.forceTransfer(user1, user2, tokenId2User1);
         vm.stopPrank();
     }
