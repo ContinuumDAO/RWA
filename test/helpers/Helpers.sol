@@ -25,7 +25,7 @@ contract Helpers is Test, Accounts, Deployer, RWA {
         _deployFeeManager(gov, admin, address(ctm), address(usdc));
         _deployGateway(gov, admin);
         _deployCTMRWA1X(gov, admin);
-        _deployMap();
+        _deployMap(gov, admin);
         _deployCTMRWADeployer(gov, admin);
         _deployTokenFactory();
         _deployDividendFactory();

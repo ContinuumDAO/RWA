@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.19;
 
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
-
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -28,7 +26,7 @@ import { ICTMRWA1Storage } from "../storage/ICTMRWA1Storage.sol";
  *
  * This token can be deployed many times and on multiple chains from CTMRWA1X
  */
-contract CTMRWA1 is ReentrancyGuard, Context, ICTMRWA1 {
+contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     using Strings for *;
 
     /// @notice Each CTMRWA1 corresponds to a single RWA. It is deployed on each chain
@@ -56,7 +54,7 @@ contract CTMRWA1 is ReentrancyGuard, Context, ICTMRWA1 {
     address ctmRwaMap;
 
     /**
-     * @dev ctmRwa1X is the single contract on each chain responsible for 
+     * @dev ctmRwa1X is the single contract on each chain responsible for
      *   Initiating deployment of an CTMRWA1 and its components
      *   Changing the tokenAdmin
      *   Defining Asset Classes (slots)
@@ -170,37 +168,37 @@ contract CTMRWA1 is ReentrancyGuard, Context, ICTMRWA1 {
     }
 
     modifier onlyTokenAdmin() {
-        require(_msgSender() == tokenAdmin || _msgSender() == ctmRwa1X, "RWA: onlyTokenAdmin");
+        require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "RWA: onlyTokenAdmin");
         _;
     }
 
     modifier onlyDeployer() {
-        require(_msgSender() == ctmRwaDeployer || _erc20s[_msgSender()], "RWA: Only Deployer/CTMRWAERC20");
+        require(msg.sender == ctmRwaDeployer || _erc20s[msg.sender], "RWA: Only Deployer/CTMRWAERC20");
         _;
     }
 
     modifier onlyCtmMap() {
-        require(_msgSender() == ctmRwaMap, "RWA: onlyCTMRWAMap");
+        require(msg.sender == ctmRwaMap, "RWA: onlyCTMRWAMap");
         _;
     }
 
     modifier onlyRwa1X() {
-        require(_msgSender() == ctmRwa1X || _msgSender() == rwa1XFallback, "RWA: Only CTMRWA1X");
+        require(msg.sender == ctmRwa1X || msg.sender == rwa1XFallback, "RWA: Only CTMRWA1X");
         _;
     }
 
     modifier onlyMinter() {
-        require(ICTMRWA1X(ctmRwa1X).isMinter(_msgSender()) || _erc20s[_msgSender()], "RWA: onlyMinter");
+        require(ICTMRWA1X(ctmRwa1X).isMinter(msg.sender) || _erc20s[msg.sender], "RWA: onlyMinter");
         _;
     }
 
     modifier onlyDividend() {
-        require(_msgSender() == dividendAddr, "RWA: onlyDividend");
+        require(msg.sender == dividendAddr, "RWA: onlyDividend");
         _;
     }
 
     modifier onlyERC20() {
-        require(_erc20s[_msgSender()], "RWA: onlyCTMRWAERC20");
+        require(_erc20s[msg.sender], "RWA: onlyCTMRWAERC20");
         _;
     }
 
@@ -445,7 +443,7 @@ contract CTMRWA1 is ReentrancyGuard, Context, ICTMRWA1 {
         address owner = CTMRWA1.ownerOf(_tokenId);
         require(_to != owner, "RWA: approval current owner");
 
-        require(isApprovedOrOwner(_msgSender(), _tokenId), "RWA: approve caller not owner/approved");
+        require(isApprovedOrOwner(msg.sender, _tokenId), "RWA: approve caller not owner/approved");
 
         _approveValue(_tokenId, _to, _value);
     }
@@ -473,7 +471,7 @@ contract CTMRWA1 is ReentrancyGuard, Context, ICTMRWA1 {
         onlyRwa1X
         returns (uint256 newTokenId)
     {
-        spendAllowance(_msgSender(), _fromTokenId, _value);
+        spendAllowance(msg.sender, _fromTokenId, _value);
 
         string memory thisSlotName = slotNameOf(_fromTokenId);
 
@@ -490,7 +488,7 @@ contract CTMRWA1 is ReentrancyGuard, Context, ICTMRWA1 {
      * @param _value The fungible value being transferred
      */
     function transferFrom(uint256 _fromTokenId, uint256 _toTokenId, uint256 _value) public override returns (address) {
-        spendAllowance(_msgSender(), _fromTokenId, _value);
+        spendAllowance(msg.sender, _fromTokenId, _value);
         _transferValue(_fromTokenId, _toTokenId, _value);
 
         return (ownerOf(_toTokenId));
@@ -504,7 +502,7 @@ contract CTMRWA1 is ReentrancyGuard, Context, ICTMRWA1 {
      * @param _tokenId The tokenId being transferred
      */
     function transferFrom(address _from, address _to, uint256 _tokenId) public onlyRwa1X {
-        require(isApprovedOrOwner(_msgSender(), _tokenId), "RWA: transfer caller not owner/approved");
+        require(isApprovedOrOwner(msg.sender, _tokenId), "RWA: transfer caller not owner/approved");
         _transferTokenId(_from, _to, _tokenId);
     }
 
@@ -516,7 +514,7 @@ contract CTMRWA1 is ReentrancyGuard, Context, ICTMRWA1 {
      */
     function forceTransfer(address _from, address _to, uint256 _tokenId) public returns (bool) {
         require(overrideWallet != address(0), "RWA: Licensed Security override not set up");
-        require(_msgSender() == overrideWallet, "RWA: Cannot forceTransfer");
+        require(msg.sender == overrideWallet, "RWA: Cannot forceTransfer");
         _transferTokenId(_from, _to, _tokenId);
 
         return true;
@@ -595,7 +593,7 @@ contract CTMRWA1 is ReentrancyGuard, Context, ICTMRWA1 {
         address owner = ownerOf(_tokenId);
         require(_to != owner, "RWA: approval current owner");
 
-        require(_msgSender() == owner, "RWA: approve caller not owner");
+        require(msg.sender == owner, "RWA: approve caller not owner");
 
         _approve(_to, _tokenId);
     }
@@ -700,7 +698,7 @@ contract CTMRWA1 is ReentrancyGuard, Context, ICTMRWA1 {
 
     /// @dev burn a tokenId, checking permissions
     function burn(uint256 _tokenId) public virtual {
-        require(isApprovedOrOwner(_msgSender(), _tokenId), "RWA: caller not owner/approved");
+        require(isApprovedOrOwner(msg.sender, _tokenId), "RWA: caller not owner/approved");
         _burn(_tokenId);
     }
 

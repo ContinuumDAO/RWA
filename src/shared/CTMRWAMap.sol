@@ -2,10 +2,13 @@
 
 pragma solidity ^0.8.19;
 
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { ICTMRWAAttachment } from "../shared/ICTMRWAMap.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
+import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
+
+import { ICTMRWAAttachment, ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -33,7 +36,7 @@ uint256 constant rwaType = 1;
 /// @dev version is the single integer version of this RWA type
 uint256 constant version = 1;
 
-contract CTMRWAMap is Context {
+contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
 
     /// @dev Address of the CTMRWAGateway contract
@@ -78,19 +81,35 @@ contract CTMRWAMap is Context {
     /// @dev CTMRWADeployInvest contract as string => ID
     mapping(string => uint256) investToId;
 
-    constructor(address _gateway, address _rwa1X) {
+    event LogFallback(bytes4 selector, bytes data, bytes reason);
+
+    function initialize(
+        address _gov,
+        address _c3callerProxy,
+        address _txSender,
+        uint256 _dappID,
+        address _gateway,
+        address _rwa1X
+    ) external initializer {
+        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
         gateway = _gateway;
         ctmRwa1X = _rwa1X;
         cIdStr = cID().toString();
     }
 
+    constructor() {
+        _disableInitializers();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+
     modifier onlyDeployer() {
-        require(_msgSender() == ctmRwaDeployer, "CTMRWAMap: This is an onlyDeployer function");
+        require(msg.sender == ctmRwaDeployer, "CTMRWAMap: This is an onlyDeployer function");
         _;
     }
 
     modifier onlyRwa1X() {
-        require(_msgSender() == ctmRwa1X, "CTMRWAMap: This is an onlyRwa1X function");
+        require(msg.sender == ctmRwa1X, "CTMRWAMap: This is an onlyRwa1X function");
         _;
     }
 
@@ -330,5 +349,15 @@ contract CTMRWAMap is Context {
         string[] memory strArray = new string[](1);
         strArray[0] = _string;
         return (strArray);
+    }
+
+    /// @dev Fallback function for failed c3call cross-chain. Only emits an event at present
+    function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
+        internal
+        override
+        returns (bool)
+    {
+        emit LogFallback(_selector, _data, _reason);
+        return true;
     }
 }

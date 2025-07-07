@@ -4,16 +4,17 @@ pragma solidity ^0.8.19;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
 import { FeeType, IFeeManager } from "./IFeeManager.sol";
 
-contract FeeManager is ReentrancyGuard, Context, C3GovernDapp, IFeeManager {
+contract FeeManager is IFeeManager, ReentrancyGuard, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -38,9 +39,18 @@ contract FeeManager is ReentrancyGuard, Context, C3GovernDapp, IFeeManager {
         uint256 veryHighGasFee;
     }
 
-    constructor(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)
-        C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID)
-    { }
+    function initialize(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)
+        external
+        initializer
+    {
+        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
+    }
+
+    constructor() {
+        _disableInitializers();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     event Withdrawal(address _oldFeeToken, address _recipient, uint256 _oldTokenContractBalance);
 
@@ -354,35 +364,11 @@ contract FeeManager is ReentrancyGuard, Context, C3GovernDapp, IFeeManager {
         return (feeParams[_feeToken]);
     }
 
-    function getGasFee(uint256 toChainId, address feeToken) public view returns (uint256) {
-        if (feeParams[feeToken].basePrice == 0) {
-            return 0;
-        }
-
-        uint256 gasPrice;
-        assembly {
-            gasPrice := gasprice()
-        }
-
-        if (toChainId == 1) {
-            if (gasPrice < feeParams[feeToken].lowGas) {
-                return (feeParams[feeToken].basePrice * feeParams[feeToken].lowGasFee);
-            } else if (gasPrice < feeParams[feeToken].normalGas) {
-                return (feeParams[feeToken].basePrice * feeParams[feeToken].normalGasFee);
-            } else if (gasPrice < feeParams[feeToken].highGas) {
-                return (feeParams[feeToken].basePrice * feeParams[feeToken].highGasFee);
-            } else {
-                return (feeParams[feeToken].basePrice * feeParams[feeToken].veryHighGasFee);
-            }
-        } else {
-            return (0);
-        } // only bother with Ethereum gas fees
-    }
-
     function cID() internal view returns (uint256) {
         return block.chainid;
     }
 
+    // TODO: add to a library
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         require(strBytes.length == 42, "FeeManager: Invalid address length");

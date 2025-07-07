@@ -9,9 +9,10 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
-import { ICTMRWA1InvestWithTimeLock, Offering, Holding } from "../../src/deployment/ICTMRWADeployInvest.sol";
-import { FeeType } from "../../src/managers/IFeeManager.sol";
+import { Holding, ICTMRWA1InvestWithTimeLock, Offering } from "../../src/deployment/ICTMRWADeployInvest.sol";
+
 import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
+import { FeeType } from "../../src/managers/IFeeManager.sol";
 
 contract TestInvest is Helpers {
     using Strings for *;
@@ -21,7 +22,6 @@ contract TestInvest is Helpers {
         (ID, token) = _deployCTMRWA1(address(usdc));
         (uint256 tokenId1,,) =
             _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), tokenAdmin);
-
 
         uint256 oneUsdc = 10 ** usdc.decimals();
         uint8 decimalsRwa = token.valueDecimals();

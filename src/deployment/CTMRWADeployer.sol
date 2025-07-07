@@ -2,16 +2,17 @@
 
 pragma solidity ^0.8.19;
 
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
-
 import { ICTMRWADeployInvest } from "../deployment/ICTMRWADeployInvest.sol";
 import { ICTMRWAFactory } from "../deployment/ICTMRWAFactory.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { ICTMRWADeployer } from "./ICTMRWADeployer.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -28,14 +29,14 @@ import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
-contract CTMRWADeployer is Context, C3GovernDapp {
+contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
 
     /// @dev The address of the CTMRWAGateway contract
-    address gateway;
+    address public gateway;
 
     /// @dev The address the FeeManager contract
-    address feeManager;
+    address public feeManager;
 
     /// @dev The address of the CTMRWA1X contract
     address public rwaX;
@@ -64,11 +65,11 @@ contract CTMRWADeployer is Context, C3GovernDapp {
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
     modifier onlyRwaX() {
-        require(_msgSender() == rwaX, "CTMRWADeployer: OnlyRwaX function");
+        require(msg.sender == rwaX, "CTMRWADeployer: OnlyRwaX function");
         _;
     }
 
-    constructor(
+    function initialize(
         address _gov,
         address _gateway,
         address _feeManager,
@@ -77,12 +78,19 @@ contract CTMRWADeployer is Context, C3GovernDapp {
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID
-    ) C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+    ) external initializer {
+        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
         gateway = _gateway;
         feeManager = _feeManager;
         rwaX = _rwaX;
         ctmRwaMap = _map;
     }
+
+    constructor() {
+        _disableInitializers();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     /// @notice Governance function to change the CTMRWAGateway contract address
     function setGateway(address _gateway) external onlyGov {
@@ -97,6 +105,10 @@ contract CTMRWADeployer is Context, C3GovernDapp {
     /// @notice Governance function to change the CTMRWA1X contract address
     function setRwaX(address _rwaX) external onlyGov {
         rwaX = _rwaX;
+    }
+
+    function setMap(address _ctmRwaMap) external onlyGov {
+        ctmRwaMap = _ctmRwaMap;
     }
 
     /**

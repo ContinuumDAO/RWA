@@ -7,6 +7,8 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
 import { ICTMRWA1, ITokenContract, TokenContract } from "../core/ICTMRWA1.sol";
@@ -16,6 +18,7 @@ import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.so
 
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
+import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
 import { ICTMRWA1StorageUtils } from "./ICTMRWA1StorageUtils.sol";
 
 interface TokenID {
@@ -33,7 +36,7 @@ interface TokenID {
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
-contract CTMRWA1StorageManager is Context, C3GovernDapp {
+contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -72,7 +75,7 @@ contract CTMRWA1StorageManager is Context, C3GovernDapp {
         _;
     }
 
-    constructor(
+    function initialize(
         address _gov,
         uint256 _rwaType,
         uint256 _version,
@@ -82,7 +85,8 @@ contract CTMRWA1StorageManager is Context, C3GovernDapp {
         address _ctmRwaDeployer,
         address _gateway,
         address _feeManager
-    ) C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+    ) external initializer {
+        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
         ctmRwaDeployer = _ctmRwaDeployer;
         rwaType = _rwaType;
         version = _version;
@@ -90,6 +94,12 @@ contract CTMRWA1StorageManager is Context, C3GovernDapp {
         feeManager = _feeManager;
         cIdStr = cID().toString();
     }
+
+    constructor() {
+        _disableInitializers();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     /**
      * @notice Governance can change to a new CTMRWAGateway contract
@@ -372,7 +382,7 @@ contract CTMRWA1StorageManager is Context, C3GovernDapp {
     function _getSM(string memory _toChainIdStr) internal view returns (string memory, string memory) {
         require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA1StorageManager: Not a cross-chain tokenAdmin change");
 
-        string memory fromAddressStr = _toLower(_msgSender().toHexString());
+        string memory fromAddressStr = _toLower(msg.sender.toHexString());
 
         (bool ok, string memory toSMStr) =
             ICTMRWAGateway(gateway).getAttachedStorageManager(rwaType, version, _toChainIdStr);
@@ -389,7 +399,7 @@ contract CTMRWA1StorageManager is Context, C3GovernDapp {
         address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = _toLower(currentAdmin.toHexString());
 
-        require(_msgSender() == currentAdmin, "CTMRWA1StorageManager: Not tokenAdmin");
+        require(msg.sender == currentAdmin, "CTMRWA1StorageManager: Not tokenAdmin");
 
         return (currentAdmin, currentAdminStr);
     }
@@ -505,7 +515,7 @@ contract CTMRWA1StorageManager is Context, C3GovernDapp {
             address feeToken = stringToAddress(_feeTokenStr);
             uint256 feeWei = _fee * 10 ** (IERC20Extended(feeToken).decimals() - 2);
 
-            IERC20(feeToken).transferFrom(_msgSender(), address(this), feeWei);
+            IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
 
             IERC20(feeToken).approve(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);

@@ -3,9 +3,9 @@
 pragma solidity ^0.8.19;
 
 interface ICTMRWAMap {
-    function gateway() external returns (address);
-    function rwaX() external returns (address);
-    function ctmRwaDeployer() external returns (address);
+    function gateway() external view returns (address);
+    function ctmRwa1X() external view returns (address);
+    function ctmRwaDeployer() external view returns (address);
 
     function setCtmRwaDeployer(address deployer, address gateway, address rwa1X) external;
 

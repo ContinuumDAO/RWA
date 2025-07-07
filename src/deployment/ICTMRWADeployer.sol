@@ -18,7 +18,9 @@ interface ICTMRWADeployer {
     function setDeployerMapFee() external;
     function setInvestCommissionRate(uint256 commissionRate) external;
 
-    function deploy(uint256 ID, uint256 rwaType, uint256 version, bytes memory deployData) external returns (address);
+    function deploy(uint256 _ID, uint256 _rwaType, uint256 _version, bytes memory deployData)
+        external
+        returns (address, address, address, address);
 
     function setTokenFactory(uint256 rwaType, uint256 version, address tokenFactory) external;
     function setDividendFactory(uint256 rwaType, uint256 version, address dividendFactory) external;

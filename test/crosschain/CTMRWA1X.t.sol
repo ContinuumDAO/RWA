@@ -137,7 +137,7 @@ contract TestCTMRWA1X is Helpers {
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
 
-        vm.startPrank(tokenAdmin);  // start with admin tokenAdmin
+        vm.startPrank(tokenAdmin); // start with admin tokenAdmin
         (ID, token) = _deployCTMRWA1(address(usdc));
 
         skip(10);
@@ -213,8 +213,9 @@ contract TestCTMRWA1X is Helpers {
         //     _ctmRwa1AddrStr
         // );
 
-        bytes memory callData =
-            abi.encodeWithSignature(sig, currentAdminStr, ID, tokenName, symbol, decimals, "GFLD", address(token).toHexString());
+        bytes memory callData = abi.encodeWithSignature(
+            sig, currentAdminStr, ID, tokenName, symbol, decimals, "GFLD", address(token).toHexString()
+        );
 
         bytes32 testUUID = keccak256(
             abi.encode(
@@ -275,14 +276,14 @@ contract TestCTMRWA1X is Helpers {
 
         vm.prank(address(c3caller));
         bool ok = rwa1X.deployCTMRWA1(
-            newAdminStr, 
-            ID, 
-            tokenName, 
-            symbol, 
-            decimals, 
-            baseURI, 
-            _uint256ToArray(7),  // slot numbers 
-            _stringToArray("test RWA")  // slot names
+            newAdminStr,
+            ID,
+            tokenName,
+            symbol,
+            decimals,
+            baseURI,
+            _uint256ToArray(7), // slot numbers
+            _stringToArray("test RWA") // slot names
         );
 
         assertEq(ok, true);
@@ -384,15 +385,8 @@ contract TestCTMRWA1X is Helpers {
         console.log("balStart");
         console.log(balStart);
 
-        bool ok = rwa1X.mintX(
-            ID,
-            user1.toHexString(),
-            user2.toHexString(),
-            // tokenId1,
-            5,
-            140 /*,
-            ctmRwaAddr.toHexString()*/
-        );
+        bool ok =
+            rwa1X.mintX(ID, user1.toHexString(), user2.toHexString(), tokenId1, 5, 140, address(token).toHexString());
 
         assertEq(ok, true);
 
@@ -465,8 +459,9 @@ contract TestCTMRWA1X is Helpers {
         //     ctmRwa1AddrStr
         // );
 
-        bytes memory callData =
-            abi.encodeWithSignature(sig, ID, user1Str, user1Str, tokenId1, slot, thisSlotName, value, address(token).toHexString());
+        bytes memory callData = abi.encodeWithSignature(
+            sig, ID, user1Str, user1Str, tokenId1, slot, thisSlotName, value, address(token).toHexString()
+        );
 
         bytes32 testUUID = keccak256(
             abi.encode(

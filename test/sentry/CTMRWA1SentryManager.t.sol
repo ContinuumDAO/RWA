@@ -251,7 +251,6 @@ contract TestSentryManager is Helpers {
     }
 
     function test_whitelists() public {
-
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
@@ -290,14 +289,20 @@ contract TestSentryManager is Helpers {
         ok = ICTMRWA1Sentry(sentry).isAllowableTransfer(user2.toHexString());
         assertEq(ok, false); // user2 not in whitelist, so is not now allowable
 
-        sentryManager.addWhitelist(ID, _stringToArray(user1Str), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addWhitelist(
+            ID, _stringToArray(user1Str), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
+        );
 
-        sentryManager.addWhitelist(ID, _stringToArray(user2Str), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addWhitelist(
+            ID, _stringToArray(user2Str), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
+        );
 
         ok = ICTMRWA1Sentry(sentry).isAllowableTransfer(user2Str);
         assertEq(ok, true); // user2 is now allowable
 
-        sentryManager.addWhitelist(ID, _stringToArray(user1Str), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addWhitelist(
+            ID, _stringToArray(user1Str), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr
+        );
 
         ok = ICTMRWA1Sentry(sentry).isAllowableTransfer(user1Str);
         assertEq(ok, false); // user1 was removed and is not now allowable
@@ -318,14 +323,18 @@ contract TestSentryManager is Helpers {
         assertEq(ok, true);
 
         vm.expectRevert("CTMRWA1SentryManager: Not tokenAdmin");
-        sentryManager.addWhitelist(ID, _stringToArray(tokenAdminStr), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addWhitelist(
+            ID, _stringToArray(tokenAdminStr), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr
+        );
 
         vm.stopPrank();
 
         vm.startPrank(user1);
 
         vm.expectRevert("CTMRWA1Sentry: Cannot remove tokenAdmin from the whitelist");
-        sentryManager.addWhitelist(ID, _stringToArray(user1Str), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addWhitelist(
+            ID, _stringToArray(user1Str), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr
+        );
 
         // Now we test token minting by the tokenAdmin
 

@@ -9,13 +9,6 @@ struct ChainContract {
 
 interface ICTMRWAGateway {
     function getChainCount() external view returns (uint256);
-    function chainContract() external view returns (ChainContract[] memory);
-    function addXChainInfo(
-        string memory tochainIdStr,
-        string memory toContractStr,
-        string[] memory chainIdsStr,
-        string[] memory contractAddrsStr
-    ) external;
     function addChainContract(string[] memory chainIdsStr, string[] memory contractsAddressStr)
         external
         returns (bool);
@@ -23,11 +16,6 @@ interface ICTMRWAGateway {
     function getChainContract(string memory chainIdStr) external view returns (string memory);
     function getAllRwaXChains(uint256 rwaType, uint256 version) external view returns (string[] memory);
     function existRwaXChain(uint256 rwaType, uint256 version, string memory chainIdStr) external view returns (bool);
-    function addXChainInfoX(
-        string[] memory chainIdsStr,
-        string[] memory contractAddrsStr,
-        string memory fromContractStr
-    ) external returns (bool); // onlyCaller
     function getAttachedRWAX(uint256 rwaType, uint256 version, string memory _chainIdStr)
         external
         view

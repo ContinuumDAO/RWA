@@ -10,7 +10,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { IC3Caller } from "@c3caller/IC3Caller.sol";
 
 import { ITheiaERC20 } from "@c3caller/theia/ITheiaERC20.sol";
-import { IUUIDKeeper } from "@c3caller/uuid/IUUIDKeeper.sol";
+import { IC3UUIDKeeper } from "@c3caller/uuid/IC3UUIDKeeper.sol";
 
 import { ICTMRWA1, SlotData } from "../src/core/ICTMRWA1.sol";
 
@@ -465,17 +465,6 @@ contract XChainTests is Script {
         vm.stopBroadcast();
     }
 
-    function debugRwaXCall() public {
-        string memory newAdminStr = admin.toHexString();
-        uint256 ID =
-            29_251_130_053_171_396_288_129_669_670_399_520_996_794_011_934_199_132_580_927_820_677_505_894_114_636;
-
-        bool ok = rwa1X.deployCTMRWA1(newAdminStr, ID, "Selqui SQ1", "SQ1", uint8(18), "GFLD", allSlots);
-
-        console.log("RETURNS");
-        console.log(ok);
-    }
-
     function createSlots(uint256 _ID, string[] memory chainIdsStr) public {
         vm.startBroadcast(senderPrivateKey);
 
@@ -720,7 +709,7 @@ contract XChainTests is Script {
         console.log("isUUIDExist");
         console.log(exists);
 
-        bool completed = IUUIDKeeper(c3UUIDKeeper).isCompleted(uuid);
+        bool completed = IC3UUIDKeeper(c3UUIDKeeper).isCompleted(uuid);
         console.log("isCompleted");
         console.log(completed);
     }

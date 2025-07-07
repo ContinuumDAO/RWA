@@ -141,7 +141,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard, Context {
     address public ctmRwaSentry;
 
     /**
-     * @dev ctmRwa1X is the single contract on each chain responsible for 
+     * @dev ctmRwa1X is the single contract on each chain responsible for
      *   Initiating deployment of an CTMRWA1 and its components
      *   Changing the tokenAdmin
      *   Defining Asset Classes (slots)

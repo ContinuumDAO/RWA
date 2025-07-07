@@ -2,12 +2,13 @@
 
 pragma solidity ^0.8.19;
 
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
-import { ChainContract } from "../crosschain/ICTMRWAGateway.sol";
+import { ChainContract, ICTMRWAGateway } from "./ICTMRWAGateway.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -20,7 +21,7 @@ import { ChainContract } from "../crosschain/ICTMRWAGateway.sol";
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
-contract CTMRWAGateway is Context, C3GovernDapp {
+contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
 
     string public cIdStr;
@@ -40,15 +41,23 @@ contract CTMRWAGateway is Context, C3GovernDapp {
     /// @dev Record that a c3Caller cross-chain transfer failed with fallback
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
-    /// @dev  This array holds ChainContract structs for all chains
-    ChainContract[] public chainContract;
+    /// @dev This array holds ChainContract structs for all chains
+    ChainContract[] private chainContract;
 
-    constructor(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)
-        C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID)
+    function initialize(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)
+        external
+        initializer
     {
+        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
         cIdStr = cID().toString();
         _addChainContract(cID(), address(this));
     }
+
+    constructor() {
+        _disableInitializers();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     /// @dev Adds the address of a CTMRWAGateway contract on another chainId
     function _addChainContract(uint256 _chainId, address _contractAddr) internal {

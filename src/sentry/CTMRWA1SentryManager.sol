@@ -4,8 +4,9 @@ pragma solidity ^0.8.19;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
@@ -14,9 +15,10 @@ import { ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAGateway } from "../crosschain/ICTMRWAGateway.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
 
-import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
-import { ICTMRWA1SentryUtils } from "../sentry/ICTMRWA1SentryUtils.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
+import { ICTMRWA1SentryManager } from "./ICTMRWA1SentryManager.sol";
+import { ICTMRWA1SentryUtils } from "./ICTMRWA1SentryUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -29,7 +31,7 @@ import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1Sentry contract
  * deployments and functions.
  */
-contract CTMRWA1SentryManager is Context, C3GovernDapp {
+contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -83,7 +85,7 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
         _;
     }
 
-    constructor(
+    function initialize(
         address _gov,
         uint256 _rwaType,
         uint256 _version,
@@ -93,7 +95,8 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
         address _ctmRwaDeployer,
         address _gateway,
         address _feeManager
-    ) C3GovernDapp(_gov, _c3callerProxy, _txSender, _dappID) {
+    ) external initializer {
+        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
         ctmRwaDeployer = _ctmRwaDeployer;
         rwaType = _rwaType;
         version = _version;
@@ -101,6 +104,12 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
         feeManager = _feeManager;
         cIdStr = block.chainid.toString();
     }
+
+    constructor() {
+        _disableInitializers();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     /**
      * @notice Governance can change to a new CTMRWAGateway contract
@@ -336,7 +345,7 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
 
         uint256 len = _wallets.length;
 
-        if (_msgSender() != identity) {
+        if (msg.sender != identity) {
             // charge a different fee if FeeType.KYC
             uint256 fee = _getFee(FeeType.WHITELIST, len, _chainIdsStr, _feeTokenStr);
             _payFee(fee, _feeTokenStr);
@@ -440,7 +449,7 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
             address feeToken = stringToAddress(_feeTokenStr);
             uint256 feeWei = _fee * 10 ** (IERC20Extended(feeToken).decimals() - 2);
 
-            IERC20(feeToken).transferFrom(_msgSender(), address(this), feeWei);
+            IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
 
             IERC20(feeToken).approve(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);
@@ -484,7 +493,7 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
     function _getSentry(string memory _toChainIdStr) internal view returns (string memory, string memory) {
         require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA1SentryManager: Not a cross-chain tokenAdmin change");
 
-        string memory fromAddressStr = _toLower(_msgSender().toHexString());
+        string memory fromAddressStr = _toLower(msg.sender.toHexString());
 
         (bool ok, string memory toSentryStr) =
             ICTMRWAGateway(gateway).getAttachedSentryManager(rwaType, version, _toChainIdStr);
@@ -497,7 +506,7 @@ contract CTMRWA1SentryManager is Context, C3GovernDapp {
         address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = _toLower(currentAdmin.toHexString());
 
-        require(_msgSender() == currentAdmin || _msgSender() == identity, "CTMRWA1SentryManager: Not tokenAdmin");
+        require(msg.sender == currentAdmin || msg.sender == identity, "CTMRWA1SentryManager: Not tokenAdmin");
 
         return (currentAdmin, currentAdminStr);
     }

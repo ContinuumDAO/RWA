@@ -4,6 +4,8 @@ pragma solidity ^0.8.19;
 import { Script } from "forge-std/Script.sol";
 import "forge-std/console.sol";
 
+import { Upgrades } from "@openzeppelin/foundry-upgrades/Upgrades.sol";
+
 import { CTMRWA1X } from "../src/crosschain/CTMRWA1X.sol";
 import { CTMRWA1XFallback } from "../src/crosschain/CTMRWA1XFallback.sol";
 import { CTMRWAGateway } from "../src/crosschain/CTMRWAGateway.sol";
@@ -73,29 +75,42 @@ contract Deploy is Script {
         uint256 dappID4 = vm.envUint("DAPP_ID4"); // CTMRWADEPLOYER
         uint256 dappID5 = vm.envUint("DAPP_ID5"); // CTMRWASTORAGE
         uint256 dappID6 = vm.envUint("DAPP_ID6"); // CTMRWASENTRY
+        uint256 dappID7 = vm.envUint("DAPP_ID7"); // CTMRWAMAP
 
         address txSender = deployer;
 
         vm.startBroadcast(deployerPrivateKey);
 
         // deploy fee manager
-        feeManager = new FeeManager(govAddr, c3callerProxyAddr, txSender, dappID2);
-        feeManagerAddr = address(feeManager);
+        feeManagerAddr = Upgrades.deployUUPSProxy(
+            "FeeManager.sol", abi.encodeCall(FeeManager.initialize, (govAddr, c3callerProxyAddr, txSender, dappID2))
+        );
+        feeManager = FeeManager(feeManagerAddr);
 
         console.log("feeManager");
         console.log(feeManagerAddr);
 
         // deploy gateway
-        gateway = new CTMRWAGateway(govAddr, c3callerProxyAddr, txSender, dappID1);
+        address gatewayAddress = Upgrades.deployUUPSProxy(
+            "CTMRWAGateway.sol",
+            abi.encodeCall(CTMRWAGateway.initialize, (govAddr, c3callerProxyAddr, txSender, dappID1))
+        );
+        gateway = CTMRWAGateway(gatewayAddress);
 
         console.log("gateway address");
         console.log(address(gateway));
 
         // deploy RWA1X
-        ctmRwa1X = new CTMRWA1X(address(gateway), feeManagerAddr, govAddr, c3callerProxyAddr, txSender, dappID3);
+        address rwa1XAddress = Upgrades.deployUUPSProxy(
+            "CTMRWA1X.sol",
+            abi.encodeCall(
+                CTMRWA1X.initialize, (address(gateway), feeManagerAddr, govAddr, c3callerProxyAddr, txSender, dappID3)
+            )
+        );
+        ctmRwa1X = CTMRWA1X(rwa1XAddress);
 
         console.log("ctmRwa1X address");
-        console.log(address(ctmRwa1X));
+        console.log(rwa1XAddress);
 
         ctmRwaFallback = new CTMRWA1XFallback(address(ctmRwa1X));
 
@@ -103,7 +118,13 @@ contract Deploy is Script {
         console.log("ctmRwaFallback address");
         console.log(address(ctmRwaFallback));
 
-        address ctmRwa1Map = deployMap();
+        address ctmRwa1Map = Upgrades.deployUUPSProxy(
+            "CTMRWAMap.sol",
+            abi.encodeCall(
+                CTMRWAMap.initialize,
+                (govAddr, c3callerProxyAddr, txSender, dappID7, address(gateway), address(ctmRwa1X))
+            )
+        );
 
         console.log("CTMRWAMap");
         console.log(ctmRwa1Map);
@@ -139,8 +160,21 @@ contract Deploy is Script {
         uint256 _dappIDStorageManager,
         uint256 _dappIDSentryManager
     ) internal returns (address, address, address, address, address) {
-        ctmRwaDeployer = new CTMRWADeployer(
-            _gov, address(gateway), feeManagerAddr, _rwa1X, _ctmRwa1Map, _c3callerProxy, _txSender, _dappIDDeployer
+        address deployerAddr = Upgrades.deployUUPSProxy(
+            "CTMRWADeployer.sol",
+            abi.encodeCall(
+                CTMRWADeployer.initialize,
+                (
+                    _gov,
+                    address(gateway),
+                    feeManagerAddr,
+                    _rwa1X,
+                    _ctmRwa1Map,
+                    _c3callerProxy,
+                    _txSender,
+                    _dappIDDeployer
+                )
+            )
         );
 
         ctmRwaDeployInvest = new CTMRWADeployInvest(_ctmRwa1Map, address(ctmRwaDeployer), 0, feeManagerAddr);
@@ -157,35 +191,45 @@ contract Deploy is Script {
         ctmRwaDeployer.setDeployInvest(address(ctmRwaDeployInvest));
         ctmRwaDeployer.setErc20DeployerAddress(address(ctmRwaErc20Deployer));
 
-        storageManager = new CTMRWA1StorageManager(
-            _gov,
-            _rwaType,
-            _version,
-            _c3callerProxy,
-            _txSender,
-            _dappIDStorageManager,
-            address(ctmRwaDeployer),
-            address(gateway),
-            feeManagerAddr
+        address storageManagerAddr = Upgrades.deployUUPSProxy(
+            "CTMRWA1StorageManager.sol",
+            abi.encodeCall(
+                CTMRWA1StorageManager.initialize,
+                (
+                    _gov,
+                    _rwaType,
+                    _version,
+                    _c3callerProxy,
+                    _txSender,
+                    _dappIDStorageManager,
+                    address(ctmRwaDeployer),
+                    address(gateway),
+                    feeManagerAddr
+                )
+            )
         );
-
-        address storageManagerAddr = address(storageManager);
+        storageManager = CTMRWA1StorageManager(storageManagerAddr);
 
         storageUtils = new CTMRWA1StorageUtils(_rwaType, _version, _ctmRwa1Map, storageManagerAddr);
 
-        sentryManager = new CTMRWA1SentryManager(
-            _gov,
-            _rwaType,
-            _version,
-            _c3callerProxy,
-            _txSender,
-            _dappIDSentryManager,
-            address(ctmRwaDeployer),
-            address(gateway),
-            feeManagerAddr
+        address sentryManagerAddr = Upgrades.deployUUPSProxy(
+            "CTMRWA1SentryManager.sol",
+            abi.encodeCall(
+                CTMRWA1SentryManager.initialize,
+                (
+                    _gov,
+                    _rwaType,
+                    _version,
+                    _c3callerProxy,
+                    _txSender,
+                    _dappIDSentryManager,
+                    address(ctmRwaDeployer),
+                    address(gateway),
+                    feeManagerAddr
+                )
+            )
         );
-
-        address sentryManagerAddr = address(sentryManager);
+        sentryManager = CTMRWA1SentryManager(sentryManagerAddr);
 
         sentryUtils = new CTMRWA1SentryUtils(_rwaType, _version, _ctmRwa1Map, sentryManagerAddr);
 
@@ -210,11 +254,5 @@ contract Deploy is Script {
             address(dividendFactory),
             address(tokenFactory)
         );
-    }
-
-    function deployMap() internal returns (address) {
-        ctmRwaMap = new CTMRWAMap(address(gateway), address(ctmRwa1X));
-
-        return (address(ctmRwaMap));
     }
 }

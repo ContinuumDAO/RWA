@@ -10,3 +10,6 @@
 [submodule "lib/c3caller"]
 	path = lib/c3caller
 	url = https://github.com/ContinuumDAO/c3caller
+[submodule "lib/openzeppelin-foundry-upgrades"]
+	path = lib/openzeppelin-foundry-upgrades
+	url = https://github.com/OpenZeppelin/openzeppelin-foundry-upgrades

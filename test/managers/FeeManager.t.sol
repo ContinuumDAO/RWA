@@ -9,7 +9,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
-import { IFeeManager, FeeType } from "../../src/managers/IFeeManager.sol";
+import { FeeType, IFeeManager } from "../../src/managers/IFeeManager.sol";
 
 contract TestFeeManager is Helpers {
     using Strings for *;

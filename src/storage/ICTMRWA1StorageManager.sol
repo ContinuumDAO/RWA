@@ -31,11 +31,14 @@ interface ICTMRWA1StorageManager {
     function transferURI(uint256 ID, string[] memory chainIdsStr, string memory feeTokenStr) external;
 
     function addURIX(
-        uint256 ID,
-        URICategory uriCategory,
-        URIType uriType,
-        uint256 slot,
-        string memory objectName,
-        bytes32 uriDataHash
+        uint256 _ID,
+        uint256 _startNonce,
+        string[] memory _objectName,
+        uint8[] memory _uriCategory,
+        uint8[] memory _uriType,
+        string[] memory _title,
+        uint256[] memory _slot,
+        uint256[] memory _timestamp,
+        bytes32[] memory _uriDataHash
     ) external returns (bool); // onlyCaller
 }
