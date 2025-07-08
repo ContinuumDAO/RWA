@@ -182,7 +182,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         returns (bool, string memory)
     {
         for (uint256 i = 0; i < rwaX[_rwaType][_version].length; i++) {
-            if (stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, _chainIdStr)) {
+            if (stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, _toLower(_chainIdStr))) {
                 return (true, rwaX[_rwaType][_version][i].contractStr);
             }
         }
@@ -230,7 +230,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         returns (bool, string memory)
     {
         for (uint256 i = 0; i < storageManager[_rwaType][_version].length; i++) {
-            if (stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, _chainIdStr)) {
+            if (stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, _toLower(_chainIdStr))) {
                 return (true, storageManager[_rwaType][_version][i].contractStr);
             }
         }
@@ -277,7 +277,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         returns (bool, string memory)
     {
         for (uint256 i = 0; i < sentryManager[_rwaType][_version].length; i++) {
-            if (stringsEqual(sentryManager[_rwaType][_version][i].chainIdStr, _chainIdStr)) {
+            if (stringsEqual(sentryManager[_rwaType][_version][i].chainIdStr, _toLower(_chainIdStr))) {
                 return (true, sentryManager[_rwaType][_version][i].contractStr);
             }
         }
@@ -305,7 +305,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
             string memory rwaXAddrStr = _toLower(_rwaXAddrsStr[j]);
             string memory chainIdStr = _toLower(_chainIdsStr[j]);
 
-            require(bytes(rwaXAddrStr).length == 42, "CTMRWAGateway: Incorrect address length");
+            require(bytes(rwaXAddrStr).length <= 64, "CTMRWAGateway: Incorrect address length");
 
             for (uint256 i = 0; i < rwaX[_rwaType][_version].length; i++) {
                 if (stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, chainIdStr)) {
@@ -350,7 +350,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
             string memory storageManagerAddrStr = _toLower(_storageManagerAddrsStr[j]);
             string memory chainIdStr = _toLower(_chainIdsStr[j]);
 
-            require(bytes(storageManagerAddrStr).length == 42, "CTMRWAGateway: Incorrect address length");
+            require(bytes(storageManagerAddrStr).length <= 64, "CTMRWAGateway: Incorrect address length");
 
             for (uint256 i = 0; i < storageManager[_rwaType][_version].length; i++) {
                 if (stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, chainIdStr)) {
@@ -394,7 +394,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
             string memory sentryManagerAddrStr = _toLower(_sentryManagerAddrsStr[j]);
             string memory chainIdStr = _toLower(_chainIdsStr[j]);
 
-            require(bytes(sentryManagerAddrStr).length == 42, "CTMRWAGateway: Incorrect address length");
+            require(bytes(sentryManagerAddrStr).length <= 64, "CTMRWAGateway: Incorrect address length");
 
             for (uint256 i = 0; i < sentryManager[_rwaType][_version].length; i++) {
                 if (stringsEqual(sentryManager[_rwaType][_version][i].chainIdStr, chainIdStr)) {

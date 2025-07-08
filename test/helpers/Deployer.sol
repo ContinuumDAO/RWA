@@ -133,8 +133,14 @@ contract Deployer is Utils {
 
         rwa1X.setFallback(address(rwa1XFallback));
 
-        string[] memory chainIdsStr = _stringToArray("1");
-        string[] memory rwaXsStr = _stringToArray(address(rwa1X).toHexString());
+        string[] memory chainIdsStr = new string[](2);
+        string[] memory rwaXsStr = new string[](2);
+
+        chainIdsStr[0] = cIdStr;
+        chainIdsStr[1] = "NEARChainId";
+
+        rwaXsStr[0] = address(rwa1X).toHexString();
+        rwaXsStr[1] = "thisIsSomeRandomAddressOnNEARForTestingWallet123456789.test.near";
 
         gateway.attachRWAX(RWA_TYPE, VERSION, chainIdsStr, rwaXsStr);
     }
