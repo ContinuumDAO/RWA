@@ -86,10 +86,6 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         ctmRwaMap = _map;
     }
 
-    // constructor() {
-    //     _disableInitializers();
-    // }
-
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     /// @notice Governance function to change the CTMRWAGateway contract address

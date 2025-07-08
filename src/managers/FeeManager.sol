@@ -47,10 +47,6 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
     }
 
-    // constructor() {
-    //     _disableInitializers();
-    // }
-
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     event Withdrawal(address _oldFeeToken, address _recipient, uint256 _oldTokenContractBalance);

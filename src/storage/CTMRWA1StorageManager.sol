@@ -20,9 +20,9 @@ import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storag
 import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
 import { ICTMRWA1StorageUtils } from "./ICTMRWA1StorageUtils.sol";
 
-interface TokenID {
-    function ID() external view returns (uint256);
-}
+// interface TokenID {
+//     function ID() external view returns (uint256);
+// }
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -93,10 +93,6 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         feeManager = _feeManager;
         cIdStr = cID().toString();
     }
-
-    // constructor() {
-    //     _disableInitializers();
-    // }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 

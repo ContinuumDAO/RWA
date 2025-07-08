@@ -4,9 +4,9 @@ pragma solidity ^0.8.22;
 
 import { CTMRWA1Dividend } from "./CTMRWA1Dividend.sol";
 
-interface TokenID {
-    function ID() external view returns (uint256);
-}
+// interface TokenID {
+//     function ID() external view returns (uint256);
+// }
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)

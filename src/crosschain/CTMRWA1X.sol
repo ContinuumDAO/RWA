@@ -91,10 +91,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         isMinter[address(this)] = true;
     }
 
-    // constructor() {
-    //     _disableInitializers();
-    // }
-
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     /**
