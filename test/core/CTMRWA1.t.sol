@@ -61,7 +61,6 @@ contract TestCTMRWA1 is Helpers {
         _createSomeSlots(ID, address(usdc), address(rwa1X));
 
         uint256 slot = 1;
-        string memory name = "Basic Stuff";
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
 

@@ -20,8 +20,7 @@ contract TestInvest is Helpers {
     function test_invest() public {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
-        (uint256 tokenId1,,) =
-            _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), tokenAdmin);
+        _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), tokenAdmin);
 
         uint256 oneUsdc = 10 ** usdc.decimals();
         uint8 decimalsRwa = token.valueDecimals();
@@ -316,7 +315,7 @@ contract TestInvest is Helpers {
         uint256 divRate = 2;
         ICTMRWA1Dividend(ctmDividend).changeDividendRate(5, divRate);
 
-        uint256 dividendTotal = ICTMRWA1Dividend(ctmDividend).getTotalDividend();
+        // uint256 dividendTotal = ICTMRWA1Dividend(ctmDividend).getTotalDividend();
 
         // usdc.approve(ctmDividend, dividendTotal);
         // uint256 unclaimed = ICTMRWA1Dividend(ctmDividend).fundDividend();

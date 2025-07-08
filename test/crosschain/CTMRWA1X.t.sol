@@ -97,7 +97,7 @@ contract TestCTMRWA1X is Helpers {
     function test_localTransferX() public {
         vm.startPrank(tokenAdmin); // this CTMRWA1 has an admin of tokenAdmin
         (ID, token) = _deployCTMRWA1(address(usdc));
-        (uint256 tokenId, uint256 tokenId2, uint256 tokenId3) =
+        (uint256 tokenId, uint256 tokenId2,) =
             _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
 
         address[] memory feeTokenList = feeManager.getFeeTokenList();
@@ -319,9 +319,9 @@ contract TestCTMRWA1X is Helpers {
 
         uint256 dapp = 2;
 
-        string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
+        string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
         bytes memory inputData = abi.encodeWithSignature(
-            funcCall, ID, tokenAdmin.toHexString(), user2.toHexString(), 0, slot, 10, address(token).toHexString()
+            funcCall, ID, tokenAdmin.toHexString(), user2.toHexString(), slot, 10
         );
 
         // library C3CallerStructLib {
@@ -362,15 +362,6 @@ contract TestCTMRWA1X is Helpers {
     }
 
     function test_transferTokenIdToAddressExecute() public {
-        // function mintX(
-        //     uint256 _ID,
-        //     string memory _fromAddressStr,
-        //     string memory _toAddressStr,
-        //     uint256 _fromTokenId,
-        //     uint256 _slot,
-        //     uint256 _balance,
-        //     string memory _fromTokenStr
-        // ) external onlyCaller returns(bool){
 
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
@@ -386,7 +377,7 @@ contract TestCTMRWA1X is Helpers {
         console.log(balStart);
 
         bool ok =
-            rwa1X.mintX(ID, user1.toHexString(), user2.toHexString(), tokenId1, 5, 140, address(token).toHexString());
+            rwa1X.mintX(ID, user1.toHexString(), user2.toHexString(), 5, 140);
 
         assertEq(ok, true);
 
@@ -435,32 +426,29 @@ contract TestCTMRWA1X is Helpers {
         */
 
         string memory user1Str = user1.toHexString();
-        address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory feeTokenStr = address(usdc).toHexString();
         string memory toChainIdStr = "1";
-        string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
+        string memory sig = "mintX(uint256,string,string,uint256,uint256)";
 
         (, string memory toRwaXStr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, toChainIdStr);
-        (, uint256 value,, uint256 slot, string memory slotName,) = token.getTokenInfo(tokenId1);
+        (, uint256 value,, uint256 slot,,) = token.getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
         string memory thisSlotName = token.slotName(slot);
 
-        // string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
+        // string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
         // bytes memory callData = abi.encodeWithSignature(
         //     funcCall,
         //     _ID,
         //     fromAddressStr,
         //     _toAddressStr,
-        //     _fromTokenId,
         //     slot,
         //     slotName,
-        //     value,
-        //     ctmRwa1AddrStr
+        //     value
         // );
 
         bytes memory callData = abi.encodeWithSignature(
-            sig, ID, user1Str, user1Str, tokenId1, slot, thisSlotName, value, address(token).toHexString()
+            sig, ID, user1Str, user1Str, slot, thisSlotName, value
         );
 
         bytes32 testUUID = keccak256(
@@ -501,7 +489,6 @@ contract TestCTMRWA1X is Helpers {
         vm.stopPrank();
 
         string memory user1Str = user1.toHexString();
-        address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory feeTokenStr = address(usdc).toHexString();
         string memory toChainIdStr = "1";
 
@@ -510,7 +497,7 @@ contract TestCTMRWA1X is Helpers {
         (, uint256 value,, uint256 slot, string memory thisSlotName,) = token.getTokenInfo(tokenId1);
         uint256 currentNonce = c3UUIDKeeper.currentNonce();
 
-        string memory sig = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
+        string memory sig = "mintX(uint256,string,string,uint256,uint256)";
 
         // string memory funcCall = "mintX(uint256,string,string,uint256,uint256,string,uint256,string)";
         // bytes memory callData = abi.encodeWithSignature(
@@ -518,11 +505,9 @@ contract TestCTMRWA1X is Helpers {
         //     _ID,
         //     fromAddressStr,
         //     _toAddressStr,
-        //     _fromTokenId,
         //     slot,
         //     thisSlotName,
-        //     _value,
-        //     ctmRwa1AddrStr
+        //     _value
         // );
 
         console.log("SLOTNAME");

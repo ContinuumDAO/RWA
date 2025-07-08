@@ -24,10 +24,7 @@ contract TestSentryManager is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
 
         (bool ok, address sentry) = map.getSentryContract(ID, RWA_TYPE, VERSION);
-
-        string memory tokenAdminStr = admin.toHexString();
-        string memory user1Str = user1.toHexString();
-        string memory user2Str = user2.toHexString();
+        assertEq(ok, true);
 
         vm.stopPrank();
 
@@ -240,7 +237,7 @@ contract TestSentryManager is Helpers {
             false // countryBLSwitch
         );
 
-        (bool ok, address sentry) = map.getSentryContract(ID, RWA_TYPE, VERSION);
+        (, address sentry) = map.getSentryContract(ID, RWA_TYPE, VERSION);
 
         bool whitelistSwitch = ICTMRWA1Sentry(sentry).whitelistSwitch();
         assertEq(whitelistSwitch, true);
@@ -376,13 +373,11 @@ contract TestSentryManager is Helpers {
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
 
-        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        // (, address sentry) = map.getSentryContract(ID, RWA_TYPE, VERSION);
 
-        (bool ok, address sentry) = map.getSentryContract(ID, RWA_TYPE, VERSION);
-
-        string memory adminStr = admin.toHexString();
-        string memory user1Str = user1.toHexString();
-        string memory user2Str = user2.toHexString();
+        // string memory adminStr = admin.toHexString();
+        // string memory user1Str = user1.toHexString();
+        // string memory user2Str = user2.toHexString();
 
         vm.stopPrank();
     }

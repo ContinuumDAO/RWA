@@ -145,6 +145,9 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
     /// @dev The address of the CTMRWA1 contract that called this
     address ctmRwaToken;
 
+    /// @dev Max number of tokens to iterate through for balance transfers (block gas limit check)
+    uint256 constant MAX_TOKENS = 100;
+
     constructor(
         uint256 _ID,
         uint256 _rwaType,
@@ -300,7 +303,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
                     ICTMRWA1(ctmRwaToken).clearApprovedValuesErc20(tokenId);
                     emit Transfer(_from, _to, _value);
                     return;
-                } else {
+                } else if (i < MAX_TOKENS) {
                     ICTMRWA1(ctmRwaToken).approve(tokenId, _to, tokenIdBal);
                     ICTMRWA1(ctmRwaToken).transferFrom(tokenId, newTokenId, tokenIdBal);
                     valRemaining -= tokenIdBal;
@@ -308,6 +311,8 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
                         emit Transfer(_from, _to, _value);
                         return;
                     }
+                } else {
+                    revert("CTMRWAERC20: Exceeded max number of tokens 100");
                 }
             }
         }

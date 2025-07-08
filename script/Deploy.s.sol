@@ -161,7 +161,7 @@ contract Deploy is Script {
         uint256 _dappIDStorageManager,
         uint256 _dappIDSentryManager
     ) internal returns (address, address, address, address, address) {
-        address deployerAddr = Upgrades.deployUUPSProxy(
+        Upgrades.deployUUPSProxy(
             "CTMRWADeployer.sol",
             abi.encodeCall(
                 CTMRWADeployer.initialize,

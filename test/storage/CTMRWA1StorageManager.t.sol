@@ -51,6 +51,7 @@ contract TestStorageManager is Helpers {
         );
 
         (bool ok, address thisStorage) = map.getStorageContract(ID, RWA_TYPE, VERSION);
+        assertEq(ok, true);
 
         bool existObject = ICTMRWA1Storage(thisStorage).existObjectName("1");
         assertEq(existObject, true);
@@ -115,7 +116,7 @@ contract TestStorageManager is Helpers {
             _bytes32ToArray(junkHash)
         );
 
-        (bool ok, address thisStorage) = map.getStorageContract(ID, RWA_TYPE, VERSION);
+        (, address thisStorage) = map.getStorageContract(ID, RWA_TYPE, VERSION);
 
         uint256 newNonce = ICTMRWA1Storage(thisStorage).nonce();
         assertEq(newNonce, 2);

@@ -599,7 +599,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     ) public returns (uint256) {
         string memory toChainIdStr = _toLower(_toChainIdStr);
 
-        (address ctmRwa1Addr, string memory ctmRwa1AddrStr) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId), "RWAX: Not approved or owner");
 
         if (stringsEqual(toChainIdStr, cIDStr)) {
@@ -621,10 +621,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
             ICTMRWA1(ctmRwa1Addr).burnValueX(_fromTokenId, _value);
 
-            string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
+            string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
 
             bytes memory callData = abi.encodeWithSignature(
-                funcCall, _ID, fromAddressStr, _toAddressStr, _fromTokenId, slot, _value, ctmRwa1AddrStr
+                funcCall, _ID, fromAddressStr, _toAddressStr, slot, _value
             );
 
             c3call(toRwaXStr, toChainIdStr, callData);
@@ -654,7 +654,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     ) public {
         string memory toChainIdStr = _toLower(_toChainIdStr);
 
-        (address ctmRwa1Addr, string memory ctmRwa1AddrStr) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         address fromAddr = stringToAddress(_fromAddrStr);
         require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId), "RWAX: Not owner/approved");
 
@@ -676,9 +676,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
             ICTMRWA1(ctmRwa1Addr).removeTokenFromOwnerEnumeration(msg.sender, _fromTokenId);
 
-            string memory funcCall = "mintX(uint256,string,string,uint256,uint256,uint256,string)";
+            string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
             bytes memory callData = abi.encodeWithSignature(
-                funcCall, _ID, _fromAddrStr, _toAddressStr, _fromTokenId, slot, value, ctmRwa1AddrStr
+                funcCall, _ID, _fromAddrStr, _toAddressStr, slot, value
             );
 
             c3call(toRwaXStr, toChainIdStr, callData);
@@ -696,10 +696,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         uint256 _ID,
         string memory _fromAddressStr,
         string memory _toAddressStr,
-        uint256 _fromTokenId,
         uint256 _slot,
-        uint256 _balance,
-        string memory _fromTokenStr
+        uint256 _balance
     ) external onlyCaller returns (bool) {
         (, string memory fromChainIdStr,) = context();
 

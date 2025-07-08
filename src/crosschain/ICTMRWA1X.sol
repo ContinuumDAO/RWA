@@ -118,9 +118,7 @@ interface ICTMRWA1X {
         uint256 _ID,
         string memory _fromAddressStr,
         string memory _toAddressStr,
-        uint256 _fromTokenId,
         uint256 _slot,
-        uint256 _balance,
-        string memory _fromTokenStr
+        uint256 _balance
     ) external returns (bool); // onlyCaller
 }

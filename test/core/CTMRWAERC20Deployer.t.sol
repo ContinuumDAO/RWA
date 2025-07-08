@@ -57,12 +57,8 @@ contract TestERC20Deployer is Helpers {
         ts = ICTMRWAERC20(newErc20).totalSupply();
         assertEq(ts, 2000);
 
-        uint256 tokenId1User2 = rwa1X.mintNewTokenValueLocal(user2, 0, slot, 3000, ID, tokenStr);
-
         ts = ICTMRWAERC20(newErc20).totalSupply();
         assertEq(ts, 5000);
-
-        uint256 tokenId2User2 = rwa1X.mintNewTokenValueLocal(user2, 0, slot, 4000, ID, tokenStr);
 
         uint256 balUser2 = ICTMRWAERC20(newErc20).balanceOf(user2);
         assertEq(balUser2, 7000);
