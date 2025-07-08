@@ -4,6 +4,11 @@ libs = ["lib"]
 optimizer = true
 optimizer_runs = 100
 via_ir = true
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
+gas_limit = 100_000_000 
 solc = "0.8.27"
 
 remappings = [

@@ -105,9 +105,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         cIdStr = block.chainid.toString();
     }
 
-    constructor() {
-        _disableInitializers();
-    }
+    // constructor() {
+    //     _disableInitializers();
+    // }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 

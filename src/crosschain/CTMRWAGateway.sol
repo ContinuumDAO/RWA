@@ -53,9 +53,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         _addChainContract(cID(), address(this));
     }
 
-    constructor() {
-        _disableInitializers();
-    }
+    // constructor() {
+    //     _disableInitializers();
+    // }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 

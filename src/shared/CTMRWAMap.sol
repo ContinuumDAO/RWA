@@ -97,9 +97,9 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         cIdStr = cID().toString();
     }
 
-    constructor() {
-        _disableInitializers();
-    }
+    // constructor() {
+    //     _disableInitializers();
+    // }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 

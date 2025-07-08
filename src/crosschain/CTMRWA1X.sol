@@ -71,6 +71,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      */
     mapping(address => address[]) public ownedCtmRwa1;
 
+    uint256 constant MAX_SLOTS = 5;
+
     function initialize(
         address _gateway,
         address _feeManager,
@@ -89,9 +91,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         isMinter[address(this)] = true;
     }
 
-    constructor() {
-        _disableInitializers();
-    }
+    // constructor() {
+    //     _disableInitializers();
+    // }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
@@ -516,6 +518,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         require(bytes(_slotName).length <= 256, "RWAX: Slot > 256");
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         require(!ICTMRWA1(ctmRwa1Addr).slotExists(_slot), "RWAX: Slot that already exists");
+        require(ICTMRWA1(ctmRwa1Addr).slotCount() < MAX_SLOTS, "RWAX: Too many slots");
 
         _checkTokenAdmin(ctmRwa1Addr);
 

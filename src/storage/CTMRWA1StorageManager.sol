@@ -95,9 +95,9 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         cIdStr = cID().toString();
     }
 
-    constructor() {
-        _disableInitializers();
-    }
+    // constructor() {
+    //     _disableInitializers();
+    // }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 

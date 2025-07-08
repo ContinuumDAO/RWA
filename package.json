@@ -9,6 +9,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@openzeppelin/upgrades-core": "^1.44.1",
     "dotenv": "^16.4.5",
     "ethers": "^6.13.4",
     "path": "^0.12.7"
