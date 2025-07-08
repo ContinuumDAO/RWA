@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
@@ -23,7 +22,7 @@ import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storag
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1Storage contract
  * deployments and c3Fallbacks.
  */
-contract CTMRWA1StorageUtils is Context {
+contract CTMRWA1StorageUtils {
     using Strings for *;
 
     uint256 rwaType;
@@ -35,7 +34,7 @@ contract CTMRWA1StorageUtils is Context {
     bytes public lastReason;
 
     modifier onlyStorageManager() {
-        require(_msgSender() == storageManager, "CTMRWA1StorageUtils: onlyStorageManager function");
+        require(msg.sender == storageManager, "CTMRWA1StorageUtils: onlyStorageManager function");
         _;
     }
 
@@ -60,7 +59,7 @@ contract CTMRWA1StorageUtils is Context {
         returns (address)
     {
         CTMRWA1Storage ctmRwa1Storage =
-            new CTMRWA1Storage{ salt: bytes32(_ID) }(_ID, _tokenAddr, _rwaType, _version, _msgSender(), _map);
+            new CTMRWA1Storage{ salt: bytes32(_ID) }(_ID, _tokenAddr, _rwaType, _version, msg.sender, _map);
 
         return (address(ctmRwa1Storage));
     }

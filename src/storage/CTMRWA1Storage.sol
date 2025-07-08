@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
@@ -24,7 +23,7 @@ import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
  * Its ID matches the ID in CTMRWA1.
  * The cross-chain functionality is managed by CTMRWA1StorageManager
  */
-contract CTMRWA1Storage is Context {
+contract CTMRWA1Storage {
     using Strings for *;
 
     /// @dev The CTMRWA1 contract address linked to this contract
@@ -96,13 +95,13 @@ contract CTMRWA1Storage is Context {
     event NewURI(URICategory uriCategory, URIType uriType, uint256 slot, bytes32 uriDataHash);
 
     modifier onlyTokenAdmin() {
-        require(_msgSender() == tokenAdmin || _msgSender() == ctmRwa1X, "CTMRWA1Storage: onlyTokenAdmin function");
+        require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "CTMRWA1Storage: onlyTokenAdmin function");
         _;
     }
 
     modifier onlyStorageManager() {
         require(
-            _msgSender() == storageManagerAddr || _msgSender() == storageUtilsAddr,
+            msg.sender == storageManagerAddr || msg.sender == storageUtilsAddr,
             "CTMRWA1Storage: onlyStorageManager function"
         );
         _;

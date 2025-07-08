@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
-
+import {ICTMRWA1XFallback} from "./ICTMRWA1XFallback.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 
 /**
@@ -14,7 +13,7 @@ import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
-contract CTMRWA1XFallback is Context {
+contract CTMRWA1XFallback is ICTMRWA1XFallback {
     address public rwa1X;
 
     bytes4 public lastSelector;
@@ -22,12 +21,9 @@ contract CTMRWA1XFallback is Context {
     bytes public lastReason;
 
     modifier onlyRwa1X() {
-        require(_msgSender() == rwa1X, "CTMRWA1XFallback: onlyRwa1X function");
+        require(msg.sender == rwa1X, "CTMRWA1XFallback: onlyRwa1X function");
         _;
     }
-
-    event LogFallback(bytes4 selector, bytes data, bytes reason);
-    event ReturnValueFallback(address to, uint256 slot, uint256 value);
 
     bytes4 public MintX = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256,uint256,string)"));
 

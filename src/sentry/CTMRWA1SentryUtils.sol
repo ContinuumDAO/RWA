@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
@@ -11,7 +10,7 @@ import { CTMRWA1Sentry } from "../sentry/CTMRWA1Sentry.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
-contract CTMRWA1SentryUtils is Context {
+contract CTMRWA1SentryUtils {
     using Strings for *;
 
     uint256 rwaType;
@@ -24,7 +23,7 @@ contract CTMRWA1SentryUtils is Context {
     bytes public lastReason;
 
     modifier onlySentryManager() {
-        require(_msgSender() == sentryManager, "CTMRWA1SentryUtils: onlySentryManager function");
+        require(msg.sender == sentryManager, "CTMRWA1SentryUtils: onlySentryManager function");
         _;
     }
 
@@ -43,7 +42,7 @@ contract CTMRWA1SentryUtils is Context {
         returns (address)
     {
         CTMRWA1Sentry ctmRwa1Sentry =
-            new CTMRWA1Sentry{ salt: bytes32(_ID) }(_ID, _tokenAddr, _rwaType, _version, _msgSender(), _map);
+            new CTMRWA1Sentry{ salt: bytes32(_ID) }(_ID, _tokenAddr, _rwaType, _version, msg.sender, _map);
 
         return (address(ctmRwa1Sentry));
     }

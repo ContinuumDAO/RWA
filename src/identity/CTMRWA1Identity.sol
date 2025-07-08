@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.27;
-
-// import "forge-std/console.sol";
+pragma solidity ^0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
@@ -20,7 +17,7 @@ interface IZkMeVerify {
     function hasApproved(address cooperator, address user) external view returns (bool);
 }
 
-contract CTMRWA1Identity is Context {
+contract CTMRWA1Identity {
     using Strings for *;
     using SafeERC20 for IERC20;
 
@@ -68,13 +65,13 @@ contract CTMRWA1Identity is Context {
         require(ICTMRWA1Sentry(sentryAddr).kycSwitch(), "CTMRWA1Identity: KYC is not enabled for this CTMRWA1");
 
         require(
-            !ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(_msgSender().toHexString()),
+            !ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(msg.sender.toHexString()),
             "CTMRWA1Identity: User is already whitelisted"
         );
 
         (,, address cooperator) = ICTMRWA1Sentry(sentryAddr).getZkMeParams();
         require(cooperator != address(0), "CTMRWA1Identity: zkMe cooperator address has not been set");
-        bool isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, _msgSender());
+        bool isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, msg.sender);
 
         require(!isValid, "CTMRWA1Identity: Invalid KYC");
 
@@ -82,7 +79,7 @@ contract CTMRWA1Identity is Context {
         _payFee(fee, _feeTokenStr);
 
         ICTMRWA1SentryManager(sentryManager).addWhitelist(
-            _ID, _stringToArray(_msgSender().toHexString()), _boolToArray(true), _chainIdsStr, _feeTokenStr
+            _ID, _stringToArray(msg.sender.toHexString()), _boolToArray(true), _chainIdsStr, _feeTokenStr
         );
 
         return (true);
@@ -110,7 +107,7 @@ contract CTMRWA1Identity is Context {
             address feeToken = stringToAddress(_feeTokenStr);
             uint256 feeWei = _fee * 10 ** (IERC20Extended(feeToken).decimals() - 2);
 
-            IERC20(feeToken).transferFrom(_msgSender(), address(this), feeWei);
+            IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
 
             IERC20(feeToken).approve(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);

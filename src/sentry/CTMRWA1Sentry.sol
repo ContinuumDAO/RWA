@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
-contract CTMRWA1Sentry is Context {
+contract CTMRWA1Sentry {
     using Strings for *;
 
     address public tokenAddr;
@@ -45,12 +44,12 @@ contract CTMRWA1Sentry is Context {
     bool public age18Switch;
 
     modifier onlyTokenAdmin() {
-        require(_msgSender() == tokenAdmin || _msgSender() == ctmRwa1X, "CTMRWA1Storage: onlyTokenAdmin function");
+        require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "CTMRWA1Storage: onlyTokenAdmin function");
         _;
     }
 
     modifier onlySentryManager() {
-        require(_msgSender() == sentryManagerAddr, "CTMRWA1Sentry: onlySentryManager function");
+        require(msg.sender == sentryManagerAddr, "CTMRWA1Sentry: onlySentryManager function");
         _;
     }
 

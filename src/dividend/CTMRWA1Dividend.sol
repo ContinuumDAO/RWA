@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
 import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
@@ -20,7 +19,7 @@ import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
  * This contract is deployed by CTMRWADeployer on each chain once for every CTMRWA1 contract.
  * Its ID matches the ID in CTMRWA1. There are no cross-chain functions in this contract.
  */
-contract CTMRWA1Dividend is Context {
+contract CTMRWA1Dividend {
     using SafeERC20 for IERC20;
 
     /// @dev The ERC20 token contract address used to distribute dividends
@@ -50,7 +49,7 @@ contract CTMRWA1Dividend is Context {
     event ClaimDividend(address claimant, uint256 dividend, address dividendToken);
 
     modifier onlyTokenAdmin() {
-        require(_msgSender() == tokenAdmin, "CTMRWA1Dividend: onlyTokenAdmin function");
+        require(msg.sender == tokenAdmin, "CTMRWA1Dividend: onlyTokenAdmin function");
         _;
     }
 
@@ -158,7 +157,7 @@ contract CTMRWA1Dividend is Context {
         // uint8 decimals = ICTMRWA1(tokenAddr).valueDecimals();
 
         require(
-            IERC20(dividendToken).transferFrom(_msgSender(), address(this), dividendPayable),
+            IERC20(dividendToken).transferFrom(msg.sender, address(this), dividendPayable),
             "CTMRWA1Dividend: Did not fund the dividend"
         );
 
@@ -179,7 +178,7 @@ contract CTMRWA1Dividend is Context {
         require(
             dividendPayable == totalDividend, "CTMRWA1Dividend: Dividend to be paid not equal to dividend to be funded"
         );
-        emit FundDividend(dividendPayable, dividendToken, _msgSender());
+        emit FundDividend(dividendPayable, dividendToken, msg.sender);
 
         return (totalDividend);
     }
@@ -189,16 +188,16 @@ contract CTMRWA1Dividend is Context {
      * NOTE The holder can see the token address using the dividendToken() function
      */
     function claimDividend() public returns (bool) {
-        uint256 dividend = unclaimedDividend[_msgSender()];
+        uint256 dividend = unclaimedDividend[msg.sender];
         require(
             IERC20(dividendToken).balanceOf(address(this)) >= dividend,
             "CTMRWA1Dividend: Dividend contract has not been supplied with enough tokens to claim the dividend"
         );
 
-        unclaimedDividend[_msgSender()] = 0;
-        IERC20(dividendToken).transfer(_msgSender(), dividend);
+        unclaimedDividend[msg.sender] = 0;
+        IERC20(dividendToken).transfer(msg.sender, dividend);
 
-        emit ClaimDividend(_msgSender(), dividend, dividendToken);
+        emit ClaimDividend(msg.sender, dividend, dividendToken);
         return true;
     }
 
@@ -209,7 +208,7 @@ contract CTMRWA1Dividend is Context {
     /// @dev the staking contract
     function resetDividendByToken(uint256 _tokenId) external {
         address owner = ICTMRWA1(tokenAddr).ownerOf(_tokenId);
-        require(_msgSender() == owner);
+        require(msg.sender == owner);
 
         dividendByTokenId[_tokenId] = 0;
     }

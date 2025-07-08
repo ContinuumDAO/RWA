@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.22;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -28,7 +27,7 @@ import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1Dividend contract
  * deployments.
  */
-contract CTMRWAERC20Deployer is ReentrancyGuard, Context {
+contract CTMRWAERC20Deployer is ReentrancyGuard {
     using Strings for *;
 
     /// @dev Address of the CTMRWAMap contract
@@ -73,7 +72,7 @@ contract CTMRWAERC20Deployer is ReentrancyGuard, Context {
     ) external returns (address) {
         (bool ok, address ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
         require(ok, "CTMRWAERC20: the ID does not link to a valid CTMRWA1");
-        require(_msgSender() == ctmRwaToken, "CTMRWAERC20: Deployer is not CTMRWA1");
+        require(msg.sender == ctmRwaToken, "CTMRWAERC20: Deployer is not CTMRWA1");
 
         _payFee(FeeType.ERC20, _feeToken);
 
@@ -94,7 +93,7 @@ contract CTMRWAERC20Deployer is ReentrancyGuard, Context {
         if (fee > 0) {
             uint256 feeWei = fee * 10 ** (IERC20Extended(_feeToken).decimals() - 2);
 
-            IERC20(_feeToken).transferFrom(_msgSender(), address(this), feeWei);
+            IERC20(_feeToken).transferFrom(msg.sender, address(this), feeWei);
 
             IERC20(_feeToken).approve(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, feeTokenStr);
@@ -115,7 +114,7 @@ contract CTMRWAERC20Deployer is ReentrancyGuard, Context {
  * functions in CTMRWA1. This contract is deployed by deployERC20() in the contract CTMRWAERC20Deployer
  * which uses CREATE2.
  */
-contract CTMRWAERC20 is ReentrancyGuard, Context, ERC20 {
+contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
     /// @dev The ID of the CTMRWA1 that created this ERC20 is stored here
     uint256 public ID;
 
@@ -231,7 +230,7 @@ contract CTMRWAERC20 is ReentrancyGuard, Context, ERC20 {
      * @param _value The fungible value being approved to spend by the spender
      */
     function approve(address _spender, uint256 _value) public override returns (bool) {
-        _approve(_msgSender(), _spender, _value, true);
+        _approve(msg.sender, _spender, _value, true);
         return true;
     }
 
@@ -243,7 +242,7 @@ contract CTMRWAERC20 is ReentrancyGuard, Context, ERC20 {
      * sufficient, the balance is taken from the second owned tokenId etc.
      */
     function transfer(address _to, uint256 _value) public override returns (bool) {
-        address owner = _msgSender();
+        address owner = msg.sender;
         _transfer(owner, _to, _value);
         return true;
     }
@@ -258,7 +257,7 @@ contract CTMRWAERC20 is ReentrancyGuard, Context, ERC20 {
      * sufficient, the balance is taken from the second owned tokenId etc.
      */
     function transferFrom(address _from, address _to, uint256 _value) public override returns (bool) {
-        _spendAllowance(_from, _msgSender(), _value);
+        _spendAllowance(_from, msg.sender, _value);
         _transfer(_from, _to, _value);
 
         return true;
