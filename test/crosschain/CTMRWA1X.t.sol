@@ -31,7 +31,7 @@ contract TestCTMRWA1X is Helpers {
         bytes extra
     );
 
-    function test_CTMRWA1Deploy() public {
+    function test_localDeploy() public {
         string memory tokenStr = address(usdc).toHexString();
         string[] memory chainIdsStr;
 
@@ -67,7 +67,7 @@ contract TestCTMRWA1X is Helpers {
         vm.stopPrank();
     }
 
-    function test_CTMRWA1Mint() public {
+    function test_localMint() public {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
@@ -166,7 +166,7 @@ contract TestCTMRWA1X is Helpers {
         assertEq(owner, user1);
     }
 
-    function test_changeAdmin() public {
+    function test_localChangeAdmin() public {
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory feeTokenStr = feeTokenList[0].toHexString();
 
@@ -211,7 +211,7 @@ contract TestCTMRWA1X is Helpers {
         vm.stopPrank();
     }
 
-    function test_lockToken() public {
+    function test_localLockToken() public {
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory feeTokenStr = feeTokenList[0].toHexString();
 
@@ -232,7 +232,9 @@ contract TestCTMRWA1X is Helpers {
         vm.stopPrank();
     }
 
-    function test_deployExecute() public {
+
+    function test_remoteDeployExecute() public {
+
         string memory newAdminStr = tokenAdmin.toHexString();
 
         string memory tokenName = "RWA Test token";
@@ -287,7 +289,8 @@ contract TestCTMRWA1X is Helpers {
         assertTrue(stringsEqual(bURI, baseURI));
     }
 
-    function test_mintXTokenIdToAddressExecute() public {
+    
+    function test_remoteMintTokenToAddressExecute() public {
         // Test mintX cross chain minting
 
         // tokenAdmin deploys a token and adds some tokenIds
@@ -312,4 +315,33 @@ contract TestCTMRWA1X is Helpers {
         uint256 balEnd = token.balanceOf(newTokenId);
         assertEq(balEnd, 140);
     }
+
+    function test_remoteChangeAdminExecute() public {
+        // Test changeAdmin on a destination chain
+
+        // tokenAdmin deploys a token
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        vm.stopPrank();
+
+        // Set to tokenAdmin2 on destination chain
+        vm.startPrank(address(c3caller));
+        rwa1X.adminX(ID, tokenAdmin.toHexString(), tokenAdmin2.toHexString());
+        vm.stopPrank();
+
+        address currentAdmin;
+        currentAdmin = token.tokenAdmin();
+        assertEq(currentAdmin, tokenAdmin2);
+        (, address dividendAddr) = map.getDividendContract(ID, RWA_TYPE, VERSION);
+        currentAdmin = ICTMRWA1Dividend(dividendAddr).tokenAdmin();
+        assertEq(currentAdmin, tokenAdmin2);
+        (, address storageAddr) = map.getStorageContract(ID, RWA_TYPE, VERSION);
+        currentAdmin = ICTMRWA1Storage(storageAddr).tokenAdmin();
+        assertEq(currentAdmin, tokenAdmin2);
+        (, address sentryAddr) = map.getSentryContract(ID, RWA_TYPE, VERSION);
+        currentAdmin = ICTMRWA1Sentry(sentryAddr).tokenAdmin();
+        assertEq(currentAdmin, tokenAdmin2);
+    }
+
+
 }

@@ -39,12 +39,12 @@ contract TestGateway is Helpers {
         gateway.addChainContract(_stringToArray("2"), _stringToArray("Dummy"));
 
         vm.startPrank(gov);
-        vm.expectRevert("Gateway: max string length exceeeded");
+        vm.expectRevert("Gateway: max string length exceeded");
         gateway.addChainContract(
             _stringToArray("012345678901234567890123456789012345678901234567890123456789012345"),
             _stringToArray("Dummy")
         );
-        vm.expectRevert("Gateway: max string length exceeeded");
+        vm.expectRevert("Gateway: max string length exceeded");
         gateway.addChainContract(
             _stringToArray("2"), _stringToArray("AVeryLongContractAddress999999999999999999999999999999999999999999")
         );
@@ -88,18 +88,14 @@ contract TestGateway is Helpers {
         assertTrue(ok);
 
         vm.startPrank(gov);
-        vm.expectRevert("Gateway: max string length exceeeded");
-        gateway.attachRWAX(
-            RWA_TYPE,
-            VERSION,
+        vm.expectRevert("Gateway: max string length exceeded");
+        gateway.attachRWAX(RWA_TYPE, VERSION, 
             _stringToArray("012345678901234567890123456789012345678901234567890123456789012345"), //len 65
             _stringToArray("Dummy")
         );
 
-        vm.expectRevert("Gateway: max string length exceeeded");
-        gateway.attachRWAX(
-            RWA_TYPE,
-            VERSION,
+        vm.expectRevert("Gateway: max string length exceeded");
+        gateway.attachRWAX(RWA_TYPE, VERSION, 
             _stringToArray("2"),
             _stringToArray("AVeryLongContractAddress999999999999999999999999999999999999999999") // len 65
         );
@@ -130,18 +126,14 @@ contract TestGateway is Helpers {
         assertTrue(stringsEqual(storageChainStr, _toLower("ethereumStorageManager")));
 
         vm.startPrank(gov);
-        vm.expectRevert("Gateway: max string length exceeeded");
-        gateway.attachStorageManager(
-            RWA_TYPE,
-            VERSION,
+        vm.expectRevert("Gateway: max string length exceeded");
+        gateway.attachStorageManager(RWA_TYPE, VERSION, 
             _stringToArray("012345678901234567890123456789012345678901234567890123456789012345"), //len 65
             _stringToArray("Dummy")
         );
 
-        vm.expectRevert("Gateway: max string length exceeeded");
-        gateway.attachStorageManager(
-            RWA_TYPE,
-            VERSION,
+        vm.expectRevert("Gateway: max string length exceeded");
+        gateway.attachStorageManager(RWA_TYPE, VERSION, 
             _stringToArray("2"),
             _stringToArray("AVeryLongContractAddress999999999999999999999999999999999999999999") // len 65
         );
@@ -172,18 +164,14 @@ contract TestGateway is Helpers {
         assertTrue(stringsEqual(sentryChainStr, _toLower("ethereumSentryManager")));
 
         vm.startPrank(gov);
-        vm.expectRevert("Gateway: max string length exceeeded");
-        gateway.attachSentryManager(
-            RWA_TYPE,
-            VERSION,
+        vm.expectRevert("Gateway: max string length exceeded");
+        gateway.attachSentryManager(RWA_TYPE, VERSION, 
             _stringToArray("012345678901234567890123456789012345678901234567890123456789012345"), //len 65
             _stringToArray("Dummy")
         );
 
-        vm.expectRevert("Gateway: max string length exceeeded");
-        gateway.attachSentryManager(
-            RWA_TYPE,
-            VERSION,
+        vm.expectRevert("Gateway: max string length exceeded");
+        gateway.attachSentryManager(RWA_TYPE, VERSION, 
             _stringToArray("2"),
             _stringToArray("AVeryLongContractAddress999999999999999999999999999999999999999999") // len 65
         );
