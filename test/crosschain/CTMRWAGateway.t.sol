@@ -35,7 +35,7 @@ contract TestGateway is Helpers {
         assertTrue(stringsEqual(gatewayStr, _toLower("ethereumGateway")));
     }
 
-    function test_CTMRWAGateway_rwaXChain() public view {
+    function test_CTMRWAGateway_rwaXChain() public {
         uint256 nChains = gateway.getRWAXCount(RWA_TYPE, VERSION);
         assertEq(nChains, 2);
 
@@ -45,24 +45,119 @@ contract TestGateway is Helpers {
         string memory rwaxChainStr;
         string memory chainIdStr;
         bool ok;
-        // Check the local chain rwa1X, added automatically in initialize
+
+        // Check the local chain rwa1X
         (ok, rwaxChainStr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, cIdStr);
         assertTrue(ok);
-        console.log(chainIdStr);
-        console.log(address(rwa1X).toHexString());
+        // console.log(chainIdStr);
+        // console.log(address(rwa1X).toHexString());
         assertTrue(stringsEqual(rwaxChainStr, _toLower(address(rwa1X).toHexString())));
 
         // Check the rwaxChainStr at position 1
-       
         uint256 pos = 1;
         (chainIdStr, rwaxChainStr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, pos);
-        assertTrue(stringsEqual(chainIdStr, _toLower("NEARChainId")));
+        assertTrue(stringsEqual(chainIdStr, _toLower("999999999999999999999")));
 
-        chainIdStr = "NEARChainId";
+        chainIdStr = "999999999999999999999";
         assertTrue(stringsEqual(
             rwaxChainStr,
             _toLower("thisIsSomeRandomAddressOnNEARForTestingWallet123456789.test.near")
         ));
+
+        vm.startPrank(gov);
+        vm.expectRevert("Gateway: max string length exceeeded");
+        gateway.attachRWAX(RWA_TYPE, VERSION, 
+            _stringToArray("012345678901234567890123456789012345678901234567890123456789012345"), //len 65
+            _stringToArray("Dummy")
+        );
+
+        vm.expectRevert("Gateway: max string length exceeeded");
+        gateway.attachRWAX(RWA_TYPE, VERSION, 
+            _stringToArray("2"),
+            _stringToArray("AVeryLongContractAddress999999999999999999999999999999999999999999") // len 65
+        );
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        vm.expectRevert("Gov FORBIDDEN");
+        gateway.attachRWAX(RWA_TYPE, VERSION, _stringToArray("2"), _stringToArray("Dummy"));
+        vm.stopPrank();
+    }
+
+    function test_CTMRWAGateway_storageChain() public {
+        uint256 nChains = gateway.getStorageManagerCount(RWA_TYPE, VERSION);
+        assertEq(nChains, 2);
+
+        string memory storageChainStr;
+        string memory chainIdStr;
+        bool ok;
+
+        // Check the local chain
+        (ok, storageChainStr) = gateway.getAttachedStorageManager(RWA_TYPE, VERSION, cIdStr);
+        assertTrue(ok);
+        
+        // Check another chain (Ethereum) at pos 1
+        uint256 pos = 1;
+        (chainIdStr, storageChainStr) = gateway.getAttachedStorageManager(RWA_TYPE, VERSION, pos);
+        assertTrue(stringsEqual(chainIdStr, "1"));
+        assertTrue(stringsEqual(storageChainStr, _toLower("ethereumStorageManager")));
+
+        vm.startPrank(gov);
+        vm.expectRevert("Gateway: max string length exceeeded");
+        gateway.attachStorageManager(RWA_TYPE, VERSION, 
+            _stringToArray("012345678901234567890123456789012345678901234567890123456789012345"), //len 65
+            _stringToArray("Dummy")
+        );
+
+        vm.expectRevert("Gateway: max string length exceeeded");
+        gateway.attachStorageManager(RWA_TYPE, VERSION, 
+            _stringToArray("2"),
+            _stringToArray("AVeryLongContractAddress999999999999999999999999999999999999999999") // len 65
+        );
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        vm.expectRevert("Gov FORBIDDEN");
+        gateway.attachStorageManager(RWA_TYPE, VERSION, _stringToArray("2"), _stringToArray("Dummy"));
+        vm.stopPrank();
+    }
+
+    function test_CTMRWAGateway_sentryChain() public {
+        uint256 nChains = gateway.getSentryManagerCount(RWA_TYPE, VERSION);
+        assertEq(nChains, 2);
+
+        string memory sentryChainStr;
+        string memory chainIdStr;
+        bool ok;
+
+        // Check the local chain
+        (ok, sentryChainStr) = gateway.getAttachedSentryManager(RWA_TYPE, VERSION, cIdStr);
+        assertTrue(ok);
+        
+        // Check another chain (Ethereum) at pos 1
+        uint256 pos = 1;
+        (chainIdStr, sentryChainStr) = gateway.getAttachedSentryManager(RWA_TYPE, VERSION, pos);
+        assertTrue(stringsEqual(chainIdStr, "1"));
+        assertTrue(stringsEqual(sentryChainStr, _toLower("ethereumSentryManager")));
+
+        vm.startPrank(gov);
+        vm.expectRevert("Gateway: max string length exceeeded");
+        gateway.attachSentryManager(RWA_TYPE, VERSION, 
+            _stringToArray("012345678901234567890123456789012345678901234567890123456789012345"), //len 65
+            _stringToArray("Dummy")
+        );
+
+        vm.expectRevert("Gateway: max string length exceeeded");
+        gateway.attachSentryManager(RWA_TYPE, VERSION, 
+            _stringToArray("2"),
+            _stringToArray("AVeryLongContractAddress999999999999999999999999999999999999999999") // len 65
+        );
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        vm.expectRevert("Gov FORBIDDEN");
+        gateway.attachSentryManager(RWA_TYPE, VERSION, _stringToArray("2"), _stringToArray("Dummy"));
+        vm.stopPrank();
     }
 
 }

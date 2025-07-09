@@ -137,7 +137,7 @@ contract Deployer is Utils {
         string[] memory rwaXsStr = new string[](2);
 
         chainIdsStr[0] = cIdStr;
-        chainIdsStr[1] = "NEARChainId";
+        chainIdsStr[1] = "999999999999999999999";
 
         rwaXsStr[0] = address(rwa1X).toHexString();
         rwaXsStr[1] = "thisIsSomeRandomAddressOnNEARForTestingWallet123456789.test.near";
@@ -216,8 +216,18 @@ contract Deployer is Utils {
         storageManager.setCtmRwaDeployer(address(deployer));
         storageManager.setCtmRwaMap(address(map));
         deployer.setStorageFactory(RWA_TYPE, VERSION, address(storageManager));
+
+        string[] memory chainIdsStr = new string[](2);
+        string[] memory storagesStr = new string[](2);
+
+        chainIdsStr[0] = cIdStr;
+        chainIdsStr[1] = "1";
+
+        storagesStr[0] = address(storageManager).toHexString();
+        storagesStr[1] = "ethereumStorageManager";
+
         gateway.attachStorageManager(
-            RWA_TYPE, VERSION, _stringToArray("1"), _stringToArray(address(storageManager).toHexString())
+            RWA_TYPE, VERSION, chainIdsStr, storagesStr
         );
     }
 
@@ -248,8 +258,19 @@ contract Deployer is Utils {
         sentryManager.setSentryUtils(address(sentryUtils));
         sentryManager.setCtmRwaDeployer(address(deployer));
         sentryManager.setCtmRwaMap(address(map));
+
+        string[] memory chainIdsStr = new string[](2);
+        string[] memory sentriesStr = new string[](2);
+
+
+        chainIdsStr[0] = cIdStr;
+        chainIdsStr[1] = "1";
+
+        sentriesStr[0] = address(sentryManager).toHexString();
+        sentriesStr[1] = "ethereumSentryManager";
+
         gateway.attachSentryManager(
-            RWA_TYPE, VERSION, _stringToArray("1"), _stringToArray(address(sentryManager).toHexString())
+            RWA_TYPE, VERSION, chainIdsStr, sentriesStr
         );
     }
 

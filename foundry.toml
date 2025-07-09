@@ -1,8 +1,8 @@
 [profile.default]
 out = "out"
 libs = ["lib"]
-#optimizer = true
-optimizer = false
+optimizer = true
+#optimizer = false
 optimizer_runs = 100
 via_ir = true
 ffi = true

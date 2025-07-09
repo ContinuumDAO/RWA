@@ -77,6 +77,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         bool preExisted;
 
         for (uint256 j = 0; j < _newChainIdsStr.length; j++) {
+            _checkStringLength(_newChainIdsStr[j], 64);
+            _checkStringLength(_contractAddrsStr[j], 64);
             string memory newChainIdStr = _toLower(_newChainIdsStr[j]);
             string memory contractAddrStr = _toLower(_contractAddrsStr[j]);
 
@@ -302,6 +304,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         bool preExisted;
 
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
+            _checkStringLength(_chainIdsStr[j], 64);
+            _checkStringLength(_rwaXAddrsStr[j], 64);
             string memory rwaXAddrStr = _toLower(_rwaXAddrsStr[j]);
             string memory chainIdStr = _toLower(_chainIdsStr[j]);
 
@@ -347,10 +351,10 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         bool preExisted;
 
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
+            _checkStringLength(_chainIdsStr[j], 64);
+            _checkStringLength(_storageManagerAddrsStr[j], 64);
             string memory storageManagerAddrStr = _toLower(_storageManagerAddrsStr[j]);
             string memory chainIdStr = _toLower(_chainIdsStr[j]);
-
-            require(bytes(storageManagerAddrStr).length <= 64, "CTMRWAGateway: Incorrect address length");
 
             for (uint256 i = 0; i < storageManager[_rwaType][_version].length; i++) {
                 if (stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, chainIdStr)) {
@@ -391,10 +395,10 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         bool preExisted;
 
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
+            _checkStringLength(_chainIdsStr[j], 64);
+            _checkStringLength(_sentryManagerAddrsStr[j], 64);
             string memory sentryManagerAddrStr = _toLower(_sentryManagerAddrsStr[j]);
             string memory chainIdStr = _toLower(_chainIdsStr[j]);
-
-            require(bytes(sentryManagerAddrStr).length <= 64, "CTMRWAGateway: Incorrect address length");
 
             for (uint256 i = 0; i < sentryManager[_rwaType][_version].length; i++) {
                 if (stringsEqual(sentryManager[_rwaType][_version][i].chainIdStr, chainIdStr)) {
@@ -463,6 +467,10 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
             }
         }
         return string(bLower);
+    }
+
+    function _checkStringLength(string memory _str, uint256 _len) internal pure {
+        if (bytes(_str).length > _len) revert("Gateway: max string length exceeeded");
     }
 
     /// @dev Fallback function for a failed c3call. Only logs an event at present

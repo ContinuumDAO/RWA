@@ -23,7 +23,7 @@ contract Utils is Test {
     uint256 constant RWA_TYPE = 1;
     uint256 constant VERSION = 1;
 
-    string cIdStr = block.chainid.toHexString();
+    string cIdStr = block.chainid.toString();
 
     function getRevert(bytes calldata _payload) external pure returns (bytes memory) {
         return (abi.decode(_payload[4:], (bytes)));
