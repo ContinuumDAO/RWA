@@ -12,7 +12,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 contract TestGateway is Helpers {
     using Strings for *;
 
-    function test_CTMRWAGateway_chainContract() public view {
+    function test_CTMRWAGateway_chainContract() public {
         uint256 nChains = gateway.getChainCount();
         assertEq(nChains, 2); // local chain + "ethereumGateway"
 
@@ -33,6 +33,23 @@ contract TestGateway is Helpers {
         // Check for Ethereum chainID added by deployer test setup
         gatewayStr = gateway.getChainContract("1"); 
         assertTrue(stringsEqual(gatewayStr, _toLower("ethereumGateway")));
+
+        // Check that addChainContract is onlyGov
+        vm.expectRevert("Gov FORBIDDEN");
+        gateway.addChainContract(_stringToArray("2"), _stringToArray("Dummy"));
+
+        vm.startPrank(gov);
+        vm.expectRevert("Gateway: max string length exceeeded");
+        gateway.addChainContract(
+            _stringToArray("012345678901234567890123456789012345678901234567890123456789012345"),
+            _stringToArray("Dummy")
+        );
+        vm.expectRevert("Gateway: max string length exceeeded");
+        gateway.addChainContract(
+            _stringToArray("2"),
+            _stringToArray("AVeryLongContractAddress999999999999999999999999999999999999999999")
+        );
+        vm.stopPrank();
     }
 
     function test_CTMRWAGateway_rwaXChain() public {
@@ -63,6 +80,14 @@ contract TestGateway is Helpers {
             rwaxChainStr,
             _toLower("thisIsSomeRandomAddressOnNEARForTestingWallet123456789.test.near")
         ));
+
+        // Check getAllRwaXChains function
+        string[] memory allRwaXs = gateway.getAllRwaXChains(RWA_TYPE, VERSION);
+        assertTrue(stringsEqual(allRwaXs[1], _toLower("999999999999999999999")));
+
+        // Check existRwaXChain function
+        ok = gateway.existRwaXChain(RWA_TYPE, VERSION, "999999999999999999999");
+        assertTrue(ok);
 
         vm.startPrank(gov);
         vm.expectRevert("Gateway: max string length exceeeded");

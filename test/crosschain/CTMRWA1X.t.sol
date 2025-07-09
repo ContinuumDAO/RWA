@@ -11,6 +11,8 @@ import { Helpers } from "../helpers/Helpers.sol";
 
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
+import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 
 import { C3CallerStructLib } from "../../lib/c3caller/src/C3CallerStructLib.sol";
 
@@ -45,13 +47,11 @@ contract TestCTMRWA1X is Helpers {
             tokenStr
         );
 
-        console.log("finished deploy, ID = ");
-        console.log(ID);
+        // console.log(ID);
 
         (bool ok, address ctmRwaAddr) = map.getTokenContract(ID, RWA_TYPE, VERSION);
-        console.log("ctmRwaAddr");
-        console.log(ctmRwaAddr);
-        assertEq(ok, true);
+        // console.log(ctmRwaAddr);
+        assertTrue(ok);
 
         uint256 tokenType = ICTMRWA1(ctmRwaAddr).rwaType();
         assertEq(tokenType, RWA_TYPE);
@@ -60,7 +60,6 @@ contract TestCTMRWA1X is Helpers {
         assertEq(deployedVersion, VERSION);
 
         address[] memory aTokens = rwa1X.getAllTokensByAdminAddress(admin);
-        console.log("aTokens");
         assertEq(aTokens[0], ctmRwaAddr);
 
         vm.stopPrank();
@@ -94,7 +93,7 @@ contract TestCTMRWA1X is Helpers {
         vm.stopPrank();
     }
 
-    function test_localTransferX() public {
+    function test_localPartialTransfer() public {
         vm.startPrank(tokenAdmin); // this CTMRWA1 has an admin of tokenAdmin
         (ID, token) = _deployCTMRWA1(address(usdc));
         (uint256 tokenId, uint256 tokenId2,) =
@@ -132,39 +131,68 @@ contract TestCTMRWA1X is Helpers {
 
         vm.stopPrank();
     }
+    
 
     function test_changeAdmin() public {
         address[] memory feeTokenList = feeManager.getFeeTokenList();
-        string memory feeTokenStr = feeTokenList[0].toHexString(); // CTM
+        string memory feeTokenStr = feeTokenList[0].toHexString();
 
         vm.startPrank(tokenAdmin); // start with admin tokenAdmin
-        (ID, token) = _deployCTMRWA1(address(usdc));
+
+        // Deploy 1 token
+        (uint256 ID1, CTMRWA1 token1) = _deployCTMRWA1(address(usdc));
 
         skip(10);
-        (uint256 ID2, CTMRWA1 token2) = _deployCTMRWA1(address(usdc));
+        // Deploy another token
+        (, CTMRWA1 token2) = _deployCTMRWA1(address(usdc));
         address[] memory aTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        // Check that tokenAdmin now has 2 tokens
         assertEq(aTokens.length, 2);
 
-        assertEq(aTokens[0], address(token));
+        // Check that the 2 tokens have the correct contract addresses
+        assertEq(aTokens[0], address(token1));
         assertEq(aTokens[1], address(token2));
 
-        rwa1X.changeTokenAdmin(_toLower(user2.toHexString()), _stringToArray(cIdStr), ID, feeTokenStr);
+        rwa1X.changeTokenAdmin(_toLower(user2.toHexString()), _stringToArray(cIdStr), ID1, feeTokenStr);
 
         aTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
         assertEq(aTokens.length, 1);
 
         aTokens = rwa1X.getAllTokensByAdminAddress(user2);
         assertEq(aTokens.length, 1);
-        assertEq(aTokens[0], address(token));
+        assertEq(aTokens[0], address(token1));
 
-        rwa1X.changeTokenAdmin(_toLower(address(0).toHexString()), _stringToArray(cIdStr), ID2, feeTokenStr);
+        // Check that all the token components have the correct user2 new admin address
+        address currentAdmin = token1.tokenAdmin();
+        assertEq(currentAdmin, user2);
+        (, address storageAddr) = map.getStorageContract(ID1, RWA_TYPE, VERSION);
+        currentAdmin = ICTMRWA1Storage(storageAddr).tokenAdmin();
+        assertEq(currentAdmin, user2);
+        (, address sentryAddr) = map.getSentryContract(ID1, RWA_TYPE, VERSION);
+        currentAdmin = ICTMRWA1Sentry(sentryAddr).tokenAdmin();
+        assertEq(currentAdmin, user2);
 
-        aTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
-        assertEq(aTokens.length, 0);
+        vm.stopPrank();
+    }
 
-        address dustbin = token2.tokenAdmin();
-        assertEq(dustbin, address(0));
+    function test_lockToken() public {
+        address[] memory feeTokenList = feeManager.getFeeTokenList();
+        string memory feeTokenStr = feeTokenList[0].toHexString();
 
+        vm.startPrank(tokenAdmin);
+        // Deploy a token
+        (uint256 ID, CTMRWA1 token) = _deployCTMRWA1(address(usdc));
+
+        // Check the admin now
+        address currentAdmin = token.tokenAdmin();
+        assertEq(currentAdmin, tokenAdmin);
+
+        // Lock the token (change to address(0))
+        rwa1X.changeTokenAdmin(_toLower(address(0).toHexString()), _stringToArray(cIdStr), ID, feeTokenStr);
+        
+        // Check the admin again
+        currentAdmin = token.tokenAdmin();
+        assertEq(currentAdmin, address(0));
         vm.stopPrank();
     }
 
