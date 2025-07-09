@@ -73,30 +73,6 @@ contract CTMRWA1SentryUtils {
         return (tokenAddr, tokenAddrStr);
     }
 
-    function stringToAddress(string memory str) internal pure returns (address) {
-        bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA1StorageFallback: Invalid address length");
-        bytes memory addrBytes = new bytes(20);
-
-        for (uint256 i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
-        }
-
-        return address(uint160(bytes20(addrBytes)));
-    }
-
-    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
-        uint8 byteValue = uint8(char);
-        if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
-            return byteValue - uint8(bytes1("0"));
-        } else if (byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))) {
-            return 10 + byteValue - uint8(bytes1("a"));
-        } else if (byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))) {
-            return 10 + byteValue - uint8(bytes1("A"));
-        }
-        revert("Invalid hex character");
-    }
-
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
         bytes memory bLower = new bytes(bStr.length);
