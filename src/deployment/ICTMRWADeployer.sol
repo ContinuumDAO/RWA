@@ -10,6 +10,11 @@ interface ICTMRWADeployer {
     function erc20Deployer() external view returns (address);
     function deployInvest() external view returns (address);
 
+    function tokenFactory(uint256 rwaType, uint256 version) external returns (address);
+    function dividendFactory(uint256 rwaType, uint256 version) external returns (address);
+    function storageFactory(uint256 rwaType, uint256 version) external returns (address);
+    function sentryFactory(uint256 rwaType, uint256 version) external returns (address);
+
     function setGateway(address gateway) external;
     function setFeeManager(address _feeManager) external;
     function setRwaX(address rwaX) external;
