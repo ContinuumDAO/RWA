@@ -6,9 +6,11 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
 contract CTMRWA1Sentry {
     using Strings for *;
+    using CTMRWAUtils for string;
 
     address public tokenAddr;
     uint256 public ID;
@@ -74,7 +76,7 @@ contract CTMRWA1Sentry {
         sentryManagerAddr = _sentryManager;
 
         ctmWhitelist.push("0xffffffffffffffffffffffffffffffffffffffff"); // indx 0 is no go
-        _setWhitelist(_stringToArray(tokenAdmin.toHexString()), _boolToArray(true));
+        _setWhitelist(tokenAdmin.toHexString()._stringToArray(), CTMRWAUtils._boolToArray(true));
 
         countryList.push("NOGO");
     }
@@ -83,9 +85,9 @@ contract CTMRWA1Sentry {
         tokenAdmin = _tokenAdmin;
 
         if (tokenAdmin != address(0)) {
-            string memory tokenAdminStr = _toLower(tokenAdmin.toHexString());
-            tokenAdminStr = _toLower(_tokenAdmin.toHexString());
-            _setWhitelist(_stringToArray(tokenAdminStr), _boolToArray(true)); // don't strand tokens held by the old
+            string memory tokenAdminStr = tokenAdmin.toHexString()._toLower();
+            tokenAdminStr = _tokenAdmin.toHexString()._toLower();
+            _setWhitelist(tokenAdminStr._stringToArray(), CTMRWAUtils._boolToArray(true)); // don't strand tokens held by the old
                 // tokenAdmin
         }
 
@@ -164,12 +166,12 @@ contract CTMRWA1Sentry {
         uint256 len = _wallets.length;
 
         uint256 indx;
-        string memory adminStr = _toLower(tokenAdmin.toHexString());
+        string memory adminStr = tokenAdmin.toHexString()._toLower();
         string memory walletStr;
         string memory oldLastStr;
 
         for (uint256 i = 0; i < len; i++) {
-            walletStr = _toLower(_wallets[i]);
+            walletStr = _wallets[i]._toLower();
             indx = whitelistIndx[walletStr];
 
             if (walletStr.equal(adminStr) && !_choices[i]) {
@@ -232,14 +234,12 @@ contract CTMRWA1Sentry {
         address investContract;
         (ok, investContract) = ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, rwaType, version);
 
-        if (!whitelistSwitch || stringToAddress(_user) == address(0)) {
+        if (!whitelistSwitch || _user._stringToAddress() == address(0)) {
             return (true);
-        } else if (
-            _user.equal(dividendContract.toHexString()) || _user.equal(investContract.toHexString())
-        ) {
+        } else if (_user.equal(dividendContract.toHexString()) || _user.equal(investContract.toHexString())) {
             return (true);
         } else {
-            string memory walletStr = _toLower(_user);
+            string memory walletStr = _user._toLower();
             return (_isWhitelisted(walletStr));
         }
     }
@@ -278,56 +278,5 @@ contract CTMRWA1Sentry {
         }
 
         return (res, true);
-    }
-
-    function stringToAddress(string memory str) internal pure returns (address) {
-        bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA1Sentry: Invalid address length");
-        bytes memory addrBytes = new bytes(20);
-
-        for (uint256 i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
-        }
-
-        return address(uint160(bytes20(addrBytes)));
-    }
-
-    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
-        uint8 byteValue = uint8(char);
-        if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
-            return byteValue - uint8(bytes1("0"));
-        } else if (byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))) {
-            return 10 + byteValue - uint8(bytes1("a"));
-        } else if (byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))) {
-            return 10 + byteValue - uint8(bytes1("A"));
-        }
-        revert("Invalid hex character");
-    }
-
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint256 i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
-    }
-
-    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return (strArray);
-    }
-
-    function _boolToArray(bool _bool) internal pure returns (bool[] memory) {
-        bool[] memory boolArray = new bool[](1);
-        boolArray[0] = _bool;
-        return (boolArray);
     }
 }

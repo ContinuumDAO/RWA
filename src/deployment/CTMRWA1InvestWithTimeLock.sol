@@ -2,11 +2,12 @@
 
 pragma solidity ^0.8.22;
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
+import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
@@ -18,6 +19,7 @@ import { Holding, Offering } from "./ICTMRWADeployInvest.sol";
 contract CTMRWA1InvestWithTimeLock is ReentrancyGuard {
     using Strings for *;
     using SafeERC20 for IERC20;
+    using CTMRWAUtils for string;
 
     /// @dev Unique ID of the CTMRWA token contract
     uint256 public ID;
@@ -382,7 +384,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard {
     /// @dev Pay offering fees
     function _payFee(FeeType _feeType, address _feeToken) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
-        uint256 fee = IFeeManager(feeManager).getXChainFee(_stringToArray(cIDStr), false, _feeType, feeTokenStr);
+        uint256 fee = IFeeManager(feeManager).getXChainFee(cIDStr._stringToArray(), false, _feeType, feeTokenStr);
 
         // TODO Remove hardcoded multiplier 10**2
 
@@ -395,12 +397,5 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard {
             IFeeManager(feeManager).payFee(feeWei, feeTokenStr);
         }
         return (true);
-    }
-
-    /// @dev Convert an individual string to an array with a single value
-    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return (strArray);
     }
 }

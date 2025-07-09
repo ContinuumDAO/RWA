@@ -5,11 +5,13 @@ pragma solidity ^0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {CTMRWA1InvestWithTimeLock} from "./CTMRWA1InvestWithTimeLock.sol";
+import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
+import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
 
 contract CTMRWADeployInvest {
     using Strings for *;
+    using CTMRWAUtils for string;
 
     /// @dev Address of the CTMRWAMap contract
     address public ctmRwaMap;
@@ -68,7 +70,7 @@ contract CTMRWADeployInvest {
     /// @dev Pay the fee for deploying the Invest contract
     function _payFee(FeeType _feeType, address _feeToken) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
-        uint256 fee = IFeeManager(feeManager).getXChainFee(_stringToArray(cIDStr), false, _feeType, feeTokenStr);
+        uint256 fee = IFeeManager(feeManager).getXChainFee(cIDStr._stringToArray(), false, _feeType, feeTokenStr);
 
         // TODO Remove hardcoded multiplier 10**2
 
@@ -81,12 +83,5 @@ contract CTMRWADeployInvest {
             IFeeManager(feeManager).payFee(feeWei, feeTokenStr);
         }
         return (true);
-    }
-
-    /// @dev Convert an individual string to an array with a single value
-    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return (strArray);
     }
 }

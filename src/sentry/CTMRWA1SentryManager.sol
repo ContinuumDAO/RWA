@@ -19,6 +19,7 @@ import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "./ICTMRWA1SentryManager.sol";
 import { ICTMRWA1SentryUtils } from "./ICTMRWA1SentryUtils.sol";
+import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -34,6 +35,7 @@ import { ICTMRWA1SentryUtils } from "./ICTMRWA1SentryUtils.sol";
 contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
+    using CTMRWAUtils for string;
 
     /// @dev The address of the CTMRWADeployer contract
     address public ctmRwaDeployer;
@@ -226,7 +228,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         _payFee(fee, _feeTokenStr);
 
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
-            string memory chainIdStr = _toLower(_chainIdsStr[i]);
+            string memory chainIdStr = _chainIdsStr[i]._toLower();
 
             if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Sentry(sentryAddr).setSentryOptionsLocal(
@@ -281,7 +283,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         _payFee(fee, _feeTokenStr);
 
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
-            string memory chainIdStr = _toLower(_chainIdsStr[i]);
+            string memory chainIdStr = _chainIdsStr[i]._toLower();
 
             if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Sentry(sentryAddr).setSentryOptionsLocal(
@@ -348,7 +350,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         }
 
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
-            string memory chainIdStr = _toLower(_chainIdsStr[i]);
+            string memory chainIdStr = _chainIdsStr[i]._toLower();
 
             if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Sentry(sentryAddr).setWhitelistSentry(_ID, _wallets, _choices);
@@ -409,7 +411,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         _payFee(fee, _feeTokenStr);
 
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
-            string memory chainIdStr = _toLower(_chainIdsStr[i]);
+            string memory chainIdStr = _chainIdsStr[i]._toLower();
 
             if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Sentry(sentryAddr).setCountryListLocal(_ID, _countries, _choices);
@@ -442,7 +444,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
 
     function _payFee(uint256 _fee, string memory _feeTokenStr) internal returns (bool) {
         if (_fee > 0) {
-            address feeToken = stringToAddress(_feeTokenStr);
+            address feeToken = _feeTokenStr._stringToAddress();
             uint256 feeWei = _fee * 10 ** (IERC20Extended(feeToken).decimals() - 2);
 
             IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
@@ -473,7 +475,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA1SentryManager: The requested tokenID does not exist");
-        string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
+        string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
         return (tokenAddr, tokenAddrStr);
     }
@@ -481,7 +483,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     function _getSentryAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, rwaType, version);
         require(ok, "CTMRWA1SentryManager: Could not find _ID or its sentry address");
-        string memory sentryAddrStr = _toLower(sentryAddr.toHexString());
+        string memory sentryAddrStr = sentryAddr.toHexString()._toLower();
 
         return (sentryAddr, sentryAddrStr);
     }
@@ -489,7 +491,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     function _getSentry(string memory _toChainIdStr) internal view returns (string memory, string memory) {
         require(!_toChainIdStr.equal(cIdStr), "CTMRWA1SentryManager: Not a cross-chain tokenAdmin change");
 
-        string memory fromAddressStr = _toLower(msg.sender.toHexString());
+        string memory fromAddressStr = msg.sender.toHexString()._toLower();
 
         (bool ok, string memory toSentryStr) =
             ICTMRWAGateway(gateway).getAttachedSentryManager(rwaType, version, _toChainIdStr);
@@ -500,50 +502,11 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
 
     function _checkTokenAdmin(address _tokenAddr) internal returns (address, string memory) {
         address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
-        string memory currentAdminStr = _toLower(currentAdmin.toHexString());
+        string memory currentAdminStr = currentAdmin.toHexString()._toLower();
 
         require(msg.sender == currentAdmin || msg.sender == identity, "CTMRWA1SentryManager: Not tokenAdmin");
 
         return (currentAdmin, currentAdminStr);
-    }
-
-    function stringToAddress(string memory str) internal pure returns (address) {
-        bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA1StorageManager: Invalid address length");
-        bytes memory addrBytes = new bytes(20);
-
-        for (uint256 i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
-        }
-
-        return address(uint160(bytes20(addrBytes)));
-    }
-
-    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
-        uint8 byteValue = uint8(char);
-        if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
-            return byteValue - uint8(bytes1("0"));
-        } else if (byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))) {
-            return 10 + byteValue - uint8(bytes1("a"));
-        } else if (byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))) {
-            return 10 + byteValue - uint8(bytes1("A"));
-        }
-        revert("Invalid hex character");
-    }
-
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint256 i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
     }
 
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)

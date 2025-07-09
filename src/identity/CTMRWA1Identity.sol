@@ -12,6 +12,7 @@ import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.so
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
 interface IZkMeVerify {
     function hasApproved(address cooperator, address user) external view returns (bool);
@@ -20,6 +21,7 @@ interface IZkMeVerify {
 contract CTMRWA1Identity {
     using Strings for *;
     using SafeERC20 for IERC20;
+    using CTMRWAUtils for string;
 
     uint256 rwaType;
     uint256 version;
@@ -79,7 +81,7 @@ contract CTMRWA1Identity {
         _payFee(fee, _feeTokenStr);
 
         ICTMRWA1SentryManager(sentryManager).addWhitelist(
-            _ID, _stringToArray(msg.sender.toHexString()), _boolToArray(true), _chainIdsStr, _feeTokenStr
+            _ID, msg.sender.toHexString()._stringToArray(), CTMRWAUtils._boolToArray(true), _chainIdsStr, _feeTokenStr
         );
 
         return (true);
@@ -104,7 +106,7 @@ contract CTMRWA1Identity {
 
     function _payFee(uint256 _fee, string memory _feeTokenStr) internal returns (bool) {
         if (_fee > 0) {
-            address feeToken = stringToAddress(_feeTokenStr);
+            address feeToken = _feeTokenStr._stringToAddress();
             uint256 feeWei = _fee * 10 ** (IERC20Extended(feeToken).decimals() - 2);
 
             IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
@@ -125,41 +127,5 @@ contract CTMRWA1Identity {
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, includeLocal, _feeType, _feeTokenStr);
 
         return (fee * _nItems);
-    }
-
-    function stringToAddress(string memory str) internal pure returns (address) {
-        bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA1Identity: Invalid address length");
-        bytes memory addrBytes = new bytes(20);
-
-        for (uint256 i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
-        }
-
-        return address(uint160(bytes20(addrBytes)));
-    }
-
-    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
-        uint8 byteValue = uint8(char);
-        if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
-            return byteValue - uint8(bytes1("0"));
-        } else if (byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))) {
-            return 10 + byteValue - uint8(bytes1("a"));
-        } else if (byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))) {
-            return 10 + byteValue - uint8(bytes1("A"));
-        }
-        revert("Invalid hex character");
-    }
-
-    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return (strArray);
-    }
-
-    function _boolToArray(bool _bool) internal pure returns (bool[] memory) {
-        bool[] memory boolArray = new bool[](1);
-        boolArray[0] = _bool;
-        return (boolArray);
     }
 }

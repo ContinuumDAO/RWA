@@ -3,13 +3,6 @@
 pragma solidity ^0.8.22;
 
 library CTMRWAUtils {
-    /// @dev Convert an individual string to an array with a single value
-    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return (strArray);
-    }
-
     /// @dev Convert a string to lower case
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
@@ -54,6 +47,22 @@ library CTMRWAUtils {
 
     /// @dev Ensure string length is less than length
     function _checkStringLength(string memory _str, uint256 _len) internal pure {
-        if (bytes(_str).length > _len) revert("Gateway: max string length exceeded");
+        if (bytes(_str).length > _len) {
+            revert("Gateway: max string length exceeded");
+        }
+    }
+
+    /// @dev Convert an individual string to an array with a single value
+    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
+        string[] memory strArray = new string[](1);
+        strArray[0] = _string;
+        return (strArray);
+    }
+
+    /// @dev Convert an individual boolean to an array with a single value
+    function _boolToArray(bool _bool) internal pure returns (bool[] memory) {
+        bool[] memory boolArray = new bool[](1);
+        boolArray[0] = _bool;
+        return (boolArray);
     }
 }

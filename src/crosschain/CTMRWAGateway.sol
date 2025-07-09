@@ -8,8 +8,8 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
+import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { ChainContract, ICTMRWAGateway } from "./ICTMRWAGateway.sol";
-import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -23,8 +23,8 @@ import {CTMRWAUtils} from "../CTMRWAUtils.sol";
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
 contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
-    using CTMRWAUtils for string;
     using Strings for *;
+    using CTMRWAUtils for string;
 
     string public cIdStr;
 
@@ -60,7 +60,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
     /// @dev Adds the address of a CTMRWAGateway contract on another chainId
     function _addChainContract(uint256 _chainId, address _contractAddr) internal {
         string memory newChainIdStr = _chainId.toString();
-        string memory contractStr = _toLower(_contractAddr.toHexString());
+        string memory contractStr = _contractAddr.toHexString()._toLower();
 
         chainContract.push(ChainContract(newChainIdStr, contractStr));
     }
@@ -81,8 +81,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         for (uint256 j = 0; j < _newChainIdsStr.length; j++) {
             _newChainIdsStr[j]._checkStringLength(64);
             _contractAddrsStr[j]._checkStringLength(64);
-            string memory newChainIdStr = _toLower(_newChainIdsStr[j]);
-            string memory contractAddrStr = _toLower(_contractAddrsStr[j]);
+            string memory newChainIdStr = _newChainIdsStr[j]._toLower();
+            string memory contractAddrStr = _contractAddrsStr[j]._toLower();
 
             for (uint256 i = 0; i < chainContract.length; i++) {
                 if (chainContract[i].chainIdStr.equal(newChainIdStr)) {
@@ -106,7 +106,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      */
     function getChainContract(string memory _chainIdStr) external view returns (string memory) {
         for (uint256 i = 0; i < chainContract.length; i++) {
-            if (chainContract[i].chainIdStr.equal(_toLower(_chainIdStr))) {
+            if (chainContract[i].chainIdStr.equal(_chainIdStr._toLower())) {
                 return (chainContract[i].contractStr);
             }
         }
@@ -143,7 +143,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      */
     function existRwaXChain(uint256 _rwaType, uint256 _version, string memory _chainIdStr) public view returns (bool) {
         for (uint256 i = 0; i < rwaXChains[_rwaType][_version].length; i++) {
-            if (rwaXChains[_rwaType][_version][i].equal(_toLower(_chainIdStr))) {
+            if (rwaXChains[_rwaType][_version][i].equal(_chainIdStr._toLower())) {
                 return (true);
             }
         }
@@ -186,7 +186,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         returns (bool, string memory)
     {
         for (uint256 i = 0; i < rwaX[_rwaType][_version].length; i++) {
-            if (rwaX[_rwaType][_version][i].chainIdStr.equal(_toLower(_chainIdStr))) {
+            if (rwaX[_rwaType][_version][i].chainIdStr.equal(_chainIdStr._toLower())) {
                 return (true, rwaX[_rwaType][_version][i].contractStr);
             }
         }
@@ -234,7 +234,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         returns (bool, string memory)
     {
         for (uint256 i = 0; i < storageManager[_rwaType][_version].length; i++) {
-            if (storageManager[_rwaType][_version][i].chainIdStr.equal(_toLower(_chainIdStr))) {
+            if (storageManager[_rwaType][_version][i].chainIdStr.equal(_chainIdStr._toLower())) {
                 return (true, storageManager[_rwaType][_version][i].contractStr);
             }
         }
@@ -281,7 +281,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         returns (bool, string memory)
     {
         for (uint256 i = 0; i < sentryManager[_rwaType][_version].length; i++) {
-            if (sentryManager[_rwaType][_version][i].chainIdStr.equal(_toLower(_chainIdStr))) {
+            if (sentryManager[_rwaType][_version][i].chainIdStr.equal(_chainIdStr._toLower())) {
                 return (true, sentryManager[_rwaType][_version][i].contractStr);
             }
         }
@@ -308,8 +308,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
             _chainIdsStr[j]._checkStringLength(64);
             _rwaXAddrsStr[j]._checkStringLength(64);
-            string memory rwaXAddrStr = _toLower(_rwaXAddrsStr[j]);
-            string memory chainIdStr = _toLower(_chainIdsStr[j]);
+            string memory rwaXAddrStr = _rwaXAddrsStr[j]._toLower();
+            string memory chainIdStr = _chainIdsStr[j]._toLower();
 
             require(bytes(rwaXAddrStr).length <= 64, "CTMRWAGateway: Incorrect address length");
 
@@ -355,8 +355,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
             _chainIdsStr[j]._checkStringLength(64);
             _storageManagerAddrsStr[j]._checkStringLength(64);
-            string memory storageManagerAddrStr = _toLower(_storageManagerAddrsStr[j]);
-            string memory chainIdStr = _toLower(_chainIdsStr[j]);
+            string memory storageManagerAddrStr = _storageManagerAddrsStr[j]._toLower();
+            string memory chainIdStr = _chainIdsStr[j]._toLower();
 
             for (uint256 i = 0; i < storageManager[_rwaType][_version].length; i++) {
                 if (storageManager[_rwaType][_version][i].chainIdStr.equal(chainIdStr)) {
@@ -399,8 +399,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
             _chainIdsStr[j]._checkStringLength(64);
             _sentryManagerAddrsStr[j]._checkStringLength(64);
-            string memory sentryManagerAddrStr = _toLower(_sentryManagerAddrsStr[j]);
-            string memory chainIdStr = _toLower(_chainIdsStr[j]);
+            string memory sentryManagerAddrStr = _sentryManagerAddrsStr[j]._toLower();
+            string memory chainIdStr = _chainIdsStr[j]._toLower();
 
             for (uint256 i = 0; i < sentryManager[_rwaType][_version].length; i++) {
                 if (sentryManager[_rwaType][_version][i].chainIdStr.equal(chainIdStr)) {
@@ -421,22 +421,6 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
 
     function cID() internal view returns (uint256) {
         return block.chainid;
-    }
-
-    /// @dev Convert a string to lower case
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint256 i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
     }
 
     /// @dev Fallback function for a failed c3call. Only logs an event at present

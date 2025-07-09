@@ -9,6 +9,7 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
 import { ICTMRWAAttachment, ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -38,6 +39,7 @@ uint256 constant version = 1;
 
 contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
+    using CTMRWAUtils for string;
 
     /// @dev Address of the CTMRWAGateway contract
     address public gateway;
@@ -134,7 +136,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
-        string memory tokenAddrStr = _toLower(_tokenAddrStr);
+        string memory tokenAddrStr = _tokenAddrStr._toLower();
 
         uint256 id = contractToId[tokenAddrStr];
         return (id != 0, id);
@@ -151,7 +153,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
         string memory _contractStr = idToContract[_ID];
-        return bytes(_contractStr).length != 0 ? (true, stringToAddress(_contractStr)) : (false, address(0));
+        return bytes(_contractStr).length != 0 ? (true, _contractStr._stringToAddress()) : (false, address(0));
     }
 
     /**
@@ -165,7 +167,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
         string memory _dividendStr = idToDividend[_ID];
-        return bytes(_dividendStr).length != 0 ? (true, stringToAddress(_dividendStr)) : (false, address(0));
+        return bytes(_dividendStr).length != 0 ? (true, _dividendStr._stringToAddress()) : (false, address(0));
     }
 
     /**
@@ -179,7 +181,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
         string memory _storageStr = idToStorage[_ID];
-        return bytes(_storageStr).length != 0 ? (true, stringToAddress(_storageStr)) : (false, address(0));
+        return bytes(_storageStr).length != 0 ? (true, _storageStr._stringToAddress()) : (false, address(0));
     }
 
     /**
@@ -193,14 +195,14 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
         string memory _sentryStr = idToSentry[_ID];
-        return bytes(_sentryStr).length != 0 ? (true, stringToAddress(_sentryStr)) : (false, address(0));
+        return bytes(_sentryStr).length != 0 ? (true, _sentryStr._stringToAddress()) : (false, address(0));
     }
 
     function getInvestContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address) {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
         string memory _investStr = idToInvest[_ID];
-        return bytes(_investStr).length != 0 ? (true, stringToAddress(_investStr)) : (false, address(0));
+        return bytes(_investStr).length != 0 ? (true, _investStr._stringToAddress()) : (false, address(0));
     }
 
     /**
@@ -240,7 +242,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     {
         require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
 
-        string memory investAddrStr = _toLower(_investAddr.toHexString());
+        string memory investAddrStr = _investAddr.toHexString()._toLower();
 
         uint256 lenContract = bytes(idToInvest[_ID]).length;
 
@@ -262,10 +264,10 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         address _storageAddr,
         address _sentryAddr
     ) internal returns (bool) {
-        string memory ctmRwaAddrStr = _toLower(_ctmRwaAddr.toHexString());
-        string memory dividendAddr = _toLower(_dividendAddr.toHexString());
-        string memory storageAddr = _toLower(_storageAddr.toHexString());
-        string memory sentryAddr = _toLower(_sentryAddr.toHexString());
+        string memory ctmRwaAddrStr = _ctmRwaAddr.toHexString()._toLower();
+        string memory dividendAddr = _dividendAddr.toHexString()._toLower();
+        string memory storageAddr = _storageAddr.toHexString()._toLower();
+        string memory sentryAddr = _sentryAddr.toHexString()._toLower();
 
         uint256 lenContract = bytes(idToContract[_ID]).length;
 
@@ -290,47 +292,6 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
 
     function cID() internal view returns (uint256) {
         return block.chainid;
-    }
-
-    /// @dev Convert a string to an EVM address. Also checks the string length
-    function stringToAddress(string memory str) internal pure returns (address) {
-        bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA1X: Invalid address length");
-        bytes memory addrBytes = new bytes(20);
-
-        for (uint256 i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
-        }
-
-        return address(uint160(bytes20(addrBytes)));
-    }
-
-    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
-        uint8 byteValue = uint8(char);
-        if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
-            return byteValue - uint8(bytes1("0"));
-        } else if (byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))) {
-            return 10 + byteValue - uint8(bytes1("a"));
-        } else if (byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))) {
-            return 10 + byteValue - uint8(bytes1("A"));
-        }
-        revert("Invalid hex character");
-    }
-
-    /// @dev Convert a string to lower case
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint256 i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
     }
 
     /// @dev Fallback function for failed c3call cross-chain. Only emits an event at present

@@ -73,7 +73,6 @@ contract CTMRWA1Dividend {
     /// @dev to allow claiming of dividends by the owner, whilst the tokenId is locked
     mapping(uint256 => uint256) public dividendByTokenId;
 
-
     /**
      * @notice Change the tokenAdmin address
      * NOTE This function can only be called by CTMRWA1X, or the existing tokenAdmin

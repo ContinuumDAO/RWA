@@ -226,9 +226,7 @@ contract Deployer is Utils {
         storagesStr[0] = address(storageManager).toHexString();
         storagesStr[1] = "ethereumStorageManager";
 
-        gateway.attachStorageManager(
-            RWA_TYPE, VERSION, chainIdsStr, storagesStr
-        );
+        gateway.attachStorageManager(RWA_TYPE, VERSION, chainIdsStr, storagesStr);
     }
 
     function _deploySentry(address gov, address admin) internal {
@@ -262,16 +260,13 @@ contract Deployer is Utils {
         string[] memory chainIdsStr = new string[](2);
         string[] memory sentriesStr = new string[](2);
 
-
         chainIdsStr[0] = cIdStr;
         chainIdsStr[1] = "1";
 
         sentriesStr[0] = address(sentryManager).toHexString();
         sentriesStr[1] = "ethereumSentryManager";
 
-        gateway.attachSentryManager(
-            RWA_TYPE, VERSION, chainIdsStr, sentriesStr
-        );
+        gateway.attachSentryManager(RWA_TYPE, VERSION, chainIdsStr, sentriesStr);
     }
 
     function _setFeeContracts() internal {

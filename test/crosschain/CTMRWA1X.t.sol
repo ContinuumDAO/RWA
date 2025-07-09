@@ -12,8 +12,9 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
-import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
+
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
+import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 
 import { C3CallerStructLib } from "../../lib/c3caller/src/C3CallerStructLib.sol";
 
@@ -97,8 +98,7 @@ contract TestCTMRWA1X is Helpers {
     function test_localPartialTransfer() public {
         vm.startPrank(tokenAdmin); // this CTMRWA1 has an admin of tokenAdmin
         (ID, token) = _deployCTMRWA1(address(usdc));
-        (uint256 tokenId,,) =
-            _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
+        (uint256 tokenId,,) = _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
 
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory feeTokenStr = feeTokenList[0].toHexString();
@@ -160,12 +160,11 @@ contract TestCTMRWA1X is Helpers {
         // Check that user2 can now transfer tokenId to user1
         vm.prank(user2);
         rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
-    
+
         // Check that user1 is now the owner of tokenId
         owner = token.ownerOf(tokenId);
         assertEq(owner, user1);
     }
-    
 
     function test_changeAdmin() public {
         address[] memory feeTokenList = feeManager.getFeeTokenList();
@@ -226,16 +225,14 @@ contract TestCTMRWA1X is Helpers {
 
         // Lock the token (change to address(0))
         rwa1X.changeTokenAdmin(_toLower(address(0).toHexString()), _stringToArray(cIdStr), ID, feeTokenStr);
-        
+
         // Check the admin again
         currentAdmin = token.tokenAdmin();
         assertEq(currentAdmin, address(0));
         vm.stopPrank();
     }
 
-
     function test_deployExecute() public {
-
         string memory newAdminStr = tokenAdmin.toHexString();
 
         string memory tokenName = "RWA Test token";
@@ -290,7 +287,6 @@ contract TestCTMRWA1X is Helpers {
         assertTrue(stringsEqual(bURI, baseURI));
     }
 
-    
     function test_mintXTokenIdToAddressExecute() public {
         // Test mintX cross chain minting
 
@@ -303,10 +299,9 @@ contract TestCTMRWA1X is Helpers {
 
         // Cross chain minting using c3caller (onlyCaller)
         vm.startPrank(address(c3caller));
-      
+
         // Mint a new tokenId for user2 in slot 5, with a balance of 140
-        bool ok =
-            rwa1X.mintX(ID, user1.toHexString(), user2.toHexString(), 5, 140);
+        bool ok = rwa1X.mintX(ID, user1.toHexString(), user2.toHexString(), 5, 140);
 
         assertTrue(ok);
         vm.stopPrank();
@@ -316,8 +311,5 @@ contract TestCTMRWA1X is Helpers {
         assertFalse(newTokenId == 0);
         uint256 balEnd = token.balanceOf(newTokenId);
         assertEq(balEnd, 140);
-
     }
-
-
 }

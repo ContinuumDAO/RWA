@@ -9,6 +9,7 @@ import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { CTMRWA1Storage } from "./CTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
+import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -24,6 +25,7 @@ import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storag
  */
 contract CTMRWA1StorageUtils {
     using Strings for *;
+    using CTMRWAUtils for string;
 
     uint256 rwaType;
     uint256 version;
@@ -109,24 +111,8 @@ contract CTMRWA1StorageUtils {
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(ok, "CTMRWA1StorageUtils: The requested tokenID does not exist");
-        string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
+        string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
         return (tokenAddr, tokenAddrStr);
-    }
-
-    /// @dev Convert a string to lower case
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint256 i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
     }
 }

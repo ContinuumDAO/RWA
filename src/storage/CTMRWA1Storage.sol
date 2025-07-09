@@ -9,6 +9,7 @@ import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
 import { URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
+import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -25,6 +26,7 @@ import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
  */
 contract CTMRWA1Storage {
     using Strings for *;
+    using CTMRWAUtils for string;
 
     /// @dev The CTMRWA1 contract address linked to this contract
     address public tokenAddr;
@@ -116,7 +118,7 @@ contract CTMRWA1Storage {
         address _map
     ) {
         ID = _ID;
-        idStr = _toLower(((ID << 192) >> 192).toHexString()); // shortens string to 16 characters
+        idStr = ((ID << 192) >> 192).toHexString()._toLower(); // shortens string to 16 characters
         rwaType = _rwaType;
         version = _version;
         ctmRwa1Map = _map;
@@ -381,21 +383,5 @@ contract CTMRWA1Storage {
 
     function cID() internal view returns (uint256) {
         return block.chainid;
-    }
-
-    /// @dev Convert a string to lower case
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint256 i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
     }
 }

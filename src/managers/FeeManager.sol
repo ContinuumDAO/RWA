@@ -14,9 +14,12 @@ import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
 import { FeeType, IFeeManager } from "./IFeeManager.sol";
 
+import {CTMRWAUtils} from "../CTMRWAUtils.sol";
+
 contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
+    using CTMRWAUtils for string;
 
     address[] public feeTokenList;
     mapping(address => uint256) public feeTokenIndexMap;
@@ -59,7 +62,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
 
     function addFeeToken(string memory feeTokenStr) external onlyGov returns (bool) {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
-        address feeToken = stringToAddress(feeTokenStr);
+        address feeToken = feeTokenStr._stringToAddress();
         uint256 index = feeTokenList.length;
         feeTokenList.push(feeToken);
         feeTokenIndexMap[feeToken] = index + 1;
@@ -69,7 +72,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
 
     function delFeeToken(string memory feeTokenStr) external onlyGov returns (bool) {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
-        address feeToken = stringToAddress(feeTokenStr);
+        address feeToken = feeTokenStr._stringToAddress();
         require(feeTokenIndexMap[feeToken] > 0, "FeeManager: token not exist");
         uint256 index = feeTokenIndexMap[feeToken];
         uint256 len = feeTokenList.length;
@@ -91,7 +94,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     }
 
     function isValidFeeToken(string memory feeTokenStr) public view returns (bool) {
-        address feeToken = stringToAddress(_toLower(feeTokenStr));
+        address feeToken = feeTokenStr._toLower()._stringToAddress();
 
         for (uint256 i = 0; i < feeTokenList.length; i++) {
             if (feeTokenList[i] == feeToken) {
@@ -104,7 +107,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
 
     function getFeeTokenIndexMap(string memory feeTokenStr) external view returns (uint256) {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
-        address feeToken = stringToAddress(_toLower(feeTokenStr));
+        address feeToken = feeTokenStr._toLower()._stringToAddress();
         return (feeTokenIndexMap[feeToken]);
     }
 
@@ -117,11 +120,11 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
 
         require(feeTokensStr.length == fee.length, "FeeManager: Invalid list size");
 
-        dstChainIDStr = _toLower(dstChainIDStr);
+        dstChainIDStr = dstChainIDStr._toLower();
 
         for (uint256 i = 0; i < feeTokensStr.length; i++) {
             require(bytes(feeTokensStr[i]).length == 42, "FeeManager: Fee token has incorrect length");
-            feetokens.push(stringToAddress(_toLower(feeTokensStr[i])));
+            feetokens.push(feeTokensStr[i]._toLower()._stringToAddress());
         }
 
         for (uint256 index = 0; index < feeTokensStr.length; index++) {
@@ -308,7 +311,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
 
     function payFee(uint256 fee, string memory feeTokenStr) external returns (uint256) {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
-        address feeToken = stringToAddress(feeTokenStr);
+        address feeToken = feeTokenStr._stringToAddress();
         require(IERC20(feeToken).transferFrom(msg.sender, address(this), fee), "FM: Fee payment failed");
         return (fee);
     }
@@ -319,9 +322,9 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         returns (bool)
     {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has an incorrect length");
-        address feeToken = stringToAddress(feeTokenStr);
+        address feeToken = feeTokenStr._stringToAddress();
         require(bytes(treasuryStr).length == 42, "FeeManager: treasuryStr has an incorrect length");
-        address treasury = stringToAddress(treasuryStr);
+        address treasury = treasuryStr._stringToAddress();
 
         uint256 bal = IERC20(feeToken).balanceOf(address(this));
         if (bal < amount) {
@@ -334,8 +337,8 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     function getToChainBaseFee(string memory toChainIDStr, string memory feeTokenStr) public view returns (uint256) {
         require(bytes(toChainIDStr).length > 0, "FeeManager: toChainIDStr has zero length");
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr incorrect length");
-        address feeToken = stringToAddress(feeTokenStr);
-        toChainIDStr = _toLower(toChainIDStr);
+        address feeToken = feeTokenStr._stringToAddress();
+        toChainIDStr = toChainIDStr._toLower();
         return _toFeeConfigs[toChainIDStr][feeToken];
     }
 
@@ -352,7 +355,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
 
     function setFeeTokenParams(string memory feeTokenStr, FeeParams memory fee) external onlyGov returns (bool) {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr incorrect length");
-        address feeToken = stringToAddress(feeTokenStr);
+        address feeToken = feeTokenStr._stringToAddress();
         feeParams[feeToken] = fee;
         return true;
     }
@@ -363,45 +366,5 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
 
     function cID() internal view returns (uint256) {
         return block.chainid;
-    }
-
-    // TODO: add to a library
-    function stringToAddress(string memory str) internal pure returns (address) {
-        bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "FeeManager: Invalid address length");
-        bytes memory addrBytes = new bytes(20);
-
-        for (uint256 i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
-        }
-
-        return address(uint160(bytes20(addrBytes)));
-    }
-
-    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
-        uint8 byteValue = uint8(char);
-        if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
-            return byteValue - uint8(bytes1("0"));
-        } else if (byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))) {
-            return 10 + byteValue - uint8(bytes1("a"));
-        } else if (byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))) {
-            return 10 + byteValue - uint8(bytes1("A"));
-        }
-        revert("FeeManager: Invalid hex character");
-    }
-
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint256 i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
     }
 }

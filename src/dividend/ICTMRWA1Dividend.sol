@@ -4,7 +4,7 @@ pragma solidity ^0.8.22;
 
 interface ICTMRWA1Dividend {
     function ID() external view returns (uint256);
-    function tokenAdmin() external view returns(address);
+    function tokenAdmin() external view returns (address);
     function setTokenAdmin(address _tokenAdmin) external returns (bool);
     function setDividendToken(address dividendToken) external returns (bool);
     function dividendToken() external returns (address);

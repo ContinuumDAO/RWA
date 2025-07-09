@@ -21,10 +21,10 @@ import { ICTMRWA1X } from "./ICTMRWA1X.sol";
 
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
+import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1Storage, URICategory, URIType } from "../storage/ICTMRWA1Storage.sol";
-
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -39,6 +39,7 @@ import { ICTMRWA1Storage, URICategory, URIType } from "../storage/ICTMRWA1Storag
 contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
+    using CTMRWAUtils for string;
 
     /// @dev The address of the CTMRWAGateway contract
     address public gateway;
@@ -250,7 +251,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             (slotNumbers, slotNames) = ICTMRWA1(ctmRwa1Addr).getAllSlots();
         }
 
-        ctmRwa1AddrStr = _toLower(ctmRwa1Addr.toHexString());
+        ctmRwa1AddrStr = ctmRwa1Addr.toHexString()._toLower();
 
         _payFee(FeeType.DEPLOY, _feeTokenStr, _toChainIdsStr, _includeLocal);
 
@@ -313,13 +314,13 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         string memory _ctmRwa1AddrStr
     ) internal returns (bool) {
         require(!_toChainIdStr.equal(cID().toString()), "RWAX: Not cross-chain");
-        address ctmRwa1Addr = stringToAddress(_ctmRwa1AddrStr);
+        address ctmRwa1Addr = _ctmRwa1AddrStr._stringToAddress();
 
         (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa1Addr);
 
         uint256 ID = ICTMRWA1(ctmRwa1Addr).ID();
 
-        string memory toChainIdStr = _toLower(_toChainIdStr);
+        string memory toChainIdStr = _toChainIdStr._toLower();
 
         (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
 
@@ -353,7 +354,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(!ok, "RWAX: ID already exists");
 
-        address newAdmin = stringToAddress(_newAdminStr);
+        address newAdmin = _newAdminStr._stringToAddress();
 
         _deployCTMRWA1Local(_ID, _tokenName, _symbol, _decimals, _baseURI, _slotNumbers, _slotNames, newAdmin);
 
@@ -408,13 +409,13 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         (address currentAdmin, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa1Addr);
-        address newAdmin = stringToAddress(_newAdminStr);
+        address newAdmin = _newAdminStr._stringToAddress();
 
         bool includeLocal = false;
         _payFee(FeeType.ADMIN, _feeTokenStr, _toChainIdsStr, includeLocal);
 
         for (uint256 i = 0; i < _toChainIdsStr.length; i++) {
-            toChainIdStr = _toLower(_toChainIdsStr[i]);
+            toChainIdStr = _toChainIdsStr[i]._toLower();
 
             if (toChainIdStr.equal(cIDStr)) {
                 _changeAdmin(currentAdmin, newAdmin, _ID);
@@ -445,13 +446,13 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(ok, "RWAX: Destination ID does not exist");
 
-        address newAdmin = stringToAddress(_newAdminStr);
+        address newAdmin = _newAdminStr._stringToAddress();
 
         (, string memory fromChainIdStr,) = context();
-        fromChainIdStr = _toLower(fromChainIdStr);
+        fromChainIdStr = fromChainIdStr._toLower();
 
         address currentAdmin = ICTMRWA1(ctmRwa1Addr).tokenAdmin();
-        address oldAdmin = stringToAddress(_oldAdminStr);
+        address oldAdmin = _oldAdminStr._stringToAddress();
         require(currentAdmin == oldAdmin, "RWAX: Not admin or token is locked");
 
         _changeAdmin(currentAdmin, newAdmin, _ID);
@@ -484,7 +485,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa1Addr);
 
-        _payFee(FeeType.MINT, _feeTokenStr, _stringToArray(cIDStr), false);
+        _payFee(FeeType.MINT, _feeTokenStr, cIDStr._stringToArray(), false);
 
         if (_toTokenId > 0) {
             ICTMRWA1(ctmRwa1Addr).mintValueX(_toTokenId, _slot, _value);
@@ -536,7 +537,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         uint256 len = _toChainIdsStr.length;
 
         for (uint256 i = 0; i < len; i++) {
-            toChainIdStr = _toLower(_toChainIdsStr[i]);
+            toChainIdStr = _toChainIdsStr[i]._toLower();
             if (!cIDStr.equal(toChainIdStr)) {
                 (fromAddressStr, toRwaXStr) = _getRWAX(toChainIdStr);
                 string memory funcCall = "createNewSlotX(uint256,string,uint256,string)";
@@ -569,7 +570,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         (, string memory fromChainIdStr,) = context();
 
-        address fromAddress = stringToAddress(_fromAddressStr);
+        address fromAddress = _fromAddressStr._stringToAddress();
 
         address currentAdmin = ICTMRWA1(ctmRwa1Addr).tokenAdmin();
         require(fromAddress == currentAdmin, "RWAX: Only tokenAdmin can add slots, or locked");
@@ -602,13 +603,13 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         uint256 _ID,
         string memory _feeTokenStr
     ) public returns (uint256) {
-        string memory toChainIdStr = _toLower(_toChainIdStr);
+        string memory toChainIdStr = _toChainIdStr._toLower();
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId), "RWAX: Not approved or owner");
 
         if (toChainIdStr.equal(cIDStr)) {
-            address toAddr = stringToAddress(_toAddressStr);
+            address toAddr = _toAddressStr._stringToAddress();
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(this), _fromTokenId);
             uint256 newTokenId = ICTMRWA1(ctmRwa1Addr).transferFrom(_fromTokenId, toAddr, _value);
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(0), _fromTokenId);
@@ -620,7 +621,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
             ICTMRWA1(ctmRwa1Addr).spendAllowance(msg.sender, _fromTokenId, _value);
 
-            _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
+            _payFee(FeeType.TX, _feeTokenStr, toChainIdStr._stringToArray(), false);
 
             uint256 slot = ICTMRWA1(ctmRwa1Addr).slotOf(_fromTokenId);
 
@@ -628,9 +629,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
             string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
 
-            bytes memory callData = abi.encodeWithSignature(
-                funcCall, _ID, fromAddressStr, _toAddressStr, slot, _value
-            );
+            bytes memory callData = abi.encodeWithSignature(funcCall, _ID, fromAddressStr, _toAddressStr, slot, _value);
 
             c3call(toRwaXStr, toChainIdStr, callData);
 
@@ -657,14 +656,14 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         uint256 _ID,
         string memory _feeTokenStr
     ) public {
-        string memory toChainIdStr = _toLower(_toChainIdStr);
+        string memory toChainIdStr = _toChainIdStr._toLower();
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
-        address fromAddr = stringToAddress(_fromAddrStr);
+        address fromAddr = _fromAddrStr._stringToAddress();
         require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId), "RWAX: Not owner/approved");
 
         if (toChainIdStr.equal(cIDStr)) {
-            address toAddr = stringToAddress(_toAddressStr);
+            address toAddr = _toAddressStr._stringToAddress();
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(this), _fromTokenId);
             ICTMRWA1(ctmRwa1Addr).transferFrom(fromAddr, toAddr, _fromTokenId);
             ICTMRWA1(ctmRwa1Addr).approveFromX(toAddr, _fromTokenId);
@@ -672,7 +671,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         } else {
             (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
 
-            _payFee(FeeType.TX, _feeTokenStr, _stringToArray(toChainIdStr), false);
+            _payFee(FeeType.TX, _feeTokenStr, toChainIdStr._stringToArray(), false);
 
             (, uint256 value,, uint256 slot,,) = ICTMRWA1(ctmRwa1Addr).getTokenInfo(_fromTokenId);
 
@@ -682,9 +681,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             ICTMRWA1(ctmRwa1Addr).removeTokenFromOwnerEnumeration(msg.sender, _fromTokenId);
 
             string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
-            bytes memory callData = abi.encodeWithSignature(
-                funcCall, _ID, _fromAddrStr, _toAddressStr, slot, value
-            );
+            bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _fromAddrStr, _toAddressStr, slot, value);
 
             c3call(toRwaXStr, toChainIdStr, callData);
 
@@ -706,7 +703,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     ) external onlyCaller returns (bool) {
         (, string memory fromChainIdStr,) = context();
 
-        address toAddr = stringToAddress(_toAddressStr);
+        address toAddr = _toAddressStr._stringToAddress();
 
         (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(ok, "RWAX: ID does not exist");
@@ -775,7 +772,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
         require(ok, "RWAX: tokenID not exist");
-        string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
+        string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
         return (tokenAddr, tokenAddrStr);
     }
@@ -784,7 +781,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     function _getRWAX(string memory _toChainIdStr) internal view returns (string memory, string memory) {
         require(!_toChainIdStr.equal(cIDStr), "RWAX: Not Xchain");
 
-        string memory fromAddressStr = _toLower(msg.sender.toHexString());
+        string memory fromAddressStr = msg.sender.toHexString()._toLower();
 
         (bool ok, string memory toRwaXStr) = ICTMRWAGateway(gateway).getAttachedRWAX(rwaType, version, _toChainIdStr);
         require(ok, "RWAX: Address not found");
@@ -798,7 +795,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      */
     function _checkTokenAdmin(address _tokenAddr) internal returns (address, string memory) {
         address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
-        string memory currentAdminStr = _toLower(currentAdmin.toHexString());
+        string memory currentAdminStr = currentAdmin.toHexString()._toLower();
 
         require(msg.sender == currentAdmin, "RWAX: Not tokenAdmin or locked");
 
@@ -831,7 +828,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         // TODO Remove hardcoded multiplier 10**2
 
         if (fee > 0) {
-            address feeToken = stringToAddress(_feeTokenStr);
+            address feeToken = _feeTokenStr._stringToAddress();
             uint256 feeWei = fee * 10 ** (IERC20Extended(feeToken).decimals() - 2);
 
             IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
@@ -844,54 +841,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
     function cID() internal view returns (uint256) {
         return block.chainid;
-    }
-
-    /// @dev Convert a string to an EVM address. Also checks the string length
-    function stringToAddress(string memory str) internal pure returns (address) {
-        bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "RWAX: Invalid addr length");
-        bytes memory addrBytes = new bytes(20);
-
-        for (uint256 i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
-        }
-
-        return address(uint160(bytes20(addrBytes)));
-    }
-
-    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
-        uint8 byteValue = uint8(char);
-        if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
-            return byteValue - uint8(bytes1("0"));
-        } else if (byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))) {
-            return 10 + byteValue - uint8(bytes1("a"));
-        } else if (byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))) {
-            return 10 + byteValue - uint8(bytes1("A"));
-        }
-        revert("Invalid hex character");
-    }
-
-    /// @dev Convert a string to lower case
-    function _toLower(string memory str) internal pure returns (string memory) {
-        bytes memory bStr = bytes(str);
-        bytes memory bLower = new bytes(bStr.length);
-        for (uint256 i = 0; i < bStr.length; i++) {
-            // Uppercase character...
-            if ((uint8(bStr[i]) >= 65) && (uint8(bStr[i]) <= 90)) {
-                // So we add 32 to make it lowercase
-                bLower[i] = bytes1(uint8(bStr[i]) + 32);
-            } else {
-                bLower[i] = bStr[i];
-            }
-        }
-        return string(bLower);
-    }
-
-    /// @dev Convert an individual string to an array with a single value
-    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return (strArray);
     }
 
     /**
