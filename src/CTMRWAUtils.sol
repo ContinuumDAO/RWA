@@ -33,7 +33,7 @@ library CTMRWAUtils {
         bytes memory addrBytes = new bytes(20);
 
         for (uint256 i = 0; i < 20; i++) {
-            addrBytes[i] = bytes1(hexCharToByte(strBytes[2 + i * 2]) * 16 + hexCharToByte(strBytes[3 + i * 2]));
+            addrBytes[i] = bytes1(_hexCharToByte(strBytes[2 + i * 2]) * 16 + _hexCharToByte(strBytes[3 + i * 2]));
         }
 
         return address(uint160(bytes20(addrBytes)));

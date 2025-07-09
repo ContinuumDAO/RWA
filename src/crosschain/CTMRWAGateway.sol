@@ -9,6 +9,7 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
 import { ChainContract, ICTMRWAGateway } from "./ICTMRWAGateway.sol";
+import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -22,6 +23,7 @@ import { ChainContract, ICTMRWAGateway } from "./ICTMRWAGateway.sol";
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
 contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
+    using CTMRWAUtils for string;
     using Strings for *;
 
     string public cIdStr;
@@ -77,8 +79,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         bool preExisted;
 
         for (uint256 j = 0; j < _newChainIdsStr.length; j++) {
-            _checkStringLength(_newChainIdsStr[j], 64);
-            _checkStringLength(_contractAddrsStr[j], 64);
+            _newChainIdsStr[j]._checkStringLength(64);
+            _contractAddrsStr[j]._checkStringLength(64);
             string memory newChainIdStr = _toLower(_newChainIdsStr[j]);
             string memory contractAddrStr = _toLower(_contractAddrsStr[j]);
 
@@ -304,8 +306,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         bool preExisted;
 
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
-            _checkStringLength(_chainIdsStr[j], 64);
-            _checkStringLength(_rwaXAddrsStr[j], 64);
+            _chainIdsStr[j]._checkStringLength(64);
+            _rwaXAddrsStr[j]._checkStringLength(64);
             string memory rwaXAddrStr = _toLower(_rwaXAddrsStr[j]);
             string memory chainIdStr = _toLower(_chainIdsStr[j]);
 
@@ -351,8 +353,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         bool preExisted;
 
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
-            _checkStringLength(_chainIdsStr[j], 64);
-            _checkStringLength(_storageManagerAddrsStr[j], 64);
+            _chainIdsStr[j]._checkStringLength(64);
+            _storageManagerAddrsStr[j]._checkStringLength(64);
             string memory storageManagerAddrStr = _toLower(_storageManagerAddrsStr[j]);
             string memory chainIdStr = _toLower(_chainIdsStr[j]);
 
@@ -395,8 +397,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         bool preExisted;
 
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
-            _checkStringLength(_chainIdsStr[j], 64);
-            _checkStringLength(_sentryManagerAddrsStr[j], 64);
+            _chainIdsStr[j]._checkStringLength(64);
+            _sentryManagerAddrsStr[j]._checkStringLength(64);
             string memory sentryManagerAddrStr = _toLower(_sentryManagerAddrsStr[j]);
             string memory chainIdStr = _toLower(_chainIdsStr[j]);
 
