@@ -75,6 +75,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     /// @dev sentryAddr is the contract controlling access to the CTMRWA1
     address public sentryAddr;
 
+    /// @dev tokenFactory is the contract that directly deploys this contract
+    address public tokenFactory;
+
     /// @dev erc20Deployer is the contract which allows deployment an ERC20 representing any slot of a CTMRWA1
     address public erc20Deployer;
 
@@ -164,6 +167,7 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
         ctmRwa1X = _ctmRwa1X;
         rwa1XFallback = ICTMRWA1X(ctmRwa1X).fallbackAddr();
         ctmRwaDeployer = ICTMRWA1X(ctmRwa1X).ctmRwaDeployer();
+        tokenFactory = ICTMRWADeployer(ctmRwaDeployer).tokenFactory(rwaType, version);
         erc20Deployer = ICTMRWADeployer(ctmRwaDeployer).erc20Deployer();
     }
 
@@ -172,8 +176,13 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
         _;
     }
 
-    modifier onlyDeployer() {
-        require(msg.sender == ctmRwaDeployer || _erc20s[msg.sender], "RWA: Only Deployer/CTMRWAERC20");
+    modifier onlyErc20Deployer() {
+        require(_erc20s[msg.sender], "RWA: Only CTMRWAERC20");
+        _;
+    }
+
+    modifier onlyTokenFactory() {
+        require(msg.sender == tokenFactory, "RWA: Only TokenFactory");
         _;
     }
 
@@ -838,7 +847,7 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     }
 
     /// @dev Version of _clearApprovedValues callable by CTMRWAERC20Deployer
-    function clearApprovedValuesErc20(uint256 _tokenId) external onlyDeployer {
+    function clearApprovedValuesErc20(uint256 _tokenId) external onlyErc20Deployer {
         _clearApprovedValues(_tokenId);
     }
 
@@ -986,7 +995,7 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     }
 
     /// @dev Function is used to initialize the slot struct array on a newly deployed chain in this RWA
-    function initializeSlotData(uint256[] memory _slotNumbers, string[] memory _slotNames) external onlyDeployer {
+    function initializeSlotData(uint256[] memory _slotNumbers, string[] memory _slotNames) external onlyTokenFactory {
         require(_slotNumbers.length == _slotNames.length, "RWA: SlotData length input mismatch");
         require(_allSlots.length == 0, "RWA: Slot data must be uninit");
         for (uint256 i = 0; i < _slotNumbers.length; i++) {

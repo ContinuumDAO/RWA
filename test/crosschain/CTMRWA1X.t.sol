@@ -298,14 +298,14 @@ contract TestCTMRWA1X is Helpers {
         uint8 decimals = 18;
         uint256 timestamp = 12_776;
 
-        uint256 ID = uint256(keccak256(abi.encode(tokenName, symbol, decimals, timestamp, tokenAdmin)));
+        uint256 IDnew = uint256(keccak256(abi.encode(tokenName, symbol, decimals, timestamp, tokenAdmin)));
 
         string memory baseURI = "GFLD";
 
         vm.prank(address(c3caller));
         bool ok = rwa1X.deployCTMRWA1(
             newAdminStr,
-            ID,
+            IDnew,
             tokenName,
             symbol,
             decimals,
@@ -318,12 +318,12 @@ contract TestCTMRWA1X is Helpers {
 
         address tokenAddr;
 
-        (ok, tokenAddr) = map.getTokenContract(ID, RWA_TYPE, VERSION);
+        (ok, tokenAddr) = map.getTokenContract(IDnew, RWA_TYPE, VERSION);
 
-        assertEq(token.tokenAdmin(), tokenAdmin);
+        assertEq(ICTMRWA1(tokenAddr).tokenAdmin(), tokenAdmin);
 
-        string memory sName = token.slotName(7);
-        console.log(sName);
+        string memory sName = ICTMRWA1(tokenAddr).slotName(7);
+        assertTrue(stringsEqual(sName, "test RWA"));
     }
 
     function test_transferToAddressExecute() public {
