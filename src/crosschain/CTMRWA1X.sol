@@ -16,10 +16,15 @@ import { ICTMRWA1XFallback } from "../crosschain/ICTMRWA1XFallback.sol";
 import { ICTMRWAGateway } from "../crosschain/ICTMRWAGateway.sol";
 import { ICTMRWADeployer } from "../deployment/ICTMRWADeployer.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
-import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { ICTMRWA1Storage, URICategory, URIType } from "../storage/ICTMRWA1Storage.sol";
+
 import { ICTMRWA1X } from "./ICTMRWA1X.sol";
+
+import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+
+import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
+import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
+import { ICTMRWA1Storage, URICategory, URIType } from "../storage/ICTMRWA1Storage.sol";
+
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -363,6 +368,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
 
         ICTMRWA1(ctmRwa1Addr).changeAdmin(_newAdmin);
+
+        (, address ctmRwa1DividendAddr) = ICTMRWAMap(ctmRwa1Map).getDividendContract(_ID, rwaType, version);
+        ICTMRWA1Dividend(ctmRwa1DividendAddr).setTokenAdmin(_newAdmin);
+
         (, address ctmRwa1StorageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, rwaType, version);
         ICTMRWA1Storage(ctmRwa1StorageAddr).setTokenAdmin(_newAdmin);
 

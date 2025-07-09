@@ -31,6 +31,9 @@ contract CTMRWA1Dividend {
     /// @dev The tokenAdmin (Issuer) address. Same as in CTMRWA1
     address public tokenAdmin;
 
+    /// @dev The address of the CTMRWA1X contract
+    address public ctmRwa1X;
+
     /// @dev The CTMRWAMap address
     address ctmRwa1Map;
 
@@ -49,13 +52,14 @@ contract CTMRWA1Dividend {
     event ClaimDividend(address claimant, uint256 dividend, address dividendToken);
 
     modifier onlyTokenAdmin() {
-        require(msg.sender == tokenAdmin, "CTMRWA1Dividend: onlyTokenAdmin function");
+        require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "CTMRWA1Dividend: onlyTokenAdmin function");
         _;
     }
 
     constructor(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _map) {
         tokenAddr = _tokenAddr;
         tokenAdmin = ICTMRWA1(tokenAddr).tokenAdmin();
+        ctmRwa1X = ICTMRWA1(tokenAddr).ctmRwa1X();
         ctmRwa1Map = _map;
         ID = _ID;
         rwaType = _rwaType;
@@ -68,6 +72,16 @@ contract CTMRWA1Dividend {
     /// @dev unclaimed dividend for a tokenId. This is used by escrow, or staking contracts
     /// @dev to allow claiming of dividends by the owner, whilst the tokenId is locked
     mapping(uint256 => uint256) public dividendByTokenId;
+
+
+    /**
+     * @notice Change the tokenAdmin address
+     * NOTE This function can only be called by CTMRWA1X, or the existing tokenAdmin
+     */
+    function setTokenAdmin(address _tokenAdmin) external onlyTokenAdmin returns (bool) {
+        tokenAdmin = _tokenAdmin;
+        return (true);
+    }
 
     /**
      * @notice Change the ERC20 dividend token used to pay holders
