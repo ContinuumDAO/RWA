@@ -437,10 +437,6 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         return string(bLower);
     }
 
-    function _checkStringLength(string memory _str, uint256 _len) internal pure {
-        if (bytes(_str).length > _len) revert("Gateway: max string length exceeeded");
-    }
-
     /// @dev Fallback function for a failed c3call. Only logs an event at present
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal

@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.22;
 
-library CTMRWALib {
+library CTMRWAUtils {
     /// @dev Convert an individual string to an array with a single value
     function _stringToArray(string memory _string) internal pure returns (string[] memory) {
         string[] memory strArray = new string[](1);
@@ -50,5 +50,10 @@ library CTMRWALib {
             return 10 + byteValue - uint8(bytes1("A"));
         }
         revert("Invalid hex character");
+    }
+
+    /// @dev Ensure string length is less than length
+    function _checkStringLength(string memory _str, uint256 _len) internal pure {
+        if (bytes(_str).length > _len) revert("Gateway: max string length exceeded");
     }
 }
