@@ -307,7 +307,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         string[] memory _slotNames,
         string memory _ctmRwa1AddrStr
     ) internal returns (bool) {
-        require(!stringsEqual(_toChainIdStr, cID().toString()), "RWAX: Not cross-chain");
+        require(!_toChainIdStr.equal(cID().toString()), "RWAX: Not cross-chain");
         address ctmRwa1Addr = stringToAddress(_ctmRwa1AddrStr);
 
         (, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa1Addr);
@@ -407,7 +407,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         for (uint256 i = 0; i < _toChainIdsStr.length; i++) {
             toChainIdStr = _toLower(_toChainIdsStr[i]);
 
-            if (stringsEqual(toChainIdStr, cIDStr)) {
+            if (toChainIdStr.equal(cIDStr)) {
                 _changeAdmin(currentAdmin, newAdmin, _ID);
             } else {
                 (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
@@ -528,7 +528,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         for (uint256 i = 0; i < len; i++) {
             toChainIdStr = _toLower(_toChainIdsStr[i]);
-            if (!stringsEqual(cIDStr, toChainIdStr)) {
+            if (!cIDStr.equal(toChainIdStr)) {
                 (fromAddressStr, toRwaXStr) = _getRWAX(toChainIdStr);
                 string memory funcCall = "createNewSlotX(uint256,string,uint256,string)";
                 bytes memory callData = abi.encodeWithSignature(funcCall, _ID, fromAddressStr, _slot, _slotName);
@@ -598,7 +598,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId), "RWAX: Not approved or owner");
 
-        if (stringsEqual(toChainIdStr, cIDStr)) {
+        if (toChainIdStr.equal(cIDStr)) {
             address toAddr = stringToAddress(_toAddressStr);
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(this), _fromTokenId);
             uint256 newTokenId = ICTMRWA1(ctmRwa1Addr).transferFrom(_fromTokenId, toAddr, _value);
@@ -654,7 +654,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         address fromAddr = stringToAddress(_fromAddrStr);
         require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId), "RWAX: Not owner/approved");
 
-        if (stringsEqual(toChainIdStr, cIDStr)) {
+        if (toChainIdStr.equal(cIDStr)) {
             address toAddr = stringToAddress(_toAddressStr);
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(this), _fromTokenId);
             ICTMRWA1(ctmRwa1Addr).transferFrom(fromAddr, toAddr, _fromTokenId);
@@ -773,7 +773,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
     /// @dev Get the corresponding CTMRWA1X address on another chain with chainId _toChainIdStr
     function _getRWAX(string memory _toChainIdStr) internal view returns (string memory, string memory) {
-        require(!stringsEqual(_toChainIdStr, cIDStr), "RWAX: Not Xchain");
+        require(!_toChainIdStr.equal(cIDStr), "RWAX: Not Xchain");
 
         string memory fromAddressStr = _toLower(msg.sender.toHexString());
 
@@ -860,13 +860,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             return 10 + byteValue - uint8(bytes1("A"));
         }
         revert("Invalid hex character");
-    }
-
-    /// @dev Check if two strings are equal (in fact if their hashes are equal)
-    function stringsEqual(string memory a, string memory b) internal pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
     }
 
     /// @dev Convert a string to lower case

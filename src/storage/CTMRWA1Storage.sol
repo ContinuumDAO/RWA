@@ -146,7 +146,7 @@ contract CTMRWA1Storage {
      * BNB Greenfield is used for storage.
      */
     function greenfieldBucket() public view returns (string memory) {
-        return stringsEqual(baseURI, "GFLD") ? string.concat(TYPE, idStr) : "";
+        return baseURI.equal("GFLD") ? string.concat(TYPE, idStr) : "";
     }
 
     /**
@@ -406,13 +406,6 @@ contract CTMRWA1Storage {
             return 10 + byteValue - uint8(bytes1("A"));
         }
         revert("Invalid hex character");
-    }
-
-    /// @dev Check if two strings are equal (in fact if their hashes are equal)
-    function stringsEqual(string memory a, string memory b) internal pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
     }
 
     /// @dev Convert a string to lower case

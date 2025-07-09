@@ -172,7 +172,7 @@ contract CTMRWA1Sentry {
             walletStr = _toLower(_wallets[i]);
             indx = whitelistIndx[walletStr];
 
-            if (stringsEqual(walletStr, adminStr) && !_choices[i]) {
+            if (walletStr.equal(adminStr) && !_choices[i]) {
                 revert("CTMRWA1Sentry: Cannot remove tokenAdmin from the whitelist");
             } else if (indx != 0 && indx == ctmWhitelist.length - 1 && !_choices[i]) {
                 // last entry to be removed
@@ -235,7 +235,7 @@ contract CTMRWA1Sentry {
         if (!whitelistSwitch || stringToAddress(_user) == address(0)) {
             return (true);
         } else if (
-            stringsEqual(_user, dividendContract.toHexString()) || stringsEqual(_user, investContract.toHexString())
+            _user.equal(dividendContract.toHexString()) || _user.equal(investContract.toHexString())
         ) {
             return (true);
         } else {
@@ -302,12 +302,6 @@ contract CTMRWA1Sentry {
             return 10 + byteValue - uint8(bytes1("A"));
         }
         revert("Invalid hex character");
-    }
-
-    function stringsEqual(string memory a, string memory b) internal pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
     }
 
     function _toLower(string memory str) internal pure returns (string memory) {

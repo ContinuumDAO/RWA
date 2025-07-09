@@ -390,12 +390,6 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         revert("FeeManager: Invalid hex character");
     }
 
-    function stringsEqual(string memory a, string memory b) internal pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
-    }
-
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
         bytes memory bLower = new bytes(bStr.length);
@@ -411,9 +405,9 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         return string(bLower);
     }
 
-    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return (strArray);
-    }
+    // function _stringToArray(string memory _string) internal pure returns (string[] memory) {
+    //     string[] memory strArray = new string[](1);
+    //     strArray[0] = _string;
+    //     return (strArray);
+    // }
 }

@@ -228,7 +228,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
-            if (stringsEqual(chainIdStr, cIdStr)) {
+            if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Sentry(sentryAddr).setSentryOptionsLocal(
                     _ID, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
                 );
@@ -283,7 +283,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
-            if (stringsEqual(chainIdStr, cIdStr)) {
+            if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Sentry(sentryAddr).setSentryOptionsLocal(
                     _ID, false, true, kyb, over18, false, countryWL, countryBL
                 );
@@ -350,7 +350,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
-            if (stringsEqual(chainIdStr, cIdStr)) {
+            if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Sentry(sentryAddr).setWhitelistSentry(_ID, _wallets, _choices);
             } else {
                 (, string memory toRwaSentryStr) = _getSentry(chainIdStr);
@@ -411,7 +411,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
-            if (stringsEqual(chainIdStr, cIdStr)) {
+            if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Sentry(sentryAddr).setCountryListLocal(_ID, _countries, _choices);
             } else {
                 (, string memory toRwaSentryStr) = _getSentry(chainIdStr);
@@ -487,7 +487,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     function _getSentry(string memory _toChainIdStr) internal view returns (string memory, string memory) {
-        require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA1SentryManager: Not a cross-chain tokenAdmin change");
+        require(!_toChainIdStr.equal(cIdStr), "CTMRWA1SentryManager: Not a cross-chain tokenAdmin change");
 
         string memory fromAddressStr = _toLower(msg.sender.toHexString());
 
@@ -529,12 +529,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
             return 10 + byteValue - uint8(bytes1("A"));
         }
         revert("Invalid hex character");
-    }
-
-    function stringsEqual(string memory a, string memory b) internal pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
     }
 
     function _toLower(string memory str) internal pure returns (string memory) {

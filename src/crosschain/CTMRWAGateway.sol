@@ -83,7 +83,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
             string memory contractAddrStr = _toLower(_contractAddrsStr[j]);
 
             for (uint256 i = 0; i < chainContract.length; i++) {
-                if (stringsEqual(chainContract[i].chainIdStr, newChainIdStr)) {
+                if (chainContract[i].chainIdStr.equal(newChainIdStr)) {
                     chainContract[i].contractStr = contractAddrStr;
                     preExisted = true;
                 }
@@ -104,7 +104,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      */
     function getChainContract(string memory _chainIdStr) external view returns (string memory) {
         for (uint256 i = 0; i < chainContract.length; i++) {
-            if (stringsEqual(chainContract[i].chainIdStr, _toLower(_chainIdStr))) {
+            if (chainContract[i].chainIdStr.equal(_toLower(_chainIdStr))) {
                 return (chainContract[i].contractStr);
             }
         }
@@ -141,7 +141,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      */
     function existRwaXChain(uint256 _rwaType, uint256 _version, string memory _chainIdStr) public view returns (bool) {
         for (uint256 i = 0; i < rwaXChains[_rwaType][_version].length; i++) {
-            if (stringsEqual(rwaXChains[_rwaType][_version][i], _toLower(_chainIdStr))) {
+            if (rwaXChains[_rwaType][_version][i].equal(_toLower(_chainIdStr))) {
                 return (true);
             }
         }
@@ -184,7 +184,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         returns (bool, string memory)
     {
         for (uint256 i = 0; i < rwaX[_rwaType][_version].length; i++) {
-            if (stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, _toLower(_chainIdStr))) {
+            if (rwaX[_rwaType][_version][i].chainIdStr.equal(_toLower(_chainIdStr))) {
                 return (true, rwaX[_rwaType][_version][i].contractStr);
             }
         }
@@ -232,7 +232,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         returns (bool, string memory)
     {
         for (uint256 i = 0; i < storageManager[_rwaType][_version].length; i++) {
-            if (stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, _toLower(_chainIdStr))) {
+            if (storageManager[_rwaType][_version][i].chainIdStr.equal(_toLower(_chainIdStr))) {
                 return (true, storageManager[_rwaType][_version][i].contractStr);
             }
         }
@@ -279,7 +279,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         returns (bool, string memory)
     {
         for (uint256 i = 0; i < sentryManager[_rwaType][_version].length; i++) {
-            if (stringsEqual(sentryManager[_rwaType][_version][i].chainIdStr, _toLower(_chainIdStr))) {
+            if (sentryManager[_rwaType][_version][i].chainIdStr.equal(_toLower(_chainIdStr))) {
                 return (true, sentryManager[_rwaType][_version][i].contractStr);
             }
         }
@@ -312,7 +312,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
             require(bytes(rwaXAddrStr).length <= 64, "CTMRWAGateway: Incorrect address length");
 
             for (uint256 i = 0; i < rwaX[_rwaType][_version].length; i++) {
-                if (stringsEqual(rwaX[_rwaType][_version][i].chainIdStr, chainIdStr)) {
+                if (rwaX[_rwaType][_version][i].chainIdStr.equal(chainIdStr)) {
                     rwaX[_rwaType][_version][i].contractStr = rwaXAddrStr;
                     preExisted = true;
                 }
@@ -357,7 +357,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
             string memory chainIdStr = _toLower(_chainIdsStr[j]);
 
             for (uint256 i = 0; i < storageManager[_rwaType][_version].length; i++) {
-                if (stringsEqual(storageManager[_rwaType][_version][i].chainIdStr, chainIdStr)) {
+                if (storageManager[_rwaType][_version][i].chainIdStr.equal(chainIdStr)) {
                     storageManager[_rwaType][_version][i].contractStr = storageManagerAddrStr;
                     preExisted = true;
                 }
@@ -401,7 +401,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
             string memory chainIdStr = _toLower(_chainIdsStr[j]);
 
             for (uint256 i = 0; i < sentryManager[_rwaType][_version].length; i++) {
-                if (stringsEqual(sentryManager[_rwaType][_version][i].chainIdStr, chainIdStr)) {
+                if (sentryManager[_rwaType][_version][i].chainIdStr.equal(chainIdStr)) {
                     sentryManager[_rwaType][_version][i].contractStr = sentryManagerAddrStr;
                     preExisted = true;
                 }
@@ -444,13 +444,6 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
             return 10 + byteValue - uint8(bytes1("A"));
         }
         revert("Invalid hex character");
-    }
-
-    /// @dev Check if two strings are equal (in fact if their hashes are equal)
-    function stringsEqual(string memory a, string memory b) internal pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
     }
 
     /// @dev Convert a string to lower case

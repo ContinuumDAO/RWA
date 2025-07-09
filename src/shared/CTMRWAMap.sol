@@ -317,13 +317,6 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         revert("Invalid hex character");
     }
 
-    /// @dev Check if two strings are equal (in fact if their hashes are equal)
-    function stringsEqual(string memory a, string memory b) internal pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
-    }
-
     /// @dev Convert a string to lower case
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);

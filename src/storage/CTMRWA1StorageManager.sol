@@ -222,7 +222,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
-            if (stringsEqual(chainIdStr, cIdStr)) {
+            if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Storage(storageAddr).addURILocal(
                     _ID, _objectName, _uriCategory, _uriType, _title, _slot, block.timestamp, _uriDataHash
                 );
@@ -301,7 +301,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
             string memory chainIdStr = _toLower(_chainIdsStr[i]);
 
-            if (stringsEqual(chainIdStr, cIdStr)) {
+            if (chainIdStr.equal(cIdStr)) {
                 revert("CTMRWA1StorageManager: Cannot transferURI to the local chain");
             } else {
                 (, string memory toRwaSMStr) = _getSM(chainIdStr);
@@ -375,7 +375,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
      * with chainID (converted to a string) of _toChainIdStr
      */
     function _getSM(string memory _toChainIdStr) internal view returns (string memory, string memory) {
-        require(!stringsEqual(_toChainIdStr, cIdStr), "CTMRWA1StorageManager: Not a cross-chain tokenAdmin change");
+        require(!_toChainIdStr.equal(cIdStr), "CTMRWA1StorageManager: Not a cross-chain tokenAdmin change");
 
         string memory fromAddressStr = _toLower(msg.sender.toHexString());
 
@@ -551,13 +551,6 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
             return 10 + byteValue - uint8(bytes1("A"));
         }
         revert("Invalid hex character");
-    }
-
-    /// @dev Check if two strings are equal (in fact if their hashes are equal)
-    function stringsEqual(string memory a, string memory b) internal pure returns (bool) {
-        bytes32 ka = keccak256(abi.encode(a));
-        bytes32 kb = keccak256(abi.encode(b));
-        return (ka == kb);
     }
 
     /// @dev Convert a string to lower case
