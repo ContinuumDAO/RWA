@@ -11,6 +11,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
 import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 
@@ -96,7 +97,7 @@ contract TestCTMRWA1X is Helpers {
     function test_localPartialTransfer() public {
         vm.startPrank(tokenAdmin); // this CTMRWA1 has an admin of tokenAdmin
         (ID, token) = _deployCTMRWA1(address(usdc));
-        (uint256 tokenId, uint256 tokenId2,) =
+        (uint256 tokenId,,) =
             _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
 
         address[] memory feeTokenList = feeManager.getFeeTokenList();
@@ -120,16 +121,49 @@ contract TestCTMRWA1X is Helpers {
         uint256 balNewToken = token.balanceOf(newTokenId);
         assertEq(balNewToken, 5);
 
-        token.approve(user2, tokenId2);
         vm.stopPrank();
+    }
+
+    function test_localWholeTokenTransfer() public {
+        vm.startPrank(tokenAdmin); // this CTMRWA1 has an admin of tokenAdmin
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        // tokenId and tokenId2 are created and owned by tokenAdmin
+        (uint256 tokenId, uint256 tokenId2,) =
+            _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), tokenAdmin);
+
+        address[] memory feeTokenList = feeManager.getFeeTokenList();
+        string memory feeTokenStr = feeTokenList[0].toHexString();
+
+        // Check that tokenAdmin can transfer tokenId2 to user1
+        rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId2, ID, feeTokenStr);
+        vm.stopPrank();
+
+        // Check that user1 is now the owner of tokenId2
+        address owner = token.ownerOf(tokenId2);
+        assertEq(owner, user1);
 
         vm.startPrank(user2);
-        rwa1X.transferWholeTokenX(user1.toHexString(), admin.toHexString(), cIdStr, tokenId2, ID, feeTokenStr);
-        address owner = token.ownerOf(tokenId2);
-        assertEq(owner, admin);
-        assertEq(token.getApproved(tokenId2), admin);
-
+        // Check that user2 cannot transfer tokenId to user1 (since it is tokenAdmin's)
+        vm.expectRevert("RWAX: Not owner/approved");
+        rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
         vm.stopPrank();
+
+        // Check the approval mechanism - tokenAdmin approves user2 to transfer tokenId
+        // Initial check
+        assertEq(token.getApproved(tokenId), address(0));
+        vm.prank(tokenAdmin);
+        token.approve(user2, tokenId);
+
+        // Check the approval is for user2 now
+        assertEq(token.getApproved(tokenId), user2);
+
+        // Check that user2 can now transfer tokenId to user1
+        vm.prank(user2);
+        rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+    
+        // Check that user1 is now the owner of tokenId
+        owner = token.ownerOf(tokenId);
+        assertEq(owner, user1);
     }
     
 
@@ -165,6 +199,9 @@ contract TestCTMRWA1X is Helpers {
         // Check that all the token components have the correct user2 new admin address
         address currentAdmin = token1.tokenAdmin();
         assertEq(currentAdmin, user2);
+        (, address dividendAddr) = map.getDividendContract(ID1, RWA_TYPE, VERSION);
+        currentAdmin = ICTMRWA1Dividend(dividendAddr).tokenAdmin();
+        assertEq(currentAdmin, user2);
         (, address storageAddr) = map.getStorageContract(ID1, RWA_TYPE, VERSION);
         currentAdmin = ICTMRWA1Storage(storageAddr).tokenAdmin();
         assertEq(currentAdmin, user2);
@@ -196,112 +233,23 @@ contract TestCTMRWA1X is Helpers {
         vm.stopPrank();
     }
 
-    function test_remoteDeploy() public {
-        vm.startPrank(tokenAdmin);
-        (ID, token) = _deployCTMRWA1(address(usdc));
-        vm.stopPrank();
-
-        (bool ok, uint256 ID) = map.getTokenId(address(token).toHexString(), RWA_TYPE, VERSION);
-        assertEq(ok, true);
-
-        // admin of the CTMRWA1 token
-        string memory currentAdminStr = tokenAdmin.toHexString();
-
-        address currentTokenAdmin = token.tokenAdmin();
-        assertEq(currentTokenAdmin, tokenAdmin);
-
-        string memory feeTokenStr = address(usdc).toHexString();
-        string[] memory toChainIdsStr = _stringToArray("1");
-
-        string memory targetStr;
-        (ok, targetStr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, "1");
-        assertEq(ok, true);
-        uint256 currentNonce = c3UUIDKeeper.currentNonce();
-
-        uint256 rwaType = token.rwaType();
-        uint256 version = token.version();
-
-        string memory sig = "deployCTMRWA1(string,uint256,uint256,uint256,string,string,uint8,string,string)";
-
-        string memory tokenName = "Semi Fungible Token XChain";
-        string memory symbol = "SFTX";
-        uint8 decimals = 18;
-
-        // string memory funcCall = "deployCTMRWA1(string,uint256,uint256,uint256,string,string,uint8,string,string)";
-        // bytes memory callData = abi.encodeWithSignature(
-        //     funcCall,
-        //     currentAdminStr,
-        //     ID,
-        //     rwaType,
-        //     version,
-        //     tokenName_,
-        //     symbol_,
-        //     decimals_,
-        //     baseURI_,
-        //     _ctmRwa1AddrStr
-        // );
-
-        bytes memory callData = abi.encodeWithSignature(
-            sig, currentAdminStr, ID, tokenName, symbol, decimals, "GFLD", address(token).toHexString()
-        );
-
-        bytes32 testUUID = keccak256(
-            abi.encode(
-                address(c3UUIDKeeper),
-                address(c3caller),
-                block.chainid,
-                2,
-                targetStr,
-                toChainIdsStr[0],
-                currentNonce + 1,
-                callData
-            )
-        );
-
-        vm.expectEmit(true, true, false, true);
-        emit LogC3Call(2, testUUID, address(rwa1X), toChainIdsStr[0], targetStr, callData, bytes(""));
-
-        // function deployAllCTMRWA1X(
-        //     bool includeLocal,
-        //     uint256 existingID_,
-        //     string memory tokenName_,
-        //     string memory symbol_,
-        //     uint8 decimals_,
-        //     string memory baseURI_,
-        //     string[] memory toChainIdsStr_,
-        //     string memory feeTokenStr
-        // ) public payable returns(uint256) {
-
-        vm.prank(tokenAdmin);
-        rwa1X.deployAllCTMRWA1X(
-            false, ID, rwaType, version, tokenName, symbol, decimals, "", toChainIdsStr, feeTokenStr
-        );
-    }
 
     function test_deployExecute() public {
-        // function deployCTMRWA1(
-        //     string memory _newAdminStr,
-        //     uint256 _ID,
-        //     uint256 _rwaType,
-        //     uint256 _version,
-        //     string memory _tokenName,
-        //     string memory _symbol,
-        //     uint8 _decimals,
-        //     string memory _baseURI,
-        //     string memory _fromContractStr
-        // ) external onlyCaller returns(bool) {
 
         string memory newAdminStr = tokenAdmin.toHexString();
 
         string memory tokenName = "RWA Test token";
         string memory symbol = "RWA";
         uint8 decimals = 18;
+        uint256 slotNumber = 7;
+        string memory slotName = "test RWA";
         uint256 timestamp = 12_776;
 
         uint256 IDnew = uint256(keccak256(abi.encode(tokenName, symbol, decimals, timestamp, tokenAdmin)));
 
         string memory baseURI = "GFLD";
 
+        // Simulate the call on the destination chain by c3caller (onlyCaller)
         vm.prank(address(c3caller));
         bool ok = rwa1X.deployCTMRWA1(
             newAdminStr,
@@ -310,275 +258,66 @@ contract TestCTMRWA1X is Helpers {
             symbol,
             decimals,
             baseURI,
-            _uint256ToArray(7), // slot numbers
-            _stringToArray("test RWA") // slot names
+            _uint256ToArray(slotNumber), // slot numbers
+            _stringToArray(slotName) // slot names
         );
 
         assertEq(ok, true);
 
         address tokenAddr;
 
+        // Get the new token address (created on the destination chain)
         (ok, tokenAddr) = map.getTokenContract(IDnew, RWA_TYPE, VERSION);
 
+        // Check that the admin is still tokenAdmin
         assertEq(ICTMRWA1(tokenAddr).tokenAdmin(), tokenAdmin);
 
-        string memory sName = ICTMRWA1(tokenAddr).slotName(7);
-        assertTrue(stringsEqual(sName, "test RWA"));
+        // Check that the tokenName is correct
+        assertTrue(stringsEqual(ICTMRWA1(tokenAddr).name(), tokenName));
+
+        // Check that the symbol is correct
+        assertTrue(stringsEqual(ICTMRWA1(tokenAddr).symbol(), symbol));
+
+        // Check that the decimals are correct;
+        assertEq(ICTMRWA1(tokenAddr).valueDecimals(), decimals);
+
+        // Check that the slot name is the same
+        string memory sName = ICTMRWA1(tokenAddr).slotName(slotNumber);
+        assertTrue(stringsEqual(sName, slotName));
+
+        // Check that the baseURI is correct
+        string memory bURI = ICTMRWA1(tokenAddr).baseURI();
+        assertTrue(stringsEqual(bURI, baseURI));
     }
 
-    function test_transferToAddressExecute() public {
+    
+    function test_mintXTokenIdToAddressExecute() public {
+        // Test mintX cross chain minting
+
+        // tokenAdmin deploys a token and adds some tokenIds
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
-        (, uint256 tokenId2,) =
-            _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), tokenAdmin);
+        _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), tokenAdmin);
 
         vm.stopPrank();
 
-        console.log("tokenId2");
-        console.log(tokenId2);
-
-        uint256 slot = token.slotOf(tokenId2);
-        console.log("slot");
-        console.log(slot);
-
-        // address[] memory ops = c3GovClient.getAllOperators();
-        // console.log("operators");
-        // console.log(ops[0]);
-
-        uint256 dapp = 2;
-
-        string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
-        bytes memory inputData = abi.encodeWithSignature(
-            funcCall, ID, tokenAdmin.toHexString(), user2.toHexString(), slot, 10
-        );
-
-        // library C3CallerStructLib {
-        //     struct C3EvmMessage {
-        //         bytes32 uuid;
-        //         address to;
-        //         string fromChainID;
-        //         string sourceTx;
-        //         string fallbackTo;
-        //         bytes data;
-        //     }
-        // }
-
-        C3CallerStructLib.C3EvmMessage memory c3message = C3CallerStructLib.C3EvmMessage(
-            0x0dd256c5649d5658f91dc4fe936c407ab6dd42183a795d5a256f4508631d0ccb,
-            address(rwa1X),
-            "421614",
-            "0x04f1802a1e9f4c8de6f80e4c2e31b1ea32e019fd59aa38e8e20393ff7770026a",
-            address(rwa1X).toHexString(),
-            inputData
-        );
-
-        // console.log("transfering value of 10 from tokenId 2, slot 3 from tokenAdmin to user2");
-
-        // console.log("BEFORE tokenAdmin");
-        // listAllTokensByAddress(ctmRwaAddr, tokenAdmin);
-
-        vm.prank(address(rwa1X));
-        token.burnValueX(tokenId2, 10);
-
-        vm.prank(address(gov)); // blank onlyOperator require in C3Gov to test
-        c3caller.execute(dapp, c3message);
-
-        // console.log("AFTER tokenAdmin");
-        // listAllTokensByAddress(ctmRwaAddr, tokenAdmin);
-        // console.log("AFTER user2");
-        // listAllTokensByAddress(ctmRwaAddr, user2);
-    }
-
-    function test_transferTokenIdToAddressExecute() public {
-
-        vm.startPrank(tokenAdmin);
-        (ID, token) = _deployCTMRWA1(address(usdc));
-        (uint256 tokenId1,,) =
-            _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), tokenAdmin);
-
-        vm.stopPrank();
-
+        // Cross chain minting using c3caller (onlyCaller)
         vm.startPrank(address(c3caller));
-
-        uint256 balStart = token.balanceOf(tokenId1);
-        console.log("balStart");
-        console.log(balStart);
-
+      
+        // Mint a new tokenId for user2 in slot 5, with a balance of 140
         bool ok =
             rwa1X.mintX(ID, user1.toHexString(), user2.toHexString(), 5, 140);
 
-        assertEq(ok, true);
-
+        assertTrue(ok);
         vm.stopPrank();
 
+        // user2 should only have 1 token now, not having had any before
         uint256 newTokenId = token.tokenOfOwnerByIndex(user2, 0);
+        assertFalse(newTokenId == 0);
         uint256 balEnd = token.balanceOf(newTokenId);
         assertEq(balEnd, 140);
 
-        string memory slotDescription = token.slotName(5);
-        // console.log("slotDescription = ");
-        // console.log(slotDescription);
-        assertEq(stringsEqual(slotDescription, "slot 5 is the best RWA"), true);
     }
 
-    function test_transferToken() public {
-        vm.startPrank(tokenAdmin);
-        (ID, token) = _deployCTMRWA1(address(usdc));
-        (uint256 tokenId1,,) =
-            _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), tokenAdmin);
 
-        vm.stopPrank();
-
-        /*token1
-            to: user1
-            to token: 0 (new token)
-            slot: 5
-            value: 2000
-            token addr: _ctmRwaAddr
-        */
-
-        /*token2
-            to: user1
-            to token: 0 (new token)
-            slot: 3
-            value: 4000
-            token addr: _ctmRwaAddr
-        */
-
-        /*token2
-            to: user1
-            to token: 0 (new token)
-            slot: 1
-            value: 6000
-            token addr: _ctmRwaAddr
-        */
-
-        string memory user1Str = user1.toHexString();
-        string memory feeTokenStr = address(usdc).toHexString();
-        string memory toChainIdStr = "1";
-        string memory sig = "mintX(uint256,string,string,uint256,uint256)";
-
-        (, string memory toRwaXStr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, toChainIdStr);
-        (, uint256 value,, uint256 slot,,) = token.getTokenInfo(tokenId1);
-        uint256 currentNonce = c3UUIDKeeper.currentNonce();
-
-        string memory thisSlotName = token.slotName(slot);
-
-        // string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
-        // bytes memory callData = abi.encodeWithSignature(
-        //     funcCall,
-        //     _ID,
-        //     fromAddressStr,
-        //     _toAddressStr,
-        //     slot,
-        //     slotName,
-        //     value
-        // );
-
-        bytes memory callData = abi.encodeWithSignature(
-            sig, ID, user1Str, user1Str, slot, thisSlotName, value
-        );
-
-        bytes32 testUUID = keccak256(
-            abi.encode(
-                address(c3UUIDKeeper),
-                address(c3caller),
-                block.chainid,
-                2,
-                toRwaXStr,
-                toChainIdStr,
-                currentNonce + 1,
-                callData
-            )
-        );
-
-        vm.expectEmit(true, true, false, true);
-        emit LogC3Call(2, testUUID, address(rwa1X), toChainIdStr, toRwaXStr, callData, bytes(""));
-
-        // function transferWholeTokenX(
-        //     string memory _fromAddressStr,
-        //     string memory _toAddressStr,
-        //     string memory _toChainIdStr,
-        //     uint256 _fromTokenId,
-        //     uint256 _ID,
-        //     string memory _feeTokenStr
-        // ) public {
-
-        vm.prank(user1);
-        rwa1X.transferWholeTokenX(user1Str, user1Str, toChainIdStr, tokenId1, ID, feeTokenStr);
-    }
-
-    function test_valueTransferNewTokenCreation() public {
-        vm.startPrank(tokenAdmin);
-        (ID, token) = _deployCTMRWA1(address(usdc));
-        (uint256 tokenId1,,) =
-            _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), tokenAdmin);
-
-        vm.stopPrank();
-
-        string memory user1Str = user1.toHexString();
-        string memory feeTokenStr = address(usdc).toHexString();
-        string memory toChainIdStr = "1";
-
-        (bool ok, string memory toRwaXStr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, toChainIdStr);
-        require(ok, "CTMRWA1X: Target contract address not found");
-        (, uint256 value,, uint256 slot, string memory thisSlotName,) = token.getTokenInfo(tokenId1);
-        uint256 currentNonce = c3UUIDKeeper.currentNonce();
-
-        string memory sig = "mintX(uint256,string,string,uint256,uint256)";
-
-        // string memory funcCall = "mintX(uint256,string,string,uint256,uint256,string,uint256,string)";
-        // bytes memory callData = abi.encodeWithSignature(
-        //     funcCall,
-        //     _ID,
-        //     fromAddressStr,
-        //     _toAddressStr,
-        //     slot,
-        //     thisSlotName,
-        //     _value
-        // );
-
-        console.log("SLOTNAME");
-        console.log(thisSlotName);
-
-        bytes memory callData = abi.encodeWithSignature(
-            sig,
-            ID,
-            user1Str,
-            user1Str,
-            tokenId1,
-            slot,
-            thisSlotName,
-            value / 2, // send half the value to other chain
-            address(token).toHexString()
-        );
-
-        bytes32 testUUID = keccak256(
-            abi.encode(
-                address(c3UUIDKeeper),
-                address(c3caller),
-                block.chainid,
-                2,
-                toRwaXStr,
-                toChainIdStr,
-                currentNonce + 1,
-                callData
-            )
-        );
-
-        vm.expectEmit(true, true, false, true);
-        emit LogC3Call(2, testUUID, address(rwa1X), toChainIdStr, toRwaXStr, callData, bytes(""));
-
-        //    function transferPartialTokenX(
-        //         uint256 _fromTokenId,
-        //         string memory _toAddressStr,
-        //         string memory _toChainIdStr,
-        //         uint256 _value,
-        //         uint256 _ID,
-        //         string memory _feeTokenStr
-        //     ) public
-
-        vm.prank(user1);
-        rwa1X.transferPartialTokenX(tokenId1, user1Str, toChainIdStr, value / 2, ID, feeTokenStr);
-    }
 }
