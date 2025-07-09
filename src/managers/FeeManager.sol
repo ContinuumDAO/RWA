@@ -404,10 +404,4 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         }
         return string(bLower);
     }
-
-    // function _stringToArray(string memory _string) internal pure returns (string[] memory) {
-    //     string[] memory strArray = new string[](1);
-    //     strArray[0] = _string;
-    //     return (strArray);
-    // }
 }

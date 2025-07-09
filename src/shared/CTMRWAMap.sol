@@ -333,13 +333,6 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         return string(bLower);
     }
 
-    /// @dev Convert an individual string to an array with a single value
-    function _stringToArray(string memory _string) internal pure returns (string[] memory) {
-        string[] memory strArray = new string[](1);
-        strArray[0] = _string;
-        return (strArray);
-    }
-
     /// @dev Fallback function for failed c3call cross-chain. Only emits an event at present
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal
