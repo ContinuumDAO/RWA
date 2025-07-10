@@ -145,10 +145,10 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
      * @param _version The version of this RWA. Latest version is 1
      */
     function getTokenContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address) {
-        string memory _contractStr = idToContract[_ID];
+        string memory contractStr = idToContract[_ID];
         // INFO: Revert if non-matching rwaType and version for given ID
-        _checkRwaTypeVersion(_contractStr, _rwaType, _version);
-        return bytes(_contractStr).length != 0 ? (true, _contractStr._stringToAddress()) : (false, address(0));
+        bool ok = _checkRwaTypeVersion(contractStr, _rwaType, _version);
+        return ok ? (true, contractStr._stringToAddress()) : (false, address(0));
     }
 
     /**
@@ -160,8 +160,8 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
      */
     function getDividendContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address) {
         string memory _dividendStr = idToDividend[_ID];
-        _checkRwaTypeVersion(_dividendStr, _rwaType, _version);
-        return bytes(_dividendStr).length != 0 ? (true, _dividendStr._stringToAddress()) : (false, address(0));
+        bool ok = _checkRwaTypeVersion(_dividendStr, _rwaType, _version);
+        return ok ? (true, _dividendStr._stringToAddress()) : (false, address(0));
     }
 
     /**
@@ -173,8 +173,8 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
      */
     function getStorageContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address) {
         string memory _storageStr = idToStorage[_ID];
-        _checkRwaTypeVersion(_storageStr, _rwaType, _version);
-        return bytes(_storageStr).length != 0 ? (true, _storageStr._stringToAddress()) : (false, address(0));
+        bool ok = _checkRwaTypeVersion(_storageStr, _rwaType, _version);
+        return ok ? (true, _storageStr._stringToAddress()) : (false, address(0));
     }
 
     /**
@@ -186,14 +186,14 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
      */
     function getSentryContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address) {
         string memory _sentryStr = idToSentry[_ID];
-        _checkRwaTypeVersion(_sentryStr, _rwaType, _version);
-        return bytes(_sentryStr).length != 0 ? (true, _sentryStr._stringToAddress()) : (false, address(0));
+        bool ok = _checkRwaTypeVersion(_sentryStr, _rwaType, _version);
+        return ok ? (true, _sentryStr._stringToAddress()) : (false, address(0));
     }
 
     function getInvestContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address) {
         string memory _investStr = idToInvest[_ID];
-        _checkRwaTypeVersion(_investStr, _rwaType, _version);
-        return bytes(_investStr).length != 0 ? (true, _investStr._stringToAddress()) : (false, address(0));
+        bool ok = _checkRwaTypeVersion(_investStr, _rwaType, _version);
+        return ok ? (true, _investStr._stringToAddress()) : (false, address(0));
     }
 
     /**
@@ -229,16 +229,14 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     {
         string memory investAddrStr = _investAddr.toHexString()._toLower();
 
-        _checkRwaTypeVersion(investAddrStr, _rwaType, _version);
+        bool ok = _checkRwaTypeVersion(investAddrStr, _rwaType, _version);
 
-        uint256 lenContract = bytes(idToInvest[_ID]).length;
-
-        if (lenContract > 0 || investToId[investAddrStr] != 0) {
+        // NOTE Ensure that the contract has not been deployed yet
+        if (ok || investToId[investAddrStr] != 0) {
             return (false);
         } else {
             idToInvest[_ID] = investAddrStr;
             investToId[investAddrStr] = _ID;
-
             return (true);
         }
     }
@@ -291,10 +289,16 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         return true;
     }
 
-    function _checkRwaTypeVersion(string memory _addrStr, uint256 _rwaType, uint256 _version) internal view {
+    function _checkRwaTypeVersion(
+        string memory _addrStr, 
+        uint256 _rwaType, 
+        uint256 _version
+    ) internal view returns(bool) {
+        if (bytes(_addrStr).length == 0) return false;
         address _contractAddr = _addrStr._stringToAddress();
         uint256 rwaType = ICTMRWA(_contractAddr).RWA_TYPE();
         uint256 version = ICTMRWA(_contractAddr).VERSION();
         require(_rwaType == rwaType && _version == version);
+        return true;
     }
 }
