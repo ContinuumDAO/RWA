@@ -4,7 +4,9 @@ pragma solidity ^0.8.22;
 
 import { SlotData } from "../core/ICTMRWA1.sol";
 
-interface ICTMRWA1X {
+import {ICTMRWA} from "../core/ICTMRWA.sol";
+
+interface ICTMRWA1X is ICTMRWA {
     /// @dev New c3call for CTMRWA1 deployment on destination chain toChainIdStr
     event DeployCTMRWA1(uint256 ID, string toChainIdStr);
 
@@ -29,8 +31,6 @@ interface ICTMRWA1X {
     /// @dev New token admin set on the local chain
     event AdminChanged(uint256 ID, string newAdmin);
 
-    function RWA_TYPE() external view returns (uint256);
-    function VERSION() external view returns (uint256);
     function isMinter(address) external returns (bool);
     function changeMinterStatus(address minter, bool set) external;
 

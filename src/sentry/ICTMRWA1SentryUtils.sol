@@ -2,14 +2,13 @@
 
 pragma solidity ^0.8.22;
 
-interface ICTMRWA1SentryUtils {
+import {ICTMRWA} from "../core/ICTMRWA.sol";
+
+interface ICTMRWA1SentryUtils is ICTMRWA {
     function ctmRwa1Map() external returns (address);
     function storageManager() external returns (address);
     function lastSelector() external returns (bytes4);
     function lastData() external returns (bytes calldata);
-
-    function RWA_TYPE() external view returns (uint256);
-    function VERSION() external view returns (uint256);
 
     function deploySentry(uint256 ID, address tokenAddr, uint256 rwaType, uint256 version, address map)
         external

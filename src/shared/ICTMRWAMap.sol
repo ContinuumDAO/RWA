@@ -7,15 +7,10 @@ interface ICTMRWAMap {
     function ctmRwa1X() external view returns (address);
     function ctmRwaDeployer() external view returns (address);
 
-    function RWA_TYPE() external view returns (uint256);
-    function VERSION() external view returns (uint256);
-
     function setCtmRwaDeployer(address deployer, address gateway, address rwa1X) external;
 
     function attachContracts(
         uint256 ID,
-        uint256 rwaType,
-        uint256 version,
         address tokenAddr,
         address dividendAddr,
         address storageAddr,

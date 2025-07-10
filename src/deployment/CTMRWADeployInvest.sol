@@ -62,7 +62,7 @@ contract CTMRWADeployInvest {
         bytes32 salt = keccak256(abi.encode(_ID, _rwaType, _version));
 
         CTMRWA1InvestWithTimeLock newInvest =
-            new CTMRWA1InvestWithTimeLock{ salt: salt }(_ID, _rwaType, _version, ctmRwaMap, commissionRate, feeManager);
+            new CTMRWA1InvestWithTimeLock{ salt: salt }(_ID, ctmRwaMap, commissionRate, feeManager);
 
         return (address(newInvest));
     }

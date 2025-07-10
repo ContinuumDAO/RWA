@@ -2,7 +2,9 @@
 
 pragma solidity ^0.8.22;
 
-interface ICTMRWA1Dividend {
+import {ICTMRWA} from "../core/ICTMRWA.sol";
+
+interface ICTMRWA1Dividend is ICTMRWA {
     function ID() external view returns (uint256);
     function tokenAdmin() external view returns (address);
     function setTokenAdmin(address _tokenAdmin) external returns (bool);
@@ -18,7 +20,4 @@ interface ICTMRWA1Dividend {
     function resetDividendByToken(uint256 tokenId) external;
 
     function claimDividend() external returns (bool);
-
-    function RWA_TYPE() external view returns (uint256);
-    function VERSION() external view returns (uint256);
 }

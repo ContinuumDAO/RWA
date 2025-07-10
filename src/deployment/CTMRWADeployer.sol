@@ -141,7 +141,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         address storageAddr = deployStorage(_ID, tokenAddr, _rwaType, _version);
         address sentryAddr = deploySentry(_ID, tokenAddr, _rwaType, _version);
 
-        ICTMRWAMap(ctmRwaMap).attachContracts(_ID, _rwaType, _version, tokenAddr, dividendAddr, storageAddr, sentryAddr);
+        ICTMRWAMap(ctmRwaMap).attachContracts(_ID, tokenAddr, dividendAddr, storageAddr, sentryAddr);
 
         return (tokenAddr, dividendAddr, storageAddr, sentryAddr);
     }

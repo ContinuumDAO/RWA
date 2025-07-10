@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.22;
 
+import {ICTMRWA} from "../core/ICTMRWA.sol";
+
 enum URICategory {
     ISSUER,
     PROVENANCE,
@@ -38,7 +40,7 @@ struct URIData {
     uint256 timeStamp;
 }
 
-interface ICTMRWA1Storage {
+interface ICTMRWA1Storage is ICTMRWA {
     function ID() external returns (uint256);
     function regulatorWallet() external returns (address);
     function nonce() external returns (uint256);
@@ -48,9 +50,6 @@ interface ICTMRWA1Storage {
     function storageManagerAddr() external returns (address);
     function uriData() external returns (URIData[] memory);
     function popURILocal(uint256 toPop) external;
-
-    function RWA_TYPE() external view returns (uint256);
-    function VERSION() external view returns (uint256);
 
     function setTokenAdmin(address _tokenAdmin) external returns (bool);
 

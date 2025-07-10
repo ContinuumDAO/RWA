@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.22;
 
+import {ICTMRWA} from "../core/ICTMRWA.sol";
+
 enum RequestId {
     PERSONHOOD,
     KYB,
@@ -10,7 +12,7 @@ enum RequestId {
     COUNTRY
 }
 
-interface ICTMRWA1Identity {
+interface ICTMRWA1Identity is ICTMRWA {
     function setZkMeVerifierAddress(address verifierAddress) external;
     function setSentryManager(address _sentryManager) external;
     function setFeeManager(address _feeManager) external;
@@ -21,7 +23,4 @@ interface ICTMRWA1Identity {
     function isKycChain() external view returns (bool);
 
     function isVerifiedPerson(uint256 ID, address wallet) external view returns (bool);
-
-    function RWA_TYPE() external view returns (uint256);
-    function VERSION() external view returns (uint256);
 }

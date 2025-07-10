@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.22;
 
+import {ICTMRWA} from "./ICTMRWA.sol";
+
 /**
  * @title CTMRWA1 Semi-Fungible Token Standard
  * @dev See https://docs.continuumdao.org
@@ -24,13 +26,11 @@ interface ITokenContract {
     function tokenChainIdStrs() external returns (string[] memory);
 }
 
-interface ICTMRWA1 {
+interface ICTMRWA1 is ICTMRWA {
     function ID() external view returns (uint256);
     function tokenAdmin() external returns (address);
     function setOverrideWallet(address overrideWallet) external;
     function overrideWallet() external returns (address);
-    function RWA_TYPE() external returns (uint256);
-    function VERSION() external returns (uint256);
     function ctmRwa1X() external returns (address);
     function changeAdmin(address _admin) external returns (bool);
     function attachId(uint256 nextID, address tokenAdmin) external returns (bool);
