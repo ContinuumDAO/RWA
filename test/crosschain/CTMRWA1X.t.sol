@@ -256,6 +256,11 @@ contract TestCTMRWA1X is Helpers {
         // Check that tokenId6 is owned by user2 now
         assertEq(token2.ownerOf(tokenId6), user2);
 
+        // NOTE Even though user1 no longer has any tokenIds in token2, it is still included:
+        user1Contracts = rwa1X.getAllTokensByOwnerAddress(user1);
+        assertEq(user1Contracts.length, 2);
+        assertEq(token2.balanceOf(user1), 0); // None left here
+
     }
 
     function test_localPartialTransfer() public {
