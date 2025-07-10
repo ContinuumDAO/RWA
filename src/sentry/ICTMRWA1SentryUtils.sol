@@ -8,6 +8,9 @@ interface ICTMRWA1SentryUtils {
     function lastSelector() external returns (bytes4);
     function lastData() external returns (bytes calldata);
 
+    function RWA_TYPE() external view returns (uint256);
+    function VERSION() external view returns (uint256);
+
     function deploySentry(uint256 ID, address tokenAddr, uint256 rwaType, uint256 version, address map)
         external
         returns (address);

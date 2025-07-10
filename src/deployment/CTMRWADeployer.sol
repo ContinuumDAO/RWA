@@ -134,8 +134,8 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     {
         address tokenAddr = ICTMRWAFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
 
-        require(ICTMRWA1(tokenAddr).rwaType() == _rwaType, "CTMRWADeployer: Wrong RWA type");
-        require(ICTMRWA1(tokenAddr).version() == _version, "CTMRWADeployer: Wrong RWA version");
+        require(ICTMRWA1(tokenAddr).RWA_TYPE() == _rwaType, "CTMRWADeployer: Wrong RWA type");
+        require(ICTMRWA1(tokenAddr).VERSION() == _version, "CTMRWADeployer: Wrong RWA version");
 
         address dividendAddr = deployDividend(_ID, tokenAddr, _rwaType, _version);
         address storageAddr = deployStorage(_ID, tokenAddr, _rwaType, _version);

@@ -3,11 +3,13 @@
 pragma solidity ^0.8.22;
 
 interface ICTMRWA1Sentry {
-    function ID() external returns (uint256);
-    function tokenAdmin() external returns (address);
+    function ID() external view returns (uint256);
+    function tokenAdmin() external view returns (address);
     function setTokenAdmin(address _tokenAdmin) external returns (bool);
-    function ctmWhitelist() external returns (string[] memory);
-    function countryList() external returns (string[] memory);
+    function ctmWhitelist() external view returns (string[] memory);
+    function countryList() external view returns (string[] memory);
+    function RWA_TYPE() external view returns (uint256);
+    function VERSION() external view returns (uint256);
 
     function setSentryOptionsFlag() external;
     function sentryOptionsSet() external returns (bool);

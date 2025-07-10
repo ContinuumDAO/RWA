@@ -27,8 +27,8 @@ contract CTMRWA1StorageUtils {
     using Strings for *;
     using CTMRWAUtils for string;
 
-    uint256 rwaType;
-    uint256 version;
+    uint256 public immutable RWA_TYPE;
+    uint256 public immutable VERSION;
     address public ctmRwa1Map;
     address public storageManager;
     bytes4 public lastSelector;
@@ -46,8 +46,8 @@ contract CTMRWA1StorageUtils {
         bytes4(keccak256("addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])"));
 
     constructor(uint256 _rwaType, uint256 _version, address _map, address _storageManager) {
-        rwaType = _rwaType;
-        version = _version;
+        RWA_TYPE = _rwaType;
+        VERSION = _version;
         ctmRwa1Map = _map;
         storageManager = _storageManager;
     }
@@ -95,7 +95,7 @@ contract CTMRWA1StorageUtils {
                 _data, (uint256, uint256, string[], uint8[], uint8[], string[], uint256[], uint256[], bytes32[])
             );
 
-            (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(ID, rwaType, version);
+            (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(ID, RWA_TYPE, VERSION);
             require(ok, "CTMRWA1StorageUtils: Could not find _ID or its storage address");
 
             ICTMRWA1Storage(storageAddr).popURILocal(objectName.length);
@@ -109,7 +109,7 @@ contract CTMRWA1StorageUtils {
 
     /// @dev Get the address of the CTMRWA1 contract from the _ID
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         require(ok, "CTMRWA1StorageUtils: The requested tokenID does not exist");
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 

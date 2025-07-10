@@ -19,4 +19,7 @@ interface ICTMRWAERC20 is IERC20 {
     function transferFrom(address _from, address _to, uint256 _value) external returns (bool);
 
     function decimals() external view returns (uint8);
+
+    function RWA_TYPE() external view returns (uint256);
+    function VERSION() external view returns (uint256);
 }

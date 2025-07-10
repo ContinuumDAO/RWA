@@ -45,10 +45,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     address public gateway;
 
     /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 rwaType;
+    uint256 public constant RWA_TYPE = 1;
 
     /// @dev version is the single integer version of this RWA type
-    uint256 version;
+    uint256 public constant VERSION = 1;
 
     /// @dev The address of the FeeManager contract
     address public feeManager;
@@ -90,8 +90,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         __ReentrancyGuard_init();
         __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
         gateway = _gateway;
-        rwaType = 1;
-        version = 1;
         feeManager = _feeManager;
         cIDStr = cID().toString();
         isMinter[address(this)] = true;
@@ -277,14 +275,14 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         string[] memory _slotNames,
         address _tokenAdmin
     ) internal returns (address) {
-        (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         require(!ok, "RWAX: ID already exists");
 
         bytes memory deployData = abi.encode(
             _ID, _tokenAdmin, _tokenName, _symbol, _decimals, _baseURI, _slotNumbers, _slotNames, address(this)
         );
 
-        (address ctmRwa1Token,,,) = ICTMRWADeployer(ctmRwaDeployer).deploy(_ID, rwaType, version, deployData);
+        (address ctmRwa1Token,,,) = ICTMRWADeployer(ctmRwaDeployer).deploy(_ID, RWA_TYPE, VERSION, deployData);
 
         ICTMRWA1(ctmRwa1Token).changeAdmin(_tokenAdmin);
 
@@ -351,7 +349,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         uint256[] memory _slotNumbers,
         string[] memory _slotNames
     ) external onlyCaller returns (bool) {
-        (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         require(!ok, "RWAX: ID already exists");
 
         address newAdmin = _newAdminStr._stringToAddress();
@@ -370,13 +368,13 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         ICTMRWA1(ctmRwa1Addr).changeAdmin(_newAdmin);
 
-        (, address ctmRwa1DividendAddr) = ICTMRWAMap(ctmRwa1Map).getDividendContract(_ID, rwaType, version);
+        (, address ctmRwa1DividendAddr) = ICTMRWAMap(ctmRwa1Map).getDividendContract(_ID, RWA_TYPE, VERSION);
         ICTMRWA1Dividend(ctmRwa1DividendAddr).setTokenAdmin(_newAdmin);
 
-        (, address ctmRwa1StorageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, rwaType, version);
+        (, address ctmRwa1StorageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
         ICTMRWA1Storage(ctmRwa1StorageAddr).setTokenAdmin(_newAdmin);
 
-        (, address ctmRwa1SentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, rwaType, version);
+        (, address ctmRwa1SentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
 
         ICTMRWA1Sentry(ctmRwa1SentryAddr).setTokenAdmin(_newAdmin);
 
@@ -443,7 +441,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         onlyCaller
         returns (bool)
     {
-        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         require(ok, "RWAX: Destination ID does not exist");
 
         address newAdmin = _newAdminStr._stringToAddress();
@@ -564,7 +562,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         onlyCaller
         returns (bool)
     {
-        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         require(ok, "RWAX: ID does not exist");
         require(!ICTMRWA1(ctmRwa1Addr).slotExists(_slot), "RWAX: Slot that already exists");
 
@@ -705,7 +703,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         address toAddr = _toAddressStr._stringToAddress();
 
-        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         require(ok, "RWAX: ID does not exist");
 
         bool slotExists = ICTMRWA1(ctmRwa1Addr).slotExists(_slot);
@@ -770,7 +768,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
     /// @dev Get the CTMRWA1 address and string version on this chain for an ID
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         require(ok, "RWAX: tokenID not exist");
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
@@ -783,7 +781,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         string memory fromAddressStr = msg.sender.toHexString()._toLower();
 
-        (bool ok, string memory toRwaXStr) = ICTMRWAGateway(gateway).getAttachedRWAX(rwaType, version, _toChainIdStr);
+        (bool ok, string memory toRwaXStr) = ICTMRWAGateway(gateway).getAttachedRWAX(RWA_TYPE, VERSION, _toChainIdStr);
         require(ok, "RWAX: Address not found");
 
         return (fromAddressStr, toRwaXStr);

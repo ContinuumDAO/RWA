@@ -41,10 +41,10 @@ contract CTMRWA1Dividend {
     uint256 public ID;
 
     /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 rwaType;
+    uint256 public immutable RWA_TYPE;
 
     /// @dev version is the single integer version of this RWA type
-    uint256 version;
+    uint256 public immutable VERSION;
 
     event NewDividendToken(address newToken, address currentAdmin);
     event ChangeDividendRate(uint256 slot, uint256 newDividend, address currentAdmin);
@@ -62,8 +62,8 @@ contract CTMRWA1Dividend {
         ctmRwa1X = ICTMRWA1(tokenAddr).ctmRwa1X();
         ctmRwa1Map = _map;
         ID = _ID;
-        rwaType = _rwaType;
-        version = _version;
+        RWA_TYPE = _rwaType;
+        VERSION = _version;
     }
 
     /// @dev wallet of holder of a tokenId(s) in CTMRWA1 => unclaimed dividend

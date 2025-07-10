@@ -18,4 +18,7 @@ interface ICTMRWA1Dividend {
     function resetDividendByToken(uint256 tokenId) external;
 
     function claimDividend() external returns (bool);
+
+    function RWA_TYPE() external view returns (uint256);
+    function VERSION() external view returns (uint256);
 }

@@ -55,10 +55,10 @@ contract TestCTMRWA1X is Helpers {
         // console.log(ctmRwaAddr);
         assertTrue(ok);
 
-        uint256 tokenType = ICTMRWA1(ctmRwaAddr).rwaType();
+        uint256 tokenType = ICTMRWA1(ctmRwaAddr).RWA_TYPE();
         assertEq(tokenType, RWA_TYPE);
 
-        uint256 deployedVersion = ICTMRWA1(ctmRwaAddr).version();
+        uint256 deployedVersion = ICTMRWA1(ctmRwaAddr).VERSION();
         assertEq(deployedVersion, VERSION);
 
         address[] memory aTokens = rwa1X.getAllTokensByAdminAddress(admin);

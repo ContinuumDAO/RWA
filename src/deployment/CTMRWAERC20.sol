@@ -21,10 +21,10 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
     uint256 public ID;
 
     /// @dev rwaType is the type of RWA token contract, e.g. CTMRWA1 has rwaType == 1
-    uint256 rwaType;
+    uint256 public immutable RWA_TYPE;
 
     /// @dev version is the version of the rwaType
-    uint256 version;
+    uint256 public immutable VERSION;
 
     /// @dev The slot number that this ERC20 relates to. Each ERC20 relates to ONE slot
     uint256 public slot;
@@ -60,8 +60,8 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
         address _ctmRwaMap
     ) ERC20(_name, _symbol) {
         ID = _ID;
-        rwaType = _rwaType;
-        version = _version;
+        RWA_TYPE = _rwaType;
+        VERSION = _version;
         slot = _slot;
         string memory slotStr = string.concat("slot ", Strings.toString(slot), "| ");
         ctmRwaName = string.concat(slotStr, _name);
@@ -70,7 +70,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
 
         bool ok;
 
-        (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, rwaType, version);
+        (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, _rwaType, _version);
         require(ok, "CTMRWAERC20: There is no CTMRWA1 contract backing this ID");
 
         require(ICTMRWA1(ctmRwaToken).slotExists(slot), "CTMRWAERC20: Slot does not exist");

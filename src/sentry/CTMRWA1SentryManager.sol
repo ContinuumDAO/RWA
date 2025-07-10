@@ -47,10 +47,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     address public utilsAddr;
 
     /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 public rwaType;
+    uint256 public constant RWA_TYPE = 1;
 
     /// @dev version is the single integer version of this RWA type
-    uint256 public version;
+    uint256 public constant VERSION = 1;
 
     /// @dev The address of the CTMRWAGateway contract
     address gateway;
@@ -87,6 +87,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         _;
     }
 
+    // TODO: Remove redundant _rwaType and _version parameters
     function initialize(
         address _gov,
         uint256 _rwaType,
@@ -100,8 +101,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     ) external initializer {
         __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
         ctmRwaDeployer = _ctmRwaDeployer;
-        rwaType = _rwaType;
-        version = _version;
         gateway = _gateway;
         feeManager = _feeManager;
         cIdStr = block.chainid.toString();
@@ -189,7 +188,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa1Addr);
 
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, rwaType, version);
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
         require(ok, "CTMRWA1SentryManager: Could not find _ID or its sentry address");
 
         bool sentryOptionsSet = ICTMRWA1Sentry(sentryAddr).sentryOptionsSet();
@@ -473,7 +472,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         require(ok, "CTMRWA1SentryManager: The requested tokenID does not exist");
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
@@ -481,7 +480,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     function _getSentryAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, rwaType, version);
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
         require(ok, "CTMRWA1SentryManager: Could not find _ID or its sentry address");
         string memory sentryAddrStr = sentryAddr.toHexString()._toLower();
 
@@ -494,7 +493,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         string memory fromAddressStr = msg.sender.toHexString()._toLower();
 
         (bool ok, string memory toSentryStr) =
-            ICTMRWAGateway(gateway).getAttachedSentryManager(rwaType, version, _toChainIdStr);
+            ICTMRWAGateway(gateway).getAttachedSentryManager(RWA_TYPE, VERSION, _toChainIdStr);
         require(ok, "CTMRWA1SentryManager: Target contract address not found");
 
         return (fromAddressStr, toSentryStr);

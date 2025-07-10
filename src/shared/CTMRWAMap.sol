@@ -31,15 +31,15 @@ import {CTMRWAUtils} from "../CTMRWAUtils.sol";
  * The 'attach' functions are called by CTMRWADeployer when the contracts are deployed.
  */
 
-/// @dev rwaType is the RWA type defining CTMRWA1
-uint256 constant rwaType = 1;
-
-/// @dev version is the single integer version of this RWA type
-uint256 constant version = 1;
-
 contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
     using CTMRWAUtils for string;
+
+    /// @dev rwaType is the RWA type defining CTMRWA1
+    uint256 public constant RWA_TYPE = 1;
+
+    /// @dev version is the single integer version of this RWA type
+    uint256 public constant VERSION = 1;
 
     /// @dev Address of the CTMRWAGateway contract
     address public gateway;
@@ -134,7 +134,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         view
         returns (bool, uint256)
     {
-        require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
+        require(_rwaType == RWA_TYPE && _version == VERSION, "CTMRWAMap: incorrect RWA type or version");
 
         string memory tokenAddrStr = _tokenAddrStr._toLower();
 
@@ -150,7 +150,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
      * @param _version The version of this RWA. Latest version is 1
      */
     function getTokenContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address) {
-        require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
+        require(_rwaType == RWA_TYPE && _version == VERSION, "CTMRWAMap: incorrect RWA type or version");
 
         string memory _contractStr = idToContract[_ID];
         return bytes(_contractStr).length != 0 ? (true, _contractStr._stringToAddress()) : (false, address(0));
@@ -164,7 +164,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
      * @param _version The version of this RWA. Latest version is 1
      */
     function getDividendContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address) {
-        require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
+        require(_rwaType == RWA_TYPE && _version == VERSION, "CTMRWAMap: incorrect RWA type or version");
 
         string memory _dividendStr = idToDividend[_ID];
         return bytes(_dividendStr).length != 0 ? (true, _dividendStr._stringToAddress()) : (false, address(0));
@@ -178,7 +178,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
      * @param _version The version of this RWA. Latest version is 1
      */
     function getStorageContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address) {
-        require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
+        require(_rwaType == RWA_TYPE && _version == VERSION, "CTMRWAMap: incorrect RWA type or version");
 
         string memory _storageStr = idToStorage[_ID];
         return bytes(_storageStr).length != 0 ? (true, _storageStr._stringToAddress()) : (false, address(0));
@@ -192,14 +192,14 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
      * @param _version The version of this RWA. Latest version is 1
      */
     function getSentryContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address) {
-        require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
+        require(_rwaType == RWA_TYPE && _version == VERSION, "CTMRWAMap: incorrect RWA type or version");
 
         string memory _sentryStr = idToSentry[_ID];
         return bytes(_sentryStr).length != 0 ? (true, _sentryStr._stringToAddress()) : (false, address(0));
     }
 
     function getInvestContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address) {
-        require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
+        require(_rwaType == RWA_TYPE && _version == VERSION, "CTMRWAMap: incorrect RWA type or version");
 
         string memory _investStr = idToInvest[_ID];
         return bytes(_investStr).length != 0 ? (true, _investStr._stringToAddress()) : (false, address(0));
@@ -220,7 +220,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         address _storageAddr,
         address _sentryAddr
     ) external onlyDeployer {
-        require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
+        require(_rwaType == RWA_TYPE && _version == VERSION, "CTMRWAMap: incorrect RWA type or version");
 
         bool ok = _attachCTMRWAID(_ID, _tokenAddr, _dividendAddr, _storageAddr, _sentryAddr);
         require(ok, "CTMRWAMap: Failed to set token ID");
@@ -240,7 +240,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         onlyDeployer
         returns (bool)
     {
-        require(_rwaType == rwaType && _version == version, "CTMRWAMap: incorrect RWA type or version");
+        require(_rwaType == RWA_TYPE && _version == VERSION, "CTMRWAMap: incorrect RWA type or version");
 
         string memory investAddrStr = _investAddr.toHexString()._toLower();
 

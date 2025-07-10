@@ -25,10 +25,10 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard {
     uint256 public ID;
 
     /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 public rwaType;
+    uint256 public immutable RWA_TYPE;
 
     /// @dev version is the single integer version of this RWA type
-    uint256 public version;
+    uint256 public immutable VERSION;
 
     /// @dev A list of offerings to investors
     Offering[] public offerings;
@@ -105,22 +105,22 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard {
         address _feeManager
     ) {
         ID = _ID;
-        rwaType = _rwaType;
-        version = _version;
+        RWA_TYPE = _rwaType;
+        VERSION = _version;
         ctmRwaMap = _ctmRwaMap;
         commissionRate = _commissionRate;
         feeManager = _feeManager;
         bool ok;
 
-        (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, rwaType, version);
+        (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, _rwaType, _version);
         require(ok, "CTMInvest: There is no CTMRWA1 contract backing this ID");
 
         decimalsRwa = ICTMRWA1(ctmRwaToken).valueDecimals();
 
-        (ok, ctmRwaDividend) = ICTMRWAMap(ctmRwaMap).getDividendContract(ID, rwaType, version);
+        (ok, ctmRwaDividend) = ICTMRWAMap(ctmRwaMap).getDividendContract(ID, _rwaType, _version);
         require(ok, "CTMInvest: There is no CTMRWA1Dividend contract backing this ID");
 
-        (ok, ctmRwaSentry) = ICTMRWAMap(ctmRwaMap).getSentryContract(ID, rwaType, version);
+        (ok, ctmRwaSentry) = ICTMRWAMap(ctmRwaMap).getSentryContract(ID, _rwaType, _version);
         require(ok, "CTMInvest: There is no CTMRWA1Sentry contract backing this ID");
 
         ctmRwa1X = ICTMRWA1(ctmRwaToken).ctmRwa1X();

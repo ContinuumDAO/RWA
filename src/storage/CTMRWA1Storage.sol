@@ -35,10 +35,10 @@ contract CTMRWA1Storage {
     uint256 public ID;
 
     /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 rwaType;
+    uint256 public immutable RWA_TYPE;
 
     /// @dev version is the single integer version of this RWA type
-    uint256 version;
+    uint256 public immutable VERSION;
 
     /// @dev The address of the CTMRWAStorageManager contract
     address public storageManagerAddr;
@@ -119,8 +119,8 @@ contract CTMRWA1Storage {
     ) {
         ID = _ID;
         idStr = ((ID << 192) >> 192).toHexString()._toLower(); // shortens string to 16 characters
-        rwaType = _rwaType;
-        version = _version;
+        RWA_TYPE = _rwaType;
+        VERSION = _version;
         ctmRwa1Map = _map;
 
         tokenAddr = _tokenAddr;
@@ -171,7 +171,7 @@ contract CTMRWA1Storage {
         require(!existURIHash(_uriDataHash), "CTMRWA1Storage: Hash already exists");
 
         if (_uriType == URIType.SLOT) {
-            (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+            (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
             require(ok && ICTMRWA1(tokenAddr).slotExists(_slot), "CTMRWA1Storage: Slot does not exist");
         }
 

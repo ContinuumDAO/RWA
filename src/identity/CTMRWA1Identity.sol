@@ -23,8 +23,8 @@ contract CTMRWA1Identity {
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
 
-    uint256 rwaType;
-    uint256 version;
+    uint256 public immutable RWA_TYPE;
+    uint256 public immutable VERSION;
     address public ctmRwa1Map;
     address public sentryManager;
     address public zkMeVerifierAddress;
@@ -46,8 +46,8 @@ contract CTMRWA1Identity {
         address _verifierAddress,
         address _feeManager
     ) {
-        rwaType = _rwaType;
-        version = _version;
+        RWA_TYPE = _rwaType;
+        VERSION = _version;
         ctmRwa1Map = _map;
         sentryManager = _sentryManager;
         zkMeVerifierAddress = _verifierAddress;
@@ -61,7 +61,7 @@ contract CTMRWA1Identity {
     {
         require(zkMeVerifierAddress != address(0), "CTMRWA1Identity: zkMe verifier has to be set");
 
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, rwaType, version);
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
         require(ok, "CTMRWA1Identity: Could not find _ID or its sentry address");
 
         require(ICTMRWA1Sentry(sentryAddr).kycSwitch(), "CTMRWA1Identity: KYC is not enabled for this CTMRWA1");
@@ -92,7 +92,7 @@ contract CTMRWA1Identity {
     }
 
     function isVerifiedPerson(uint256 _ID, address _wallet) public view onlyIdChain returns (bool) {
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, rwaType, version);
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
         require(ok, "CTMRWA1Identity: Could not find _ID or its sentry address");
         require(ICTMRWA1Sentry(sentryAddr).kycSwitch(), "CTMRWA1Identity: KYC not set");
 

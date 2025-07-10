@@ -49,6 +49,9 @@ interface ICTMRWA1Storage {
     function uriData() external returns (URIData[] memory);
     function popURILocal(uint256 toPop) external;
 
+    function RWA_TYPE() external view returns (uint256);
+    function VERSION() external view returns (uint256);
+
     function setTokenAdmin(address _tokenAdmin) external returns (bool);
 
     function greenfieldBucket() external view returns (string memory);

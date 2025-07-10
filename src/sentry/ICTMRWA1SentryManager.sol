@@ -10,6 +10,9 @@ interface ICTMRWA1SentryManager {
     function setSentryUtils(address utilsAddr) external;
     function utilsAddr() external returns (address);
 
+    function RWA_TYPE() external view returns (uint256);
+    function VERSION() external view returns (uint256);
+
     function getLastReason() external view returns (string memory);
 
     function deploySentry(uint256 ID, address tokenAddr, uint256 rwaType, uint256 version, address map)

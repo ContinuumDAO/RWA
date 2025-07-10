@@ -29,8 +29,8 @@ interface ICTMRWA1 {
     function tokenAdmin() external returns (address);
     function setOverrideWallet(address overrideWallet) external;
     function overrideWallet() external returns (address);
-    function rwaType() external returns (uint256);
-    function version() external returns (uint256);
+    function RWA_TYPE() external returns (uint256);
+    function VERSION() external returns (uint256);
     function ctmRwa1X() external returns (address);
     function changeAdmin(address _admin) external returns (bool);
     function attachId(uint256 nextID, address tokenAdmin) external returns (bool);
@@ -95,6 +95,21 @@ interface ICTMRWA1 {
 
     function deployErc20(uint256 _slot, string memory _erc20Name, address _feeToken) external;
 
+    function slotOf(uint256 tokenId) external view returns (uint256);
+
+    function approve(uint256 tokenId, address operator, uint256 value) external payable;
+
+    function approve(address to, uint256 tokenId) external;
+
+    function allowance(uint256 tokenId, address operator) external view returns (uint256);
+
+    function transferFrom(uint256 fromTokenId, uint256 toTokenId, uint256 value) external returns (address);
+
+    function transferFrom(uint256 fromTokenId, address to, uint256 value) external returns (uint256);
+
+    function transferFrom(address fromAddr, address toAddr, uint256 fromTokenId) external;
+    function forceTransfer(address from, address to, uint256 tokenId) external returns (bool);
+
     event Approval(address from, address to, uint256 tokenId);
     event ApprovalForAll(address owner, address operator, bool approved);
     event Transfer(address from, address to, uint256 tokenId);
@@ -125,18 +140,5 @@ interface ICTMRWA1 {
      */
     event SlotChanged(uint256 indexed tokenId, uint256 indexed oldSlot, uint256 indexed newSlot);
 
-    function slotOf(uint256 tokenId) external view returns (uint256);
-
-    function approve(uint256 tokenId, address operator, uint256 value) external payable;
-
-    function approve(address to, uint256 tokenId) external;
-
-    function allowance(uint256 tokenId, address operator) external view returns (uint256);
-
-    function transferFrom(uint256 fromTokenId, uint256 toTokenId, uint256 value) external returns (address);
-
-    function transferFrom(uint256 fromTokenId, address to, uint256 value) external returns (uint256);
-
-    function transferFrom(address fromAddr, address toAddr, uint256 fromTokenId) external;
-    function forceTransfer(address from, address to, uint256 tokenId) external returns (bool);
+    error CTMRWA1Unauthorized();
 }

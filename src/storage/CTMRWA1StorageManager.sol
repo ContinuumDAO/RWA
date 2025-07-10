@@ -49,10 +49,10 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
     address public utilsAddr;
 
     /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 public rwaType;
+    uint256 public constant RWA_TYPE = 1;
 
     /// @dev version is the single integer version of this RWA type
-    uint256 public version;
+    uint256 public constant VERSION = 1;
 
     /// @dev The address of the CTMRWAGateway contract
     address gateway;
@@ -74,6 +74,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         _;
     }
 
+    // TODO: Remove redundant _rwaType and _version parameters
     function initialize(
         address _gov,
         uint256 _rwaType,
@@ -87,8 +88,6 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
     ) external initializer {
         __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
         ctmRwaDeployer = _ctmRwaDeployer;
-        rwaType = _rwaType;
-        version = _version;
         gateway = _gateway;
         feeManager = _feeManager;
         cIdStr = cID().toString();
@@ -190,7 +189,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, rwaType, version);
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
         require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
@@ -264,7 +263,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
      * NOTE For EVM chains, the address of the fee token must be converted to a string
      */
     function transferURI(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr) public {
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, rwaType, version);
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
         require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
@@ -335,7 +334,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         uint256[] memory _timestamp,
         bytes32[] memory _uriDataHash
     ) external onlyCaller returns (bool) {
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, rwaType, version);
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
         require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
 
         uint256 currentNonce = ICTMRWA1Storage(storageAddr).nonce();
@@ -363,7 +362,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
 
     /// @dev Get the address of the CTMRWA1 corresponding to the _ID
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         require(ok, "CTMRWA1StorageManager: The requested tokenID does not exist");
         string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
 
@@ -380,7 +379,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         string memory fromAddressStr = _toLower(msg.sender.toHexString());
 
         (bool ok, string memory toSMStr) =
-            ICTMRWAGateway(gateway).getAttachedStorageManager(rwaType, version, _toChainIdStr);
+            ICTMRWAGateway(gateway).getAttachedStorageManager(RWA_TYPE, VERSION, _toChainIdStr);
         require(ok, "CTMRWA1StorageManager: Target contract address not found");
 
         return (fromAddressStr, toSMStr);

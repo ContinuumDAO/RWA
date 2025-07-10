@@ -21,4 +21,7 @@ interface ICTMRWA1Identity {
     function isKycChain() external view returns (bool);
 
     function isVerifiedPerson(uint256 ID, address wallet) external view returns (bool);
+
+    function RWA_TYPE() external view returns (uint256);
+    function VERSION() external view returns (uint256);
 }

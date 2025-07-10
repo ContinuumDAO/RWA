@@ -35,10 +35,10 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     uint256 public ID;
 
     /// @dev version is the single integer version of this RWA type
-    uint256 public constant version = 1;
+    uint256 public constant VERSION = 1;
 
     /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 public constant rwaType = 1;
+    uint256 public constant RWA_TYPE = 1;
 
     /// @dev tokenAdmin is the address of the wallet controlling the RWA, also known as the Issuer
     address public tokenAdmin;
@@ -167,17 +167,19 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
         ctmRwa1X = _ctmRwa1X;
         rwa1XFallback = ICTMRWA1X(ctmRwa1X).fallbackAddr();
         ctmRwaDeployer = ICTMRWA1X(ctmRwa1X).ctmRwaDeployer();
-        tokenFactory = ICTMRWADeployer(ctmRwaDeployer).tokenFactory(rwaType, version);
+        tokenFactory = ICTMRWADeployer(ctmRwaDeployer).tokenFactory(RWA_TYPE, VERSION);
         erc20Deployer = ICTMRWADeployer(ctmRwaDeployer).erc20Deployer();
     }
 
     modifier onlyTokenAdmin() {
         require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "RWA: onlyTokenAdmin");
+        // if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) revert CTMRWA1Unauthorized();
         _;
     }
 
     modifier onlyErc20Deployer() {
         require(_erc20s[msg.sender], "RWA: Only CTMRWAERC20");
+        // if (!_erc20s[msg.sender]) revert CTMRWA1Unauthorized();
         _;
     }
 
@@ -428,7 +430,7 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
         require(_erc20Slots[_slot] == address(0), "RWA: ERC20 slot already exists");
         require(bytes(_erc20Name).length <= 128, "RWA: ERC20 name > 128");
         address newErc20 =
-            ICTMRWAERC20Deployer(erc20Deployer).deployERC20(ID, rwaType, version, _slot, _erc20Name, _symbol, _feeToken);
+            ICTMRWAERC20Deployer(erc20Deployer).deployERC20(ID, RWA_TYPE, VERSION, _slot, _erc20Name, _symbol, _feeToken);
 
         _erc20s[newErc20] = true;
         _erc20Slots[_slot] = newErc20;

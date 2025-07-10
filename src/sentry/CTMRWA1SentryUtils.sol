@@ -15,8 +15,8 @@ contract CTMRWA1SentryUtils {
     using Strings for *;
     using CTMRWAUtils for string;
 
-    uint256 rwaType;
-    uint256 version;
+    uint256 public immutable RWA_TYPE;
+    uint256 public immutable VERSION;
     address public ctmRwa1Map;
     address public sentryManager;
 
@@ -32,8 +32,8 @@ contract CTMRWA1SentryUtils {
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
     constructor(uint256 _rwaType, uint256 _version, address _map, address _sentryManager) {
-        rwaType = _rwaType;
-        version = _version;
+        RWA_TYPE = _rwaType;
+        VERSION = _version;
         ctmRwa1Map = _map;
         sentryManager = _sentryManager;
     }
@@ -68,7 +68,7 @@ contract CTMRWA1SentryUtils {
     }
 
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, rwaType, version);
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         require(ok, "CTMRWA1StorageFallback: The requested tokenID does not exist");
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 

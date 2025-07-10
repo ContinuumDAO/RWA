@@ -14,8 +14,8 @@ contract CTMRWA1Sentry {
 
     address public tokenAddr;
     uint256 public ID;
-    uint256 rwaType;
-    uint256 version;
+    uint256 public immutable RWA_TYPE;
+    uint256 public immutable VERSION;
     address sentryManagerAddr;
     address public tokenAdmin;
     address public ctmRwa1X;
@@ -64,8 +64,8 @@ contract CTMRWA1Sentry {
         address _map
     ) {
         ID = _ID;
-        rwaType = _rwaType;
-        version = _version;
+        RWA_TYPE = _rwaType;
+        VERSION = _version;
         ctmRwa1Map = _map;
 
         tokenAddr = _tokenAddr;
@@ -229,10 +229,10 @@ contract CTMRWA1Sentry {
     function isAllowableTransfer(string memory _user) public view returns (bool) {
         bool ok;
         address dividendContract;
-        (ok, dividendContract) = ICTMRWAMap(ctmRwa1Map).getDividendContract(ID, rwaType, version);
+        (ok, dividendContract) = ICTMRWAMap(ctmRwa1Map).getDividendContract(ID, RWA_TYPE, VERSION);
 
         address investContract;
-        (ok, investContract) = ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, rwaType, version);
+        (ok, investContract) = ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
 
         if (!whitelistSwitch || _user._stringToAddress() == address(0)) {
             return (true);
