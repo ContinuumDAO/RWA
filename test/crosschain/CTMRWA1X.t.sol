@@ -214,6 +214,8 @@ contract TestCTMRWA1X is Helpers {
 
         // user1 has tokenIds in both (ID1, token1) and (ID2, token2)
         assertEq(user1Contracts.length, 2);
+        assertEq(user1Contracts[0], address(token1));
+        assertEq(user1Contracts[1], address(token2));
 
         // Check the tokenIds for user1 in both (ID1, token1) and (ID2, token2)
         uint256 bal = token1.balanceOf(user1);
@@ -231,6 +233,7 @@ contract TestCTMRWA1X is Helpers {
         // Now check for user2 in both (ID1, token1) and (ID2, token2)
         // user2 has tokenIds in only one (ID1, token1)
         assertEq(user2Contracts.length, 1);
+        assertEq(user2Contracts[0], address(token1));
 
         bal = token1.balanceOf(user2);
         // user2 has tokenId3 and tokenId5 in (ID1, token1)
@@ -249,6 +252,7 @@ contract TestCTMRWA1X is Helpers {
         user2Contracts = rwa1X.getAllTokensByOwnerAddress(user2);
         // With the addition of (ID2, token2) for user2, this increases from 1 to 2
         assertEq(user2Contracts.length, 2);
+        assertEq(user2Contracts[1], address(token2));
         // Check that tokenId6 is owned by user2 now
         assertEq(token2.ownerOf(tokenId6), user2);
 
