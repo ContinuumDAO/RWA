@@ -136,9 +136,22 @@ contract TestCTMRWA1X is Helpers {
         // Check that address 2 is now in tokenAdmin2 list
         assertTrue(ok);
         
+        // Change a token admin from the end of the list to tokenAdmin2
+        vm.prank(tokenAdmin);
+        rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), IDs[4], feeTokenStr);
+        aTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        // Check that the aToken list is one less
+        assertEq(aTokens.length, 3);
+        ok = _includesAddress(tokensAddr[4], aTokens);
+        // Check that address 2 has been removed
+        assertFalse(ok);
 
-       
-       
+        a2Tokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin2);
+        // Check the a2Token list has two entries
+        assertEq(a2Tokens.length, 2);
+        ok = _includesAddress(tokensAddr[4], a2Tokens);
+        // Check that address 4 is now in tokenAdmin2 list
+        assertTrue(ok);
     }
 
     function test_localMint() public {
@@ -146,9 +159,9 @@ contract TestCTMRWA1X is Helpers {
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
 
-        string memory tokenStr = _toLower((address(usdc).toHexString()));
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
 
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 2000, ID, tokenStr);
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 2000, ID, feeTokenStr);
         vm.stopPrank();
 
         assertEq(tokenId, 1);
@@ -167,6 +180,78 @@ contract TestCTMRWA1X is Helpers {
         exists = token.requireMinted(tokenId);
         assertEq(exists, false);
         vm.stopPrank();
+    }
+
+    function test_ownedTokenIds() public {
+
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+
+        vm.startPrank(tokenAdmin);
+        // Create three token contracts
+        (uint256 ID1, CTMRWA1 token1) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID1, address(usdc), address(rwa1X));
+        skip(10);
+        (uint256 ID2, CTMRWA1 token2) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID2, address(usdc), address(rwa1X));
+
+        // Mint two tokenIds in (ID1, token1) to user1 and user2 in slots 3 and 5
+        uint256 slot = 5;
+        uint256 tokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID1, feeTokenStr);
+        uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID1, feeTokenStr);
+        uint256 tokenId3 = rwa1X.mintNewTokenValueLocal(user2, 0, slot, 2000, ID1, feeTokenStr);
+        slot = 3;
+        uint256 tokenId4 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID1, feeTokenStr);
+        uint256 tokenId5 = rwa1X.mintNewTokenValueLocal(user2, 0, slot, 2000, ID1, feeTokenStr);
+
+        // Mint a tokenId in (ID2, token2) to user1 in slot 3
+        slot = 3;
+        uint256 tokenId6 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID2, feeTokenStr);
+
+        vm.stopPrank();
+
+        address[] memory user1Contracts = rwa1X.getAllTokensByOwnerAddress(user1);
+        address[] memory user2Contracts = rwa1X.getAllTokensByOwnerAddress(user2);
+
+        // user1 has tokenIds in both (ID1, token1) and (ID2, token2)
+        assertEq(user1Contracts.length, 2);
+
+        // Check the tokenIds for user1 in both (ID1, token1) and (ID2, token2)
+        uint256 bal = token1.balanceOf(user1);
+        // user1 has tokenId1, tokenId2 and tokenId4 in (ID1, token1)
+        assertEq(bal, 3);
+        assertEq(token1.tokenOfOwnerByIndex(user1, 0), tokenId1);
+        assertEq(token1.tokenOfOwnerByIndex(user1, 1), tokenId2);
+        assertEq(token1.tokenOfOwnerByIndex(user1, 2), tokenId4);
+
+        // user1 has tokenId6 in (ID2, token2)
+        bal = token2.balanceOf(user1);
+        assertEq(bal,1);
+        assertEq(token2.tokenOfOwnerByIndex(user1, 0), tokenId6);
+
+        // Now check for user2 in both (ID1, token1) and (ID2, token2)
+        // user2 has tokenIds in only one (ID1, token1)
+        assertEq(user2Contracts.length, 1);
+
+        bal = token1.balanceOf(user2);
+        // user2 has tokenId3 and tokenId5 in (ID1, token1)
+        assertEq(bal, 2);
+        assertEq(token1.tokenOfOwnerByIndex(user2, 0), tokenId3);
+        assertEq(token1.tokenOfOwnerByIndex(user2, 1), tokenId5);
+
+        // Now for user2 in (ID2, token2). user2 has none
+        bal = token2.balanceOf(user2);
+        assertEq(bal, 0);
+
+        // Now transfer tokenId6 from user1 to user2
+        vm.prank(user1);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId6, ID2, feeTokenStr);
+    
+        user2Contracts = rwa1X.getAllTokensByOwnerAddress(user2);
+        // With the addition of (ID2, token2) for user2, this increases from 1 to 2
+        assertEq(user2Contracts.length, 2);
+        // Check that tokenId6 is owned by user2 now
+        assertEq(token2.ownerOf(tokenId6), user2);
+
     }
 
     function test_localPartialTransfer() public {
