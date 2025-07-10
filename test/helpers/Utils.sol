@@ -78,6 +78,15 @@ contract Utils is Test {
         return string(bLower);
     }
 
+    function _includesAddress(address _addr, address[] memory _addressList) internal pure returns(bool) {
+        uint256 len = _addressList.length;
+
+        for (uint256 i=0; i<len; i++) {
+            if (_addressList[i] == _addr) return true;
+        }
+        return false;
+    }
+
     function _stringToArray(string memory _string) internal pure returns (string[] memory) {
         string[] memory strArray = new string[](1);
         strArray[0] = _string;

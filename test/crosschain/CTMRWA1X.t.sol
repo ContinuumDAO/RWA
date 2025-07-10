@@ -32,7 +32,7 @@ contract TestCTMRWA1X is Helpers {
     );
 
     function test_localDeploy() public {
-        string memory tokenStr = address(usdc).toHexString();
+        string memory feeTokenStr = address(usdc).toHexString();
         string[] memory chainIdsStr;
 
         vm.startPrank(admin);
@@ -46,7 +46,7 @@ contract TestCTMRWA1X is Helpers {
             18,
             "GFLD",
             chainIdsStr, // empty array - no cross-chain minting
-            tokenStr
+            feeTokenStr
         );
 
         // console.log(ID);
@@ -65,6 +65,80 @@ contract TestCTMRWA1X is Helpers {
         assertEq(aTokens[0], ctmRwaAddr);
 
         vm.stopPrank();
+    }
+
+    function test_localDeployIdenticalID() public {
+        // Check to see that you cannot create two tokens with identical IDs
+
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+
+        // ID2 will be the same as ID because the block.timestamp is the same
+        // as well as all the other params in the abi.encode used to generate ID
+        vm.expectRevert("RWAX: ID already exists");
+        _deployCTMRWA1(address(usdc));
+        vm.stopPrank();
+
+        //RWAX: ID already exists
+    }
+
+    function test_tokensByAdminAddress() public {
+        // Check that tokens are properly stored by tokenAdmin address
+
+        string memory feeTokenStr = address(usdc).toHexString();
+
+        uint256[] memory IDs = new uint256[](5);
+        address[] memory tokensAddr = new address[](5);
+
+        CTMRWA1[] memory tokens = new CTMRWA1[](5);
+
+        vm.startPrank(tokenAdmin);
+        (IDs[0], tokens[0]) = _deployCTMRWA1(address(usdc));
+        tokensAddr[0] = address(tokens[0]);
+        skip(10);
+        (IDs[1], tokens[1]) = _deployCTMRWA1(address(usdc));
+        tokensAddr[1] = address(tokens[1]);
+        skip(20);
+        (IDs[2], tokens[2]) = _deployCTMRWA1(address(usdc));
+        tokensAddr[2] = address(tokens[2]);
+        skip(15);
+        (IDs[3], tokens[3]) = _deployCTMRWA1(address(usdc));
+        tokensAddr[3] = address(tokens[3]);
+        skip(40);
+        (IDs[4], tokens[4]) = _deployCTMRWA1(address(usdc));
+        tokensAddr[4] = address(tokens[4]);
+        vm.stopPrank();
+
+        address[] memory aTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        assertEq(aTokens.length, 5);
+
+        bool ok;
+        // Check all the tokens are in the adminToken list
+        for (uint256 i=0; i<aTokens.length; i++) {
+            ok = _includesAddress(tokensAddr[i], aTokens);
+            assertTrue(ok);
+        }
+
+        // Change a token admin in the middle of the list to tokenAdmin2
+        vm.prank(tokenAdmin);
+        rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), IDs[2], feeTokenStr);
+        aTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        // Check that the aToken list is one less
+        assertEq(aTokens.length, 4);
+        ok = _includesAddress(tokensAddr[2], aTokens);
+        // Check that address 2 has been removed
+        assertFalse(ok);
+
+        address[] memory a2Tokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin2);
+        // Check the a2Token list has one entry
+        assertEq(a2Tokens.length, 1);
+        ok = _includesAddress(tokensAddr[2], a2Tokens);
+        // Check that address 2 is now in tokenAdmin2 list
+        assertTrue(ok);
+        
+
+       
+       
     }
 
     function test_localMint() public {
