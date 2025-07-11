@@ -20,7 +20,7 @@ contract TestStorageManager is Helpers {
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
 
-        string memory tokenStr = _toLower((address(usdc).toHexString()));
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
 
         string memory randomData = "this is any old data";
         bytes32 junkHash = keccak256(abi.encode(randomData));
@@ -35,7 +35,7 @@ contract TestStorageManager is Helpers {
             0, // dummy
             junkHash,
             _stringToArray(cIdStr),
-            tokenStr
+            feeTokenStr
         );
 
         storageManager.addURI(
@@ -47,7 +47,7 @@ contract TestStorageManager is Helpers {
             0, // dummy
             junkHash,
             _stringToArray(cIdStr),
-            tokenStr
+            feeTokenStr
         );
 
         (bool ok, address thisStorage) = map.getStorageContract(ID, RWA_TYPE, VERSION);
@@ -78,6 +78,7 @@ contract TestStorageManager is Helpers {
     }
 
     function test_addURIX() public {
+        // Test the onlyCaller function addURIX called by the MPC network to add storage refs cross-chain
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));

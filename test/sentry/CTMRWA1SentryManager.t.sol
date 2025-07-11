@@ -223,8 +223,10 @@ contract TestSentryManager is Helpers {
         //     bool _countryBL
         // ) external onlyCaller returns(bool) {
 
-        vm.startPrank(tokenAdmin); // this CTMRWA1 has an admin of admin
+        vm.prank(tokenAdmin); // this CTMRWA1 has an admin of admin
         (ID, token) = _deployCTMRWA1(address(usdc));
+
+        vm.startPrank(address(c3caller));
 
         sentryManager.setSentryOptionsX(
             ID,

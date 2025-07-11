@@ -17,15 +17,14 @@ contract TestERC20Deployer is Helpers {
     function test_deployErc20() public {
         vm.startPrank(tokenAdmin);
         // (ID, token) = CTMRWA1Deploy();
-        // createSomeSlots(ID);
 
         (ID, token) = _deployCTMRWA1(address(usdc));
-        _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
 
         uint256 slot = 1;
         string memory name = "Basic Stuff";
 
-        string memory tokenStr = _toLower((address(usdc).toHexString()));
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
 
         token.deployErc20(slot, name, address(usdc));
 
@@ -49,7 +48,7 @@ contract TestERC20Deployer is Helpers {
         vm.expectRevert("RWA: Slot does not exist");
         token.deployErc20(99, name, address(usdc));
 
-        uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, tokenStr);
+        uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr);
 
         uint256 balUser1 = ICTMRWAERC20(newErc20).balanceOf(user1);
         assertEq(balUser1, 2000);
@@ -57,8 +56,26 @@ contract TestERC20Deployer is Helpers {
         ts = ICTMRWAERC20(newErc20).totalSupply();
         assertEq(ts, 2000);
 
+        uint256 tokenId1User2 = rwa1X.mintNewTokenValueLocal(
+            user2,
+            0,
+            slot,
+            3000,
+            ID,
+            feeTokenStr
+        );
+
         ts = ICTMRWAERC20(newErc20).totalSupply();
         assertEq(ts, 5000);
+
+        uint256 tokenId2User2 = rwa1X.mintNewTokenValueLocal(
+            user2,
+            0,
+            slot,
+            4000,
+            ID,
+            feeTokenStr
+        );
 
         uint256 balUser2 = ICTMRWAERC20(newErc20).balanceOf(user2);
         assertEq(balUser2, 7000);
@@ -83,8 +100,14 @@ contract TestERC20Deployer is Helpers {
         vm.stopPrank();
 
         vm.startPrank(tokenAdmin);
-        uint256 tokenId2User1 = rwa1X.mintNewTokenValueLocal( // adding an extra tokenId
-        user1, 0, slot, 3000, ID, tokenStr);
+        uint256 tokenId2User1 = rwa1X.mintNewTokenValueLocal(  // adding an extra tokenId
+            user1,
+            0,
+            slot,
+            3000,
+            ID,
+            feeTokenStr
+        );
         vm.stopPrank();
 
         vm.startPrank(user1);
@@ -94,7 +117,7 @@ contract TestERC20Deployer is Helpers {
         assertEq(token.balanceOf(tokenId1User1), 0); // 1000 - 1000
         assertEq(token.balanceOf(tokenId2User1), 2000); // 3000 - 1000
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 2000); // 4000 => 2000
-        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 10_000); // 3000 + 4000 + 1000 + 2000
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 10000); // 3000 + 4000 + 1000 + 2000
         assertEq(ts + 3000, ICTMRWAERC20(newErc20).totalSupply());
         vm.stopPrank();
 
@@ -114,7 +137,7 @@ contract TestERC20Deployer is Helpers {
         ICTMRWAERC20(newErc20).transferFrom(user2, user1, 5001);
 
         ICTMRWAERC20(newErc20).transferFrom(user2, user1, 5000);
-        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 11_000);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 11000);
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 1000);
 
         vm.stopPrank();

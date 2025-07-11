@@ -222,7 +222,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         returns (address)
     {
         (bool ok,) = ICTMRWAMap(ctmRwaMap).getInvestContract(_ID, _rwaType, _version);
-        require(!ok, "CTMDeploy: Investment contract already deployed");
+        require(!ok, "CTMDeploy: Investment contract already deployed"); 
 
         require(deployInvest != address(0), "CTMDeployer: deployInvest address not set");
 

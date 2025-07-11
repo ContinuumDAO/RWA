@@ -49,19 +49,23 @@ contract TestInvest is Helpers {
             ID,
             feeTokenStr
         );
+        vm.stopPrank();
 
+        vm.startPrank(gov);
         feeManager.setFeeMultiplier(FeeType.DEPLOYINVEST, 50);
         feeManager.setFeeMultiplier(FeeType.OFFERING, 50);
         feeManager.setFeeMultiplier(FeeType.INVEST, 5);
+        vm.stopPrank();
 
+        vm.startPrank(tokenAdmin);
         bool ok;
-        address investContract;
 
         address ctmInvest = deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
 
         vm.expectRevert("CTMDeploy: Investment contract already deployed");
         deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
 
+        address investContract;
         (ok, investContract) = map.getInvestContract(ID, RWA_TYPE, VERSION);
         assertEq(ok, true);
         assertEq(investContract, ctmInvest);
@@ -294,7 +298,7 @@ contract TestInvest is Helpers {
         vm.stopPrank();
 
         vm.startPrank(tokenAdmin);
-        // Test to see if pause works
+        // Test to see if unpause works
         ICTMRWA1InvestWithTimeLock(investContract).unpauseOffering(indx);
         vm.stopPrank();
 

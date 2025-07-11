@@ -229,10 +229,10 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     {
         string memory investAddrStr = _investAddr.toHexString()._toLower();
 
-        bool ok = _checkRwaTypeVersion(investAddrStr, _rwaType, _version);
+        _checkRwaTypeVersion(investAddrStr, _rwaType, _version);
 
         // NOTE Ensure that the contract has not been deployed yet
-        if (ok || investToId[investAddrStr] != 0) {
+        if (investToId[investAddrStr] != 0) {
             return (false);
         } else {
             idToInvest[_ID] = investAddrStr;

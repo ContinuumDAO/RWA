@@ -19,7 +19,7 @@ contract TestFeeManager is Helpers {
         assertEq(feeTokenList[0], address(ctm));
         assertEq(feeTokenList[1], address(usdc));
 
-        string memory tokenStr = _toLower((address(usdc).toHexString()));
+        string memory tokenStr = address(usdc).toHexString();
 
         uint256 fee = feeManager.getXChainFee(_stringToArray("1"), false, FeeType.TX, tokenStr);
 
@@ -28,6 +28,7 @@ contract TestFeeManager is Helpers {
         fee = fee * 10 ** usdc.decimals() / 100;
 
         vm.startPrank(user1);
+        usdc.approve(address(feeManager), 10000000);
         uint256 initBal = usdc.balanceOf(address(user1));
         uint256 feePaid = feeManager.payFee(fee, tokenStr);
         uint256 endBal = usdc.balanceOf(address(user1));
@@ -35,9 +36,10 @@ contract TestFeeManager is Helpers {
         vm.stopPrank();
 
         vm.startPrank(gov);
+        uint256 initialTreasuryBal = usdc.balanceOf(address(treasury));
         feeManager.withdrawFee(tokenStr, endBal, treasury.toHexString());
         uint256 treasuryBal = usdc.balanceOf(address(treasury));
-        assertEq(treasuryBal, feePaid);
+        assertEq(treasuryBal - initialTreasuryBal, feePaid);
         vm.stopPrank();
 
         vm.startPrank(gov);
