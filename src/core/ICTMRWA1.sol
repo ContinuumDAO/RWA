@@ -21,12 +21,87 @@ struct SlotData {
     uint256[] slotTokens;
 }
 
+/// @dev Numbers that can be referenced in errors
+enum Uint {
+    TokenId,
+    SlotLength
+}
+
+/// @dev Common addresses referenced in errors in CTMRWA1
+enum Address {
+    Sender,
+    Owner,
+    To,
+    From,
+
+    Regulator,
+    TokenAdmin,
+    Dividend,
+    Storage,
+    Sentry,
+    RWAERC20,
+    Override
+}
+
 interface ITokenContract {
     function tokenContract() external returns (TokenContract[] memory);
     function tokenChainIdStrs() external returns (string[] memory);
 }
 
 interface ICTMRWA1 is ICTMRWA {
+    event Approval(address from, address to, uint256 tokenId);
+    event ApprovalForAll(address owner, address operator, bool approved);
+    event Transfer(address from, address to, uint256 tokenId);
+
+    /**
+     * @dev MUST emit when value of a token is transferred to another token with the same slot,
+     *  including zero value transfers (_value == 0) as well as transfers when tokens are created
+     *  (`_fromTokenId` == 0) or destroyed (`_toTokenId` == 0).
+     * @param fromTokenId The token id to transfer value from
+     * @param toTokenId The token id to transfer value to
+     * @param value The transferred value
+     */
+    event TransferValue(uint256 indexed fromTokenId, uint256 indexed toTokenId, uint256 value);
+
+    /**
+     * @dev MUST emits when the approval value of a token is set or changed.
+     * @param tokenId The token to approve
+     * @param operator The operator to approve for
+     * @param value The maximum value that `_operator` is allowed to manage
+     */
+    event ApprovalValue(uint256 indexed tokenId, address indexed operator, uint256 value);
+
+    /**
+     * @dev MUST emit when the slot of a token is set or changed.
+     * @param tokenId The token of which slot is set or changed
+     * @param oldSlot The previous slot of the token
+     * @param newSlot The updated slot of the token
+     */
+    event SlotChanged(uint256 indexed tokenId, uint256 indexed oldSlot, uint256 indexed newSlot);
+
+    error CTMRWA1_Unauthorized(Address);
+
+    /// @dev Address errors
+    error CTMRWA1_IsZeroAddress(Address);
+    error CTMRWA1_NotZeroAddress(Address);
+
+    /// @dev Uint errors
+    error CTMRWA1_IsZeroUint(Uint);
+    error CTMRWA1_NonZeroUint(Uint);
+    error CTMRWA1_LengthMismatch(Uint);
+    error CTMRWA1_InsufficientBalance();
+    error CTMRWA1_OutOfBounds();
+    error CTMRWA1_NameTooLong();
+
+    /// @dev Existence errors
+    error CTMRWA1_IDNonExistent(uint256 tokenId);
+    error CTMRWA1_IDExists(uint256 _tokenId);
+    error CTMRWA1_InvalidSlot(uint256 _slot);
+
+    /// @dev Transfer errors
+    error CTMRWA1_ReceiverRejected();
+    error CTMRWA1_WhiteListRejected(address _addr);
+
     function ID() external view returns (uint256);
     function tokenAdmin() external returns (address);
     function setOverrideWallet(address overrideWallet) external;
@@ -82,7 +157,6 @@ interface ICTMRWA1 is ICTMRWA {
     function mintFromX(address to, uint256 tokenId, uint256 slot, string memory slotName, uint256 value) external;
 
     function spendAllowance(address operator, uint256 tokenId, uint256 value) external;
-    function requireMinted(uint256 tokenId) external view returns (bool);
     function isApprovedOrOwner(address operator, uint256 tokenId) external view returns (bool);
     function getApproved(uint256 tokenId) external view returns (address);
 
@@ -109,36 +183,4 @@ interface ICTMRWA1 is ICTMRWA {
 
     function transferFrom(address fromAddr, address toAddr, uint256 fromTokenId) external;
     function forceTransfer(address from, address to, uint256 tokenId) external returns (bool);
-
-    event Approval(address from, address to, uint256 tokenId);
-    event ApprovalForAll(address owner, address operator, bool approved);
-    event Transfer(address from, address to, uint256 tokenId);
-
-    /**
-     * @dev MUST emit when value of a token is transferred to another token with the same slot,
-     *  including zero value transfers (_value == 0) as well as transfers when tokens are created
-     *  (`_fromTokenId` == 0) or destroyed (`_toTokenId` == 0).
-     * @param fromTokenId The token id to transfer value from
-     * @param toTokenId The token id to transfer value to
-     * @param value The transferred value
-     */
-    event TransferValue(uint256 indexed fromTokenId, uint256 indexed toTokenId, uint256 value);
-
-    /**
-     * @dev MUST emits when the approval value of a token is set or changed.
-     * @param tokenId The token to approve
-     * @param operator The operator to approve for
-     * @param value The maximum value that `_operator` is allowed to manage
-     */
-    event ApprovalValue(uint256 indexed tokenId, address indexed operator, uint256 value);
-
-    /**
-     * @dev MUST emit when the slot of a token is set or changed.
-     * @param tokenId The token of which slot is set or changed
-     * @param oldSlot The previous slot of the token
-     * @param newSlot The updated slot of the token
-     */
-    event SlotChanged(uint256 indexed tokenId, uint256 indexed oldSlot, uint256 indexed newSlot);
-
-    error CTMRWA1Unauthorized();
 }

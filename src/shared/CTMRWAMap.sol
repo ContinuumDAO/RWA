@@ -231,7 +231,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
 
         _checkRwaTypeVersion(investAddrStr, _rwaType, _version);
 
-        // NOTE Ensure that the contract has not been deployed yet
+        // NOTE: Ensure that the contract has not been deployed yet
         if (investToId[investAddrStr] != 0) {
             return (false);
         } else {
