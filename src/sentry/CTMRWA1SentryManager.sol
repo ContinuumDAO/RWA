@@ -90,8 +90,8 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     // TODO: Remove redundant _rwaType and _version parameters
     function initialize(
         address _gov,
-        uint256 _rwaType,
-        uint256 _version,
+        // uint256 _rwaType,
+        // uint256 _version,
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID,

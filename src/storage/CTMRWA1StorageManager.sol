@@ -77,8 +77,6 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
     // TODO: Remove redundant _rwaType and _version parameters
     function initialize(
         address _gov,
-        uint256 _rwaType,
-        uint256 _version,
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID,

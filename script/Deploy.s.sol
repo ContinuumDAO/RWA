@@ -198,8 +198,6 @@ contract Deploy is Script {
                 CTMRWA1StorageManager.initialize,
                 (
                     _gov,
-                    _rwaType,
-                    _version,
                     _c3callerProxy,
                     _txSender,
                     _dappIDStorageManager,
@@ -219,8 +217,6 @@ contract Deploy is Script {
                 CTMRWA1SentryManager.initialize,
                 (
                     _gov,
-                    _rwaType,
-                    _version,
                     _c3callerProxy,
                     _txSender,
                     _dappIDSentryManager,

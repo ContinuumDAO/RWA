@@ -197,8 +197,6 @@ contract Deployer is Utils {
                 CTMRWA1StorageManager.initialize,
                 (
                     gov,
-                    RWA_TYPE,
-                    VERSION,
                     address(c3caller),
                     admin,
                     88,
@@ -236,8 +234,8 @@ contract Deployer is Utils {
                 CTMRWA1SentryManager.initialize,
                 (
                     gov,
-                    RWA_TYPE,
-                    VERSION,
+                    // RWA_TYPE,
+                    // VERSION,
                     address(c3caller),
                     admin,
                     89,
