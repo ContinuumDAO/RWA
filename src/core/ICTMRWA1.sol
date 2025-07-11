@@ -131,6 +131,7 @@ interface ICTMRWA1 is ICTMRWA {
     function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);
     function tokenSupplyInSlot(uint256 slot) external view returns (uint256);
     function tokenByIndex(uint256 index_) external view returns (uint256);
+    function exists(uint256 tokenId) external view returns (bool);
 
     function createSlotX(uint256 _slot, string memory _slotName) external;
     function getAllSlots() external view returns (uint256[] memory, string[] memory);

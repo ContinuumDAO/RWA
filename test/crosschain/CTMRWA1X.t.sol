@@ -174,10 +174,10 @@ contract TestCTMRWA1X is Helpers {
         assertEq(stringsEqual(slotName, "slot 5 is the best RWA"), true);
 
         vm.startPrank(user1);
-        bool exists = token.requireMinted(tokenId);
+        bool exists = token.exists(tokenId);
         assertEq(exists, true);
         token.burn(tokenId);
-        exists = token.requireMinted(tokenId);
+        exists = token.exists(tokenId);
         assertEq(exists, false);
         vm.stopPrank();
     }

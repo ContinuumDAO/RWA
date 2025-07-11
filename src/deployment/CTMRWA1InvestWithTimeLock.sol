@@ -158,7 +158,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard {
         uint256 _lockDuration,
         address _feeToken
     ) public onlyTokenAdmin(ctmRwaToken) {
-        require(ICTMRWA1(ctmRwaToken).requireMinted(_tokenId), "CTMInvest: Token does not exist");
+        require(ICTMRWA1(ctmRwaToken).exists(_tokenId), "CTMInvest: Token does not exist");
         require(offerings.length < MAX_OFFERINGS, "CTMInvest: Max offerings reached");
         require(bytes(_regulatorCountry).length <= 2, "CTMInvest: not 2 digit country code");
         require(bytes(_offeringType).length <= 128, "CTMInvest: offering Type length > 128");
