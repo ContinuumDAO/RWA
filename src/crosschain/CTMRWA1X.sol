@@ -600,7 +600,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         uint256 _value,
         uint256 _ID,
         string memory _feeTokenStr
-    ) public returns (uint256) {
+    ) public nonReentrant returns (uint256) {
         string memory toChainIdStr = _toChainIdStr._toLower();
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
@@ -653,7 +653,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         uint256 _fromTokenId,
         uint256 _ID,
         string memory _feeTokenStr
-    ) public {
+    ) public nonReentrant {
         string memory toChainIdStr = _toChainIdStr._toLower();
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);

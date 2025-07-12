@@ -146,7 +146,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
      * NOTE The _value is taken from the first tokenId owned by the caller and if this is not
      * sufficient, the balance is taken from the second owned tokenId etc.
      */
-    function transfer(address _to, uint256 _value) public override returns (bool) {
+    function transfer(address _to, uint256 _value) public override nonReentrant returns (bool) {
         address owner = msg.sender;
         _transfer(owner, _to, _value);
         return true;
@@ -161,7 +161,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
      * NOTE The _value is taken from the first tokenId owned by the caller and if this is not
      * sufficient, the balance is taken from the second owned tokenId etc.
      */
-    function transferFrom(address _from, address _to, uint256 _value) public override returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public override nonReentrant returns (bool) {
         _spendAllowance(_from, msg.sender, _value);
         _transfer(_from, _to, _value);
 

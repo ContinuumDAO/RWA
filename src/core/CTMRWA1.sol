@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT 
 
 pragma solidity ^0.8.22;
 
@@ -521,7 +521,7 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _toTokenId The desination tokenId
      * @param _value The fungible value being transferred
      */
-    function transferFrom(uint256 _fromTokenId, uint256 _toTokenId, uint256 _value) public override returns (address) {
+    function transferFrom(uint256 _fromTokenId, uint256 _toTokenId, uint256 _value) public override nonReentrant returns (address) {
         spendAllowance(msg.sender, _fromTokenId, _value);
         _transferValue(_fromTokenId, _toTokenId, _value);
 
