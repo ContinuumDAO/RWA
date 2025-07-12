@@ -4,7 +4,6 @@ out/
 
 # User
 .vscode/
-src/notes.txt
 
 # Dependencies
 node_modules/

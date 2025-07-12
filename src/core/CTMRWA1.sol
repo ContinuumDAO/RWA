@@ -14,6 +14,7 @@ import { ICTMRWAERC20Deployer } from "../deployment/ICTMRWAERC20Deployer.sol";
 
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1Storage } from "../storage/ICTMRWA1Storage.sol";
+import {Address, Uint} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)

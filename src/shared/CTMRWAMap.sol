@@ -294,7 +294,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         uint256 _rwaType, 
         uint256 _version
     ) internal view returns(bool) {
-        // NOTE Skip check if the token validly does not exist
+        // NOTE: Skip check if the token validly does not exist
         if (bytes(_addrStr).length == 0) return false;
         address _contractAddr = _addrStr._stringToAddress();
         uint256 rwaType = ICTMRWA(_contractAddr).RWA_TYPE();

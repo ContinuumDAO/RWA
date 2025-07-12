@@ -3,6 +3,7 @@
 pragma solidity ^0.8.22;
 
 import {ICTMRWA} from "./ICTMRWA.sol";
+import {Address, Uint} from "../CTMRWAUtils.sol";
 
 /**
  * @title CTMRWA1 Semi-Fungible Token Standard
@@ -19,28 +20,6 @@ struct SlotData {
     string slotName;
     uint256 dividendRate; // per unit of this slot
     uint256[] slotTokens;
-}
-
-/// @dev Numbers that can be referenced in errors
-enum Uint {
-    TokenId,
-    SlotLength
-}
-
-/// @dev Common addresses referenced in errors in CTMRWA1
-enum Address {
-    Sender,
-    Owner,
-    To,
-    From,
-
-    Regulator,
-    TokenAdmin,
-    Dividend,
-    Storage,
-    Sentry,
-    RWAERC20,
-    Override
 }
 
 interface ITokenContract {

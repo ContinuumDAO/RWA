@@ -3,8 +3,8 @@
 pragma solidity ^0.8.22;
 
 import { SlotData } from "../core/ICTMRWA1.sol";
-
 import {ICTMRWA} from "../core/ICTMRWA.sol";
+import {Address, Uint} from "../CTMRWAUtils.sol";
 
 interface ICTMRWA1X is ICTMRWA {
     /// @dev New c3call for CTMRWA1 deployment on destination chain toChainIdStr
@@ -30,6 +30,23 @@ interface ICTMRWA1X is ICTMRWA {
 
     /// @dev New token admin set on the local chain
     event AdminChanged(uint256 ID, string newAdmin);
+
+    // Address
+    error CTMRWA1X_Unauthorized(Address);
+    error CTMRWA1X_IsZeroAddress(Address);
+    error CTMRWA1X_InvalidTokenContract();
+    error CTMRWA1X_InvalidAdmin();
+
+    // Input Validation
+    error CTMRWA1X_SlotExists(uint256);
+    error CTMRWA1X_InvalidLength(Uint);
+    error CTMRWA1X_InvalidCallLogic();
+    error CTMRWA1X_InvalidAttachmentState();
+    error CTMRWA1X_SameChain();
+
+    // Permissions
+    error CTMRWA1X_WhiteListDisabled();
+    error CTMRWA1X_KYCDisabled();
 
     function isMinter(address) external returns (bool);
     function changeMinterStatus(address minter, bool set) external;

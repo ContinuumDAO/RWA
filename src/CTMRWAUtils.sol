@@ -2,6 +2,32 @@
 
 pragma solidity ^0.8.22;
 
+/// @dev Numbers that can be referenced in errors
+enum Uint {
+    TokenId,
+    TokenName,
+    SlotLength,
+    SlotName
+}
+
+/// @dev Common addresses referenced in errors in CTMRWA1
+enum Address {
+    Sender,
+    Owner,
+    To,
+    From,
+    Regulator,
+    TokenAdmin,
+    Deployer,
+    Dividend,
+    Map,
+    Storage,
+    Sentry,
+    RWAERC20,
+    Override,
+    Admin
+}
+
 library CTMRWAUtils {
     /// @dev Convert a string to lower case
     function _toLower(string memory str) internal pure returns (string memory) {
