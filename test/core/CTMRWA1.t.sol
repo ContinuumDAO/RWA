@@ -8,7 +8,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
-import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1, Address } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 
 contract TestCTMRWA1 is Helpers {
@@ -68,7 +68,8 @@ contract TestCTMRWA1 is Helpers {
 
         uint256 tokenId2User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, tokenStr);
 
-        vm.expectRevert("RWA: Licensed Security override not set up");
+        // vm.expectRevert("RWA: Licensed Security override not set up");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         string memory randomData = "this is any old data";
@@ -107,20 +108,23 @@ contract TestCTMRWA1 is Helpers {
             tokenStr
         );
 
-        vm.expectRevert("RWA: Licensed Security override not set up");
+        // vm.expectRevert("RWA: Licensed Security override not set up");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         // set admin as the Regulator's wallet
         ICTMRWA1Storage(stor).createSecurity(admin);
         assertEq(ICTMRWA1Storage(stor).regulatorWallet(), admin);
 
-        vm.expectRevert("RWA: Licensed Security override not set up");
+        // vm.expectRevert("RWA: Licensed Security override not set up");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         token.setOverrideWallet(tokenAdmin2);
         assertEq(token.overrideWallet(), tokenAdmin2);
 
-        vm.expectRevert("RWA: Cannot forceTransfer");
+        // vm.expectRevert("RWA: Cannot forceTransfer");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         vm.stopPrank();
@@ -131,7 +135,8 @@ contract TestCTMRWA1 is Helpers {
         vm.stopPrank();
 
         vm.startPrank(user2);
-        vm.expectRevert("RWA: Cannot forceTransfer");
+        // vm.expectRevert("RWA: Cannot forceTransfer");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
         token.forceTransfer(user1, user2, tokenId2User1);
 
         vm.stopPrank();
@@ -141,8 +146,9 @@ contract TestCTMRWA1 is Helpers {
         vm.stopPrank();
 
         vm.startPrank(tokenAdmin2);
-        vm.expectRevert("RWA: Licensed Security override not set up"); // Must re-setup override wallet if tokenAdmin
+        // vm.expectRevert("RWA: Licensed Security override not set up"); // Must re-setup override wallet if tokenAdmin
             // has changed
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
         token.forceTransfer(user1, user2, tokenId2User1);
         vm.stopPrank();
     }
