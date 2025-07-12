@@ -14,6 +14,96 @@ import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storag
 contract TestCTMRWA1 is Helpers {
     using Strings for *;
 
+    function test_changeAdmin() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        vm.stopPrank();
+
+        // Check that an address other than tokenAdmin cannot changeAdmin
+        vm.prank(tokenAdmin2);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        token.changeAdmin(tokenAdmin2);
+
+        // Check that changeAdmin sets the correct new admin and returns true
+        vm.prank(address(rwa1X));
+        bool ok = token.changeAdmin(tokenAdmin2);
+        assertEq(token.tokenAdmin(), tokenAdmin2);
+        assertTrue(ok);
+
+        // Check that the override wallet was reset to address(0)
+        assertEq(token.overrideWallet(), address(0));
+    }
+
+    function test_attachId() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        vm.stopPrank();
+
+        // Check that an address other than address(rwa1X) cannot attachId
+        vm.prank(address(tokenAdmin));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        token.attachId(ID, tokenAdmin);
+
+        vm.prank(address(rwa1X));
+        // Check that the tokenAdmin address passed into the function by rwa1X is indeed the tokenAdmin
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.TokenAdmin));
+        token.attachId(ID, tokenAdmin2);
+
+        vm.prank(address(rwa1X));
+        // Check that the attachId returns false (the ID was previously assigned);
+        bool ok = token.attachId(ID, tokenAdmin);
+        assertFalse(ok);
+    }
+
+    function test_attachDividend() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        vm.stopPrank();
+
+        // Check that an address other than ctmRwaMap cannot attach dividend contract
+        vm.prank(tokenAdmin);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        token.attachDividend(address(dividendFactory));
+
+        vm.prank(address(map));
+        // Check that ctmRwaMap cannot reset the storage address for a previously attached divdend contract
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.Dividend));
+        token.attachDividend(address(dividendFactory));
+
+    }
+
+    function test_attachStorage() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        vm.stopPrank();
+
+        // Check that an address other than ctmRwaMap cannot attach storage contract
+        vm.prank(tokenAdmin);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        token.attachStorage(address(storageManager));
+
+        vm.prank(address(map));
+        // Check that ctmRwaMap cannot reset the storage address for a previously attached storage contract
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.Storage));
+        token.attachStorage(address(storageManager));
+    }
+
+    function test_attachSentry() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        vm.stopPrank();
+
+        // Check that an address other than ctmRwaMap cannot attach sentry contract
+        vm.prank(tokenAdmin);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        token.attachSentry(address(sentryManager));
+
+        vm.prank(address(map));
+        // Check that ctmRwaMap cannot reset the storage address for a previously attached sentry contract
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.Sentry));
+        token.attachSentry(address(sentryManager));
+    }
+
     function test_getTokenList() public {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
