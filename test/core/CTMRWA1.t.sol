@@ -28,7 +28,7 @@ contract ReentrantContract {
         toTokenId = _toTokenId;
         value = _value;
         reentered = false;
-        
+
         // First call to transferFrom
         token.transferFrom(_fromTokenId, _toTokenId, _value);
     }
@@ -63,16 +63,16 @@ contract TestCTMRWA1 is Helpers {
 
     function setUp() public override {
         super.setUp();
-        
+
         // Deploy token
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
-        
+
         // Create slots and mint tokens for testing
         _createSomeSlots(ID, address(usdc), address(rwa1X));
         testSlot = 1;
         string memory tokenStr = _toLower((address(usdc).toHexString()));
-        
+
         testTokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, testSlot, 1000, ID, tokenStr);
         testTokenId2 = rwa1X.mintNewTokenValueLocal(user2, 0, testSlot, 1000, ID, tokenStr);
         vm.stopPrank();
@@ -193,19 +193,19 @@ contract TestCTMRWA1 is Helpers {
     function test_reentrancyTransferFromTokenToToken() public {
         // Test that transferFrom(uint256,uint256,uint256) is protected against reentrancy
         vm.startPrank(user1);
-        
+
         // Approve the reentrant contract to spend from tokenId1
         token.approve(testTokenId1, address(reentrantContract), 500);
-        
+
         vm.stopPrank();
-        
+
         // Try the reentrancy attack
         reentrantContract.attack(testTokenId1, testTokenId2, 500);
-        
+
         // Verify the attack failed - only one transfer should have occurred
         assertEq(token.balanceOf(testTokenId1), 500); // Should still have 500
         assertEq(token.balanceOf(testTokenId2), 1500); // Should have original 1000 + 500 from transfer
-        
+
         // Verify that the reentrant contract didn't succeed in double-spending
         // The nonReentrant modifier should have prevented the second transfer
     }
@@ -213,15 +213,15 @@ contract TestCTMRWA1 is Helpers {
     function test_reentrancyMint() public {
         // Test that minting is protected against reentrancy
         vm.startPrank(address(rwa1X));
-        
+
         uint256 initialBalance = token.balanceOf(testTokenId1);
-        
+
         // Try to mint value to the token
         token.mintValueX(testTokenId1, testSlot, 100);
-        
+
         // Verify only one mint occurred
         assertEq(token.balanceOf(testTokenId1), initialBalance + 100);
-        
+
         vm.stopPrank();
     }
 
@@ -230,48 +230,48 @@ contract TestCTMRWA1 is Helpers {
     function test_onlyTokenAdminAccess() public {
         // Test that only tokenAdmin can call restricted functions
         vm.startPrank(user1);
-        
+
         // Try to set override wallet without being tokenAdmin
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
         token.setOverrideWallet(user2);
-        
+
         vm.stopPrank();
     }
 
     function test_onlyRwa1XAccess() public {
         // Test that only rwa1X can call restricted functions
         vm.startPrank(user1);
-        
+
         // Try to mint without being rwa1X
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
         token.mintFromX(user1, testSlot, "Test Slot", 100);
-        
+
         // Try to transfer from without being rwa1X
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
         token.transferFrom(testTokenId1, user2, 100);
-        
+
         vm.stopPrank();
     }
 
     function test_onlyMinterAccess() public {
         // Test that only minters can call mint functions
         vm.startPrank(user1);
-        
+
         // Try to mint value without being a minter
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
         token.mintValueX(testTokenId1, testSlot, 100);
-        
+
         vm.stopPrank();
     }
 
     function test_onlyCtmMapAccess() public {
         // Test that only ctmRwaMap can call restricted functions
         vm.startPrank(user1);
-        
+
         // Try to attach dividend without being ctmRwaMap
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
         token.attachDividend(address(dividendFactory));
-        
+
         vm.stopPrank();
     }
 
@@ -280,11 +280,11 @@ contract TestCTMRWA1 is Helpers {
     function test_invalidTokenIdValidation() public {
         // Test that invalid token IDs are properly rejected
         uint256 invalidTokenId = 999999;
-        
+
         // Try to get info for non-existent token
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IDNonExistent.selector, invalidTokenId));
         token.getTokenInfo(invalidTokenId);
-        
+
         // Try to transfer from non-existent token
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IDNonExistent.selector, invalidTokenId));
         vm.prank(address(rwa1X));
@@ -294,11 +294,11 @@ contract TestCTMRWA1 is Helpers {
     function test_invalidSlotValidation() public {
         // Test that invalid slots are properly rejected
         uint256 invalidSlot = 999;
-        
+
         // Try to get slot name for non-existent slot
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InvalidSlot.selector, invalidSlot));
         token.slotName(invalidSlot);
-        
+
         // Try to mint to invalid slot
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InvalidSlot.selector, invalidSlot));
         vm.prank(address(rwa1X));
@@ -308,24 +308,24 @@ contract TestCTMRWA1 is Helpers {
     function test_insufficientBalanceValidation() public {
         // Test that insufficient balance is properly rejected
         vm.startPrank(user1);
-        
+
         // Try to transfer more than available balance
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InsufficientBalance.selector));
         token.transferFrom(testTokenId1, testTokenId2, 2000); // Only has 1000
-        
+
         vm.stopPrank();
     }
 
     function test_erc20NameLengthValidation() public {
         // Test that ERC20 name length is properly validated
         vm.startPrank(tokenAdmin);
-        
+
         // Create a name that's too long (129 characters)
         string memory longName = "This is a very long name that exceeds the maximum allowed length of 128 characters and should cause a revert when trying to deploy an ERC20 token";
-        
+
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NameTooLong.selector));
         token.deployErc20(testSlot, longName, address(usdc));
-        
+
         vm.stopPrank();
     }
 
@@ -334,48 +334,48 @@ contract TestCTMRWA1 is Helpers {
     function test_fuzz_mintValue(uint256 value) public {
         // Fuzz test for minting values
         vm.assume(value > 0 && value <= 1000000); // Reasonable bounds
-        
+
         vm.startPrank(address(rwa1X));
-        
+
         uint256 initialBalance = token.balanceOf(testTokenId1);
         token.mintValueX(testTokenId1, testSlot, value);
-        
+
         assertEq(token.balanceOf(testTokenId1), initialBalance + value);
-        
+
         vm.stopPrank();
     }
 
     function test_fuzz_transferValue(uint256 value) public {
         // Fuzz test for transferring values
         vm.assume(value > 0 && value <= 500); // Don't exceed available balance
-        
+
         vm.startPrank(user1);
-        
+
         uint256 initialBalance1 = token.balanceOf(testTokenId1);
         uint256 initialBalance2 = token.balanceOf(testTokenId2);
-        
+
         token.transferFrom(testTokenId1, testTokenId2, value);
-        
+
         assertEq(token.balanceOf(testTokenId1), initialBalance1 - value);
         assertEq(token.balanceOf(testTokenId2), initialBalance2 + value);
-        
+
         vm.stopPrank();
     }
 
     function test_fuzz_slotOperations(uint256 slot) public {
         // Fuzz test for slot operations
         vm.assume(slot > 0 && slot <= 1000); // Reasonable bounds
-        
+
         vm.startPrank(address(rwa1X));
-        
+
         // Try to create a new slot
         string memory slotName = string(abi.encodePacked("Slot ", slot.toString()));
         token.createSlotX(slot, slotName);
-        
+
         // Verify slot was created
         assertTrue(token.slotExists(slot));
         assertEq(token.slotName(slot), slotName);
-        
+
         vm.stopPrank();
     }
 
@@ -384,14 +384,14 @@ contract TestCTMRWA1 is Helpers {
     function test_invariant_totalSupplyConsistency() public {
         // Test that total supply remains consistent after operations
         uint256 initialTotalSupply = token.totalSupply();
-        
+
         // Perform some operations
         vm.startPrank(address(rwa1X));
         token.mintFromX(user1, testSlot, "New Slot", 100);
         vm.stopPrank();
-        
+
         uint256 finalTotalSupply = token.totalSupply();
-        
+
         // Total supply should have increased by 1 (new token)
         assertEq(finalTotalSupply, initialTotalSupply + 1);
     }
@@ -401,16 +401,16 @@ contract TestCTMRWA1 is Helpers {
         uint256 initialBalance1 = token.balanceOf(testTokenId1);
         uint256 initialBalance2 = token.balanceOf(testTokenId2);
         uint256 totalInitialBalance = initialBalance1 + initialBalance2;
-        
+
         // Perform transfer
         vm.startPrank(user1);
         token.transferFrom(testTokenId1, testTokenId2, 100);
         vm.stopPrank();
-        
+
         uint256 finalBalance1 = token.balanceOf(testTokenId1);
         uint256 finalBalance2 = token.balanceOf(testTokenId2);
         uint256 totalFinalBalance = finalBalance1 + finalBalance2;
-        
+
         // Total balance should remain the same
         assertEq(totalFinalBalance, totalInitialBalance);
     }
@@ -422,48 +422,48 @@ contract TestCTMRWA1 is Helpers {
     function test_edgeCase_maxTokenId() public {
         // Test behavior with maximum token ID
         vm.startPrank(address(rwa1X));
-        
+
         // Mint many tokens to approach max values
         for (uint256 i = 0; i < 100; i++) {
             token.mintFromX(user1, testSlot, "Test Slot", 1);
         }
-        
+
         // Verify we can still mint
         uint256 newTokenId = token.mintFromX(user1, testSlot, "Test Slot", 1);
         assertTrue(newTokenId > 0);
-        
+
         vm.stopPrank();
     }
 
     function test_edgeCase_zeroValueTransfer() public {
         // Test transfer of zero value
         vm.startPrank(user1);
-        
+
         uint256 initialBalance1 = token.balanceOf(testTokenId1);
         uint256 initialBalance2 = token.balanceOf(testTokenId2);
-        
+
         // Transfer zero value
         token.transferFrom(testTokenId1, testTokenId2, 0);
-        
+
         // Balances should remain the same
         assertEq(token.balanceOf(testTokenId1), initialBalance1);
         assertEq(token.balanceOf(testTokenId2), initialBalance2);
-        
+
         vm.stopPrank();
     }
 
     function test_edgeCase_selfTransfer() public {
         // Test transfer to self
         vm.startPrank(user1);
-        
+
         uint256 initialBalance = token.balanceOf(testTokenId1);
-        
+
         // Transfer to self
         token.transferFrom(testTokenId1, testTokenId1, 100);
-        
+
         // Balance should remain the same
         assertEq(token.balanceOf(testTokenId1), initialBalance);
-        
+
         vm.stopPrank();
     }
 
@@ -472,53 +472,53 @@ contract TestCTMRWA1 is Helpers {
     function test_approvalSecurity() public {
         // Test approval security
         vm.startPrank(user1);
-        
+
         // Approve user2 to spend from tokenId1
         token.approve(testTokenId1, user2, 500);
-        
+
         // Verify approval
         assertEq(token.allowance(testTokenId1, user2), 500);
-        
+
         // Try to approve self (should fail)
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.To));
         token.approve(testTokenId1, user1, 100);
-        
+
         vm.stopPrank();
     }
 
     function test_approvalSpendAllowance() public {
         // Test spending allowance
         vm.startPrank(user1);
-        
+
         // Approve user2 to spend from tokenId1
         token.approve(testTokenId1, user2, 500);
-        
+
         vm.stopPrank();
-        
+
         // User2 spends some allowance
         vm.startPrank(user2);
         token.transferFrom(testTokenId1, testTokenId2, 200);
-        
+
         // Check remaining allowance
         assertEq(token.allowance(testTokenId1, user2), 300);
-        
+
         vm.stopPrank();
     }
 
-  
+
     // ============ ERC20 DEPLOYMENT TESTS ============
 
     function test_erc20DeploymentSecurity() public {
         // Test ERC20 deployment security
         vm.startPrank(tokenAdmin);
-        
+
         // Deploy ERC20 for slot
         token.deployErc20(testSlot, "Test ERC20", address(usdc));
-        
+
         // Try to deploy again for same slot (should fail)
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.RWAERC20));
         token.deployErc20(testSlot, "Test ERC20 2", address(usdc));
-        
+
         vm.stopPrank();
     }
 
@@ -527,34 +527,34 @@ contract TestCTMRWA1 is Helpers {
     function test_burnSecurity() public {
         // Test burn security
         vm.startPrank(user1);
-        
+
         // Burn token
         token.burn(testTokenId1);
-        
+
         // Verify token no longer exists
         assertFalse(token.exists(testTokenId1));
-        
+
         // Try to burn non-existent token
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IDNonExistent.selector, testTokenId1));
         token.burn(testTokenId1);
-        
+
         vm.stopPrank();
     }
 
     function test_burnValueSecurity() public {
         // Test burn value security
         vm.startPrank(address(rwa1X));
-        
+
         // Burn some value
         token.burnValueX(testTokenId2, 100);
-        
+
         // Verify balance decreased
         assertEq(token.balanceOf(testTokenId2), 900);
-        
+
         // Try to burn more than available
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InsufficientBalance.selector));
         token.burnValueX(testTokenId2, 1000);
-        
+
         vm.stopPrank();
     }
 
@@ -563,17 +563,17 @@ contract TestCTMRWA1 is Helpers {
     function test_slotManagementSecurity() public {
         // Test slot management security
         vm.startPrank(address(rwa1X));
-        
+
         // Create slot
         token.createSlotX(10, "New Slot");
-        
+
         // Verify slot exists
         assertTrue(token.slotExists(10));
         assertEq(token.slotName(10), "New Slot");
-        
+
         // Try to create same slot again (should fail silently or succeed depending on implementation)
         token.createSlotX(10, "Duplicate Slot");
-        
+
         vm.stopPrank();
     }
 
@@ -582,20 +582,20 @@ contract TestCTMRWA1 is Helpers {
     function test_crossSlotTransferPrevention() public {
         // Test that transfers between different slots are prevented
         vm.startPrank(address(rwa1X));
-        
+
         // Create a new slot
         token.createSlotX(20, "Slot 20");
-        
+
         // Mint token in new slot
         uint256 newTokenId = token.mintFromX(user1, 20, "Slot 20", 100);
-        
+
         vm.stopPrank();
-        
+
         // Try to transfer between different slots (should fail)
         vm.startPrank(user1);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InvalidSlot.selector, 20));
         token.transferFrom(testTokenId1, newTokenId, 50);
-        
+
         vm.stopPrank();
     }
 
@@ -604,14 +604,14 @@ contract TestCTMRWA1 is Helpers {
     function test_overflowProtection() public {
         // Test overflow protection (though Solidity 0.8+ has built-in protection)
         vm.startPrank(address(rwa1X));
-        
+
         // Try to mint maximum value
         token.mintValueX(testTokenId1, testSlot, type(uint256).max - 1000);
-        
+
         // Try to mint more (should fail due to overflow)
         vm.expectRevert();
         token.mintValueX(testTokenId1, testSlot, 1000);
-        
+
         vm.stopPrank();
     }
 
@@ -620,14 +620,14 @@ contract TestCTMRWA1 is Helpers {
     function test_gasEfficientOperations() public {
         // Test that operations are gas efficient
         vm.startPrank(address(rwa1X));
-        
+
         uint256 gasBefore = gasleft();
-        
+
         // Perform operation
         token.mintFromX(user1, testSlot, "Gas Test", 100);
-        
+
         uint256 gasUsed = gasBefore - gasleft();
-        
+
         // Gas usage should be reasonable (less than 400k for basic operations)
         assertTrue(gasUsed < 400000);
 
@@ -729,4 +729,4 @@ contract TestCTMRWA1 is Helpers {
         token.forceTransfer(user1, user2, tokenId2User1);
         vm.stopPrank();
     }
-} 
+}
