@@ -10,7 +10,8 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
-import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1, Address } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
 import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
 
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
@@ -75,7 +76,7 @@ contract TestCTMRWA1X is Helpers {
 
         // ID2 will be the same as ID because the block.timestamp is the same
         // as well as all the other params in the abi.encode used to generate ID
-        vm.expectRevert("RWAX: ID already exists");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidTokenContract.selector));
         _deployCTMRWA1(address(usdc));
         vm.stopPrank();
 
@@ -184,7 +185,8 @@ contract TestCTMRWA1X is Helpers {
 
     function test_ownedTokenIds() public {
 
-        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        address[] memory feeTokenList = feeManager.getFeeTokenList();
+        string memory feeTokenStr = feeTokenList[0].toHexString();
 
         vm.startPrank(tokenAdmin);
         // Create three token contracts
@@ -271,7 +273,7 @@ contract TestCTMRWA1X is Helpers {
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory feeTokenStr = feeTokenList[0].toHexString();
 
-        vm.expectRevert("RWAX: Not approved or owner");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_Unauthorized.selector, Address.Sender));
         rwa1X.transferPartialTokenX(tokenId, user1.toHexString(), cIdStr, 5, ID, feeTokenStr);
         vm.stopPrank();
 
@@ -312,7 +314,7 @@ contract TestCTMRWA1X is Helpers {
 
         vm.startPrank(user2);
         // Check that user2 cannot transfer tokenId to user1 (since it is tokenAdmin's)
-        vm.expectRevert("RWAX: Not owner/approved");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_Unauthorized.selector, Address.Sender));
         rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
         vm.stopPrank();
 

@@ -69,6 +69,7 @@ interface ICTMRWA1 is ICTMRWA {
     error CTMRWA1_NonZeroUint(Uint);
     error CTMRWA1_LengthMismatch(Uint);
     error CTMRWA1_InsufficientBalance();
+    error CTMRWA1_InsufficientAllowance();
     error CTMRWA1_OutOfBounds();
     error CTMRWA1_NameTooLong();
 

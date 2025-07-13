@@ -537,7 +537,8 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _tokenId The tokenId being transferred
      */
     function transferFrom(address _from, address _to, uint256 _tokenId) public onlyRwa1X {
-        require(isApprovedOrOwner(msg.sender, _tokenId), "RWA: transfer caller not owner/approved");
+        // require(isApprovedOrOwner(msg.sender, _tokenId), "RWA: transfer caller not owner/approved");
+        if (!isApprovedOrOwner(msg.sender, _tokenId)) revert CTMRWA1_Unauthorized(Address.Sender);
         _transferTokenId(_from, _to, _tokenId);
     }
 
@@ -578,7 +579,8 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @dev Deprecated
      */
     function tokenByIndex(uint256 _index) public view virtual returns (uint256) {
-        require(_index < this.totalSupply(), "RWA: global index out of bounds");
+        // require(_index < this.totalSupply(), "RWA: global index out of bounds");
+        if (_index >= this.totalSupply()) revert CTMRWA1_OutOfBounds();
         return _allTokens[_index].id;
     }
 
@@ -588,7 +590,8 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _index The index into the wallet address
      */
     function tokenOfOwnerByIndex(address _owner, uint256 _index) external view virtual override returns (uint256) {
-        require(_index < CTMRWA1.balanceOf(_owner), "RWA: owner index out of bounds");
+        // require(_index < CTMRWA1.balanceOf(_owner), "RWA: owner index out of bounds");
+        if (_index >= CTMRWA1.balanceOf(_owner)) revert CTMRWA1_OutOfBounds();
         return _addressData[_owner].ownedTokens[_index];
     }
 
@@ -601,7 +604,8 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     function spendAllowance(address _operator, uint256 _tokenId, uint256 _value) public virtual {
         uint256 currentAllowance = CTMRWA1.allowance(_tokenId, _operator);
         if (!isApprovedOrOwner(_operator, _tokenId) && currentAllowance != type(uint256).max) {
-            require(currentAllowance >= _value, "RWA: insufficient allowance");
+            // require(currentAllowance >= _value, "RWA: insufficient allowance");
+            if (currentAllowance < _value) revert CTMRWA1_InsufficientAllowance();
             _approveValue(_tokenId, _operator, currentAllowance - _value);
         }
     }
@@ -909,7 +913,7 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
         // require(fromTokenData.balance >= _value, "RWA: balance<value");
         if (fromTokenData.balance < _value) revert CTMRWA1_InsufficientBalance();
         // require(slot == toTokenData.slot, "RWA: transfer to different slot");
-        if (slot != toTokenData.slot) revert CTMRWA1_InvalidSlot(slot);
+        if (slot != toTokenData.slot) revert CTMRWA1_InvalidSlot(toTokenData.slot);
 
         string memory thisSlotName = slotNameOf(_fromTokenId);
 

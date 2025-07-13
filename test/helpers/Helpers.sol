@@ -9,7 +9,7 @@ import { Deployer } from "./Deployer.sol";
 import { RWA } from "./RWA.sol";
 
 contract Helpers is Test, Accounts, Deployer, RWA {
-    function setUp() public {
+    function setUp() public virtual  {
         (admin, gov, treasury, user1, user2, tokenAdmin, tokenAdmin2) =
             abi.decode(abi.encode(_getAccounts()), (address, address, address, address, address, address, address));
 

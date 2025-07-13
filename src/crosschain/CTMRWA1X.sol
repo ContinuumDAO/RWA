@@ -463,7 +463,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         address currentAdmin = ICTMRWA1(ctmRwa1Addr).tokenAdmin();
         address oldAdmin = _oldAdminStr._stringToAddress();
         // require(currentAdmin == oldAdmin, "RWAX: Not admin or token is locked");
-        if (currentAdmin == oldAdmin) revert CTMRWA1X_InvalidAdmin();
+        if (currentAdmin != oldAdmin) revert CTMRWA1X_InvalidAdmin();
 
         _changeAdmin(currentAdmin, newAdmin, _ID);
 
@@ -624,7 +624,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         // require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId), "RWAX: Not approved or owner");
-        if (ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId)) revert CTMRWA1X_Unauthorized(Address.Sender);
+        if (!ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId)) revert CTMRWA1X_Unauthorized(Address.Sender);
 
         if (toChainIdStr.equal(cIDStr)) {
             address toAddr = _toAddressStr._stringToAddress();
@@ -679,7 +679,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         address fromAddr = _fromAddrStr._stringToAddress();
         // require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId), "RWAX: Not owner/approved");
-        if (ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId)) revert CTMRWA1X_Unauthorized(Address.Sender);
+        if (!ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId)) revert CTMRWA1X_Unauthorized(Address.Sender);
 
         if (toChainIdStr.equal(cIDStr)) {
             address toAddr = _toAddressStr._stringToAddress();
