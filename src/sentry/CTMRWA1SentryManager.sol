@@ -241,7 +241,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
                     funcCall, _ID, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
                 );
 
-                c3call(toRwaSentryStr, chainIdStr, callData);
+                _c3call(toRwaSentryStr, chainIdStr, callData);
 
                 emit SettingSentryOptions(_ID, chainIdStr);
             }
@@ -295,7 +295,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
                 bytes memory callData =
                     abi.encodeWithSignature(funcCall, _ID, false, true, kyb, over18, false, countryWL, countryBL);
 
-                c3call(toRwaSentryStr, chainIdStr, callData);
+                _c3call(toRwaSentryStr, chainIdStr, callData);
 
                 emit SettingSentryOptions(_ID, chainIdStr);
             }
@@ -359,7 +359,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
                 string memory funcCall = "setWhitelistX(uint256,string[],bool[])";
                 bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _wallets, _choices);
 
-                c3call(toRwaSentryStr, chainIdStr, callData);
+                _c3call(toRwaSentryStr, chainIdStr, callData);
 
                 emit AddingWhitelist(_ID, chainIdStr);
             }
@@ -420,7 +420,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
                 string memory funcCall = "setCountryListX(uint256,string[],bool[])";
                 bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _countries, _choices);
 
-                c3call(toRwaSentryStr, chainIdStr, callData);
+                _c3call(toRwaSentryStr, chainIdStr, callData);
 
                 emit AddingCountryList(_ID, chainIdStr);
             }

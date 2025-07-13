@@ -336,7 +336,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             funcCall, currentAdminStr, ID, _tokenName, _symbol, _decimals, _baseURI, _slotNumbers, _slotNames
         );
 
-        c3call(toRwaXStr, toChainIdStr, callData);
+        _c3call(toRwaXStr, toChainIdStr, callData);
 
         emit DeployCTMRWA1(ID, toChainIdStr);
 
@@ -433,7 +433,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
                 funcCall = "adminX(uint256,string,string)";
                 callData = abi.encodeWithSignature(funcCall, _ID, currentAdminStr, _newAdminStr);
 
-                c3call(toRwaXStr, toChainIdStr, callData);
+                _c3call(toRwaXStr, toChainIdStr, callData);
 
                 emit ChangingAdmin(_ID, toChainIdStr);
             }
@@ -457,7 +457,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         address newAdmin = _newAdminStr._stringToAddress();
 
-        (, string memory fromChainIdStr,) = context();
+        (, string memory fromChainIdStr,) = _context();
         fromChainIdStr = fromChainIdStr._toLower();
 
         address currentAdmin = ICTMRWA1(ctmRwa1Addr).tokenAdmin();
@@ -557,7 +557,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
                 string memory funcCall = "createNewSlotX(uint256,string,uint256,string)";
                 bytes memory callData = abi.encodeWithSignature(funcCall, _ID, fromAddressStr, _slot, _slotName);
 
-                c3call(toRwaXStr, toChainIdStr, callData);
+                _c3call(toRwaXStr, toChainIdStr, callData);
 
                 emit CreateSlot(_ID, _slot, toChainIdStr);
             }
@@ -584,7 +584,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         // require(!ICTMRWA1(ctmRwa1Addr).slotExists(_slot), "RWAX: Slot that already exists");
         if (ICTMRWA1(ctmRwa1Addr).slotExists(_slot)) revert CTMRWA1X_SlotExists(_slot);
 
-        (, string memory fromChainIdStr,) = context();
+        (, string memory fromChainIdStr,) = _context();
 
         address fromAddress = _fromAddressStr._stringToAddress();
 
@@ -649,7 +649,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
             bytes memory callData = abi.encodeWithSignature(funcCall, _ID, fromAddressStr, _toAddressStr, slot, _value);
 
-            c3call(toRwaXStr, toChainIdStr, callData);
+            _c3call(toRwaXStr, toChainIdStr, callData);
 
             return 0;
         }
@@ -702,7 +702,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
             bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _fromAddrStr, _toAddressStr, slot, value);
 
-            c3call(toRwaXStr, toChainIdStr, callData);
+            _c3call(toRwaXStr, toChainIdStr, callData);
 
             emit Minting(_ID, _toAddressStr, toChainIdStr);
         }
@@ -720,7 +720,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         uint256 _slot,
         uint256 _balance
     ) external onlyCaller returns (bool) {
-        (, string memory fromChainIdStr,) = context();
+        (, string memory fromChainIdStr,) = _context();
 
         address toAddr = _toAddressStr._stringToAddress();
 

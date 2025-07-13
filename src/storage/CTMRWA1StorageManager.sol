@@ -241,7 +241,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
                     _bytes32ToArray(_uriDataHash)
                 );
 
-                c3call(toRwaSMStr, chainIdStr, callData);
+                _c3call(toRwaSMStr, chainIdStr, callData);
 
                 emit AddingURI(_ID, chainIdStr);
             }
@@ -309,7 +309,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
                     funcCall, _ID, startNonce, objectName, uriCategory, uriType, title, slot, timestamp, uriDataHash
                 );
 
-                c3call(toRwaSMStr, chainIdStr, callData);
+                _c3call(toRwaSMStr, chainIdStr, callData);
 
                 emit AddingURI(_ID, chainIdStr);
             }
