@@ -2,12 +2,14 @@
 
 pragma solidity ^0.8.22;
 
+import { IC3CallerDapp } from "@c3caller/dapp/IC3CallerDapp.sol";
+
 struct ChainContract {
     string chainIdStr;
     string contractStr;
 }
 
-interface ICTMRWAGateway {
+interface ICTMRWAGateway is IC3CallerDapp {
     function getChainCount() external view returns (uint256);
     function addChainContract(string[] memory chainIdsStr, string[] memory contractsAddressStr)
         external

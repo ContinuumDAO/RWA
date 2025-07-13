@@ -128,6 +128,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     function getTokenId(string memory _tokenAddrStr, uint256 _rwaType, uint256 _version)
         public
         view
+        virtual
         returns (bool, uint256)
     {
         string memory tokenAddrStr = _tokenAddrStr._toLower();

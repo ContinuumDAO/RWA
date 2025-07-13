@@ -194,7 +194,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         string memory _baseURI,
         string[] memory _toChainIdsStr,
         string memory _feeTokenStr
-    ) public returns (uint256) {
+    ) public virtual returns (uint256) {
         // require(!_includeLocal && _existingID > 0 || _includeLocal && _existingID == 0, "RWAX: Incorrect call logic");
         if (_includeLocal == (_existingID != 0)) revert CTMRWA1X_InvalidCallLogic();
         uint256 len = bytes(_tokenName).length;

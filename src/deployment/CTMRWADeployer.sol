@@ -130,6 +130,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     function deploy(uint256 _ID, uint256 _rwaType, uint256 _version, bytes memory deployData)
         external
         onlyRwaX
+        virtual
         returns (address, address, address, address)
     {
         address tokenAddr = ICTMRWAFactory(tokenFactory[_rwaType][_version]).deploy(deployData);

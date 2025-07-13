@@ -89,7 +89,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         return true;
     }
 
-    function getFeeTokenList() external view returns (address[] memory) {
+    function getFeeTokenList() external view virtual returns (address[] memory) {
         return feeTokenList;
     }
 
