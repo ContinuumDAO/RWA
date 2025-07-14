@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: BSL-1.1
+
+pragma solidity ^0.8.22;
+
+import {Address} from "../CTMRWAUtils.sol";
+
+interface ICTMRWA1TokenFactory {
+    error CTMRWA1TokenFactory_Unauthorized(Address);
+
+    function deploy(bytes memory _deployData) external returns (address);
+}

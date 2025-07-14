@@ -2,8 +2,10 @@
 
 pragma solidity ^0.8.22;
 
+import {ICTMRWA1TokenFactory} from "./ICTMRWA1TokenFactory.sol";
 import { CTMRWA1 } from "../core/CTMRWA1.sol";
 import { ICTMRWA1, SlotData } from "../core/ICTMRWA1.sol";
+import {Address} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -15,12 +17,13 @@ import { ICTMRWA1, SlotData } from "../core/ICTMRWA1.sol";
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract deployments
  */
-contract CTMRWA1TokenFactory {
+contract CTMRWA1TokenFactory is ICTMRWA1TokenFactory {
     address public ctmRwaMap;
     address public ctmRwaDeployer;
 
     modifier onlyDeployer() {
-        require(msg.sender == ctmRwaDeployer, "RWATF: onlyDeployer");
+        // require(msg.sender == ctmRwaDeployer, "RWATF: onlyDeployer");
+        if (msg.sender != ctmRwaDeployer) revert CTMRWA1TokenFactory_Unauthorized(Address.Sender);
         _;
     }
 
