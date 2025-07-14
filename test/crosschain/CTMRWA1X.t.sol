@@ -19,6 +19,7 @@ import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 
 import { C3CallerStructLib } from "../../lib/c3caller/src/C3CallerStructLib.sol";
+import { Uint } from "../../src/CTMRWAUtils.sol";
 
 // Mock contract for reentrancy testing
 contract ReentrantContract {
@@ -1396,6 +1397,57 @@ contract TestCTMRWA1X is Helpers {
         assertEq(token2.ownerOf(tokenId2), user1);
         assertEq(token2.balanceOf(tokenId2), 500);
         assertEq(token2.balanceOf(token2.tokenOfOwnerByIndex(user2, 0)), 500);
+    }
+
+    function test_revert_InvalidAddress_Minter() public {
+        // Only gov can call changeMinterStatus, so use gov
+        vm.prank(gov);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidAddress.selector, Address.Minter));
+        rwa1X.changeMinterStatus(address(rwa1X), true);
+    }
+
+    function test_revert_InvalidAddress_Fallback() public {
+        vm.prank(gov);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidAddress.selector, Address.Fallback));
+        rwa1X.setFallback(address(rwa1X));
+    }
+
+    function test_revert_IsZeroAddress_Deployer() public {
+        // Deploy a fresh CTMRWA1X with ctmRwaDeployer set to zero
+        address newRwa1X = address(new CTMRWA1X());
+        // Initialize with ctmRwaDeployer = address(0)
+        vm.prank(gov);
+        CTMRWA1X(newRwa1X).initialize(address(0x1), address(0x2), gov, address(0x3), address(0x4), 1);
+        vm.prank(gov);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_IsZeroAddress.selector, Address.Deployer));
+        CTMRWA1X(newRwa1X).setCtmRwaMap(address(0x1234));
+    }
+
+    function test_revert_IsZeroAddress_Fallback() public {
+        vm.prank(gov);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_IsZeroAddress.selector, Address.Fallback));
+        rwa1X.setFallback(address(0));
+    }
+
+    function test_revert_NonExistentSlot() public {
+        vm.startPrank(tokenAdmin);
+        (uint256 ID, CTMRWA1 token) = _deployCTMRWA1(address(usdc));
+        // Try to mint to a non-existent slot
+        string memory feeTokenStr = address(usdc).toHexString();
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_NonExistentSlot.selector, 999));
+        rwa1X.mintNewTokenValueLocal(user1, 0, 999, 1000, ID, feeTokenStr);
+        vm.stopPrank();
+    }
+
+    function test_revert_InvalidAddress_Admin() public {
+        // Deploy with tokenAdmin, then try to change admin from tokenAdmin2
+        vm.startPrank(tokenAdmin);
+        (uint256 ID, ) = _deployCTMRWA1(address(usdc));
+        vm.stopPrank();
+        vm.startPrank(tokenAdmin2);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_Unauthorized.selector, Address.Sender));
+        rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), ID, address(usdc).toHexString());
+        vm.stopPrank();
     }
 
 }
