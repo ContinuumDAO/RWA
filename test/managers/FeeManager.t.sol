@@ -12,6 +12,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 import { TestERC20 } from "../../src/mocks/TestERC20.sol";
+import { MaliciousERC20 } from "../../src/mocks/MaliciousERC20.sol";
 
 // Mock contract to test reentrancy
 contract ReentrancyAttacker {
@@ -32,6 +33,26 @@ contract ReentrancyAttacker {
 
     // Simulate reentrancy during token transfer callback (if token had callback)
     function triggerReentrancy() external {
+        feeManager.payFee(attackAmount, feeTokenStr);
+    }
+}
+
+// Reentrancy attack contract for MaliciousERC20
+contract MaliciousAttacker {
+    FeeManager public feeManager;
+    string public feeTokenStr;
+    uint256 public attackAmount;
+    bool public attacked;
+
+    constructor(FeeManager _feeManager, string memory _feeTokenStr, uint256 _attackAmount) {
+        feeManager = _feeManager;
+        feeTokenStr = _feeTokenStr;
+        attackAmount = _attackAmount;
+    }
+
+    // This function will be called by MaliciousERC20 during transferFrom
+    function reenter() external {
+        attacked = true;
         feeManager.payFee(attackAmount, feeTokenStr);
     }
 }
@@ -112,17 +133,27 @@ contract TestFeeManager is Helpers {
     }
 
     // Reentrancy Tests
-    function test_ReentrancyPayFeeFails() public {
-        // Setup attacker contract
-        ReentrancyAttacker attacker = new ReentrancyAttacker(feeManager, feeTokenStr, FEE_AMOUNT / 2);
-        // Give attacker some tokens
-        feeToken.mint(address(attacker), FEE_AMOUNT);
-        // Approve feeManager to spend tokens from attacker
-        vm.prank(address(attacker));
-        feeToken.approve(address(feeManager), FEE_AMOUNT * 2);
-        // Expect reentrancy to fail due to nonReentrant modifier
-        vm.expectRevert("ReentrancyGuard: reentrant call");
-        attacker.attack();
+    function test_Reentrancy_MaliciousERC20_PayFeeFails() public {
+        // Deploy malicious ERC20 and attacker
+        MaliciousERC20 maliciousToken = new MaliciousERC20("Malicious Token", "MAL", 18);
+        string memory maliciousTokenStr = addressToString(address(maliciousToken));
+        // Add malicious token to FeeManager
+        vm.prank(gov);
+        feeManager.addFeeToken(maliciousTokenStr);
+        // Deploy attacker contract
+        MaliciousAttacker attacker = new MaliciousAttacker(feeManager, maliciousTokenStr, FEE_AMOUNT / 2);
+        // Set attacker and callback data in malicious token as admin (deployer)
+        bytes memory callbackData = abi.encodeWithSelector(MaliciousAttacker.reenter.selector);
+        maliciousToken.setAttacker(address(attacker), callbackData);
+        // Mint tokens to user1
+        maliciousToken.mint(user1, FEE_AMOUNT * 2);
+        // Approve FeeManager to spend tokens
+        vm.prank(user1);
+        maliciousToken.approve(address(feeManager), FEE_AMOUNT * 2);
+        // Expect reentrancy to fail due to nonReentrant
+        vm.expectRevert("MaliciousERC20: attacker callback failed");
+        vm.prank(user1);
+        feeManager.payFee(FEE_AMOUNT, maliciousTokenStr);
     }
 
     // Pausing Functionality Tests
@@ -283,11 +314,9 @@ contract TestFeeManager is Helpers {
         assertEq(feeToken.balanceOf(address(feeManager)), contractBalanceBefore + amount, "Contract balance should increase");
     }
 
-    function test_FuzzSetFeeMultiplier(FeeType feeType, uint256 multiplier) public {
-        // Ensure feeType is within valid range
-        uint256 feeTypeInt = uint256(feeType) % 28; // 28 is the number of FeeType enum values
-        feeType = FeeType(feeTypeInt);
-        // Bound multiplier to reasonable values
+    function test_FuzzSetFeeMultiplier(uint8 feeTypeRaw, uint256 multiplier) public {
+        uint256 feeTypeInt = uint256(feeTypeRaw) % 28; // 28 is the number of FeeType enum members
+        FeeType feeType = FeeType(feeTypeInt);
         multiplier = bound(multiplier, 1, 1_000_000);
         vm.prank(gov);
         feeManager.setFeeMultiplier(feeType, multiplier);
