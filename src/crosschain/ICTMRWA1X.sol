@@ -35,10 +35,11 @@ interface ICTMRWA1X is ICTMRWA {
     error CTMRWA1X_Unauthorized(Address);
     error CTMRWA1X_IsZeroAddress(Address);
     error CTMRWA1X_InvalidTokenContract();
-    error CTMRWA1X_InvalidAdmin();
+    error CTMRWA1X_InvalidAddress(Address);
 
     // Input Validation
     error CTMRWA1X_SlotExists(uint256);
+    error CTMRWA1X_NonExistentSlot(uint256);
     error CTMRWA1X_InvalidLength(Uint);
     error CTMRWA1X_InvalidCallLogic();
     error CTMRWA1X_InvalidAttachmentState();

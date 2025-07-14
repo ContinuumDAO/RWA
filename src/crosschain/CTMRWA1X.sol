@@ -101,7 +101,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      * @param _set Boolean setting or un-setting minter
      */
     function changeMinterStatus(address _minter, bool _set) external onlyGov {
-        require(_minter != address(this) && _minter != fallbackAddr, "RWAX: Cannot unset minter");
+        if (_minter == address(this) || _minter == fallbackAddr) revert CTMRWA1X_InvalidAddress(Address.Minter);
         isMinter[_minter] = _set;
     }
 
@@ -128,7 +128,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      * @param _map address of the new CTMRWAMap contract
      */
     function setCtmRwaMap(address _map) external onlyGov {
-        // require(ctmRwaDeployer != address(0), "RWAX: address ctmRwaDeployer is zero");
         if (ctmRwaDeployer == address(0)) revert CTMRWA1X_IsZeroAddress(Address.Deployer);
         ctmRwa1Map = _map;
         ICTMRWAMap(ctmRwa1Map).setCtmRwaDeployer(ctmRwaDeployer, gateway, address(this));
@@ -147,7 +146,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      * @param _fallbackAddr address of the new CTMRWA1Fallback contract
      */
     function setFallback(address _fallbackAddr) external onlyGov {
-        // require(_fallbackAddr != address(this) && _fallbackAddr != address(0), "RWAX: Invalid fallBackAddr");
+        if (_fallbackAddr == address(this)) revert CTMRWA1X_InvalidAddress(Address.Fallback);
+        if (_fallbackAddr == address(0)) revert CTMRWA1X_IsZeroAddress(Address.Fallback);
         isMinter[fallbackAddr] = false;
         isMinter[_fallbackAddr] = true;
         fallbackAddr = _fallbackAddr;
@@ -193,11 +193,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         string[] memory _toChainIdsStr,
         string memory _feeTokenStr
     ) public virtual returns (uint256) {
-        // require(!_includeLocal && _existingID > 0 || _includeLocal && _existingID == 0, "RWAX: Incorrect call logic");
         if (_includeLocal == (_existingID != 0)) revert CTMRWA1X_InvalidCallLogic();
         uint256 len = bytes(_tokenName).length;
         if (_includeLocal) {
-            // require(len >= 10 && len <= 512, "RWAX: Token length is < 10 or > 512");
             if (len < 10 || len > 512) revert CTMRWA1X_InvalidLength(Uint.TokenName);
         }
         uint256 nChains = _toChainIdsStr.length;
@@ -232,7 +230,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             // a CTMRWA1 token must be deployed already, so use the existing ID
             ID = _existingID;
             (bool ok, address rwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(ID, _rwaType, _version);
-            // require(ok, "RWAX: The token is not on this chain");
             if (!ok) revert CTMRWA1X_InvalidTokenContract();
             ctmRwa1Addr = rwa1Addr;
 
@@ -241,7 +238,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             (, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(ID, _rwaType, _version);
             bool whitelist = ICTMRWA1Sentry(sentryAddr).whitelistSwitch();
             bool kyc = ICTMRWA1Sentry(sentryAddr).kycSwitch();
-            // require((!whitelist && !kyc), "RWAX: Whitelist or kyc set No new chains");
             if (whitelist) revert CTMRWA1X_WhiteListDisabled();
             if (kyc) revert CTMRWA1X_KYCDisabled();
 
@@ -280,7 +276,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         address _tokenAdmin
     ) internal returns (address) {
         (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        // require(!ok, "RWAX: ID already exists");
         if (ok) revert CTMRWA1X_InvalidTokenContract();
 
         bytes memory deployData = abi.encode(
@@ -292,7 +287,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         ICTMRWA1(ctmRwa1Token).changeAdmin(_tokenAdmin);
 
         ok = ICTMRWA1(ctmRwa1Token).attachId(_ID, _tokenAdmin);
-        // require(ok, "RWAX: Could not attachId");
         if (!ok) revert CTMRWA1X_InvalidAttachmentState();
 
         adminTokens[_tokenAdmin].push(ctmRwa1Token);
@@ -317,7 +311,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         string[] memory _slotNames,
         string memory _ctmRwa1AddrStr
     ) internal returns (bool) {
-        // require(!_toChainIdStr.equal(cID().toString()), "RWAX: Not cross-chain");
         if (_toChainIdStr.equal(cID().toString())) revert CTMRWA1X_SameChain();
         address ctmRwa1Addr = _ctmRwa1AddrStr._stringToAddress();
 
@@ -357,7 +350,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         string[] memory _slotNames
     ) external onlyCaller returns (bool) {
         (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        // require(!ok, "RWAX: ID already exists");
         if (ok) revert CTMRWA1X_InvalidTokenContract();
 
         address newAdmin = _newAdminStr._stringToAddress();
@@ -450,7 +442,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         returns (bool)
     {
         (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        // require(ok, "RWAX: Destination ID does not exist");
         if (!ok) revert CTMRWA1X_InvalidTokenContract();
 
         address newAdmin = _newAdminStr._stringToAddress();
@@ -460,8 +451,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         address currentAdmin = ICTMRWA1(ctmRwa1Addr).tokenAdmin();
         address oldAdmin = _oldAdminStr._stringToAddress();
-        // require(currentAdmin == oldAdmin, "RWAX: Not admin or token is locked");
-        if (currentAdmin != oldAdmin) revert CTMRWA1X_InvalidAdmin();
+        if (currentAdmin != oldAdmin) revert CTMRWA1X_InvalidAddress(Address.Admin);
 
         _changeAdmin(currentAdmin, newAdmin, _ID);
 
@@ -500,8 +490,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             return (_toTokenId);
         } else {
             bool slotExists = ICTMRWA1(ctmRwa1Addr).slotExists(_slot);
-            // require(slotExists, "RWAX: Slot not exist");
-            if (!slotExists) revert CTMRWA1X_SlotExists(_slot);
+            if (!slotExists) revert CTMRWA1X_NonExistentSlot(_slot);
             string memory thisSlotName = ICTMRWA1(ctmRwa1Addr).slotName(_slot);
 
             uint256 newTokenId = ICTMRWA1(ctmRwa1Addr).mintFromX(_toAddress, _slot, thisSlotName, _value);
@@ -530,12 +519,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         string[] memory _toChainIdsStr,
         string memory _feeTokenStr
     ) public returns (bool) {
-        // require(bytes(_slotName).length <= 256, "RWAX: Slot > 256");
         if (bytes(_slotName).length > 256) revert CTMRWA1X_InvalidLength(Uint.SlotName);
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
-        // require(!ICTMRWA1(ctmRwa1Addr).slotExists(_slot), "RWAX: Slot that already exists");
         if (ICTMRWA1(ctmRwa1Addr).slotExists(_slot)) revert CTMRWA1X_SlotExists(_slot);
-        // require(ICTMRWA1(ctmRwa1Addr).slotCount() < MAX_SLOTS, "RWAX: Too many slots");
 
         _checkTokenAdmin(ctmRwa1Addr);
 
@@ -576,9 +562,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         returns (bool)
     {
         (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        // require(ok, "RWAX: ID does not exist");
         if (!ok) revert CTMRWA1X_InvalidTokenContract();
-        // require(!ICTMRWA1(ctmRwa1Addr).slotExists(_slot), "RWAX: Slot that already exists");
         if (ICTMRWA1(ctmRwa1Addr).slotExists(_slot)) revert CTMRWA1X_SlotExists(_slot);
 
         (, string memory fromChainIdStr,) = _context();
@@ -586,8 +570,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         address fromAddress = _fromAddressStr._stringToAddress();
 
         address currentAdmin = ICTMRWA1(ctmRwa1Addr).tokenAdmin();
-        // require(fromAddress == currentAdmin, "RWAX: Only tokenAdmin can add slots, or locked");
-        if (fromAddress != currentAdmin) revert CTMRWA1X_InvalidAdmin();
+        if (fromAddress != currentAdmin) revert CTMRWA1X_InvalidAddress(Address.Admin);
 
         ICTMRWA1(ctmRwa1Addr).createSlotX(_slot, _slotName);
 
@@ -620,7 +603,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         string memory toChainIdStr = _toChainIdStr._toLower();
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
-        // require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId), "RWAX: Not approved or owner");
         if (!ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId)) revert CTMRWA1X_Unauthorized(Address.Sender);
 
         if (toChainIdStr.equal(cIDStr)) {
@@ -675,7 +657,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         address fromAddr = _fromAddrStr._stringToAddress();
-        // require(ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId), "RWAX: Not owner/approved");
         if (!ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId)) revert CTMRWA1X_Unauthorized(Address.Sender);
 
         if (toChainIdStr.equal(cIDStr)) {
@@ -722,12 +703,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         address toAddr = _toAddressStr._stringToAddress();
 
         (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        // require(ok, "RWAX: ID does not exist");
         if (!ok) revert CTMRWA1X_InvalidTokenContract();
 
         bool slotExists = ICTMRWA1(ctmRwa1Addr).slotExists(_slot);
-        // require(slotExists, "RWAX: Slot does not exist");
-        if (!slotExists) revert CTMRWA1X_SlotExists(_slot);
+        if (!slotExists) revert CTMRWA1X_NonExistentSlot(_slot);
 
         string memory thisSlotName = ICTMRWA1(ctmRwa1Addr).slotName(_slot);
 
@@ -789,7 +768,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     /// @dev Get the CTMRWA1 address and string version on this chain for an ID
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        // require(ok, "RWAX: tokenID not exist");
         if (!ok) revert CTMRWA1X_InvalidTokenContract();
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
@@ -798,13 +776,11 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
     /// @dev Get the corresponding CTMRWA1X address on another chain with chainId _toChainIdStr
     function _getRWAX(string memory _toChainIdStr) internal view returns (string memory, string memory) {
-        // require(!_toChainIdStr.equal(cIDStr), "RWAX: Not Xchain");
         if (_toChainIdStr.equal(cIDStr)) revert CTMRWA1X_SameChain();
 
         string memory fromAddressStr = msg.sender.toHexString()._toLower();
 
         (bool ok, string memory toRwaXStr) = ICTMRWAGateway(gateway).getAttachedRWAX(RWA_TYPE, VERSION, _toChainIdStr);
-        // require(ok, "RWAX: Address not found");
         if (!ok) revert CTMRWA1X_InvalidAttachmentState();
 
         return (fromAddressStr, toRwaXStr);
@@ -819,7 +795,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = currentAdmin.toHexString()._toLower();
 
-        // require(msg.sender == currentAdmin, "RWAX: Not tokenAdmin or locked");
         if (msg.sender != currentAdmin) revert CTMRWA1X_Unauthorized(Address.Sender);
 
         return (currentAdmin, currentAdminStr);

@@ -26,7 +26,9 @@ enum Address {
     Sentry,
     RWAERC20,
     Override,
-    Admin
+    Admin,
+    Minter,
+    Fallback
 }
 
 library CTMRWAUtils {
