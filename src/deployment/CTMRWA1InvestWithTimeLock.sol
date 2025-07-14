@@ -204,7 +204,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard {
         emit CreateOffering(ID, indx, slot, offer);
     }
 
-    function investInOffering(uint256 _indx, uint256 _investment, address _feeToken) public returns (uint256) {
+    function investInOffering(uint256 _indx, uint256 _investment, address _feeToken) public nonReentrant returns (uint256) {
         require(_indx < offerings.length, "CTMInvest: Offering index out of bounds");
         require(!_isOfferingPaused[_indx], "CTMInvest: Offering is paused");
         require(block.timestamp >= offerings[_indx].startTime, "CTMInvest: Offer not yet started");
@@ -258,7 +258,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard {
     //     return bal;
     // }
 
-    function withdrawInvested(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) returns (uint256) {
+    function withdrawInvested(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) nonReentrant returns (uint256) {
         require(_indx < offerings.length, "CTMInvest: exceed offerings bounds");
 
         uint256 investment = offerings[_indx].investment;
@@ -273,7 +273,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard {
             }
             uint256 funds = investment - commission;
             offerings[_indx].investment = 0;
-            IERC20(currency).transferFrom(address(this), msg.sender, funds);
+            IERC20(currency).transfer(msg.sender, funds);
 
             emit WithdrawFunds(ID, _indx, funds);
             return funds;
@@ -282,7 +282,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard {
         }
     }
 
-    function unlockTokenId(uint256 _myIndx, address _feeToken) public returns (uint256) {
+    function unlockTokenId(uint256 _myIndx, address _feeToken) public nonReentrant returns (uint256) {
         require(_myIndx < holdingsByAddress[msg.sender].length, "CTMInvest: exceed bounds");
 
         Holding memory thisHolding = holdingsByAddress[msg.sender][_myIndx];
@@ -307,7 +307,7 @@ contract CTMRWA1InvestWithTimeLock is ReentrancyGuard {
         }
     }
 
-    function claimDividendInEscrow(uint256 _myIndx) public returns (uint256) {
+    function claimDividendInEscrow(uint256 _myIndx) public nonReentrant returns (uint256) {
         require(_myIndx < holdingsByAddress[msg.sender].length, "CTMInvest: exceed bounds");
 
         /// @dev caller can only access tokenIds in their holdingsByAddress mapping
