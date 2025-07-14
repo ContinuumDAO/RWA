@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSL-1.1
 
 pragma solidity ^0.8.22;
 
@@ -76,8 +76,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      * List  of CTMRWA1 contracts that an owner address has one or more tokenIds
      */
     mapping(address => address[]) public ownedCtmRwa1;
-
-    uint256 constant MAX_SLOTS = 5;
 
     function initialize(
         address _gateway,
@@ -538,7 +536,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         // require(!ICTMRWA1(ctmRwa1Addr).slotExists(_slot), "RWAX: Slot that already exists");
         if (ICTMRWA1(ctmRwa1Addr).slotExists(_slot)) revert CTMRWA1X_SlotExists(_slot);
         // require(ICTMRWA1(ctmRwa1Addr).slotCount() < MAX_SLOTS, "RWAX: Too many slots");
-        if (ICTMRWA1(ctmRwa1Addr).slotCount() >= MAX_SLOTS) revert CTMRWA1X_InvalidLength(Uint.SlotLength);
 
         _checkTokenAdmin(ctmRwa1Addr);
 

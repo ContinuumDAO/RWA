@@ -602,6 +602,7 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _value The fungible value being given approval to spend
      */
     function spendAllowance(address _operator, uint256 _tokenId, uint256 _value) public virtual {
+        if (_value == 0) revert CTMRWA1_IsZeroUint(Uint.Value);
         uint256 currentAllowance = CTMRWA1.allowance(_tokenId, _operator);
         if (!isApprovedOrOwner(_operator, _tokenId) && currentAllowance != type(uint256).max) {
             // require(currentAllowance >= _value, "RWA: insufficient allowance");

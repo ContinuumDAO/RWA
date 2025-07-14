@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: BSL-1.1
 
 pragma solidity ^0.8.22;
 
@@ -7,7 +7,8 @@ enum Uint {
     TokenId,
     TokenName,
     SlotLength,
-    SlotName
+    SlotName,
+    Value
 }
 
 /// @dev Common addresses referenced in errors in CTMRWA1
