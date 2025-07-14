@@ -12,6 +12,9 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 
+event AddingURI(uint256 ID, string chainIdStr);
+event URIAdded(uint256 ID);
+
 contract TestStorageManager is Helpers {
     using Strings for *;
 
@@ -130,4 +133,293 @@ contract TestStorageManager is Helpers {
 
         vm.stopPrank();
     }
+
+    // ============ ACCESS CONTROL TESTS ============
+    function test_onlyTokenAdminCanAddURI() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        string memory randomData = "access control test";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+        // Should succeed for tokenAdmin
+        storageManager.addURI(
+            ID,
+            "1",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Access Control RWA",
+            0,
+            junkHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        vm.stopPrank();
+        // Should fail for unauthorized user
+        address unauthorized = address(0xBEEF);
+        vm.startPrank(unauthorized);
+        vm.expectRevert();
+        storageManager.addURI(
+            ID,
+            "2",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Should fail",
+            0,
+            keccak256(abi.encode("fail")),
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        vm.stopPrank();
+    }
+
+    function test_onlyC3CallerCanAddURIX() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        vm.stopPrank();
+        URICategory _uriCategory = URICategory.ISSUER;
+        URIType _uriType = URIType.CONTRACT;
+        string memory randomData = "crosschain access control";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+        // Should fail for non-c3caller
+        vm.startPrank(tokenAdmin);
+        vm.expectRevert();
+        storageManager.addURIX(
+            ID,
+            1,
+            _stringToArray("1"),
+            _uint8ToArray(uint8(_uriCategory)),
+            _uint8ToArray(uint8(_uriType)),
+            _stringToArray("Title"),
+            _uint256ToArray(0),
+            _uint256ToArray(block.timestamp),
+            _bytes32ToArray(junkHash)
+        );
+        vm.stopPrank();
+        // Should succeed for c3caller
+        vm.startPrank(address(c3caller));
+        storageManager.addURIX(
+            ID,
+            1,
+            _stringToArray("1"),
+            _uint8ToArray(uint8(_uriCategory)),
+            _uint8ToArray(uint8(_uriType)),
+            _stringToArray("Title"),
+            _uint256ToArray(0),
+            _uint256ToArray(block.timestamp),
+            _bytes32ToArray(junkHash)
+        );
+        vm.stopPrank();
+    }
+
+    // ============ INVARIANT TESTS ============
+    function test_invariantNonceIncrements() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        string memory randomData = "nonce test";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+        storageManager.addURI(
+            ID,
+            "1",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Nonce Test",
+            0,
+            junkHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        (, address thisStorage) = map.getStorageContract(ID, RWA_TYPE, VERSION);
+        uint256 nonceBefore = ICTMRWA1Storage(thisStorage).nonce();
+        // Add another URI
+        bytes32 newHash = keccak256(abi.encode("nonce2"));
+        storageManager.addURI(
+            ID,
+            "2",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Nonce Test 2",
+            0,
+            newHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        uint256 nonceAfter = ICTMRWA1Storage(thisStorage).nonce();
+        assertEq(nonceAfter, nonceBefore + 1);
+        vm.stopPrank();
+    }
+
+    function test_invariantNoDuplicateHashes() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        string memory randomData = "dup hash";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+        storageManager.addURI(
+            ID,
+            "1",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Dup Hash Test",
+            0,
+            junkHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        // Try to add the same hash again
+        vm.expectRevert();
+        storageManager.addURI(
+            ID,
+            "1",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Dup Hash Test",
+            0,
+            junkHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        vm.stopPrank();
+    }
+
+    // ============ GAS USAGE TESTS ============
+    function test_gas_addURI() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        string memory randomData = "gas test";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+        uint256 gasBefore = gasleft();
+        storageManager.addURI(
+            ID,
+            "1",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Gas Test 01",
+            0,
+            junkHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        uint256 gasUsed = gasBefore - gasleft();
+        assertLt(gasUsed, 500_000, "addURI gas usage should be reasonable");
+        vm.stopPrank();
+    }
+
+    function test_gas_addURIX() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        vm.stopPrank();
+        URICategory _uriCategory = URICategory.ISSUER;
+        URIType _uriType = URIType.CONTRACT;
+        string memory randomData = "gas urix";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+        vm.startPrank(address(c3caller));
+        uint256 gasBefore = gasleft();
+        storageManager.addURIX(
+            ID,
+            1,
+            _stringToArray("1"),
+            _uint8ToArray(uint8(_uriCategory)),
+            _uint8ToArray(uint8(_uriType)),
+            _stringToArray("Gas URIX"),
+            _uint256ToArray(0),
+            _uint256ToArray(block.timestamp),
+            _bytes32ToArray(junkHash)
+        );
+        uint256 gasUsed = gasBefore - gasleft();
+        assertLt(gasUsed, 600_000, "addURIX gas usage should be reasonable");
+        vm.stopPrank();
+    }
+
+    // ============ FUZZ & EDGE CASE TESTS ============
+    function test_fuzz_addURI_bytes32(uint256 fuzzVal) public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        bytes32 fuzzHash = keccak256(abi.encode(fuzzVal));
+        storageManager.addURI(
+            ID,
+            "fuzz",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Fuzz Test 01",
+            0,
+            fuzzHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        (, address thisStorage) = map.getStorageContract(ID, RWA_TYPE, VERSION);
+        bool exists = ICTMRWA1Storage(thisStorage).existObjectName("fuzz");
+        assertEq(exists, true);
+        vm.stopPrank();
+    }
+
+    function test_addURI_zeroAddress() public {
+        // Should revert if called with zero address as tokenAdmin
+        vm.startPrank(address(0));
+        vm.expectRevert();
+        storageManager.addURI(
+            0,
+            "zero",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Zero Address",
+            0,
+            bytes32(0),
+            _stringToArray(cIdStr),
+            ""
+        );
+        vm.stopPrank();
+    }
+
+    // ============ EVENT EMISSION TESTS ============
+    // Only test local event emission (URIAdded via addURIX)
+    function test_event_URIAdded_emitted_addURIX() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        vm.stopPrank();
+        URICategory _uriCategory = URICategory.ISSUER;
+        URIType _uriType = URIType.CONTRACT;
+        string memory randomData = "event urix";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+        string[] memory objectNames = new string[](1);
+        objectNames[0] = "event3";
+        uint8[] memory uriCategories = new uint8[](1);
+        uriCategories[0] = uint8(_uriCategory);
+        uint8[] memory uriTypes = new uint8[](1);
+        uriTypes[0] = uint8(_uriType);
+        string[] memory titles = new string[](1);
+        titles[0] = "Event AddURIX 3";
+        uint256[] memory slots = new uint256[](1);
+        slots[0] = 0;
+        uint256[] memory timestamps = new uint256[](1);
+        timestamps[0] = block.timestamp;
+        bytes32[] memory hashes = new bytes32[](1);
+        hashes[0] = junkHash;
+        vm.startPrank(address(c3caller));
+        vm.expectEmit(true, false, false, false);
+        emit URIAdded(ID);
+        storageManager.addURIX(
+            ID,
+            1,
+            objectNames,
+            uriCategories,
+            uriTypes,
+            titles,
+            slots,
+            timestamps,
+            hashes
+        );
+        vm.stopPrank();
+    }
+    // Note: addURI does not emit an event for local calls, only for cross-chain (which cannot be tested locally)
 }
