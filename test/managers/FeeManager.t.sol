@@ -206,6 +206,110 @@ contract TestFeeManager is Helpers {
         assertEq(feeManager.getFeeTokenIndexMap(newTokenStr), 0, "Token index should be reset");
     }
 
+    function test_AddDeleteMultipleFeeTokens() public {
+        // Add three new fee tokens
+        address tokenA = address(new TestERC20("TokenA", "TKA", 18));
+        address tokenB = address(new TestERC20("TokenB", "TKB", 18));
+        address tokenC = address(new TestERC20("TokenC", "TKC", 18));
+        string memory tokenAStr = addressToString(tokenA);
+        string memory tokenBStr = addressToString(tokenB);
+        string memory tokenCStr = addressToString(tokenC);
+
+        // Add all tokens
+        vm.prank(gov);
+        feeManager.addFeeToken(tokenAStr);
+        vm.prank(gov);
+        feeManager.addFeeToken(tokenBStr);
+        vm.prank(gov);
+        feeManager.addFeeToken(tokenCStr);
+
+        // Check all tokens are present
+        address[] memory tokenList = feeManager.getFeeTokenList();
+        assertEq(tokenList[tokenList.length - 3], tokenA, "TokenA should be present");
+        assertEq(tokenList[tokenList.length - 2], tokenB, "TokenB should be present");
+        assertEq(tokenList[tokenList.length - 1], tokenC, "TokenC should be present");
+
+        // Delete tokenB (middle)
+        vm.prank(gov);
+        feeManager.delFeeToken(tokenBStr);
+        tokenList = feeManager.getFeeTokenList();
+        // TokenA and TokenC should still be present
+        bool foundA = false;
+        bool foundC = false;
+        for (uint i = 0; i < tokenList.length; i++) {
+            if (tokenList[i] == tokenA) foundA = true;
+            if (tokenList[i] == tokenC) foundC = true;
+            assert(tokenList[i] != tokenB); // TokenB should not be present
+        }
+        assertTrue(foundA, "TokenA should still be present after deleting TokenB");
+        assertTrue(foundC, "TokenC should still be present after deleting TokenB");
+
+        // Delete tokenC (end)
+        vm.prank(gov);
+        feeManager.delFeeToken(tokenCStr);
+        tokenList = feeManager.getFeeTokenList();
+        // Only TokenA should remain
+        foundA = false;
+        for (uint i = 0; i < tokenList.length; i++) {
+            if (tokenList[i] == tokenA) foundA = true;
+            assert(tokenList[i] != tokenB && tokenList[i] != tokenC); // TokenB and TokenC should not be present
+        }
+        assertTrue(foundA, "TokenA should still be present after deleting TokenC");
+    }
+
+    function testFuzz_AddDeleteMultipleFeeTokens(uint8 numTokensRaw, uint8 deleteMidRaw) public {
+        uint8 numTokens = uint8(bound(numTokensRaw, 3, 20)); // At least 3 tokens, max 20
+        address[] memory tokens = new address[](numTokens);
+        string[] memory tokenStrs = new string[](numTokens);
+        // Add all tokens
+        for (uint8 i = 0; i < numTokens; i++) {
+            tokens[i] = address(uint160(uint256(keccak256(abi.encodePacked(i, block.timestamp, address(this))))));
+            tokenStrs[i] = addressToString(tokens[i]);
+            vm.prank(gov);
+            feeManager.addFeeToken(tokenStrs[i]);
+        }
+        // Check all tokens are present
+        address[] memory tokenList = feeManager.getFeeTokenList();
+        for (uint8 i = 0; i < numTokens; i++) {
+            assertEq(tokenList[tokenList.length - numTokens + i], tokens[i], "Token should be present");
+        }
+        // Delete a token from the middle
+        uint8 deleteMid = uint8(bound(deleteMidRaw, 1, numTokens - 2)); // Not first or last
+        vm.prank(gov);
+        feeManager.delFeeToken(tokenStrs[deleteMid]);
+        tokenList = feeManager.getFeeTokenList();
+        // Check all tokens except deleted one are present
+        for (uint8 i = 0; i < numTokens; i++) {
+            bool found = false;
+            for (uint j = 0; j < tokenList.length; j++) {
+                if (tokenList[j] == tokens[i]) found = true;
+            }
+            if (i == deleteMid) {
+                assertTrue(!found, "Deleted token should not be present");
+            } else {
+                assertTrue(found, "Token should still be present");
+            }
+        }
+        // Delete a token from the end (last in the original array, unless it was already deleted)
+        uint8 deleteEnd = numTokens - 1;
+        if (deleteEnd == deleteMid) deleteEnd--;
+        vm.prank(gov);
+        feeManager.delFeeToken(tokenStrs[deleteEnd]);
+        tokenList = feeManager.getFeeTokenList();
+        // Check all tokens except deleted ones are present
+        for (uint8 i = 0; i < numTokens; i++) {
+            bool found = false;
+            for (uint j = 0; j < tokenList.length; j++) {
+                if (tokenList[j] == tokens[i]) found = true;
+            }
+            if (i == deleteMid || i == deleteEnd) {
+                assertTrue(!found, "Deleted token should not be present");
+            } else {
+                assertTrue(found, "Token should still be present");
+            }
+        }
+    }
+
     function test_SetAndGetFeeMultiplier() public {
         vm.expectEmit(true, false, false, true);
         emit SetFeeMultiplier(FeeType.TX, 5);
