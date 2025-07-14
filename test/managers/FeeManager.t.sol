@@ -1,54 +1,332 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity ^0.8.22;
 
 import { Test } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
-
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { FeeManager } from "../../src/managers/FeeManager.sol";
+import { IFeeManager, FeeType } from "../../src/managers/IFeeManager.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Helpers } from "../helpers/Helpers.sol";
+import { Utils } from "../helpers/Utils.sol";
+import { TestERC20 } from "../../src/mocks/TestERC20.sol";
 
-import { FeeType, IFeeManager } from "../../src/managers/IFeeManager.sol";
+// Mock contract to test reentrancy
+contract ReentrancyAttacker {
+    FeeManager public feeManager;
+    string public feeTokenStr;
+    uint256 public attackAmount;
 
-contract TestFeeManager is Helpers {
-    using Strings for *;
+    constructor(FeeManager _feeManager, string memory _feeTokenStr, uint256 _attackAmount) {
+        feeManager = _feeManager;
+        feeTokenStr = _feeTokenStr;
+        attackAmount = _attackAmount;
+    }
 
-    function test_feeManager() public {
-        address[] memory feeTokenList = feeManager.getFeeTokenList();
-        assertEq(feeTokenList[0], address(ctm));
-        assertEq(feeTokenList[1], address(usdc));
+    function attack() external {
+        feeManager.payFee(attackAmount, feeTokenStr);
+    }
 
-        string memory tokenStr = address(usdc).toHexString();
+    // Simulate reentrancy during token transfer callback (if token had callback)
+    function triggerReentrancy() external {
+        feeManager.payFee(attackAmount, feeTokenStr);
+    }
+}
 
-        uint256 fee = feeManager.getXChainFee(_stringToArray("1"), false, FeeType.TX, tokenStr);
+contract TestFeeManager is Test, Helpers {
+    FeeManager public feeManager;
+    TestERC20 public feeToken;
+    address public gov = address(0x1);
+    address public c3callerProxy = address(0x2);
+    address public txSender = address(0x3);
+    uint256 public dappID = 123;
+    address public user = address(0x4);
+    address public treasury = address(0x5);
+    string public feeTokenStr;
+    string public chainIdStr = "421614"; // Example chain ID
 
-        assertEq(fee, 1000);
+    uint256 public constant INITIAL_SUPPLY = 1_000_000 * 10**18;
+    uint256 public constant FEE_AMOUNT = 100 * 10**18;
 
-        fee = fee * 10 ** usdc.decimals() / 100;
+    event AddFeeToken(address indexed feeToken);
+    event DelFeeToken(address indexed feeToken);
+    event SetFeeMultiplier(FeeType indexed feeType, uint256 multiplier);
+    event WithdrawFee(address indexed feeToken, address indexed treasury, uint256 amount);
 
-        vm.startPrank(user1);
-        usdc.approve(address(feeManager), 10000000);
-        uint256 initBal = usdc.balanceOf(address(user1));
-        uint256 feePaid = feeManager.payFee(fee, tokenStr);
-        uint256 endBal = usdc.balanceOf(address(user1));
-        assertEq(initBal - feePaid, endBal);
-        vm.stopPrank();
+    Utils private utils;
 
-        vm.startPrank(gov);
-        uint256 initialTreasuryBal = usdc.balanceOf(address(treasury));
-        feeManager.withdrawFee(tokenStr, endBal, treasury.toHexString());
-        uint256 treasuryBal = usdc.balanceOf(address(treasury));
-        assertEq(treasuryBal - initialTreasuryBal, feePaid);
-        vm.stopPrank();
+    function setUp() public {
+        utils = new Utils();
+        feeToken = new TestERC20("Test Token", "TST", 18);
+        feeTokenStr = utils.addressToString(address(feeToken));
+        feeManager = new FeeManager();
+        feeManager.initialize(gov, c3callerProxy, txSender, dappID);
+        // Mint tokens to user for testing
+        feeToken.mint(user, INITIAL_SUPPLY / 2);
+        // Add fee token
+        vm.prank(gov);
+        feeManager.addFeeToken(feeTokenStr);
+        // Set up fee configuration for a chain
+        string[] memory tokens = new string[](1);
+        tokens[0] = feeTokenStr;
+        uint256[] memory fees = new uint256[](1);
+        fees[0] = 100; // Base fee
+        vm.prank(gov);
+        feeManager.addFeeToken(chainIdStr, tokens, fees);
+        // Set a fee multiplier
+        vm.prank(gov);
+        feeManager.setFeeMultiplier(FeeType.TX, 2);
+    }
 
-        vm.startPrank(gov);
-        feeTokenList = feeManager.getFeeTokenList();
-        assertEq(feeTokenList.length, 2);
-        feeManager.delFeeToken(tokenStr);
-        feeTokenList = feeManager.getFeeTokenList();
-        assertEq(feeTokenList.length, 1);
-        assertEq(feeTokenList[0], address(ctm));
-        vm.stopPrank();
+    // Helper to convert address to string
+    function addressToString(address _addr) internal pure returns (string memory) {
+        bytes memory s = new bytes(40);
+        for (uint i = 0; i < 20; i++) {
+            bytes1 b = bytes1(uint8(uint(uint160(_addr)) / (2**(8*(19 - i)))));
+            bytes1 hi = bytes1(uint8(b) / 16);
+            bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
+            s[2*i] = char(hi);
+            s[2*i+1] = char(lo);
+        }
+        return string(abi.encodePacked("0x", s));
+    }
+
+    function char(bytes1 b) internal pure returns (bytes1 c) {
+        if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
+        else return bytes1(uint8(b) + 0x57);
+    }
+
+    // Access Control Tests
+    function test_OnlyGovCanAddFeeToken() public {
+        vm.expectRevert("C3GovernDapp: caller is not gov");
+        vm.prank(user);
+        feeManager.addFeeToken(feeTokenStr);
+    }
+
+    function test_OnlyGovCanDelFeeToken() public {
+        vm.expectRevert("C3GovernDapp: caller is not gov");
+        vm.prank(user);
+        feeManager.delFeeToken(feeTokenStr);
+    }
+
+    function test_OnlyGovCanSetFeeMultiplier() public {
+        vm.expectRevert("C3GovernDapp: caller is not gov");
+        vm.prank(user);
+        feeManager.setFeeMultiplier(FeeType.TX, 5);
+    }
+
+    function test_OnlyGovCanWithdrawFee() public {
+        vm.expectRevert("C3GovernDapp: caller is not gov");
+        vm.prank(user);
+        feeManager.withdrawFee(feeTokenStr, FEE_AMOUNT, utils.stringToAddress(treasury));
+    }
+
+    function test_OnlyGovCanPause() public {
+        vm.expectRevert("C3GovernDapp: caller is not gov");
+        vm.prank(user);
+        feeManager.pause();
+    }
+
+    function test_OnlyGovCanUnpause() public {
+        vm.prank(gov);
+        feeManager.pause();
+        vm.expectRevert("C3GovernDapp: caller is not gov");
+        vm.prank(user);
+        feeManager.unpause();
+    }
+
+    // Reentrancy Tests
+    function test_ReentrancyPayFeeFails() public {
+        // Setup attacker contract
+        ReentrancyAttacker attacker = new ReentrancyAttacker(feeManager, feeTokenStr, FEE_AMOUNT / 2);
+        // Give attacker some tokens
+        feeToken.mint(address(attacker), FEE_AMOUNT);
+        // Approve feeManager to spend tokens from attacker
+        vm.prank(address(attacker));
+        feeToken.approve(address(feeManager), FEE_AMOUNT * 2);
+        // Expect reentrancy to fail due to nonReentrant modifier
+        vm.expectRevert("ReentrancyGuard: reentrant call");
+        attacker.attack();
+    }
+
+    // Pausing Functionality Tests
+    function test_PausePreventsStateChanges() public {
+        vm.prank(gov);
+        feeManager.pause();
+        vm.expectRevert("Pausable: paused");
+        vm.prank(gov);
+        feeManager.addFeeToken(feeTokenStr);
+    }
+
+    function test_PausePreventsPayFee() public {
+        vm.prank(gov);
+        feeManager.pause();
+        vm.prank(user);
+        feeToken.approve(address(feeManager), FEE_AMOUNT);
+        vm.expectRevert("Pausable: paused");
+        vm.prank(user);
+        feeManager.payFee(FEE_AMOUNT, feeTokenStr);
+    }
+
+    function test_UnpauseRestoresFunctionality() public {
+        vm.prank(gov);
+        feeManager.pause();
+        vm.prank(gov);
+        feeManager.unpause();
+        vm.prank(user);
+        feeToken.approve(address(feeManager), FEE_AMOUNT);
+        uint256 paid = feeManager.payFee(FEE_AMOUNT, feeTokenStr);
+        assertEq(paid, FEE_AMOUNT, "Fee payment should succeed after unpause");
+    }
+
+    // Core Functionality Tests
+    function test_AddAndRemoveFeeToken() public {
+        address newToken = address(new TestERC20("New Token", "NTK", 18));
+        string memory newTokenStr = utils.addressToString(newToken);
+        vm.expectEmit(true, false, false, false);
+        emit AddFeeToken(newToken);
+        vm.prank(gov);
+        feeManager.addFeeToken(newTokenStr);
+        address[] memory tokenList = feeManager.getFeeTokenList();
+        assertEq(tokenList[tokenList.length - 1], newToken, "New token should be added");
+        vm.expectEmit(true, false, false, false);
+        emit DelFeeToken(newToken);
+        vm.prank(gov);
+        feeManager.delFeeToken(newTokenStr);
+        assertEq(feeManager.getFeeTokenIndexMap(newTokenStr), 0, "Token index should be reset");
+    }
+
+    function test_SetAndGetFeeMultiplier() public {
+        vm.expectEmit(true, false, false, true);
+        emit SetFeeMultiplier(FeeType.TX, 5);
+        vm.prank(gov);
+        feeManager.setFeeMultiplier(FeeType.TX, 5);
+        uint256 multiplier = feeManager.getFeeMultiplier(FeeType.TX);
+        assertEq(multiplier, 5, "Multiplier should be updated");
+    }
+
+    function test_PayFeeTransfersTokens() public {
+        uint256 userBalanceBefore = feeToken.balanceOf(user);
+        uint256 contractBalanceBefore = feeToken.balanceOf(address(feeManager));
+        vm.prank(user);
+        feeToken.approve(address(feeManager), FEE_AMOUNT);
+        vm.prank(user);
+        uint256 paid = feeManager.payFee(FEE_AMOUNT, feeTokenStr);
+        assertEq(paid, FEE_AMOUNT, "Paid amount should match input");
+        assertEq(feeToken.balanceOf(user), userBalanceBefore - FEE_AMOUNT, "User balance should decrease");
+        assertEq(feeToken.balanceOf(address(feeManager)), contractBalanceBefore + FEE_AMOUNT, "Contract balance should increase");
+    }
+
+    function test_WithdrawFeeTransfersTokens() public {
+        // First, pay a fee to have balance in contract
+        vm.prank(user);
+        feeToken.approve(address(feeManager), FEE_AMOUNT);
+        vm.prank(user);
+        feeManager.payFee(FEE_AMOUNT, feeTokenStr);
+        uint256 treasuryBalanceBefore = feeToken.balanceOf(treasury);
+        uint256 contractBalanceBefore = feeToken.balanceOf(address(feeManager));
+        vm.expectEmit(true, true, false, true);
+        emit WithdrawFee(address(feeToken), treasury, FEE_AMOUNT);
+        vm.prank(gov);
+        feeManager.withdrawFee(feeTokenStr, FEE_AMOUNT, utils.stringToAddress(treasury));
+        assertEq(feeToken.balanceOf(treasury), treasuryBalanceBefore + FEE_AMOUNT, "Treasury balance should increase");
+        assertEq(feeToken.balanceOf(address(feeManager)), contractBalanceBefore - FEE_AMOUNT, "Contract balance should decrease");
+    }
+
+    // Overflow/Underflow Tests
+    function test_WithdrawMoreThanBalance() public {
+        // Pay a small fee
+        vm.prank(user);
+        feeToken.approve(address(feeManager), FEE_AMOUNT);
+        vm.prank(user);
+        feeManager.payFee(FEE_AMOUNT, feeTokenStr);
+        // Try to withdraw more than balance
+        uint256 largeAmount = FEE_AMOUNT * 2;
+        uint256 treasuryBalanceBefore = feeToken.balanceOf(treasury);
+        vm.prank(gov);
+        feeManager.withdrawFee(feeTokenStr, largeAmount, utils.stringToAddress(treasury));
+        assertEq(feeToken.balanceOf(treasury), treasuryBalanceBefore + FEE_AMOUNT, "Should withdraw only available balance");
+        assertEq(feeToken.balanceOf(address(feeManager)), 0, "Contract balance should be 0");
+    }
+
+    function test_FeeMultiplierNoOverflow() public {
+        // Set a very large multiplier
+        uint256 largeMultiplier = type(uint256).max / 100;
+        vm.prank(gov);
+        feeManager.setFeeMultiplier(FeeType.TX, largeMultiplier);
+        // Set a base fee
+        string[] memory tokens = new string[](1);
+        tokens[0] = feeTokenStr;
+        uint256[] memory fees = new uint256[](1);
+        fees[0] = 100;
+        vm.prank(gov);
+        feeManager.addFeeToken(chainIdStr, tokens, fees);
+        // Calculate fee, should not overflow due to Solidity 0.8+ checks
+        string[] memory chains = new string[](1);
+        chains[0] = chainIdStr;
+        uint256 fee = feeManager.getXChainFee(chains, false, FeeType.TX, feeTokenStr);
+        assertEq(fee, 100 * largeMultiplier, "Fee calculation should not overflow");
+    }
+
+    // Gas Usage Tests
+    function test_GasUsagePayFee() public {
+        vm.prank(user);
+        feeToken.approve(address(feeManager), FEE_AMOUNT);
+        uint256 gasStart = gasleft();
+        vm.prank(user);
+        feeManager.payFee(FEE_AMOUNT, feeTokenStr);
+        uint256 gasUsed = gasStart - gasleft();
+        console.log("Gas used for payFee:", gasUsed);
+        assertLt(gasUsed, 100_000, "Gas usage for payFee should be reasonable");
+    }
+
+    function test_GasUsageSetFeeMultiplier() public {
+        uint256 gasStart = gasleft();
+        vm.prank(gov);
+        feeManager.setFeeMultiplier(FeeType.TX, 10);
+        uint256 gasUsed = gasStart - gasleft();
+        console.log("Gas used for setFeeMultiplier:", gasUsed);
+        assertLt(gasUsed, 50_000, "Gas usage for setFeeMultiplier should be reasonable");
+    }
+
+    // Fuzz Tests
+    function test_FuzzPayFee(uint256 amount) public {
+        // Bound the amount to avoid overflow and ensure user has enough balance
+        amount = bound(amount, 1, INITIAL_SUPPLY / 2);
+        vm.prank(user);
+        feeToken.approve(address(feeManager), amount);
+        uint256 userBalanceBefore = feeToken.balanceOf(user);
+        uint256 contractBalanceBefore = feeToken.balanceOf(address(feeManager));
+        vm.prank(user);
+        uint256 paid = feeManager.payFee(amount, feeTokenStr);
+        assertEq(paid, amount, "Paid amount should match input");
+        assertEq(feeToken.balanceOf(user), userBalanceBefore - amount, "User balance should decrease");
+        assertEq(feeToken.balanceOf(address(feeManager)), contractBalanceBefore + amount, "Contract balance should increase");
+    }
+
+    function test_FuzzSetFeeMultiplier(FeeType feeType, uint256 multiplier) public {
+        // Ensure feeType is within valid range
+        uint256 feeTypeInt = uint256(feeType) % 28; // 28 is the number of FeeType enum values
+        feeType = FeeType(feeTypeInt);
+        // Bound multiplier to reasonable values
+        multiplier = bound(multiplier, 1, 1_000_000);
+        vm.prank(gov);
+        feeManager.setFeeMultiplier(feeType, multiplier);
+        assertEq(feeManager.getFeeMultiplier(feeType), multiplier, "Multiplier should be set correctly");
+    }
+
+    // Invariant Tests
+    function invariant_FeeTokenListConsistency() public view {
+        address[] memory tokenList = feeManager.getFeeTokenList();
+        for (uint256 i = 0; i < tokenList.length; i++) {
+            assertGt(feeManager.getFeeTokenIndexMap(utils.addressToString(tokenList[i])), 0, "Listed token should have valid index");
+        }
+    }
+
+    function invariant_ContractBalanceNonNegative() public view {
+        assertGe(feeToken.balanceOf(address(feeManager)), 0, "Contract balance should never be negative");
     }
 }

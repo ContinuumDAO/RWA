@@ -144,7 +144,7 @@ contract TestInvest is Helpers {
         );
         console.log("setUp: offering created successfully");
         vm.stopPrank();
-        
+
         console.log("setUp: completed successfully");
     }
 
@@ -228,7 +228,7 @@ contract TestInvest is Helpers {
             feeTokenStr
         );
         vm.stopPrank();
-        
+
         // Check if the unauthorized user is allowed to transfer (should be false)
         bool isAllowed = ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(unauthorizedUser.toHexString());
         assertFalse(isAllowed, "Unauthorized user should not be allowed to transfer");
@@ -393,7 +393,7 @@ contract TestInvest is Helpers {
         // Try to attack multiple functions
         attacker.attack(0, address(usdc), address(usdc), 1000);
         vm.stopPrank();
-        
+
         // Verify no reentrancy occurred
         assertEq(attacker.attackCount(), 0, "Multiple reentrancy attempts should be blocked");
     }
@@ -413,7 +413,7 @@ contract TestInvest is Helpers {
             tokenId,
             feeTokenStr
         );
-        
+
         // Approve the investment contract to transfer the token
         token.approve(address(investContract), testTokenId);
         vm.stopPrank();
@@ -448,7 +448,7 @@ contract TestInvest is Helpers {
 
     function test_gas_investInOffering() public {
         uint256 gasBefore = gasleft();
-        
+
         vm.startPrank(user1);
         usdc.approve(address(investContract), amount);
         investContract.investInOffering(0, amount, currency);
@@ -471,11 +471,11 @@ contract TestInvest is Helpers {
         vm.stopPrank();
         
         uint256 gasBefore = gasleft();
-        
+
         vm.startPrank(tokenAdmin);
         uint256 withdrawn = investContract.withdrawInvested(0);
         vm.stopPrank();
-        
+
         uint256 gasUsed = gasBefore - gasleft();
         
         // Adjusted gas usage bounds for withdrawal
@@ -492,7 +492,7 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), amount);
         uint256 localInvestedTokenId = investContract.investInOffering(0, amount, currency);
         vm.stopPrank();
-        
+
         // Fast forward time to unlock the token
         vm.warp(block.timestamp + lockDuration + 1);
         
@@ -501,7 +501,7 @@ contract TestInvest is Helpers {
         vm.startPrank(user1);
         uint256 unlockedTokenId = investContract.unlockTokenId(0, currency);
         vm.stopPrank();
-        
+
         uint256 gasUsed = gasBefore - gasleft();
         
         // Adjusted gas usage bounds for unlocking
@@ -518,7 +518,7 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), amount);
         investContract.investInOffering(0, amount, currency);
         vm.stopPrank();
-        
+
         uint256 gasBefore = gasleft();
         
         vm.startPrank(user1);
@@ -559,12 +559,12 @@ contract TestInvest is Helpers {
         vm.assume(_amount >= minInvest && _amount <= maxInvest);
         
         uint256 gasBefore = gasleft();
-        
+
         vm.startPrank(user1);
         usdc.approve(address(investContract), _amount);
         investContract.investInOffering(0, _amount, currency);
         vm.stopPrank();
-        
+
         uint256 gasUsed = gasBefore - gasleft();
         
         // Adjusted gas usage bounds for fuzz investment
@@ -606,7 +606,7 @@ contract TestInvest is Helpers {
             vm.startPrank(user1);
             usdc.approve(address(investContract), amounts[i]);
             investContract.investInOffering(0, amounts[i], currency);
-            vm.stopPrank();
+        vm.stopPrank();
             
             uint256 gasUsed = gasBefore - gasleft();
             console.log("Gas used for investment amount", amounts[i], ":", gasUsed);

@@ -9,6 +9,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
@@ -16,51 +17,47 @@ import { FeeType, IFeeManager } from "./IFeeManager.sol";
 
 import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
-contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUpgradeable {
+contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUpgradeable, PausableUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
 
     address[] public feeTokenList;
+    /**
+     * @dev feeTokenIndexMap is 1-based. If a token is removed and re-added, its index will change.
+     * Off-chain consumers should not rely on index stability.
+     */
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
     uint256[29] public feeMultiplier;
 
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
-    mapping(address => FeeParams) public feeParams;
-
-    struct FeeParams {
-        uint256 basePrice; // price in wei per gwei of relevent gasFee
-        uint256 lowGas; // price in gwei
-        uint256 normalGas;
-        uint256 highGas;
-        uint256 veryHighGas;
-        uint256 lowGasFee; // price in gwei corresponding to lowGas
-        uint256 normalGasFee; // price in gwei corresponding to normalGas
-        uint256 highGasFee;
-        uint256 veryHighGasFee;
-    }
-
-    function initialize(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)
-        external
-        initializer
-    {
-        __ReentrancyGuard_init();
-        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
-    }
-
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
-
-    event Withdrawal(address _oldFeeToken, address _recipient, uint256 _oldTokenContractBalance);
-
-    event AddFeeToken(address indexed _feeToken);
-    event DelFeeToken(address indexed _feeToken);
+    event AddFeeToken(address indexed feeToken);
+    event DelFeeToken(address indexed feeToken);
+    event SetFeeMultiplier(FeeType indexed feeType, uint256 multiplier);
+    event WithdrawFee(address indexed feeToken, address indexed treasury, uint256 amount);
 
     mapping(string => mapping(address => uint256)) private _toFeeConfigs; // key is toChainIDStr, value key is
         // tokenAddress
 
-    function addFeeToken(string memory feeTokenStr) external onlyGov returns (bool) {
+    function initialize(address govAddr, address c3callerProxyAddr, address txSender, uint256 dappID2) public initializer {
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+        __C3GovernDapp_init(govAddr, c3callerProxyAddr, txSender, dappID2);
+        __Pausable_init();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
+
+    function pause() external onlyGov {
+        _pause();
+    }
+    function unpause() external onlyGov {
+        _unpause();
+    }
+
+    function addFeeToken(string memory feeTokenStr) external onlyGov whenNotPaused nonReentrant returns (bool) {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
         address feeToken = feeTokenStr._stringToAddress();
         uint256 index = feeTokenList.length;
@@ -70,7 +67,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         return true;
     }
 
-    function delFeeToken(string memory feeTokenStr) external onlyGov returns (bool) {
+    function delFeeToken(string memory feeTokenStr) external onlyGov whenNotPaused nonReentrant returns (bool) {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
         address feeToken = feeTokenStr._stringToAddress();
         require(feeTokenIndexMap[feeToken] > 0, "FeeManager: token not exist");
@@ -115,175 +112,38 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         string memory dstChainIDStr,
         string[] memory feeTokensStr,
         uint256[] memory fee // human readable * 100
-    ) external onlyGov returns (bool) {
+    ) external onlyGov whenNotPaused nonReentrant returns (bool) {
         require(bytes(dstChainIDStr).length > 0, "FeeManager: ChainID empty");
 
         require(feeTokensStr.length == fee.length, "FeeManager: Invalid list size");
 
         dstChainIDStr = dstChainIDStr._toLower();
 
+        address[] memory localFeetokens = new address[](feeTokensStr.length);
         for (uint256 i = 0; i < feeTokensStr.length; i++) {
             require(bytes(feeTokensStr[i]).length == 42, "FeeManager: Fee token has incorrect length");
-            feetokens.push(feeTokensStr[i]._toLower()._stringToAddress());
+            localFeetokens[i] = feeTokensStr[i]._toLower()._stringToAddress();
         }
 
         for (uint256 index = 0; index < feeTokensStr.length; index++) {
-            require(feeTokenIndexMap[feetokens[index]] > 0, "FeeManager: fee token does not exist");
-            _toFeeConfigs[dstChainIDStr][feetokens[index]] = fee[index];
+            require(feeTokenIndexMap[localFeetokens[index]] > 0, "FeeManager: fee token does not exist");
+            _toFeeConfigs[dstChainIDStr][localFeetokens[index]] = fee[index];
         }
         return true;
     }
 
-    function setFeeMultiplier(FeeType _feeType, uint256 _multiplier) external onlyGov returns (bool) {
-        if (_feeType == FeeType.ADMIN) {
-            feeMultiplier[0] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.DEPLOY) {
-            feeMultiplier[1] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.TX) {
-            feeMultiplier[2] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.MINT) {
-            feeMultiplier[3] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.BURN) {
-            feeMultiplier[4] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.ISSUER) {
-            feeMultiplier[5] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.PROVENANCE) {
-            feeMultiplier[6] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.VALUATION) {
-            feeMultiplier[7] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.PROSPECTUS) {
-            feeMultiplier[8] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.RATING) {
-            feeMultiplier[9] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.LEGAL) {
-            feeMultiplier[10] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.FINANCIAL) {
-            feeMultiplier[11] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.LICENSE) {
-            feeMultiplier[12] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.DUEDILIGENCE) {
-            feeMultiplier[13] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.NOTICE) {
-            feeMultiplier[14] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.DIVIDEND) {
-            feeMultiplier[15] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.REDEMPTION) {
-            feeMultiplier[16] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.WHOCANINVEST) {
-            feeMultiplier[17] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.IMAGE) {
-            feeMultiplier[18] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.VIDEO) {
-            feeMultiplier[19] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.ICON) {
-            feeMultiplier[20] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.WHITELIST) {
-            feeMultiplier[21] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.COUNTRY) {
-            feeMultiplier[22] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.KYC) {
-            feeMultiplier[23] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.ERC20) {
-            feeMultiplier[24] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.DEPLOYINVEST) {
-            feeMultiplier[25] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.OFFERING) {
-            feeMultiplier[26] = _multiplier;
-            return (true);
-        } else if (_feeType == FeeType.INVEST) {
-            feeMultiplier[27] = _multiplier;
-            return (true);
-        } else {
-            return (false);
-        }
+    function setFeeMultiplier(FeeType _feeType, uint256 _multiplier) external onlyGov whenNotPaused nonReentrant returns (bool) {
+        uint256 idx = uint256(_feeType);
+        require(idx < feeMultiplier.length, "FeeManager: Invalid FeeType");
+        feeMultiplier[idx] = _multiplier;
+        emit SetFeeMultiplier(_feeType, _multiplier);
+        return true;
     }
 
     function getFeeMultiplier(FeeType _feeType) public view returns (uint256) {
-        if (_feeType == FeeType.ADMIN) {
-            return (feeMultiplier[0]);
-        } else if (_feeType == FeeType.DEPLOY) {
-            return (feeMultiplier[1]);
-        } else if (_feeType == FeeType.TX) {
-            return (feeMultiplier[2]);
-        } else if (_feeType == FeeType.MINT) {
-            return (feeMultiplier[3]);
-        } else if (_feeType == FeeType.BURN) {
-            return (feeMultiplier[4]);
-        } else if (_feeType == FeeType.ISSUER) {
-            return (feeMultiplier[5]);
-        } else if (_feeType == FeeType.PROVENANCE) {
-            return (feeMultiplier[6]);
-        } else if (_feeType == FeeType.VALUATION) {
-            return (feeMultiplier[7]);
-        } else if (_feeType == FeeType.PROSPECTUS) {
-            return (feeMultiplier[8]);
-        } else if (_feeType == FeeType.RATING) {
-            return (feeMultiplier[9]);
-        } else if (_feeType == FeeType.LEGAL) {
-            return (feeMultiplier[10]);
-        } else if (_feeType == FeeType.FINANCIAL) {
-            return (feeMultiplier[11]);
-        } else if (_feeType == FeeType.LICENSE) {
-            return (feeMultiplier[12]);
-        } else if (_feeType == FeeType.DUEDILIGENCE) {
-            return (feeMultiplier[13]);
-        } else if (_feeType == FeeType.NOTICE) {
-            return (feeMultiplier[14]);
-        } else if (_feeType == FeeType.DIVIDEND) {
-            return (feeMultiplier[15]);
-        } else if (_feeType == FeeType.REDEMPTION) {
-            return (feeMultiplier[16]);
-        } else if (_feeType == FeeType.WHOCANINVEST) {
-            return (feeMultiplier[17]);
-        } else if (_feeType == FeeType.IMAGE) {
-            return (feeMultiplier[18]);
-        } else if (_feeType == FeeType.VIDEO) {
-            return (feeMultiplier[19]);
-        } else if (_feeType == FeeType.ICON) {
-            return (feeMultiplier[20]);
-        } else if (_feeType == FeeType.WHITELIST) {
-            return (feeMultiplier[21]);
-        } else if (_feeType == FeeType.COUNTRY) {
-            return (feeMultiplier[22]);
-        } else if (_feeType == FeeType.KYC) {
-            return (feeMultiplier[23]);
-        } else if (_feeType == FeeType.ERC20) {
-            return (feeMultiplier[24]);
-        } else if (_feeType == FeeType.DEPLOYINVEST) {
-            return (feeMultiplier[25]);
-        } else if (_feeType == FeeType.OFFERING) {
-            return (feeMultiplier[26]);
-        } else if (_feeType == FeeType.INVEST) {
-            return (feeMultiplier[27]);
-        } else {
-            revert("FeeManager: Bad FeeType");
-        }
+        uint256 idx = uint256(_feeType);
+        require(idx < feeMultiplier.length, "FeeManager: Invalid FeeType");
+        return feeMultiplier[idx];
     }
 
     function getXChainFee(
@@ -309,7 +169,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         return fee;
     }
 
-    function payFee(uint256 fee, string memory feeTokenStr) external returns (uint256) {
+    function payFee(uint256 fee, string memory feeTokenStr) external nonReentrant whenNotPaused returns (uint256) {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
         address feeToken = feeTokenStr._stringToAddress();
         require(IERC20(feeToken).transferFrom(msg.sender, address(this), fee), "FM: Fee payment failed");
@@ -319,6 +179,8 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     function withdrawFee(string memory feeTokenStr, uint256 amount, string memory treasuryStr)
         external
         onlyGov
+        nonReentrant
+        whenNotPaused
         returns (bool)
     {
         require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has an incorrect length");
@@ -331,6 +193,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
             amount = bal;
         }
         require(IERC20(feeToken).transfer(treasury, amount), "FeeManager: transfer fail");
+        emit WithdrawFee(feeToken, treasury, amount);
         return true;
     }
 
@@ -351,17 +214,6 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         emit LogFallback(_selector, _data, _reason);
 
         return true;
-    }
-
-    function setFeeTokenParams(string memory feeTokenStr, FeeParams memory fee) external onlyGov returns (bool) {
-        require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr incorrect length");
-        address feeToken = feeTokenStr._stringToAddress();
-        feeParams[feeToken] = fee;
-        return true;
-    }
-
-    function getFeeTokenParams(address _feeToken) public view returns (FeeParams memory) {
-        return (feeParams[_feeToken]);
     }
 
     function cID() internal view returns (uint256) {

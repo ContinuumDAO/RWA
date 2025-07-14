@@ -85,7 +85,7 @@ contract ReentrantContract {
 }
 
 contract TestCTMRWA1X is Helpers {
-        using Strings for *;
+    using Strings for *;
 
     event LogC3Call(
         uint256 indexed dappID,
