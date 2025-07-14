@@ -2,9 +2,13 @@
 
 pragma solidity ^0.8.22;
 
+import {Address} from "../CTMRWAUtils.sol";
+
 interface ICTMRWA1XFallback {
     event LogFallback(bytes4 selector, bytes data, bytes reason);
     event ReturnValueFallback(address to, uint256 slot, uint256 value);
+
+    error CTMRWA1XFallback_Unauthorized(Address);
 
     function rwa1X() external returns (address);
     function lastSelector() external returns (bytes4);
