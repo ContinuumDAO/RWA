@@ -8,22 +8,22 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { FeeManager } from "../../src/managers/FeeManager.sol";
 import { IFeeManager, FeeType } from "../../src/managers/IFeeManager.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Helpers } from "../helpers/Helpers.sol";
-import { Utils } from "../helpers/Utils.sol";
 import { TestERC20 } from "../../src/mocks/TestERC20.sol";
 
 // Mock contract to test reentrancy
 contract ReentrancyAttacker {
-    FeeManager public feeManager;
     string public feeTokenStr;
     uint256 public attackAmount;
 
+    FeeManager feeManager;
+
     constructor(FeeManager _feeManager, string memory _feeTokenStr, uint256 _attackAmount) {
-        feeManager = _feeManager;
         feeTokenStr = _feeTokenStr;
         attackAmount = _attackAmount;
+        feeManager = _feeManager;
     }
 
     function attack() external {
@@ -36,15 +36,10 @@ contract ReentrancyAttacker {
     }
 }
 
-contract TestFeeManager is Test, Helpers {
-    FeeManager public feeManager;
-    TestERC20 public feeToken;
-    address public gov = address(0x1);
-    address public c3callerProxy = address(0x2);
-    address public txSender = address(0x3);
+contract TestFeeManager is Helpers {
+    TestERC20 feeToken;
     uint256 public dappID = 123;
-    address public user = address(0x4);
-    address public treasury = address(0x5);
+
     string public feeTokenStr;
     string public chainIdStr = "421614"; // Example chain ID
 
@@ -56,16 +51,12 @@ contract TestFeeManager is Test, Helpers {
     event SetFeeMultiplier(FeeType indexed feeType, uint256 multiplier);
     event WithdrawFee(address indexed feeToken, address indexed treasury, uint256 amount);
 
-    Utils private utils;
-
-    function setUp() public {
-        utils = new Utils();
-        feeToken = new TestERC20("Test Token", "TST", 18);
-        feeTokenStr = utils.addressToString(address(feeToken));
-        feeManager = new FeeManager();
-        feeManager.initialize(gov, c3callerProxy, txSender, dappID);
+    function setUp() public override {
+        super.setUp();
+        feeToken = usdc;
+        feeTokenStr = addressToString(address(usdc));
         // Mint tokens to user for testing
-        feeToken.mint(user, INITIAL_SUPPLY / 2);
+        feeToken.mint(user1, INITIAL_SUPPLY / 2);
         // Add fee token
         vm.prank(gov);
         feeManager.addFeeToken(feeTokenStr);
@@ -81,60 +72,42 @@ contract TestFeeManager is Test, Helpers {
         feeManager.setFeeMultiplier(FeeType.TX, 2);
     }
 
-    // Helper to convert address to string
-    function addressToString(address _addr) internal pure returns (string memory) {
-        bytes memory s = new bytes(40);
-        for (uint i = 0; i < 20; i++) {
-            bytes1 b = bytes1(uint8(uint(uint160(_addr)) / (2**(8*(19 - i)))));
-            bytes1 hi = bytes1(uint8(b) / 16);
-            bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
-            s[2*i] = char(hi);
-            s[2*i+1] = char(lo);
-        }
-        return string(abi.encodePacked("0x", s));
-    }
-
-    function char(bytes1 b) internal pure returns (bytes1 c) {
-        if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
-        else return bytes1(uint8(b) + 0x57);
-    }
-
     // Access Control Tests
     function test_OnlyGovCanAddFeeToken() public {
-        vm.expectRevert("C3GovernDapp: caller is not gov");
-        vm.prank(user);
+        vm.expectRevert("Gov FORBIDDEN");
+        vm.prank(user1);
         feeManager.addFeeToken(feeTokenStr);
     }
 
     function test_OnlyGovCanDelFeeToken() public {
-        vm.expectRevert("C3GovernDapp: caller is not gov");
-        vm.prank(user);
+        vm.expectRevert("Gov FORBIDDEN");
+        vm.prank(user1);
         feeManager.delFeeToken(feeTokenStr);
     }
 
     function test_OnlyGovCanSetFeeMultiplier() public {
-        vm.expectRevert("C3GovernDapp: caller is not gov");
-        vm.prank(user);
+        vm.expectRevert("Gov FORBIDDEN");
+        vm.prank(user1);
         feeManager.setFeeMultiplier(FeeType.TX, 5);
     }
 
     function test_OnlyGovCanWithdrawFee() public {
-        vm.expectRevert("C3GovernDapp: caller is not gov");
-        vm.prank(user);
-        feeManager.withdrawFee(feeTokenStr, FEE_AMOUNT, utils.stringToAddress(treasury));
+        vm.expectRevert("Gov FORBIDDEN");
+        vm.prank(user1);
+        feeManager.withdrawFee(feeTokenStr, FEE_AMOUNT, addressToString(treasury));
     }
 
     function test_OnlyGovCanPause() public {
-        vm.expectRevert("C3GovernDapp: caller is not gov");
-        vm.prank(user);
+        vm.expectRevert("Gov FORBIDDEN");
+        vm.prank(user1);
         feeManager.pause();
     }
 
     function test_OnlyGovCanUnpause() public {
         vm.prank(gov);
         feeManager.pause();
-        vm.expectRevert("C3GovernDapp: caller is not gov");
-        vm.prank(user);
+        vm.expectRevert("Gov FORBIDDEN");
+        vm.prank(user1);
         feeManager.unpause();
     }
 
@@ -156,7 +129,8 @@ contract TestFeeManager is Test, Helpers {
     function test_PausePreventsStateChanges() public {
         vm.prank(gov);
         feeManager.pause();
-        vm.expectRevert("Pausable: paused");
+        // vm.expectRevert("Pausable: paused");
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
         vm.prank(gov);
         feeManager.addFeeToken(feeTokenStr);
     }
@@ -164,10 +138,11 @@ contract TestFeeManager is Test, Helpers {
     function test_PausePreventsPayFee() public {
         vm.prank(gov);
         feeManager.pause();
-        vm.prank(user);
+        vm.prank(user1);
         feeToken.approve(address(feeManager), FEE_AMOUNT);
-        vm.expectRevert("Pausable: paused");
-        vm.prank(user);
+        // vm.expectRevert("Pausable: paused");
+        vm.expectRevert(PausableUpgradeable.EnforcedPause.selector);
+        vm.prank(user1);
         feeManager.payFee(FEE_AMOUNT, feeTokenStr);
     }
 
@@ -176,8 +151,9 @@ contract TestFeeManager is Test, Helpers {
         feeManager.pause();
         vm.prank(gov);
         feeManager.unpause();
-        vm.prank(user);
+        vm.prank(user1);
         feeToken.approve(address(feeManager), FEE_AMOUNT);
+        vm.prank(user1);
         uint256 paid = feeManager.payFee(FEE_AMOUNT, feeTokenStr);
         assertEq(paid, FEE_AMOUNT, "Fee payment should succeed after unpause");
     }
@@ -185,7 +161,7 @@ contract TestFeeManager is Test, Helpers {
     // Core Functionality Tests
     function test_AddAndRemoveFeeToken() public {
         address newToken = address(new TestERC20("New Token", "NTK", 18));
-        string memory newTokenStr = utils.addressToString(newToken);
+        string memory newTokenStr = addressToString(newToken);
         vm.expectEmit(true, false, false, false);
         emit AddFeeToken(newToken);
         vm.prank(gov);
@@ -209,29 +185,29 @@ contract TestFeeManager is Test, Helpers {
     }
 
     function test_PayFeeTransfersTokens() public {
-        uint256 userBalanceBefore = feeToken.balanceOf(user);
+        uint256 userBalanceBefore = feeToken.balanceOf(user1);
         uint256 contractBalanceBefore = feeToken.balanceOf(address(feeManager));
-        vm.prank(user);
+        vm.prank(user1);
         feeToken.approve(address(feeManager), FEE_AMOUNT);
-        vm.prank(user);
+        vm.prank(user1);
         uint256 paid = feeManager.payFee(FEE_AMOUNT, feeTokenStr);
         assertEq(paid, FEE_AMOUNT, "Paid amount should match input");
-        assertEq(feeToken.balanceOf(user), userBalanceBefore - FEE_AMOUNT, "User balance should decrease");
+        assertEq(feeToken.balanceOf(user1), userBalanceBefore - FEE_AMOUNT, "User balance should decrease");
         assertEq(feeToken.balanceOf(address(feeManager)), contractBalanceBefore + FEE_AMOUNT, "Contract balance should increase");
     }
 
     function test_WithdrawFeeTransfersTokens() public {
         // First, pay a fee to have balance in contract
-        vm.prank(user);
+        vm.prank(user1);
         feeToken.approve(address(feeManager), FEE_AMOUNT);
-        vm.prank(user);
+        vm.prank(user1);
         feeManager.payFee(FEE_AMOUNT, feeTokenStr);
         uint256 treasuryBalanceBefore = feeToken.balanceOf(treasury);
         uint256 contractBalanceBefore = feeToken.balanceOf(address(feeManager));
         vm.expectEmit(true, true, false, true);
         emit WithdrawFee(address(feeToken), treasury, FEE_AMOUNT);
         vm.prank(gov);
-        feeManager.withdrawFee(feeTokenStr, FEE_AMOUNT, utils.stringToAddress(treasury));
+        feeManager.withdrawFee(feeTokenStr, FEE_AMOUNT, addressToString(treasury));
         assertEq(feeToken.balanceOf(treasury), treasuryBalanceBefore + FEE_AMOUNT, "Treasury balance should increase");
         assertEq(feeToken.balanceOf(address(feeManager)), contractBalanceBefore - FEE_AMOUNT, "Contract balance should decrease");
     }
@@ -239,15 +215,15 @@ contract TestFeeManager is Test, Helpers {
     // Overflow/Underflow Tests
     function test_WithdrawMoreThanBalance() public {
         // Pay a small fee
-        vm.prank(user);
+        vm.prank(user1);
         feeToken.approve(address(feeManager), FEE_AMOUNT);
-        vm.prank(user);
+        vm.prank(user1);
         feeManager.payFee(FEE_AMOUNT, feeTokenStr);
         // Try to withdraw more than balance
         uint256 largeAmount = FEE_AMOUNT * 2;
         uint256 treasuryBalanceBefore = feeToken.balanceOf(treasury);
         vm.prank(gov);
-        feeManager.withdrawFee(feeTokenStr, largeAmount, utils.stringToAddress(treasury));
+        feeManager.withdrawFee(feeTokenStr, largeAmount, addressToString(treasury));
         assertEq(feeToken.balanceOf(treasury), treasuryBalanceBefore + FEE_AMOUNT, "Should withdraw only available balance");
         assertEq(feeToken.balanceOf(address(feeManager)), 0, "Contract balance should be 0");
     }
@@ -273,10 +249,10 @@ contract TestFeeManager is Test, Helpers {
 
     // Gas Usage Tests
     function test_GasUsagePayFee() public {
-        vm.prank(user);
+        vm.prank(user1);
         feeToken.approve(address(feeManager), FEE_AMOUNT);
         uint256 gasStart = gasleft();
-        vm.prank(user);
+        vm.prank(user1);
         feeManager.payFee(FEE_AMOUNT, feeTokenStr);
         uint256 gasUsed = gasStart - gasleft();
         console.log("Gas used for payFee:", gasUsed);
@@ -296,14 +272,14 @@ contract TestFeeManager is Test, Helpers {
     function test_FuzzPayFee(uint256 amount) public {
         // Bound the amount to avoid overflow and ensure user has enough balance
         amount = bound(amount, 1, INITIAL_SUPPLY / 2);
-        vm.prank(user);
+        vm.prank(user1);
         feeToken.approve(address(feeManager), amount);
-        uint256 userBalanceBefore = feeToken.balanceOf(user);
+        uint256 userBalanceBefore = feeToken.balanceOf(user1);
         uint256 contractBalanceBefore = feeToken.balanceOf(address(feeManager));
-        vm.prank(user);
+        vm.prank(user1);
         uint256 paid = feeManager.payFee(amount, feeTokenStr);
         assertEq(paid, amount, "Paid amount should match input");
-        assertEq(feeToken.balanceOf(user), userBalanceBefore - amount, "User balance should decrease");
+        assertEq(feeToken.balanceOf(user1), userBalanceBefore - amount, "User balance should decrease");
         assertEq(feeToken.balanceOf(address(feeManager)), contractBalanceBefore + amount, "Contract balance should increase");
     }
 
@@ -322,7 +298,7 @@ contract TestFeeManager is Test, Helpers {
     function invariant_FeeTokenListConsistency() public view {
         address[] memory tokenList = feeManager.getFeeTokenList();
         for (uint256 i = 0; i < tokenList.length; i++) {
-            assertGt(feeManager.getFeeTokenIndexMap(utils.addressToString(tokenList[i])), 0, "Listed token should have valid index");
+            assertGt(feeManager.getFeeTokenIndexMap(addressToString(tokenList[i])), 0, "Listed token should have valid index");
         }
     }
 

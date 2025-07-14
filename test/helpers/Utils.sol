@@ -7,6 +7,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Test } from "forge-std/Test.sol";
 
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
+import {CTMRWAProxy} from "../../src/CTMRWAProxy.sol";
 
 contract Utils is Test {
     using Strings for *;
@@ -41,8 +42,8 @@ contract Utils is Test {
         return address(uint160(bytes20(addrBytes)));
     }
 
-    function hexCharToByte(bytes1 char) internal pure returns (uint8) {
-        uint8 byteValue = uint8(char);
+    function hexCharToByte(bytes1 _char) internal pure returns (uint8) {
+        uint8 byteValue = uint8(_char);
         if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
             return byteValue - uint8(bytes1("0"));
         } else if (byteValue >= uint8(bytes1("a")) && byteValue <= uint8(bytes1("f"))) {
@@ -53,10 +54,32 @@ contract Utils is Test {
         revert("Invalid hex character");
     }
 
+    function _deployProxy(address implementation, bytes memory _data) internal returns (address proxy) {
+        proxy = address(new CTMRWAProxy(implementation, _data));
+    }
+
     function stringsEqual(string memory a, string memory b) public pure returns (bool) {
         bytes32 ka = keccak256(abi.encode(a));
         bytes32 kb = keccak256(abi.encode(b));
         return (ka == kb);
+    }
+
+    // Helper to convert address to string
+    function addressToString(address _addr) internal pure returns (string memory) {
+        bytes memory s = new bytes(40);
+        for (uint i = 0; i < 20; i++) {
+            bytes1 b = bytes1(uint8(uint(uint160(_addr)) / (2**(8*(19 - i)))));
+            bytes1 hi = bytes1(uint8(b) / 16);
+            bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
+            s[2*i] = char(hi);
+            s[2*i+1] = char(lo);
+        }
+        return string(abi.encodePacked("0x", s));
+    }
+
+    function char(bytes1 b) internal pure returns (bytes1 c) {
+        if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
+        else return bytes1(uint8(b) + 0x57);
     }
 
     function cID() internal view returns (uint256) {

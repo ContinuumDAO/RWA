@@ -70,36 +70,36 @@ contract TestInvest is Helpers {
 
     function setUp() public override {
         super.setUp();
-        console.log("setUp: after super.setUp()");
+        // console.log("setUp: after super.setUp()");
         
         // Deploy token as tokenAdmin
         vm.startPrank(tokenAdmin);
         (tokenId, token) = _deployCTMRWA1(address(usdc));
-        console.log("setUp: after _deployCTMRWA1, tokenId =", tokenId);
+        // console.log("setUp: after _deployCTMRWA1, tokenId =", tokenId);
         
         _createSlot(tokenId, slotId, address(usdc), address(rwa1X));
-        console.log("setUp: after _createSlot");
+        // console.log("setUp: after _createSlot");
         
         feeTokenStr = address(usdc).toHexString();
-        console.log("setUp: feeTokenStr =", feeTokenStr);
+        // console.log("setUp: feeTokenStr =", feeTokenStr);
 
         // Deploy investment contract using the deployer (only tokenAdmin can do this)
-        console.log("setUp: deploying investment contract via deployer...");
+        // console.log("setUp: deploying investment contract via deployer...");
         address investAddr = deployer.deployNewInvestment(tokenId, RWA_TYPE, VERSION, address(usdc));
-        console.log("setUp: investment contract deployed at", investAddr);
+        // console.log("setUp: investment contract deployed at", investAddr);
         vm.stopPrank();
 
         // Get the actual investment contract from the map
-        console.log("setUp: getting investment contract from map...");
+        // console.log("setUp: getting investment contract from map...");
         (bool ok, address investAddrFromMap) = ICTMRWAMap(address(map)).getInvestContract(tokenId, RWA_TYPE, VERSION);
         require(ok, "Investment contract not found");
         require(investAddr == investAddrFromMap, "Investment contract address mismatch");
         investContract = ICTMRWA1InvestWithTimeLock(investAddr);
-        console.log("setUp: investment contract retrieved successfully");
+        // console.log("setUp: investment contract retrieved successfully");
 
         // Mint a token first (needed for offering)
         vm.startPrank(tokenAdmin);
-        console.log("setUp: minting token for offering...");
+        // console.log("setUp: minting token for offering...");
         uint256 newTokenId = rwa1X.mintNewTokenValueLocal(
             tokenAdmin,       // toAddress
             0,                // toTokenId (0 = create new token)
@@ -108,7 +108,7 @@ contract TestInvest is Helpers {
             tokenId,          // ID
             feeTokenStr       // feeTokenStr
         );
-        console.log("setUp: token minted with ID:", newTokenId);
+        // console.log("setUp: token minted with ID:", newTokenId);
         vm.stopPrank();
 
         // Set offering parameters
@@ -122,12 +122,12 @@ contract TestInvest is Helpers {
 
         // Approve the investment contract to transfer the token
         vm.startPrank(tokenAdmin);
-        console.log("setUp: approving investment contract to transfer token...");
+        // console.log("setUp: approving investment contract to transfer token...");
         token.approve(address(investContract), newTokenId);
-        console.log("setUp: approval granted");
+        // console.log("setUp: approval granted");
         
         // Create offering using the minted token
-        console.log("setUp: creating offering...");
+        // console.log("setUp: creating offering...");
         investContract.createOffering(
             newTokenId, // Use the minted token ID instead of tokenId
             price,
@@ -142,10 +142,10 @@ contract TestInvest is Helpers {
             lockDuration,
             currency
         );
-        console.log("setUp: offering created successfully");
+        // console.log("setUp: offering created successfully");
         vm.stopPrank();
 
-        console.log("setUp: completed successfully");
+        // console.log("setUp: completed successfully");
     }
 
     // ============ DEPLOYMENT TESTS ============
@@ -443,7 +443,7 @@ contract TestInvest is Helpers {
         assertLt(gasUsed, 800_000, "Offering creation gas usage should be reasonable");
         assertGt(gasUsed, 50_000, "Offering creation should use significant gas");
         
-        console.log("Gas used for offering creation:", gasUsed);
+        // console.log("Gas used for offering creation:", gasUsed);
     }
 
     function test_gas_investInOffering() public {
@@ -460,7 +460,7 @@ contract TestInvest is Helpers {
         assertLt(gasUsed, 1_300_000, "Investment gas usage should be reasonable");
         assertGt(gasUsed, 100_000, "Investment should use significant gas");
         
-        console.log("Gas used for investment:", gasUsed);
+        // console.log("Gas used for investment:", gasUsed);
     }
 
     function test_gas_withdrawInvested() public {
@@ -483,7 +483,7 @@ contract TestInvest is Helpers {
         assertGt(gasUsed, 10_000, "Withdrawal should use significant gas");
         assertGt(withdrawn, 0, "Withdrawal should be successful");
         
-        console.log("Gas used for withdrawal:", gasUsed);
+        // console.log("Gas used for withdrawal:", gasUsed);
     }
 
     function test_gas_unlockTokenId() public {
@@ -509,7 +509,7 @@ contract TestInvest is Helpers {
         assertGt(gasUsed, 100_000, "Unlock should use significant gas");
         assertEq(unlockedTokenId, localInvestedTokenId, "Token should be unlocked successfully");
         
-        console.log("Gas used for unlock:", gasUsed);
+        // console.log("Gas used for unlock:", gasUsed);
     }
 
     function test_gas_claimDividendInEscrow() public {
@@ -531,7 +531,7 @@ contract TestInvest is Helpers {
         assertLt(gasUsed, 30_000, "Dividend claim gas usage should be reasonable");
         assertGt(gasUsed, 10_000, "Dividend claim should use significant gas");
         
-        console.log("Gas used for dividend claim:", gasUsed);
+        // console.log("Gas used for dividend claim:", gasUsed);
     }
 
     function test_gas_multipleInvestments() public {
@@ -552,7 +552,7 @@ contract TestInvest is Helpers {
         assertLt(totalGasUsed, 3_200_000, "Multiple investments gas usage should be reasonable");
         assertGt(totalGasUsed, 300_000, "Multiple investments should use significant gas");
         
-        console.log("Total gas used for 3 investments:", totalGasUsed);
+        // console.log("Total gas used for 3 investments:", totalGasUsed);
     }
 
     function test_gas_fuzz_investmentAmounts(uint256 _amount) public {
@@ -571,7 +571,7 @@ contract TestInvest is Helpers {
         assertLt(gasUsed, 1_300_000, "Fuzz investment gas usage should be reasonable");
         assertGt(gasUsed, 100_000, "Fuzz investment should use significant gas");
         
-        console.log("Gas used for fuzz investment amount", _amount, ":", gasUsed);
+        // console.log("Gas used for fuzz investment amount", _amount, ":", gasUsed);
     }
 
     function test_gas_viewFunctions() public {
@@ -583,14 +583,14 @@ contract TestInvest is Helpers {
         assertLt(gasUsed, 10_000, "View function gas usage should be minimal");
         assertGt(count, 0, "Should have at least one offering");
         
-        console.log("Gas used for offeringCount view:", gasUsed);
+        // console.log("Gas used for offeringCount view:", gasUsed);
         
         gasBefore = gasleft();
         investContract.listOfferings();
         gasUsed = gasBefore - gasleft();
         
         assertLt(gasUsed, 50_000, "List offerings view gas usage should be reasonable");
-        console.log("Gas used for listOfferings view:", gasUsed);
+        // console.log("Gas used for listOfferings view:", gasUsed);
     }
 
     function test_gas_optimization_comparison() public {
@@ -609,7 +609,7 @@ contract TestInvest is Helpers {
         vm.stopPrank();
             
             uint256 gasUsed = gasBefore - gasleft();
-            console.log("Gas used for investment amount", amounts[i], ":", gasUsed);
+            // console.log("Gas used for investment amount", amounts[i], ":", gasUsed);
             
             // Adjusted gas usage bounds for optimization
             assertLt(gasUsed, 1_300_000, "Investment gas usage should be reasonable for all amounts");

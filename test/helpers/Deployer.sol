@@ -2,8 +2,6 @@
 
 pragma solidity ^0.8.22;
 
-import { Upgrades } from "@openzeppelin/foundry-upgrades/Upgrades.sol";
-
 import { Utils } from "./Utils.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
@@ -72,18 +70,18 @@ contract Deployer is Utils {
     uint256 ID;
     CTMRWA1 token;
 
-    function _deployC3Caller() internal {
-        c3UUIDKeeper = new C3UUIDKeeper();
-        address c3callerAddress =
-            Upgrades.deployUUPSProxy("C3Caller.sol", abi.encodeCall(C3Caller.initialize, (address(c3UUIDKeeper))));
-        c3caller = C3Caller(c3callerAddress);
+    function _deployC3Caller(address gov) internal {
+        address c3UUIDKeeperImpl = address(new C3UUIDKeeper());
+        c3UUIDKeeper = C3UUIDKeeper(_deployProxy(c3UUIDKeeperImpl, abi.encodeCall(C3UUIDKeeper.initialize, (gov))));
+        address c3callerImpl = address(new C3Caller());
+        c3caller = C3Caller(_deployProxy(c3callerImpl, abi.encodeCall(C3Caller.initialize, (address(c3UUIDKeeper)))));
     }
 
     function _deployFeeManager(address gov, address admin, address ctm, address usdc) internal {
-        address feeManagerAddress = Upgrades.deployUUPSProxy(
-            "FeeManager.sol", abi.encodeCall(FeeManager.initialize, (gov, address(c3caller), admin, 1))
+        address feeManagerImpl = address(new FeeManager());
+        feeManager = FeeManager(
+            _deployProxy(feeManagerImpl, abi.encodeCall(FeeManager.initialize, (gov, address(c3caller), admin, 1)))
         );
-        feeManager = FeeManager(feeManagerAddress);
 
         feeManager.addFeeToken(address(ctm).toHexString());
         feeManager.addFeeToken(address(usdc).toHexString());
@@ -110,10 +108,10 @@ contract Deployer is Utils {
     }
 
     function _deployGateway(address gov, address admin) internal {
-        address gatewayAddress = Upgrades.deployUUPSProxy(
-            "CTMRWAGateway.sol", abi.encodeCall(CTMRWAGateway.initialize, (gov, address(c3caller), admin, 4))
+        address gatewayImpl = address(new CTMRWAGateway());
+        gateway = CTMRWAGateway(
+            _deployProxy(gatewayImpl, abi.encodeCall(CTMRWAGateway.initialize, (gov, address(c3caller), admin, 4)))
         );
-        gateway = CTMRWAGateway(gatewayAddress);
 
         string[] memory chainIdsStr = _stringToArray("1");
         string[] memory gwaysStr = _stringToArray("ethereumGateway");
@@ -121,13 +119,14 @@ contract Deployer is Utils {
     }
 
     function _deployCTMRWA1X(address gov, address admin) internal {
-        address rwa1XAddress = Upgrades.deployUUPSProxy(
-            "CTMRWA1X.sol",
-            abi.encodeCall(
-                CTMRWA1X.initialize, (address(gateway), address(feeManager), gov, address(c3caller), admin, 2)
+        address rwa1XImpl = address(new CTMRWA1X());
+        rwa1X = CTMRWA1X(
+            _deployProxy(
+                rwa1XImpl, abi.encodeCall(
+                    CTMRWA1X.initialize, (address(gateway), address(feeManager), gov, address(c3caller), admin, 2)
+                )
             )
         );
-        rwa1X = CTMRWA1X(rwa1XAddress);
 
         rwa1XFallback = new CTMRWA1XFallback(address(rwa1X));
 
@@ -146,24 +145,30 @@ contract Deployer is Utils {
     }
 
     function _deployMap(address gov, address admin) internal {
-        address mapAddress = Upgrades.deployUUPSProxy(
-            "CTMRWAMap.sol",
-            abi.encodeCall(
-                CTMRWAMap.initialize, (gov, address(c3caller), address(admin), 87, address(gateway), address(rwa1X))
+        address mapImpl = address(new CTMRWAMap());
+        map = CTMRWAMap(
+            _deployProxy(
+                mapImpl, abi.encodeCall(
+                    CTMRWAMap.initialize, (gov, address(c3caller), address(admin), 87, address(gateway), address(rwa1X))
+                )
             )
         );
-        map = CTMRWAMap(mapAddress);
     }
 
     function _deployCTMRWADeployer(address gov, address admin) internal {
-        address deployerAddress = Upgrades.deployUUPSProxy(
-            "CTMRWADeployer.sol",
-            abi.encodeCall(
-                CTMRWADeployer.initialize,
-                (gov, address(gateway), address(feeManager), address(rwa1X), address(map), address(c3caller), admin, 3)
+        address deployerImpl = address(new CTMRWADeployer());
+        deployer = CTMRWADeployer(_deployProxy(deployerImpl, abi.encodeCall(
+            CTMRWADeployer.initialize, (
+                gov,
+                address(gateway),
+                address(feeManager),
+                address(rwa1X),
+                address(map),
+                address(c3caller),
+                admin,
+                3
             )
-        );
-        deployer = CTMRWADeployer(deployerAddress);
+        )));
 
         ctmRwaDeployInvest = new CTMRWADeployInvest(
             address(map),
@@ -191,22 +196,23 @@ contract Deployer is Utils {
     }
 
     function _deployStorage(address gov, address admin) internal {
-        address storageManagerAddress = Upgrades.deployUUPSProxy(
-            "CTMRWA1StorageManager.sol",
-            abi.encodeCall(
-                CTMRWA1StorageManager.initialize,
-                (
-                    gov,
-                    address(c3caller),
-                    admin,
-                    88,
-                    address(deployer),
-                    address(gateway),
-                    address(feeManager)
+        address storageManagerImpl = address(new CTMRWA1StorageManager());
+        storageManager = CTMRWA1StorageManager(
+            _deployProxy(
+                storageManagerImpl, abi.encodeCall(
+                    CTMRWA1StorageManager.initialize,
+                    (
+                        gov,
+                        address(c3caller),
+                        admin,
+                        88,
+                        address(deployer),
+                        address(gateway),
+                        address(feeManager)
+                    )
                 )
             )
         );
-        storageManager = CTMRWA1StorageManager(storageManagerAddress);
 
         storageUtils = new CTMRWA1StorageUtils(RWA_TYPE, VERSION, address(map), address(storageManager));
 
@@ -228,24 +234,23 @@ contract Deployer is Utils {
     }
 
     function _deploySentry(address gov, address admin) internal {
-        address sentryManagerAddress = Upgrades.deployUUPSProxy(
-            "CTMRWA1SentryManager.sol",
-            abi.encodeCall(
-                CTMRWA1SentryManager.initialize,
-                (
-                    gov,
-                    // RWA_TYPE,
-                    // VERSION,
-                    address(c3caller),
-                    admin,
-                    89,
-                    address(deployer),
-                    address(gateway),
-                    address(feeManager)
+        address sentryManagerImpl = address(new CTMRWA1SentryManager());
+        sentryManager = CTMRWA1SentryManager(
+            _deployProxy(
+                sentryManagerImpl, abi.encodeCall(
+                    CTMRWA1SentryManager.initialize,
+                    (
+                        gov,
+                        address(c3caller),
+                        admin,
+                        88,
+                        address(deployer),
+                        address(gateway),
+                        address(feeManager)
+                    )
                 )
             )
         );
-        sentryManager = CTMRWA1SentryManager(sentryManagerAddress);
 
         deployer.setSentryFactory(RWA_TYPE, VERSION, address(sentryManager));
 
