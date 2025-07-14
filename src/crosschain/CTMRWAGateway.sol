@@ -8,7 +8,7 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
-import { CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { CTMRWAUtils, Uint } from "../CTMRWAUtils.sol";
 import { ChainContract, ICTMRWAGateway } from "./ICTMRWAGateway.sol";
 
 /**
@@ -74,7 +74,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         onlyGov
         returns (bool)
     {
-        require(_newChainIdsStr.length == _contractAddrsStr.length, "CTMRWAGateway: Argument lengths not equal");
+        if (_newChainIdsStr.length != _contractAddrsStr.length) revert CTMRWAGateway_LengthMismatch(Uint.Input);
 
         bool preExisted;
 
@@ -301,7 +301,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         onlyGov
         returns (bool)
     {
-        require(_chainIdsStr.length == _rwaXAddrsStr.length, "CTMRWAGateway: Argument lengths not equal in attachRWAX");
+        if (_chainIdsStr.length != _rwaXAddrsStr.length) revert CTMRWAGateway_LengthMismatch(Uint.Input);
 
         bool preExisted;
 
@@ -311,7 +311,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
             string memory rwaXAddrStr = _rwaXAddrsStr[j]._toLower();
             string memory chainIdStr = _chainIdsStr[j]._toLower();
 
-            require(bytes(rwaXAddrStr).length <= 64, "CTMRWAGateway: Incorrect address length");
+            if (bytes(rwaXAddrStr).length > 64) revert CTMRWAGateway_InvalidLength(Uint.Address);
 
             for (uint256 i = 0; i < rwaX[_rwaType][_version].length; i++) {
                 if (rwaX[_rwaType][_version][i].chainIdStr.equal(chainIdStr)) {
@@ -345,10 +345,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         string[] memory _chainIdsStr,
         string[] memory _storageManagerAddrsStr
     ) external onlyGov returns (bool) {
-        require(
-            _chainIdsStr.length == _storageManagerAddrsStr.length,
-            "CTMRWAGateway: Argument lengths not equal in attachStorageManager"
-        );
+        if (_chainIdsStr.length != _storageManagerAddrsStr.length) revert CTMRWAGateway_LengthMismatch(Uint.Input);
 
         bool preExisted;
 
@@ -389,10 +386,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         string[] memory _chainIdsStr,
         string[] memory _sentryManagerAddrsStr
     ) external onlyGov returns (bool) {
-        require(
-            _chainIdsStr.length == _sentryManagerAddrsStr.length,
-            "CTMRWAGateway: Argument lengths not equal in attachSentryManager"
-        );
+        if (_chainIdsStr.length != _sentryManagerAddrsStr.length) revert CTMRWAGateway_LengthMismatch(Uint.Input);
 
         bool preExisted;
 

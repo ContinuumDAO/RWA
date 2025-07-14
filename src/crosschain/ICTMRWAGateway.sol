@@ -3,6 +3,7 @@
 pragma solidity ^0.8.22;
 
 import { IC3GovernDapp } from "@c3caller/gov/IC3GovernDapp.sol";
+import {Uint} from "../CTMRWAUtils.sol";
 
 struct ChainContract {
     string chainIdStr;
@@ -10,6 +11,9 @@ struct ChainContract {
 }
 
 interface ICTMRWAGateway is IC3GovernDapp {
+    error CTMRWAGateway_LengthMismatch(Uint);
+    error CTMRWAGateway_InvalidLength(Uint);
+
     function getChainCount() external view returns (uint256);
     function addChainContract(string[] memory chainIdsStr, string[] memory contractsAddressStr)
         external

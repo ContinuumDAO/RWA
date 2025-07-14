@@ -8,7 +8,9 @@ enum Uint {
     TokenName,
     SlotLength,
     SlotName,
-    Value
+    Value,
+    Input,
+    Address
 }
 
 /// @dev Common addresses referenced in errors in CTMRWA1
