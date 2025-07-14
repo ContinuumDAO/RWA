@@ -436,18 +436,12 @@ contract TestCTMRWA1 is Helpers {
     }
 
     function test_edgeCase_zeroValueTransfer() public {
-        // Test transfer of zero value
+        // Test transfer of zero value should revert
         vm.startPrank(user1);
 
-        uint256 initialBalance1 = token.balanceOf(testTokenId1);
-        uint256 initialBalance2 = token.balanceOf(testTokenId2);
-
-        // Transfer zero value
+        // Transfer zero value should revert
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroUint.selector, Uint.Value));
         token.transferFrom(testTokenId1, testTokenId2, 0);
-
-        // Balances should remain the same
-        assertEq(token.balanceOf(testTokenId1), initialBalance1);
-        assertEq(token.balanceOf(testTokenId2), initialBalance2);
 
         vm.stopPrank();
     }

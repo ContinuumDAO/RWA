@@ -13,6 +13,8 @@ import { Holding, ICTMRWA1InvestWithTimeLock, Offering } from "../../src/deploym
 
 import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
 import { FeeType } from "../../src/managers/IFeeManager.sol";
+import { ICTMRWA1X, Address } from "../../src/crosschain/ICTMRWA1X.sol";
+import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 
 contract TestInvest is Helpers {
     using Strings for *;
@@ -105,7 +107,7 @@ contract TestInvest is Helpers {
 
         vm.startPrank(tokenAdmin);
 
-        vm.expectRevert("RWAX: Not owner/approved");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_Unauthorized.selector, Address.Sender));
         ICTMRWA1InvestWithTimeLock(investContract).createOffering(
             tokenIdAdmin,
             price,
@@ -148,7 +150,7 @@ contract TestInvest is Helpers {
         assertEq(tokenOwner, investContract);
 
         // try to add the same tokenId again
-        vm.expectRevert("RWA: transfer from invalid owner");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Owner));
         ICTMRWA1InvestWithTimeLock(investContract).createOffering(
             tokenIdAdmin,
             price,

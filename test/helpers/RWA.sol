@@ -24,6 +24,12 @@ contract RWA is Utils {
         ok = ICTMRWA1X(rwa1X).createNewSlot(_ID, 1, "this is a basic offering", someChainIdsStr, tokenStr);
     }
 
+    function _createSlot(uint256 _ID, uint256 slot, address usdc, address rwa1X) internal {
+        string[] memory someChainIdsStr = _stringToArray(cIdStr);
+        string memory tokenStr = _toLower(usdc.toHexString());
+        ICTMRWA1X(rwa1X).createNewSlot(_ID, slot, "this is a basic offering", someChainIdsStr, tokenStr);
+    }
+
     function _deployAFewTokensLocal(address _ctmRwaAddr, address usdc, address map, address rwa1X, address account)
         internal
         returns (uint256, uint256, uint256)

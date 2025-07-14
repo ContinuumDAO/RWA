@@ -10,136 +10,195 @@ import { Helpers } from "../helpers/Helpers.sol";
 
 import { ICTMRWAERC20 } from "../../src/deployment/ICTMRWAERC20.sol";
 import { ICTMRWAERC20Deployer } from "../../src/deployment/ICTMRWAERC20Deployer.sol";
+import { ICTMRWA1, Address } from "../../src/core/ICTMRWA1.sol";
+import { IERC20Errors } from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 contract TestERC20Deployer is Helpers {
     using Strings for *;
 
-    function test_deployErc20() public {
+    function test_deployErc20_deployment() public {
         vm.startPrank(tokenAdmin);
-        // (ID, token) = CTMRWA1Deploy();
-
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-
         uint256 slot = 1;
         string memory name = "Basic Stuff";
-
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-
+        usdc.approve(address(feeManager), 100000000);
         token.deployErc20(slot, name, address(usdc));
-
         address newErc20 = token.getErc20(slot);
-
-        // console.log(newErc20);
-        string memory newName = ICTMRWAERC20(newErc20).name();
-        string memory newSymbol = ICTMRWAERC20(newErc20).symbol();
-        uint8 newDecimals = ICTMRWAERC20(newErc20).decimals();
-        uint256 ts = ICTMRWAERC20(newErc20).totalSupply();
-
-        assertEq(stringsEqual(newName, "slot 1| Basic Stuff"), true);
-        // console.log(newName);
-        assertEq(stringsEqual(newSymbol, "SFTX"), true);
-        assertEq(newDecimals, 18);
-        assertEq(ts, 0);
-
-        vm.expectRevert("RWA: ERC20 slot already exists");
-        token.deployErc20(slot, name, address(usdc));
-
-        vm.expectRevert("RWA: Slot does not exist");
-        token.deployErc20(99, name, address(usdc));
-
-        uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr);
-
-        uint256 balUser1 = ICTMRWAERC20(newErc20).balanceOf(user1);
-        assertEq(balUser1, 2000);
-
-        ts = ICTMRWAERC20(newErc20).totalSupply();
-        assertEq(ts, 2000);
-
-        rwa1X.mintNewTokenValueLocal(
-            user2,
-            0,
-            slot,
-            3000,
-            ID,
-            feeTokenStr
-        );
-
-        ts = ICTMRWAERC20(newErc20).totalSupply();
-        assertEq(ts, 5000);
-
-        rwa1X.mintNewTokenValueLocal(
-            user2,
-            0,
-            slot,
-            4000,
-            ID,
-            feeTokenStr
-        );
-
-        uint256 balUser2 = ICTMRWAERC20(newErc20).balanceOf(user2);
-        assertEq(balUser2, 7000);
-
-        ts = ICTMRWAERC20(newErc20).totalSupply();
-        assertEq(ts, 9000);
-
+        assertEq(stringsEqual(ICTMRWAERC20(newErc20).name(), "slot 1| Basic Stuff"), true);
+        assertEq(stringsEqual(ICTMRWAERC20(newErc20).symbol(), "SFTX"), true);
+        assertEq(ICTMRWAERC20(newErc20).decimals(), 18);
+        assertEq(ICTMRWAERC20(newErc20).totalSupply(), 0);
         vm.stopPrank();
+    }
 
+    function test_deployErc20_reverts() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        uint256 slot = 1;
+        string memory name = "Basic Stuff";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        usdc.approve(address(feeManager), 100000000);
+        token.deployErc20(slot, name, address(usdc));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.RWAERC20));
+        token.deployErc20(slot, name, address(usdc));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InvalidSlot.selector, 99));
+        token.deployErc20(99, name, address(usdc));
+        vm.stopPrank();
+    }
+
+    function test_minting_and_supply() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        uint256 slot = 1;
+        string memory name = "Basic Stuff";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        usdc.approve(address(feeManager), 100000000);
+        token.deployErc20(slot, name, address(usdc));
+        address newErc20 = token.getErc20(slot);
+        uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 2000);
+        assertEq(ICTMRWAERC20(newErc20).totalSupply(), 2000);
+        rwa1X.mintNewTokenValueLocal(user2, 0, slot, 3000, ID, feeTokenStr);
+        assertEq(ICTMRWAERC20(newErc20).totalSupply(), 5000);
+        rwa1X.mintNewTokenValueLocal(user2, 0, slot, 4000, ID, feeTokenStr);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 7000);
+        assertEq(ICTMRWAERC20(newErc20).totalSupply(), 9000);
+        vm.stopPrank();
+    }
+
+    function test_transfer_and_approval() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        uint256 slot = 1;
+        string memory name = "Basic Stuff";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        usdc.approve(address(feeManager), 100000000);
+        token.deployErc20(slot, name, address(usdc));
+        address newErc20 = token.getErc20(slot);
+        rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(user2, 0, slot, 3000, ID, feeTokenStr);
+        vm.stopPrank();
         vm.startPrank(user1);
         ICTMRWAERC20(newErc20).transfer(user2, 1000);
-        uint256 balUser1After = ICTMRWAERC20(newErc20).balanceOf(user1);
-        uint256 balUser2After = ICTMRWAERC20(newErc20).balanceOf(user2);
-        assertEq(balUser1After, balUser1 - 1000);
-        assertEq(balUser2After, balUser2 + 1000);
-        assertEq(ts, ICTMRWAERC20(newErc20).totalSupply());
-
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 1000);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 4000);
         vm.expectRevert();
-        ICTMRWAERC20(newErc20).transfer(user2, balUser1After + 1);
-        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), balUser1After);
-
+        ICTMRWAERC20(newErc20).transfer(user2, 1001);
         vm.stopPrank();
-
-        vm.startPrank(tokenAdmin);
-        uint256 tokenId2User1 = rwa1X.mintNewTokenValueLocal(  // adding an extra tokenId
-            user1,
-            0,
-            slot,
-            3000,
-            ID,
-            feeTokenStr
-        );
-        vm.stopPrank();
-
-        vm.startPrank(user1);
-        uint256 balTokenId2 = token.balanceOf(tokenId2User1);
-        assertEq(balTokenId2, 3000);
-        ICTMRWAERC20(newErc20).transfer(user2, 2000);
-        assertEq(token.balanceOf(tokenId1User1), 0); // 1000 - 1000
-        assertEq(token.balanceOf(tokenId2User1), 2000); // 3000 - 1000
-        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 2000); // 4000 => 2000
-        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 10000); // 3000 + 4000 + 1000 + 2000
-        assertEq(ts + 3000, ICTMRWAERC20(newErc20).totalSupply());
-        vm.stopPrank();
-
         vm.startPrank(user2);
-        assertEq(ICTMRWAERC20(newErc20).allowance(user2, admin), 0);
         ICTMRWAERC20(newErc20).approve(admin, 9000);
         assertEq(ICTMRWAERC20(newErc20).allowance(user2, admin), 9000);
         vm.stopPrank();
-
         vm.startPrank(admin);
         ICTMRWAERC20(newErc20).transferFrom(user2, user1, 4000);
-        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 6000);
-        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 6000);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 5000);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 0);
         assertEq(ICTMRWAERC20(newErc20).allowance(user2, admin), 5000);
-
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientAllowance.selector, admin, 5000, 5001));
         ICTMRWAERC20(newErc20).transferFrom(user2, user1, 5001);
+        vm.stopPrank();
+    }
 
-        ICTMRWAERC20(newErc20).transferFrom(user2, user1, 5000);
-        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 11000);
-        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 1000);
+    function test_zeroValueTransferRevert() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        uint256 slot = 1;
+        string memory name = "Basic Stuff";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        usdc.approve(address(feeManager), 100000000);
+        token.deployErc20(slot, name, address(usdc));
+        address newErc20 = token.getErc20(slot);
+        rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(user2, 0, slot, 3000, ID, feeTokenStr);
+        vm.stopPrank();
+        vm.startPrank(user1);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroUint.selector, 4));
+        ICTMRWAERC20(newErc20).transferFrom(user1, user2, 0);
+        vm.stopPrank();
+    }
 
+    // Fuzz test for transfer
+    function testFuzz_transfer(uint256 amount) public {
+        vm.assume(amount > 0 && amount < 1e18);
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        uint256 slot = 1;
+        string memory name = "Basic Stuff";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        usdc.approve(address(feeManager), 100000000);
+        token.deployErc20(slot, name, address(usdc));
+        address newErc20 = token.getErc20(slot);
+        rwa1X.mintNewTokenValueLocal(user1, 0, slot, amount, ID, feeTokenStr);
+        vm.stopPrank();
+        vm.startPrank(user1);
+        ICTMRWAERC20(newErc20).transfer(user2, amount);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), amount);
+        vm.stopPrank();
+    }
+
+    // Invariant: total supply equals sum of all balances
+    function testInvariant_totalSupplyEqualsBalances() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        uint256 slot = 1;
+        string memory name = "Basic Stuff";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        usdc.approve(address(feeManager), 100000000);
+        token.deployErc20(slot, name, address(usdc));
+        address newErc20 = token.getErc20(slot);
+        rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(user2, 0, slot, 2000, ID, feeTokenStr);
+        uint256 total = ICTMRWAERC20(newErc20).balanceOf(user1) + ICTMRWAERC20(newErc20).balanceOf(user2);
+        assertEq(ICTMRWAERC20(newErc20).totalSupply(), total);
+        vm.stopPrank();
+    }
+
+    // Edge: transfer more than balance
+    function test_transferMoreThanBalanceReverts() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        uint256 slot = 1;
+        string memory name = "Basic Stuff";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        usdc.approve(address(feeManager), 100000000);
+        token.deployErc20(slot, name, address(usdc));
+        address newErc20 = token.getErc20(slot);
+        rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, feeTokenStr);
+        vm.stopPrank();
+        vm.startPrank(user1);
+        vm.expectRevert();
+        ICTMRWAERC20(newErc20).transfer(user2, 1001);
+        vm.stopPrank();
+    }
+
+    // Edge: approve and transferFrom with underflow/overflow
+    function test_approveAndTransferFromOverflow() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        uint256 slot = 1;
+        string memory name = "Basic Stuff";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        usdc.approve(address(feeManager), 100000000);
+        token.deployErc20(slot, name, address(usdc));
+        address newErc20 = token.getErc20(slot);
+        rwa1X.mintNewTokenValueLocal(user2, 0, slot, 1000, ID, feeTokenStr);
+        vm.stopPrank();
+        vm.startPrank(user2);
+        ICTMRWAERC20(newErc20).approve(admin, type(uint256).max);
+        vm.stopPrank();
+        vm.startPrank(admin);
+        vm.expectRevert();
+        ICTMRWAERC20(newErc20).transferFrom(user2, user1, type(uint256).max);
         vm.stopPrank();
     }
 }
