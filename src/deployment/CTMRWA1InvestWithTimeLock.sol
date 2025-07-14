@@ -7,7 +7,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {ICTMRWA1InvestWithTimeLock} from "./ICTMRWA1InvestWithTimeLock.sol";
+import {ICTMRWA1InvestWithTimeLock, Holding, Offering} from "./ICTMRWA1InvestWithTimeLock.sol";
 import { CTMRWAUtils, Uint, Address, Time } from "../CTMRWAUtils.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
@@ -15,7 +15,6 @@ import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Holding, Offering } from "./ICTMRWADeployInvest.sol";
 
 contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuard {
     using Strings for *;
