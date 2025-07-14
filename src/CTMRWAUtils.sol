@@ -10,7 +10,19 @@ enum Uint {
     SlotName,
     Value,
     Input,
-    Address
+    Address,
+    Investment,
+    Balance,
+    Dividend,
+    Commission,
+    CountryCode,
+    Offering,
+    MinInvestment
+}
+
+enum Time {
+    Early,
+    Late
 }
 
 /// @dev Common addresses referenced in errors in CTMRWA1
@@ -30,7 +42,8 @@ enum Address {
     Override,
     Admin,
     Minter,
-    Fallback
+    Fallback,
+    Token
 }
 
 library CTMRWAUtils {
