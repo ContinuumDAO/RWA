@@ -8,6 +8,8 @@ import { console } from "forge-std/console.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
+import { ICTMRWAGateway } from "../../src/crosschain/ICTMRWAGateway.sol";
+import { Uint } from "../../src/CTMRWAUtils.sol";
 
 contract TestGateway is Helpers {
     using Strings for *;
@@ -180,6 +182,144 @@ contract TestGateway is Helpers {
         vm.startPrank(user1);
         vm.expectRevert("Gov FORBIDDEN");
         gateway.attachSentryManager(RWA_TYPE, VERSION, _stringToArray("2"), _stringToArray("Dummy"));
+        vm.stopPrank();
+    }
+
+    function test_attachRWAX() public {
+        vm.startPrank(gov);
+        string[] memory chainIds = new string[](1);
+        string[] memory addrs = new string[](1);
+        chainIds[0] = "12345";
+        addrs[0] = "0x1234567890abcdef1234567890abcdef12345678";
+        bool ok = gateway.attachRWAX(RWA_TYPE, VERSION, chainIds, addrs);
+        assertTrue(ok);
+        (bool found, string memory addr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, chainIds[0]);
+        assertTrue(found);
+        assertEq(addr, addrs[0]);
+        vm.expectRevert();
+        gateway.attachRWAX(RWA_TYPE, VERSION, chainIds, new string[](0));
+        vm.stopPrank();
+    }
+
+    function test_attachStorageManager() public {
+        vm.startPrank(gov);
+        string[] memory chainIds = new string[](1);
+        string[] memory addrs = new string[](1);
+        chainIds[0] = "54321";
+        addrs[0] = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd";
+        bool ok = gateway.attachStorageManager(RWA_TYPE, VERSION, chainIds, addrs);
+        assertTrue(ok);
+        (bool found, string memory addr) = gateway.getAttachedStorageManager(RWA_TYPE, VERSION, chainIds[0]);
+        assertTrue(found);
+        assertEq(addr, addrs[0]);
+        vm.expectRevert();
+        gateway.attachStorageManager(RWA_TYPE, VERSION, chainIds, new string[](0));
+        vm.stopPrank();
+    }
+
+    function test_attachSentryManager() public {
+        vm.startPrank(gov);
+        string[] memory chainIds = new string[](1);
+        string[] memory addrs = new string[](1);
+        chainIds[0] = "67890";
+        addrs[0] = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef";
+        bool ok = gateway.attachSentryManager(RWA_TYPE, VERSION, chainIds, addrs);
+        assertTrue(ok);
+        (bool found, string memory addr) = gateway.getAttachedSentryManager(RWA_TYPE, VERSION, chainIds[0]);
+        assertTrue(found);
+        assertEq(addr, addrs[0]);
+        vm.expectRevert();
+        gateway.attachSentryManager(RWA_TYPE, VERSION, chainIds, new string[](0));
+        vm.stopPrank();
+    }
+
+    // (2) Duplicate Attachments / Idempotency
+    function test_attachRWAX_duplicate_overwrites() public {
+        vm.startPrank(gov);
+        string[] memory chainIds = new string[](1);
+        string[] memory addrs1 = new string[](1);
+        string[] memory addrs2 = new string[](1);
+        chainIds[0] = "99999";
+        addrs1[0] = "0x1111111111111111111111111111111111111111";
+        addrs2[0] = "0x2222222222222222222222222222222222222222";
+        gateway.attachRWAX(RWA_TYPE, VERSION, chainIds, addrs1);
+        (bool found1, string memory addr1) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, chainIds[0]);
+        assertTrue(found1);
+        assertEq(addr1, addrs1[0]);
+        // Overwrite
+        gateway.attachRWAX(RWA_TYPE, VERSION, chainIds, addrs2);
+        (bool found2, string memory addr2) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, chainIds[0]);
+        assertTrue(found2);
+        assertEq(addr2, addrs2[0]);
+        vm.stopPrank();
+    }
+
+    function test_attachRWAX_idempotency() public {
+        vm.startPrank(gov);
+        string[] memory chainIds = new string[](1);
+        string[] memory addrs = new string[](1);
+        chainIds[0] = "88888";
+        addrs[0] = "0x8888888888888888888888888888888888888888";
+        gateway.attachRWAX(RWA_TYPE, VERSION, chainIds, addrs);
+        gateway.attachRWAX(RWA_TYPE, VERSION, chainIds, addrs);
+        (bool found, string memory addr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, chainIds[0]);
+        assertTrue(found);
+        assertEq(addr, addrs[0]);
+        vm.stopPrank();
+    }
+
+    // (3) Getter Edge Cases
+    function test_getAttachedRWAX_nonexistent_returnsFalse() public {
+        (bool found, string memory addr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, "nonexistent");
+        assertFalse(found);
+        assertEq(addr, "0");
+    }
+
+    function test_getAttachedRWAX_emptyString_returnsFalse() public {
+        (bool found, string memory addr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, "");
+        assertFalse(found);
+        assertEq(addr, "0");
+    }
+
+    // (5) Input Validation
+    function test_attachRWAX_zeroAddress_allowed() public {
+        vm.startPrank(gov);
+        string[] memory chainIds = new string[](1);
+        string[] memory addrs = new string[](1);
+        chainIds[0] = "77777";
+        addrs[0] = "0x0000000000000000000000000000000000000000";
+        bool ok = gateway.attachRWAX(RWA_TYPE, VERSION, chainIds, addrs);
+        assertTrue(ok);
+        (bool found, string memory addr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, chainIds[0]);
+        assertTrue(found);
+        assertEq(addr, addrs[0]);
+        vm.stopPrank();
+    }
+
+    function test_attachRWAX_emptyArrays_revert() public {
+        vm.startPrank(gov);
+        string[] memory chainIds = new string[](0);
+        string[] memory addrs = new string[](0);
+        vm.expectRevert();
+        gateway.attachRWAX(RWA_TYPE, VERSION, chainIds, addrs);
+        vm.stopPrank();
+    }
+
+    // (6) Gas Usage for Batch Operations
+    function test_attachRWAX_batch_gasUsage() public {
+        vm.startPrank(gov);
+        uint256 n = 10;
+        string[] memory chainIds = new string[](n);
+        string[] memory addrs = new string[](n);
+        for (uint256 i = 0; i < n; i++) {
+            chainIds[i] = string(abi.encodePacked("batch", vm.toString(i)));
+            addrs[i] = string(abi.encodePacked("0x", vm.toString(i)));
+        }
+        uint256 gasStart = gasleft();
+        gateway.attachRWAX(RWA_TYPE, VERSION, chainIds, addrs);
+        uint256 gasUsed = gasStart - gasleft();
+        // Just assert that it doesn't use more than 1,000,000 gas for 10 entries (arbitrary reasonable bound)
+        assertLt(gasUsed, 1_000_000);
         vm.stopPrank();
     }
 }

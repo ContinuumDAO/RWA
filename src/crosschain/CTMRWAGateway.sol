@@ -303,6 +303,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         onlyGov
         returns (bool)
     {
+        if (_chainIdsStr.length == 0 || _rwaXAddrsStr.length == 0) {
+            revert();
+        }
         if (_chainIdsStr.length != _rwaXAddrsStr.length) {
             revert CTMRWAGateway_LengthMismatch(Uint.Input);
         }
@@ -351,6 +354,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         string[] memory _chainIdsStr,
         string[] memory _storageManagerAddrsStr
     ) external onlyGov returns (bool) {
+        if (_chainIdsStr.length == 0 || _storageManagerAddrsStr.length == 0) {
+            revert();
+        }
         if (_chainIdsStr.length != _storageManagerAddrsStr.length) {
             revert CTMRWAGateway_LengthMismatch(Uint.Input);
         }
@@ -394,6 +400,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         string[] memory _chainIdsStr,
         string[] memory _sentryManagerAddrsStr
     ) external onlyGov returns (bool) {
+        if (_chainIdsStr.length == 0 || _sentryManagerAddrsStr.length == 0) {
+            revert();
+        }
         if (_chainIdsStr.length != _sentryManagerAddrsStr.length) {
             revert CTMRWAGateway_LengthMismatch(Uint.Input);
         }
