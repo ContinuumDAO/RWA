@@ -3,8 +3,12 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
+import {Address} from "../CTMRWAUtils.sol";
 
 interface ICTMRWA1SentryUtils is ICTMRWA {
+    error CTMRWA1SentryUtils_Unauthorized(Address);
+    error CTMRWA1SentryUtils_InvalidContract(Address);
+
     function ctmRwa1Map() external returns (address);
     function storageManager() external returns (address);
     function lastSelector() external returns (bytes4);

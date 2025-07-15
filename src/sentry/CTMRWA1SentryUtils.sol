@@ -6,12 +6,13 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 
-import { CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { CTMRWAUtils, Address } from "../CTMRWAUtils.sol";
 import { CTMRWA1Sentry } from "../sentry/CTMRWA1Sentry.sol";
+import {ICTMRWA1SentryUtils} from "./ICTMRWA1SentryUtils.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
-contract CTMRWA1SentryUtils {
+contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
     using Strings for *;
     using CTMRWAUtils for string;
 
@@ -25,7 +26,8 @@ contract CTMRWA1SentryUtils {
     bytes public lastReason;
 
     modifier onlySentryManager() {
-        require(msg.sender == sentryManager, "CTMRWA1SentryUtils: onlySentryManager function");
+        // require(msg.sender == sentryManager, "CTMRWA1SentryUtils: onlySentryManager function");
+        if (msg.sender != sentryManager) revert CTMRWA1SentryUtils_Unauthorized(Address.Sender);
         _;
     }
 
@@ -69,9 +71,13 @@ contract CTMRWA1SentryUtils {
 
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        require(ok, "CTMRWA1StorageFallback: The requested tokenID does not exist");
+        // require(ok, "CTMRWA1StorageFallback: The requested tokenID does not exist");
+        if (!ok) revert CTMRWA1SentryUtils_InvalidContract(Address.Token);
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
         return (tokenAddr, tokenAddrStr);
     }
+
+    // TODO: implement
+    function storageManager() external returns (address) {}
 }

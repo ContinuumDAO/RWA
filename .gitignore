@@ -5,6 +5,7 @@ out/
 # User
 .vscode/
 size_require.txt
+todo.txt
 
 # Dependencies
 node_modules/
