@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.22;
 
-import { Address, Uint } from "../CTMRWAUtils.sol";
+import { Address, Uint, List } from "../CTMRWAUtils.sol";
 import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { SlotData } from "../core/ICTMRWA1.sol";
 
@@ -46,7 +46,7 @@ interface ICTMRWA1X is ICTMRWA {
     error CTMRWA1X_SameChain();
 
     // Permissions
-    error CTMRWA1X_WhiteListEnabled();
+    error CTMRWA1X_InvalidList(List);
     error CTMRWA1X_KYCEnabled();
 
     function isMinter(address) external returns (bool);

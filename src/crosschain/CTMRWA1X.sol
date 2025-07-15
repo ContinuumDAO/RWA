@@ -21,7 +21,7 @@ import { ICTMRWA1X } from "./ICTMRWA1X.sol";
 
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
-import { Address, CTMRWAUtils, Uint } from "../CTMRWAUtils.sol";
+import { Address, CTMRWAUtils, Uint, List } from "../CTMRWAUtils.sol";
 import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1Storage, URICategory, URIType } from "../storage/ICTMRWA1Storage.sol";
