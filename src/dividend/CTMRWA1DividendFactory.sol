@@ -3,10 +3,8 @@
 pragma solidity ^0.8.22;
 
 import { CTMRWA1Dividend } from "./CTMRWA1Dividend.sol";
-
-// interface TokenID {
-//     function ID() external view returns (uint256);
-// }
+import { ICTMRWA1DividendFactory } from "./ICTMRWA1DividendFactory.sol";
+import {Address} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -19,11 +17,12 @@ import { CTMRWA1Dividend } from "./CTMRWA1Dividend.sol";
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1Dividend contract
  * deployments.
  */
-contract CTMRWA1DividendFactory {
+contract CTMRWA1DividendFactory is ICTMRWA1DividendFactory {
     address public deployer;
 
     modifier onlyDeployer() {
-        require(msg.sender == deployer, "CTMRWA1DividendFactory: onlyDeployer function");
+        // require(msg.sender == deployer, "CTMRWA1DividendFactory: onlyDeployer function");
+        if (msg.sender != deployer) revert CTMRWA1DividendFactory_Unauthorized(Address.Sender);
         _;
     }
 
@@ -31,6 +30,7 @@ contract CTMRWA1DividendFactory {
         deployer = _deployer;
     }
 
+    // BUG: this function is defined in this contract and CTMRWA1TokenFactory
     /**
      * @dev Deploy a new CTMRWA1Dividend using 'salt' ID to ensure a unique contract address
      */
