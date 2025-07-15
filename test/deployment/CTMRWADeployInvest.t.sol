@@ -255,7 +255,7 @@ contract TestInvest is Helpers {
     function test_zeroAmountInvestment() public {
         vm.startPrank(user1);
         usdc.approve(address(investContract), 0);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, 7));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, 8));
         investContract.investInOffering(0, 0, currency);
         vm.stopPrank();
     }

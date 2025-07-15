@@ -130,7 +130,7 @@ contract TestERC20Deployer is Helpers {
         rwa1X.mintNewTokenValueLocal(user2, 0, slot, 3000, ID, feeTokenStr);
         vm.stopPrank();
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroUint.selector, 4));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroUint.selector, 5));
         ICTMRWAERC20(newErc20).transferFrom(user1, user2, 0);
         vm.stopPrank();
     }
