@@ -77,7 +77,4 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
 
         return (tokenAddr, tokenAddrStr);
     }
-
-    // TODO: implement
-    function storageManager() external returns (address) {}
 }
