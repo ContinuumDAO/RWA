@@ -182,7 +182,8 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
             indx = whitelistIndx[walletStr];
 
             if (walletStr.equal(adminStr) && !_choices[i]) {
-                revert("CTMRWA1Sentry: Cannot remove tokenAdmin from the whitelist");
+                // revert("CTMRWA1Sentry: Cannot remove tokenAdmin from the whitelist");
+                if (walletStr.equal(adminStr) && !_choices[i]) revert CTMRWA1Sentry_Unauthorized(Address.Admin);
             } else if (indx != 0 && indx == ctmWhitelist.length - 1 && !_choices[i]) {
                 // last entry to be removed
                 whitelistIndx[walletStr] = 0;
