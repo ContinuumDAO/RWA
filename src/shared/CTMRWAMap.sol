@@ -8,7 +8,7 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
-import { CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { CTMRWAUtils, Address, RWA } from "../CTMRWAUtils.sol";
 import { ICTMRWAAttachment, ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
@@ -97,12 +97,14 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     modifier onlyDeployer() {
-        require(msg.sender == ctmRwaDeployer, "CTMRWAMap: This is an onlyDeployer function");
+        // require(msg.sender == ctmRwaDeployer, "CTMRWAMap: This is an onlyDeployer function");
+        if (msg.sender != ctmRwaDeployer) revert CTMRWAMap_Unauthorized(Address.Sender);
         _;
     }
 
     modifier onlyRwa1X() {
-        require(msg.sender == ctmRwa1X, "CTMRWAMap: This is an onlyRwa1X function");
+        // require(msg.sender == ctmRwa1X, "CTMRWAMap: This is an onlyRwa1X function");
+        if (msg.sender != ctmRwa1X) revert CTMRWAMap_Unauthorized(Address.Sender);
         _;
     }
 
@@ -210,16 +212,20 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         address _sentryAddr
     ) external onlyDeployer {
         bool ok = _attachCTMRWAID(_ID, _tokenAddr, _dividendAddr, _storageAddr, _sentryAddr);
-        require(ok, "CTMRWAMap: Failed to set token ID");
+        // require(ok, "CTMRWAMap: Failed to set token ID");
+        if (!ok) revert CTMRWAMap_AlreadyAttached(_ID, _tokenAddr);
 
         ok = ICTMRWAAttachment(_tokenAddr).attachDividend(_dividendAddr);
-        require(ok, "CTMRWAMap: Failed to set the dividend contract address");
+        // require(ok, "CTMRWAMap: Failed to set the dividend contract address");
+        if (!ok) revert CTMRWAMap_FailedAttachment(Address.Dividend);
 
         ok = ICTMRWAAttachment(_tokenAddr).attachStorage(_storageAddr);
-        require(ok, "CTMRWAMap: Failed to set the storage contract address");
+        // require(ok, "CTMRWAMap: Failed to set the storage contract address");
+        if (!ok) revert CTMRWAMap_FailedAttachment(Address.Storage);
 
         ok = ICTMRWAAttachment(_tokenAddr).attachSentry(_sentryAddr);
-        require(ok, "CTMRWAMap: Failed to set the sentry contract address");
+        // require(ok, "CTMRWAMap: Failed to set the sentry contract address");
+        if (!ok) revert CTMRWAMap_FailedAttachment(Address.Sentry);
     }
 
     function setInvestmentContract(uint256 _ID, uint256 _rwaType, uint256 _version, address _investAddr)
@@ -256,7 +262,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
 
         uint256 lenContract = bytes(idToContract[_ID]).length;
 
-        if (lenContract > 0 || contractToId[ctmRwaAddrStr] != 0) {
+        if (lenContract != 0 || contractToId[ctmRwaAddrStr] != 0) {
             return (false);
         } else {
             idToContract[_ID] = ctmRwaAddrStr;
@@ -301,7 +307,9 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         address _contractAddr = _addrStr._stringToAddress();
         uint256 rwaType = ICTMRWA(_contractAddr).RWA_TYPE();
         uint256 version = ICTMRWA(_contractAddr).VERSION();
-        require(_rwaType == rwaType && _version == version);
+        // require(_rwaType == rwaType && _version == version);
+        if (_rwaType != rwaType) revert CTMRWAMap_IncompatibleRWA(RWA.Type);
+        if (_version != version) revert CTMRWAMap_IncompatibleRWA(RWA.Version);
         return true;
     }
 }
