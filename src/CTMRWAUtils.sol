@@ -18,7 +18,9 @@ enum Uint {
     CountryCode,
     Offering,
     MinInvestment,
-    Payable
+    Payable,
+    ChainID,
+    Multiplier
 }
 
 enum Time {

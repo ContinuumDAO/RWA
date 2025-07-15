@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.22;
 
+import {Uint} from "../CTMRWAUtils.sol";
+
 enum FeeType {
     ADMIN,
     DEPLOY,
@@ -34,6 +36,10 @@ enum FeeType {
 }
 
 interface IFeeManager {
+    error FeeManager_InvalidLength(Uint);
+    error FeeManager_NonExistentToken(address);
+    error FeeManager_FailedTransfer();
+
     function getXChainFee(
         string[] memory _toChainIDsStr,
         bool _includeLocal,

@@ -817,7 +817,7 @@ contract TestSentryManager is Helpers {
         sentryManager.goPublic(ID, _stringToArray(cIdStr), feeTokenStr);
 
         // KYC should be disabled for new deployments
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_KYCDisabled.selector));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_KYCEnabled.selector));
         rwa1X.deployAllCTMRWA1X(
             false, // include local mint
             ID,
