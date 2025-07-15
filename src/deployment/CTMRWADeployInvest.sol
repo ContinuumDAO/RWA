@@ -6,7 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
-import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
+import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 
@@ -74,13 +74,9 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     /// @dev Pay the fee for deploying the Invest contract
     function _payFee(FeeType _feeType, address _feeToken) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
-        uint256 fee = IFeeManager(feeManager).getXChainFee(cIDStr._stringToArray(), false, _feeType, feeTokenStr);
+        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIDStr._stringToArray(), false, _feeType, feeTokenStr);
 
-        // TODO Remove hardcoded multiplier 10**2
-
-        if (fee > 0) {
-            uint256 feeWei = fee * 10 ** (IERC20Extended(_feeToken).decimals() - 2);
-
+        if (feeWei > 0) {
             IERC20(_feeToken).transferFrom(msg.sender, address(this), feeWei);
 
             IERC20(_feeToken).approve(feeManager, feeWei);

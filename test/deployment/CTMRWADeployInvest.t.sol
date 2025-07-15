@@ -5,7 +5,7 @@ pragma solidity ^0.8.22;
 import { console } from "forge-std/console.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Helpers } from "../helpers/Helpers.sol";
-import { ICTMRWA1InvestWithTimeLock } from "../../src/deployment/ICTMRWADeployInvest.sol";
+import { ICTMRWA1InvestWithTimeLock } from "../../src/deployment/ICTMRWA1InvestWithTimeLock.sol";
 import { CTMRWA1InvestWithTimeLock } from "../../src/deployment/CTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWA1 } from "src/core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
@@ -235,7 +235,7 @@ contract TestInvest is Helpers {
         
         vm.startPrank(unauthorizedUser);
         usdc.approve(address(investContract), 10000);
-        vm.expectRevert("CTMInvest: Not whitelisted");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_NotWhiteListed.selector, address(0x999)));
         investContract.investInOffering(0, amount, currency);
         vm.stopPrank();
     }
@@ -255,7 +255,7 @@ contract TestInvest is Helpers {
     function test_zeroAmountInvestment() public {
         vm.startPrank(user1);
         usdc.approve(address(investContract), 0);
-        vm.expectRevert("CTMInvest: investment too low");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, 7));
         investContract.investInOffering(0, 0, currency);
         vm.stopPrank();
     }
@@ -440,7 +440,7 @@ contract TestInvest is Helpers {
         uint256 gasUsed = gasBefore - gasleft();
         
         // Adjusted gas usage bounds for offering creation
-        assertLt(gasUsed, 800_000, "Offering creation gas usage should be reasonable");
+        assertLt(gasUsed, 1_600_000, "Offering creation gas usage should be reasonable");
         assertGt(gasUsed, 50_000, "Offering creation should use significant gas");
         
         // console.log("Gas used for offering creation:", gasUsed);

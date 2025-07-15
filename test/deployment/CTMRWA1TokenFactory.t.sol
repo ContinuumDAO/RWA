@@ -47,7 +47,7 @@ contract CTMRWA1TokenFactoryTest is Test, Helpers {
         assertTrue(deployed != address(0), "Deployment should succeed");
         // Try as notDeployer
         vm.prank(notDeployer);
-        vm.expectRevert("RWATF: onlyDeployer");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, 0));
         factory.deploy(deployData);
     }
 
@@ -112,7 +112,7 @@ contract CTMRWA1TokenFactoryTest is Test, Helpers {
     function test_RevertOnInvalidDeployer() public {
         bytes memory deployData = getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(notDeployer);
-        vm.expectRevert("RWATF: onlyDeployer");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, 0));
         factory.deploy(deployData);
     }
 

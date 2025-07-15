@@ -13,7 +13,7 @@ import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 import { ICTMRWA1, ITokenContract, TokenContract } from "../core/ICTMRWA1.sol";
 import { ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAGateway } from "../crosschain/ICTMRWAGateway.sol";
-import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
+import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
@@ -397,7 +397,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
     }
 
     /**
-     * @dev Get the fee for an individual URICategory to the chains _toChainIdsStr
+     * @dev Get the total fee for an individual URICategory to all the chains in _toChainIdsStr
      * _includeLocal, if TRUE means to include the fee for the local chain too.
      */
     function _individualFee(
@@ -502,15 +502,14 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
     }
 
     /// @dev Pay a fee, calculated by the feeType, the fee token and the chains in question
-    function _payFee(uint256 _fee, string memory _feeTokenStr) internal returns (bool) {
-        if (_fee > 0) {
+    function _payFee(uint256 _feeWei, string memory _feeTokenStr) internal returns (bool) {
+        if (_feeWei > 0) {
             address feeToken = stringToAddress(_feeTokenStr);
-            uint256 feeWei = _fee * 10 ** (IERC20Extended(feeToken).decimals() - 2);
 
-            IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
+            IERC20(feeToken).transferFrom(msg.sender, address(this), _feeWei);
 
-            IERC20(feeToken).approve(feeManager, feeWei);
-            IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);
+            IERC20(feeToken).approve(feeManager, _feeWei);
+            IFeeManager(feeManager).payFee(_feeWei, _feeTokenStr);
         }
         return (true);
     }

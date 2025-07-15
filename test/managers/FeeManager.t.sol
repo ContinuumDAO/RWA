@@ -6,13 +6,14 @@ import { console } from "forge-std/console.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { FeeManager } from "../../src/managers/FeeManager.sol";
-import { IFeeManager, FeeType } from "../../src/managers/IFeeManager.sol";
+import { IFeeManager, FeeType, IERC20Extended } from "../../src/managers/IFeeManager.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 import { TestERC20 } from "../../src/mocks/TestERC20.sol";
 import { MaliciousERC20 } from "../../src/mocks/MaliciousERC20.sol";
+
 
 // Mock contract to test reentrancy
 contract ReentrancyAttacker {
@@ -364,10 +365,15 @@ contract TestFeeManager is Helpers {
     }
 
     function test_FeeMultiplierNoOverflow() public {
-        // Set a very large multiplier
+        // Set a very large multiplier (should revert)
         uint256 largeMultiplier = type(uint256).max / 100;
+        vm.expectRevert("FeeManager: Multiplier too large");
         vm.prank(gov);
         feeManager.setFeeMultiplier(FeeType.TX, largeMultiplier);
+        // Set a safe multiplier (should succeed)
+        uint256 safeMultiplier = uint256(type(uint256).max / 1e22);
+        vm.prank(gov);
+        feeManager.setFeeMultiplier(FeeType.TX, safeMultiplier);
         // Set a base fee
         string[] memory tokens = new string[](1);
         tokens[0] = feeTokenStr;
@@ -375,11 +381,13 @@ contract TestFeeManager is Helpers {
         fees[0] = 100;
         vm.prank(gov);
         feeManager.addFeeToken(chainIdStr, tokens, fees);
-        // Calculate fee, should not overflow due to Solidity 0.8+ checks
+        // Calculate fee, should not overflow
         string[] memory chains = new string[](1);
         chains[0] = chainIdStr;
+        uint8 decimals = IERC20Extended(address(feeToken)).decimals();
+        uint256 expectedFee = 100 * safeMultiplier * (10 ** decimals);
         uint256 fee = feeManager.getXChainFee(chains, false, FeeType.TX, feeTokenStr);
-        assertEq(fee, 100 * largeMultiplier, "Fee calculation should not overflow");
+        assertEq(fee, expectedFee, "Fee calculation should not overflow and should match contract logic");
     }
 
     // Gas Usage Tests

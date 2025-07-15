@@ -15,7 +15,7 @@ import { ICTMRWA1, ITokenContract, SlotData, TokenContract } from "../core/ICTMR
 import { ICTMRWA1XFallback } from "../crosschain/ICTMRWA1XFallback.sol";
 import { ICTMRWAGateway } from "../crosschain/ICTMRWAGateway.sol";
 import { ICTMRWADeployer } from "../deployment/ICTMRWADeployer.sol";
-import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
+import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 
 import { ICTMRWA1X } from "./ICTMRWA1X.sol";
 
@@ -879,13 +879,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         internal
         returns (bool)
     {
-        uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, _feeType, _feeTokenStr);
+        uint256 feeWei = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, _feeType, _feeTokenStr);
 
-        // TODO Remove hardcoded multiplier 10**2
-
-        if (fee > 0) {
+        if (feeWei > 0) {
             address feeToken = _feeTokenStr._stringToAddress();
-            uint256 feeWei = fee * 10 ** (IERC20Extended(feeToken).decimals() - 2);
 
             IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
 

@@ -101,8 +101,8 @@ contract Deployer is Utils {
         tokensStr.push(ctmAddrStr);
         tokensStr.push(usdcAddrStr);
 
-        fees.push(1000);
-        fees.push(1000);
+        fees.push(10**18);  // 1 CTM baseFee
+        fees.push(10**6);   // 1 USDC baseFee
 
         feeManager.addFeeToken(destChain, tokensStr, fees);
     }

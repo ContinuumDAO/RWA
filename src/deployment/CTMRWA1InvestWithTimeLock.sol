@@ -11,7 +11,7 @@ import { Address, CTMRWAUtils, Time, Uint } from "../CTMRWAUtils.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
-import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
+import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { Holding, ICTMRWA1InvestWithTimeLock, Offering } from "./ICTMRWA1InvestWithTimeLock.sol";
@@ -470,13 +470,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     /// @dev Pay offering fees
     function _payFee(FeeType _feeType, address _feeToken) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
-        uint256 fee = IFeeManager(feeManager).getXChainFee(cIDStr._stringToArray(), false, _feeType, feeTokenStr);
+        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIDStr._stringToArray(), false, _feeType, feeTokenStr);
 
-        // TODO Remove hardcoded multiplier 10**2
-
-        if (fee > 0) {
-            uint256 feeWei = fee * 10 ** (IERC20Extended(_feeToken).decimals() - 2);
-
+        if (feeWei > 0) {
             IERC20(_feeToken).transferFrom(msg.sender, address(this), feeWei);
 
             IERC20(_feeToken).approve(feeManager, feeWei);

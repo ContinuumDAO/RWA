@@ -7,9 +7,10 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.s
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
+import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 
 import { CTMRWAUtils } from "../CTMRWAUtils.sol";
-import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
+import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { CTMRWAERC20 } from "./CTMRWAERC20.sol";
 
@@ -74,6 +75,7 @@ contract CTMRWAERC20Deployer is ReentrancyGuard {
         (bool ok, address ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
         require(ok, "CTMRWAERC20: the ID does not link to a valid CTMRWA1");
         require(msg.sender == ctmRwaToken, "CTMRWAERC20: Deployer is not CTMRWA1");
+    
 
         _payFee(FeeType.ERC20, _feeToken);
 
@@ -87,13 +89,9 @@ contract CTMRWAERC20Deployer is ReentrancyGuard {
     /// @dev Pay the fee for deploying the ERC20
     function _payFee(FeeType _feeType, address _feeToken) internal nonReentrant returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
-        uint256 fee = IFeeManager(feeManager).getXChainFee(cIDStr._stringToArray(), false, _feeType, feeTokenStr);
+        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIDStr._stringToArray(), false, _feeType, feeTokenStr);
 
-        // TODO Remove hardcoded multiplier 10**2
-
-        if (fee > 0) {
-            uint256 feeWei = fee * 10 ** (IERC20Extended(_feeToken).decimals() - 2);
-
+        if (feeWei > 0) {
             IERC20(_feeToken).transferFrom(msg.sender, address(this), feeWei);
 
             IERC20(_feeToken).approve(feeManager, feeWei);

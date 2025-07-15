@@ -16,6 +16,18 @@ import { IERC20Errors } from "@openzeppelin/contracts/interfaces/draft-IERC6093.
 contract TestERC20Deployer is Helpers {
     using Strings for *;
 
+    function test_deployErc20_revertsOnNonExistentSlot() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        uint256 nonExistentSlot = 42;
+        string memory name = "No Slot";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        usdc.approve(address(feeManager), 100000000);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InvalidSlot.selector, nonExistentSlot));
+        token.deployErc20(nonExistentSlot, name, address(usdc));
+        vm.stopPrank();
+    }
+
     function test_deployErc20_deployment() public {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
@@ -37,7 +49,7 @@ contract TestERC20Deployer is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        uint256 slot = 1;
+        uint256 slot = ICTMRWA1(address(token)).slotByIndex(0); // just use the first slot
         string memory name = "Basic Stuff";
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
         usdc.approve(address(feeManager), 100000000);

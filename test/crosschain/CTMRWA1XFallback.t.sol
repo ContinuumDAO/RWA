@@ -43,7 +43,7 @@ contract CTMRWA1XFallbackTest is Helpers {
         bytes memory reason = "test reason";
 
         // Should revert when called by non-RWA1X address
-        vm.expectRevert("CTMRWA1XFallback: onlyRwa1X function");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1XFallback.CTMRWA1XFallback_Unauthorized.selector, 0));
         fallbackContract.rwa1XC3Fallback(selector, data, reason);
     }
 
@@ -442,12 +442,12 @@ contract CTMRWA1XFallbackSimpleTest is Test {
     }
 
     function test_SimpleOnlyRwa1XModifier() public {
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1XFallback.CTMRWA1XFallback_Unauthorized.selector, 0));
         bytes4 selector = bytes4(keccak256("test()"));
         bytes memory data = "";
         bytes memory reason = "test reason";
 
         // Should revert when called by non-RWA1X address
-        vm.expectRevert("CTMRWA1XFallback: onlyRwa1X function");
         fallbackContract.rwa1XC3Fallback(selector, data, reason);
     }
 

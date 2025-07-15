@@ -9,8 +9,8 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import {ICTMRWA1Identity} from "./ICTMRWA1Identity.sol";
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 
-import { CTMRWAUtils, Address } from "../CTMRWAUtils.sol";
-import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
+import { CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
@@ -117,15 +117,14 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         return isValid;
     }
 
-    function _payFee(uint256 _fee, string memory _feeTokenStr) internal returns (bool) {
-        if (_fee > 0) {
+    function _payFee(uint256 _feeWei, string memory _feeTokenStr) internal returns (bool) {
+        if (_feeWei > 0) {
             address feeToken = _feeTokenStr._stringToAddress();
-            uint256 feeWei = _fee * 10 ** (IERC20Extended(feeToken).decimals() - 2);
 
-            IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
+            IERC20(feeToken).transferFrom(msg.sender, address(this), _feeWei);
 
-            IERC20(feeToken).approve(feeManager, feeWei);
-            IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);
+            IERC20(feeToken).approve(feeManager, _feeWei);
+            IFeeManager(feeManager).payFee(_feeWei, _feeTokenStr);
         }
         return (true);
     }

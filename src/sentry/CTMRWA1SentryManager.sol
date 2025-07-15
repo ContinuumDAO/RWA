@@ -13,7 +13,7 @@ import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 import { ICTMRWA1, ITokenContract, TokenContract } from "../core/ICTMRWA1.sol";
 import { ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAGateway } from "../crosschain/ICTMRWAGateway.sol";
-import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
+import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 
 import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
@@ -441,15 +441,14 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         return (true);
     }
 
-    function _payFee(uint256 _fee, string memory _feeTokenStr) internal returns (bool) {
-        if (_fee > 0) {
+    function _payFee(uint256 _feeWei, string memory _feeTokenStr) internal returns (bool) {
+        if (_feeWei > 0) {
             address feeToken = _feeTokenStr._stringToAddress();
-            uint256 feeWei = _fee * 10 ** (IERC20Extended(feeToken).decimals() - 2);
 
-            IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
+            IERC20(feeToken).transferFrom(msg.sender, address(this), _feeWei);
 
-            IERC20(feeToken).approve(feeManager, feeWei);
-            IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);
+            IERC20(feeToken).approve(feeManager, _feeWei);
+            IFeeManager(feeManager).payFee(_feeWei, _feeTokenStr);
         }
         return (true);
     }

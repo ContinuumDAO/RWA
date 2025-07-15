@@ -13,7 +13,7 @@ import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/P
 
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
-import { FeeType, IFeeManager } from "./IFeeManager.sol";
+import { FeeType, IFeeManager, IERC20Extended } from "./IFeeManager.sol";
 
 import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 
@@ -30,6 +30,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
     uint256[29] public feeMultiplier;
+    int256 public constant MAX_SAFE_MULTIPLIER = int256(type(uint256).max / 1e22);
 
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
@@ -38,8 +39,8 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     event SetFeeMultiplier(FeeType indexed feeType, uint256 multiplier);
     event WithdrawFee(address indexed feeToken, address indexed treasury, uint256 amount);
 
-    mapping(string => mapping(address => uint256)) private _toFeeConfigs; // key is toChainIDStr, value key is
-        // tokenAddress
+    /// @dev key is toChainIDStr, value key is tokenAddress
+    mapping(string => mapping(address => uint256)) private _toFeeConfigs; 
 
     function initialize(address govAddr, address c3callerProxyAddr, address txSender, uint256 dappID2)
         public
@@ -112,14 +113,21 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         return (feeTokenIndexMap[feeToken]);
     }
 
+    /**
+     * @notice Add the parameters for fee tokens that are in the feeTokenList
+     * @param dstChainIDStr The destination chainId as a string for which parameters are being set
+     * @param feeTokensStr An array of fee tokens, as strings, that the fees are being set for
+     * @param baseFee This is an array of fees, in wei, for each fee token and to the destination chainId
+     * NOTE The actual fee paid for an operation to a chainId is the baseFee multiplied by the fee multiplier
+     */
     function addFeeToken(
         string memory dstChainIDStr,
         string[] memory feeTokensStr,
-        uint256[] memory fee // human readable * 100
+        uint256[] memory baseFee
     ) external onlyGov whenNotPaused nonReentrant returns (bool) {
         require(bytes(dstChainIDStr).length > 0, "FeeManager: ChainID empty");
 
-        require(feeTokensStr.length == fee.length, "FeeManager: Invalid list size");
+        require(feeTokensStr.length == baseFee.length, "FeeManager: Invalid list size");
 
         dstChainIDStr = dstChainIDStr._toLower();
 
@@ -131,7 +139,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
 
         for (uint256 index = 0; index < feeTokensStr.length; index++) {
             require(feeTokenIndexMap[localFeetokens[index]] > 0, "FeeManager: fee token does not exist");
-            _toFeeConfigs[dstChainIDStr][localFeetokens[index]] = fee[index];
+            _toFeeConfigs[dstChainIDStr][localFeetokens[index]] = baseFee[index];
         }
         return true;
     }
@@ -145,6 +153,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     {
         uint256 idx = uint256(_feeType);
         require(idx < feeMultiplier.length, "FeeManager: Invalid FeeType");
+        require(int256(_multiplier) <= MAX_SAFE_MULTIPLIER, "FeeManager: Multiplier too large");
         feeMultiplier[idx] = _multiplier;
         emit SetFeeMultiplier(_feeType, _multiplier);
         return true;
@@ -174,7 +183,8 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
             baseFee += getToChainBaseFee(block.chainid.toString(), _feeTokenStr);
         }
 
-        uint256 fee = baseFee * getFeeMultiplier(_feeType);
+        address feeToken = _feeTokenStr._stringToAddress();
+        uint256 fee = baseFee * getFeeMultiplier(_feeType)*10**IERC20Extended(feeToken).decimals();
 
         return fee;
     }
