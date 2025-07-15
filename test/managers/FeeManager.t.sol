@@ -13,6 +13,7 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 import { Helpers } from "../helpers/Helpers.sol";
 import { TestERC20 } from "../../src/mocks/TestERC20.sol";
 import { MaliciousERC20 } from "../../src/mocks/MaliciousERC20.sol";
+import {Uint} from "../../src/CTMRWAUtils.sol";
 
 
 // Mock contract to test reentrancy
@@ -367,11 +368,17 @@ contract TestFeeManager is Helpers {
     function test_FeeMultiplierNoOverflow() public {
         // Set a very large multiplier (should revert)
         uint256 largeMultiplier = type(uint256).max / 100;
-        vm.expectRevert("FeeManager: Multiplier too large");
+        // vm.expectRevert("FeeManager: Multiplier too large");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IFeeManager.FeeManager_InvalidLength.selector,
+                Uint.Multiplier
+            )
+        );
         vm.prank(gov);
         feeManager.setFeeMultiplier(FeeType.TX, largeMultiplier);
         // Set a safe multiplier (should succeed)
-        uint256 safeMultiplier = uint256(type(uint256).max / 1e22);
+        uint256 safeMultiplier = uint256(type(uint256).max / 1e23);
         vm.prank(gov);
         feeManager.setFeeMultiplier(FeeType.TX, safeMultiplier);
         // Set a base fee

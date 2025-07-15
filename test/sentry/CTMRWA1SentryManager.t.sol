@@ -14,6 +14,7 @@ import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWA1, Address } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
+import {List} from "../../src/CTMRWAUtils.sol";
 
 contract TestSentryManager is Helpers {
     using Strings for *;
@@ -817,16 +818,16 @@ contract TestSentryManager is Helpers {
         sentryManager.goPublic(ID, _stringToArray(cIdStr), feeTokenStr);
 
         // KYC should be disabled for new deployments
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_KYCEnabled.selector));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidList.selector, List.WhiteListEnabled));
         rwa1X.deployAllCTMRWA1X(
             false, // include local mint
             ID,
             RWA_TYPE,
             VERSION,
-            "",
-            "",
+            "Token Name",
+            "Symbol",
             18,
-            "",
+            "GFLD",
             _stringToArray("1"), // extend to another chain
             feeTokenStr
         );
