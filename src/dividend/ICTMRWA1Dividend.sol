@@ -2,9 +2,14 @@
 
 pragma solidity ^0.8.22;
 
+import { Address, Uint } from "../CTMRWAUtils.sol";
 import { ICTMRWA } from "../core/ICTMRWA.sol";
 
 interface ICTMRWA1Dividend is ICTMRWA {
+    error CTMRWA1Dividend_Unauthorized(Address);
+    error CTMRWA1Dividend_InvalidDividend(Uint);
+    error CTMRWA1Dividend_FailedTransaction();
+
     function ID() external view returns (uint256);
     function tokenAdmin() external view returns (address);
     function setTokenAdmin(address _tokenAdmin) external returns (bool);

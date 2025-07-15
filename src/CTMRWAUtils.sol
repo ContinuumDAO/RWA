@@ -17,7 +17,8 @@ enum Uint {
     Commission,
     CountryCode,
     Offering,
-    MinInvestment
+    MinInvestment,
+    Payable
 }
 
 enum Time {
