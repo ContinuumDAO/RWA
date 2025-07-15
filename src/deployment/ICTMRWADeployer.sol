@@ -2,7 +2,14 @@
 
 pragma solidity ^0.8.22;
 
+import {Address, RWA} from "../CTMRWAUtils.sol";
+
 interface ICTMRWADeployer {
+    error CTMRWADeployer_Unauthorized(Address);
+    error CTMRWADeployer_InvalidContract(Address);
+    error CTMRWADeployer_IncompatibleRWA(RWA);
+    error CTMRWADeployer_IsZeroAddress(Address);
+
     function gateway() external view returns (address);
     function feeManager() external view returns (address);
     function rwaX() external view returns (address);

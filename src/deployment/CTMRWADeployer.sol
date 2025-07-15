@@ -13,6 +13,7 @@ import { ICTMRWADeployInvest } from "../deployment/ICTMRWADeployInvest.sol";
 import { ICTMRWAFactory } from "../deployment/ICTMRWAFactory.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWADeployer } from "./ICTMRWADeployer.sol";
+import {Address, RWA} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -65,7 +66,8 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
     modifier onlyRwaX() {
-        require(msg.sender == rwaX, "CTMRWADeployer: OnlyRwaX function");
+        // require(msg.sender == rwaX, "CTMRWADeployer: OnlyRwaX function");
+        if (msg.sender != rwaX) revert CTMRWADeployer_Unauthorized(Address.Sender);
         _;
     }
 
@@ -135,8 +137,10 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     {
         address tokenAddr = ICTMRWAFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
 
-        require(ICTMRWA1(tokenAddr).RWA_TYPE() == _rwaType, "CTMRWADeployer: Wrong RWA type");
-        require(ICTMRWA1(tokenAddr).VERSION() == _version, "CTMRWADeployer: Wrong RWA version");
+        // require(ICTMRWA1(tokenAddr).RWA_TYPE() == _rwaType, "CTMRWADeployer: Wrong RWA type");
+        if (ICTMRWA1(tokenAddr).RWA_TYPE() != _rwaType) revert CTMRWADeployer_IncompatibleRWA(RWA.Type);
+        // require(ICTMRWA1(tokenAddr).VERSION() == _version, "CTMRWADeployer: Wrong RWA version");
+        if (ICTMRWA1(tokenAddr).VERSION() != _version) revert CTMRWADeployer_IncompatibleRWA(RWA.Version);
 
         address dividendAddr = deployDividend(_ID, tokenAddr, _rwaType, _version);
         address storageAddr = deployStorage(_ID, tokenAddr, _rwaType, _version);
@@ -223,9 +227,11 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         returns (address)
     {
         (bool ok,) = ICTMRWAMap(ctmRwaMap).getInvestContract(_ID, _rwaType, _version);
-        require(!ok, "CTMDeploy: Investment contract already deployed"); 
+        // require(!ok, "CTMDeploy: Investment contract already deployed"); 
+        if (ok) revert CTMRWADeployer_InvalidContract(Address.Invest);
 
-        require(deployInvest != address(0), "CTMDeployer: deployInvest address not set");
+        // require(deployInvest != address(0), "CTMDeployer: deployInvest address not set");
+        if (deployInvest == address(0)) revert CTMRWADeployer_IsZeroAddress(Address.DeployInvest);
 
         address investAddress = ICTMRWADeployInvest(deployInvest).deployInvest(_ID, _rwaType, _version, _feeToken);
         ICTMRWAMap(ctmRwaMap).setInvestmentContract(_ID, _rwaType, _version, investAddress);

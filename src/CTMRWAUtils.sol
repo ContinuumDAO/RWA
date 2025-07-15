@@ -25,6 +25,11 @@ enum Time {
     Late
 }
 
+enum RWA {
+    Type,
+    Version
+}
+
 /// @dev Common addresses referenced in errors in CTMRWA1
 enum Address {
     Sender,
@@ -43,7 +48,9 @@ enum Address {
     Admin,
     Minter,
     Fallback,
-    Token
+    Token,
+    Invest,
+    DeployInvest
 }
 
 library CTMRWAUtils {
