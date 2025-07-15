@@ -80,7 +80,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
         }
 
         // require(ICTMRWA1(ctmRwaToken).slotExists(slot), "CTMRWAERC20: Slot does not exist");
-        if (ICTMRWA1(ctmRwaToken).slotExists(slot)) {
+        if (!ICTMRWA1(ctmRwaToken).slotExists(slot)) {
             revert CTMRWAERC20_NonExistentSlot(slot);
         }
 

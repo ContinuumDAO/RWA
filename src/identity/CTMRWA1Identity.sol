@@ -9,7 +9,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import {ICTMRWA1Identity} from "./ICTMRWA1Identity.sol";
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 
-import { CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { CTMRWAUtils, Address } from "../CTMRWAUtils.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
@@ -37,6 +37,11 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         _;
     }
 
+    modifier onlySentryManager() {
+        if(msg.sender != sentryManager) revert CTMRWA1Identity_Unauthorized(Address.Sender);
+        _;
+    }
+
     event LogFallback(bytes4 selector, bytes data, bytes reason);
     event UserVerified(address indexed user);
 
@@ -54,6 +59,10 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         sentryManager = _sentryManager;
         zkMeVerifierAddress = _verifierAddress;
         feeManager = _feeManager;
+    }
+
+    function setZkMeVerifierAddress(address _verifierAddress) external onlySentryManager {
+        zkMeVerifierAddress = _verifierAddress;
     }
 
     function verifyPerson(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr)
@@ -141,9 +150,4 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         return (fee * _nItems);
     }
 
-    // TODO: Implement functions
-    function setZkMeVerifierAddress(address verifierAddress) external {}
-    function setSentryManager(address _sentryManager) external {}
-    function setFeeManager(address _feeManager) external {}
-    function setCtmRwaMap(address _map) external {}
 }

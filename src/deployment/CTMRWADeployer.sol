@@ -12,6 +12,9 @@ import { Address, RWA } from "../CTMRWAUtils.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
+import { ICTMRWA1DividendFactory } from "../dividend/ICTMRWA1DividendFactory.sol";
+import { ICTMRWA1StorageManager } from "../storage/ICTMRWA1StorageManager.sol";
+import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 
 import { ICTMRWADeployer } from "./ICTMRWADeployer.sol";
@@ -149,9 +152,9 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
             revert CTMRWADeployer_IncompatibleRWA(RWA.Version);
         }
 
-        address dividendAddr = deployDividend(_ID, tokenAddr, _rwaType, _version);
-        address storageAddr = deployStorage(_ID, tokenAddr, _rwaType, _version);
-        address sentryAddr = deploySentry(_ID, tokenAddr, _rwaType, _version);
+        address dividendAddr = dividendDeployer(_ID, tokenAddr, _rwaType, _version);
+        address storageAddr = storageDeployer(_ID, tokenAddr, _rwaType, _version);
+        address sentryAddr = sentryDeployer(_ID, tokenAddr, _rwaType, _version);
 
         ICTMRWAMap(ctmRwaMap).attachContracts(_ID, tokenAddr, dividendAddr, storageAddr, sentryAddr);
 
@@ -159,12 +162,12 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     }
 
     /// @dev Calls the contract function to deploy the CTMRWA1Dividend for this _ID
-    function deployDividend(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)
+    function dividendDeployer(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)
         internal
         returns (address)
     {
         if (dividendFactory[_rwaType][_version] != address(0)) {
-            address dividendAddr = ICTMRWA1TokenFactory(dividendFactory[_rwaType][_version]).deployDividend(
+            address dividendAddr = ICTMRWA1DividendFactory(dividendFactory[_rwaType][_version]).deployDividend(
                 _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
             );
             return (dividendAddr);
@@ -174,12 +177,12 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     }
 
     /// @dev Calls the contract function to deploy the CTMRWA1Storage for this _ID
-    function deployStorage(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)
+    function storageDeployer(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)
         internal
         returns (address)
     {
         if (storageFactory[_rwaType][_version] != address(0)) {
-            address storageAddr = ICTMRWA1TokenFactory(storageFactory[_rwaType][_version]).deployStorage(
+            address storageAddr = ICTMRWA1StorageManager(storageFactory[_rwaType][_version]).deployStorage(
                 _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
             );
             return (storageAddr);
@@ -189,12 +192,12 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     }
 
     /// @notice Governance function to change the CTMRWA1Sentry contract address
-    function deploySentry(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)
+    function sentryDeployer(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)
         internal
         returns (address)
     {
         if (sentryFactory[_rwaType][_version] != address(0)) {
-            address sentryAddr = ICTMRWA1TokenFactory(sentryFactory[_rwaType][_version]).deploySentry(
+            address sentryAddr = ICTMRWA1SentryManager(sentryFactory[_rwaType][_version]).deploySentry(
                 _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
             );
             return (sentryAddr);

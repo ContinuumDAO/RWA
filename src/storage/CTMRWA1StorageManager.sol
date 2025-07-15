@@ -20,10 +20,6 @@ import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storag
 import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
 import { ICTMRWA1StorageUtils } from "./ICTMRWA1StorageUtils.sol";
 
-// interface TokenID {
-//     function ID() external view returns (uint256);
-// }
-
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
  * @author @Selqui ContinuumDAO

@@ -20,6 +20,7 @@ import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "./ICTMRWA1SentryManager.sol";
 import { ICTMRWA1SentryUtils } from "./ICTMRWA1SentryUtils.sol";
+import { ICTMRWA1Identity } from "../identity/ICTMRWA1Identity.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -151,8 +152,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     /**
      * @notice Governance can switch to a new CTMRWA1Identity contract
      */
-    function setIdentity(address _id) external onlyGov {
+    function setIdentity(address _id, address _zkMeVerifierAddr) external onlyGov {
+        require(_id != address(0), "SM; Address is zero");
         identity = _id;
+        ICTMRWA1Identity(_id).setZkMeVerifierAddress(_zkMeVerifierAddr);
     }
 
     /**

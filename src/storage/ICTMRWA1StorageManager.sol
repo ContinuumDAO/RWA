@@ -18,6 +18,14 @@ interface ICTMRWA1StorageManager is ICTMRWA {
     function setStorageUtils(address utilsAddr) external;
     function getLastReason() external view returns (string memory);
 
+    function deployStorage(
+        uint256 ID, 
+        address tokenAddr, 
+        uint256 rwaType, 
+        uint256 version, 
+        address map
+    ) external returns (address);
+
     function addURI(
         uint256 ID,
         string memory objectName,

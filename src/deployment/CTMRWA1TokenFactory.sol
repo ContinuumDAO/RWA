@@ -34,24 +34,6 @@ contract CTMRWA1TokenFactory is ICTMRWA1TokenFactory {
         ctmRwaDeployer = _ctmRwaDeployer;
     }
 
-    // TODO: Implement these functions
-    function deployDividend(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _ctmRwaMap)
-        external
-        returns (address)
-    { }
-
-    function deployStorage(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _ctmRwaMap)
-        external
-        returns (address)
-    { }
-
-    function deploySentry(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _ctmRwaMap)
-        external
-        returns (address)
-    { }
-
-    function setCtmRwaDeployer(address _deployer) external { }
-
     /**
      * @dev Deploy a new CTMRWA1 using 'salt' ID to ensure a unique contract address
      */

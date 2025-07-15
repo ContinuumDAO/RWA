@@ -10,13 +10,18 @@ interface ICTMRWA1SentryManager is ICTMRWA {
     function setCtmRwaDeployer(address deployer) external;
     function setCtmRwaMap(address map) external;
     function setSentryUtils(address utilsAddr) external;
+    function setIdentity(address id, address zkMeVerifierAddr) external;
     function utilsAddr() external returns (address);
 
     function getLastReason() external view returns (string memory);
 
-    function deploySentry(uint256 ID, address tokenAddr, uint256 rwaType, uint256 version, address map)
-        external
-        returns (address);
+    function deploySentry(
+        uint256 ID, 
+        address tokenAddr, 
+        uint256 rwaType, 
+        uint256 version, 
+        address map
+    ) external returns (address);
 
     function setSentryOptions(
         uint256 ID,

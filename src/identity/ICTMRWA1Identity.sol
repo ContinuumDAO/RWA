@@ -14,6 +14,7 @@ enum RequestId {
 }
 
 interface ICTMRWA1Identity is ICTMRWA {
+    error CTMRWA1Identity_Unauthorized(Address);
     error CTMRWA1Identity_IsZeroAddress(Address);
     error CTMRWA1Identity_InvalidContract(Address);
     error CTMRWA1Identity_KYCDisabled();
@@ -21,9 +22,6 @@ interface ICTMRWA1Identity is ICTMRWA {
     error CTMRWA1Identity_InvalidKYC(address);
 
     function setZkMeVerifierAddress(address verifierAddress) external;
-    function setSentryManager(address _sentryManager) external;
-    function setFeeManager(address _feeManager) external;
-    function setCtmRwaMap(address _map) external;
 
     function verifyPerson(uint256 ID, string[] memory chainIdsStr, string memory feeTokenStr) external returns (bool);
 
