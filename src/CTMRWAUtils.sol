@@ -6,6 +6,7 @@ pragma solidity ^0.8.22;
 enum Uint {
     TokenId,
     TokenName,
+    Symbol,
     SlotLength,
     SlotName,
     Value,
