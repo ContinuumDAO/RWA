@@ -98,20 +98,32 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
 
     /// @notice Governance function to change the CTMRWAGateway contract address
     function setGateway(address _gateway) external onlyGov {
+        if (_gateway == address(0)) {
+            revert CTMRWADeployer_IsZeroAddress(Address.Gateway);
+        }
         gateway = _gateway;
     }
 
     /// @notice Governance function to change the FeeManager contract address
     function setFeeManager(address _feeManager) external onlyGov {
+        if (_feeManager == address(0)) {
+            revert CTMRWADeployer_IsZeroAddress(Address.FeeManager);
+        }
         feeManager = _feeManager;
     }
 
     /// @notice Governance function to change the CTMRWA1X contract address
     function setRwaX(address _rwaX) external onlyGov {
+        if (_rwaX == address(0)) {
+            revert CTMRWADeployer_IsZeroAddress(Address.RWAX);
+        }
         rwaX = _rwaX;
     }
 
     function setMap(address _ctmRwaMap) external onlyGov {
+        if (_ctmRwaMap == address(0)) {
+            revert CTMRWADeployer_IsZeroAddress(Address.Map);
+        }
         ctmRwaMap = _ctmRwaMap;
     }
 
@@ -120,11 +132,17 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
      * @param _erc20Deployer address of the new CTMRWAERC20Deployer contract
      */
     function setErc20DeployerAddress(address _erc20Deployer) external onlyGov {
+        if (_erc20Deployer == address(0)) {
+            revert CTMRWADeployer_IsZeroAddress(Address.Erc20Deployer);
+        }
         erc20Deployer = _erc20Deployer;
     }
 
     /// @notice Governance function to change the CTMRWADeployInvest contract address
     function setDeployInvest(address _deployInvest) external onlyGov {
+        if (_deployInvest == address(0)) {
+            revert CTMRWADeployer_IsZeroAddress(Address.DeployInvest);
+        }
         deployInvest = _deployInvest;
     }
 

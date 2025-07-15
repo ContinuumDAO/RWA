@@ -58,7 +58,11 @@ enum Address {
     DeployInvest,
     Spender,
     ZKMe,
-    Cooperator
+    Cooperator,
+    Gateway,
+    FeeManager,
+    RWAX,
+    Erc20Deployer
 }
 
 enum List {

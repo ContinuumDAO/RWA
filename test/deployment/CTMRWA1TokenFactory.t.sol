@@ -6,6 +6,7 @@ import { console } from "forge-std/console.sol";
 import { CTMRWA1TokenFactory } from "../../src/deployment/CTMRWA1TokenFactory.sol";
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1TokenFactory } from "../../src/deployment/ICTMRWA1TokenFactory.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 contract MockDeployer {
@@ -47,7 +48,7 @@ contract CTMRWA1TokenFactoryTest is Test, Helpers {
         assertTrue(deployed != address(0), "Deployment should succeed");
         // Try as notDeployer
         vm.prank(notDeployer);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, 0));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_Unauthorized.selector, 0));
         factory.deploy(deployData);
     }
 
@@ -112,7 +113,7 @@ contract CTMRWA1TokenFactoryTest is Test, Helpers {
     function test_RevertOnInvalidDeployer() public {
         bytes memory deployData = getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(notDeployer);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, 0));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_Unauthorized.selector, 0));
         factory.deploy(deployData);
     }
 
