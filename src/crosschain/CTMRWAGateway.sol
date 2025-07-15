@@ -74,7 +74,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         onlyGov
         returns (bool)
     {
-        if (_newChainIdsStr.length != _contractAddrsStr.length) revert CTMRWAGateway_LengthMismatch(Uint.Input);
+        if (_newChainIdsStr.length != _contractAddrsStr.length) {
+            revert CTMRWAGateway_LengthMismatch(Uint.Input);
+        }
 
         bool preExisted;
 
@@ -301,7 +303,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         onlyGov
         returns (bool)
     {
-        if (_chainIdsStr.length != _rwaXAddrsStr.length) revert CTMRWAGateway_LengthMismatch(Uint.Input);
+        if (_chainIdsStr.length != _rwaXAddrsStr.length) {
+            revert CTMRWAGateway_LengthMismatch(Uint.Input);
+        }
 
         bool preExisted;
 
@@ -311,7 +315,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
             string memory rwaXAddrStr = _rwaXAddrsStr[j]._toLower();
             string memory chainIdStr = _chainIdsStr[j]._toLower();
 
-            if (bytes(rwaXAddrStr).length > 64) revert CTMRWAGateway_InvalidLength(Uint.Address);
+            if (bytes(rwaXAddrStr).length > 64) {
+                revert CTMRWAGateway_InvalidLength(Uint.Address);
+            }
 
             for (uint256 i = 0; i < rwaX[_rwaType][_version].length; i++) {
                 if (rwaX[_rwaType][_version][i].chainIdStr.equal(chainIdStr)) {
@@ -345,7 +351,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         string[] memory _chainIdsStr,
         string[] memory _storageManagerAddrsStr
     ) external onlyGov returns (bool) {
-        if (_chainIdsStr.length != _storageManagerAddrsStr.length) revert CTMRWAGateway_LengthMismatch(Uint.Input);
+        if (_chainIdsStr.length != _storageManagerAddrsStr.length) {
+            revert CTMRWAGateway_LengthMismatch(Uint.Input);
+        }
 
         bool preExisted;
 
@@ -386,7 +394,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
         string[] memory _chainIdsStr,
         string[] memory _sentryManagerAddrsStr
     ) external onlyGov returns (bool) {
-        if (_chainIdsStr.length != _sentryManagerAddrsStr.length) revert CTMRWAGateway_LengthMismatch(Uint.Input);
+        if (_chainIdsStr.length != _sentryManagerAddrsStr.length) {
+            revert CTMRWAGateway_LengthMismatch(Uint.Input);
+        }
 
         bool preExisted;
 

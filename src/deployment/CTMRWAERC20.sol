@@ -3,14 +3,14 @@
 pragma solidity ^0.8.22;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {ICTMRWAERC20} from "./ICTMRWAERC20.sol";
+import { Address } from "../CTMRWAUtils.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import {Address} from "../CTMRWAUtils.sol";
+import { ICTMRWAERC20 } from "./ICTMRWAERC20.sol";
 
 /**
  * This contract is an ERC20. The required interface functions are directly linked to various
@@ -75,10 +75,14 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
 
         (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, _rwaType, _version);
         // require(ok, "CTMRWAERC20: There is no CTMRWA1 contract backing this ID");
-        if (!ok) revert CTMRWAERC20_InvalidContract(Address.Token);
+        if (!ok) {
+            revert CTMRWAERC20_InvalidContract(Address.Token);
+        }
 
         // require(ICTMRWA1(ctmRwaToken).slotExists(slot), "CTMRWAERC20: Slot does not exist");
-        if (ICTMRWA1(ctmRwaToken).slotExists(slot)) revert CTMRWAERC20_NonExistentSlot(slot);
+        if (ICTMRWA1(ctmRwaToken).slotExists(slot)) {
+            revert CTMRWAERC20_NonExistentSlot(slot);
+        }
 
         slotName = ICTMRWA1(ctmRwaToken).slotName(slot);
         ctmRwaDecimals = ICTMRWA1(ctmRwaToken).valueDecimals();
@@ -166,7 +170,12 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
      * NOTE The _value is taken from the first tokenId owned by the caller and if this is not
      * sufficient, the balance is taken from the second owned tokenId etc.
      */
-    function transferFrom(address _from, address _to, uint256 _value) public override(ERC20, IERC20) nonReentrant returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value)
+        public
+        override(ERC20, IERC20)
+        nonReentrant
+        returns (bool)
+    {
         _spendAllowance(_from, msg.sender, _value);
         _transfer(_from, _to, _value);
 
@@ -176,7 +185,9 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
     /// @dev Low level function to approve spending
     function _approve(address _owner, address _spender, uint256 _value, bool _emitEvent) internal override {
         // require(_spender != address(0), "CTMRWAERC20: spender is zero address");
-        if (_spender == address(0)) revert CTMRWAERC20_IsZeroAddress(Address.Spender);
+        if (_spender == address(0)) {
+            revert CTMRWAERC20_IsZeroAddress(Address.Spender);
+        }
         super._approve(_owner, _spender, _value, _emitEvent);
     }
 

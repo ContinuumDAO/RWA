@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.22;
 
-import {Address} from "../CTMRWAUtils.sol";
+import { Address } from "../CTMRWAUtils.sol";
 
 interface ICTMRWA1XFallback {
     event LogFallback(bytes4 selector, bytes data, bytes reason);

@@ -15,7 +15,7 @@ import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
 import { FeeType, IFeeManager } from "./IFeeManager.sol";
 
-import {CTMRWAUtils} from "../CTMRWAUtils.sol";
+import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 
 contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUpgradeable, PausableUpgradeable {
     using Strings for *;
@@ -41,18 +41,22 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     mapping(string => mapping(address => uint256)) private _toFeeConfigs; // key is toChainIDStr, value key is
         // tokenAddress
 
-    function initialize(address govAddr, address c3callerProxyAddr, address txSender, uint256 dappID2) public initializer {
+    function initialize(address govAddr, address c3callerProxyAddr, address txSender, uint256 dappID2)
+        public
+        initializer
+    {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
         __C3GovernDapp_init(govAddr, c3callerProxyAddr, txSender, dappID2);
         __Pausable_init();
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     function pause() external onlyGov {
         _pause();
     }
+
     function unpause() external onlyGov {
         _unpause();
     }
@@ -132,7 +136,13 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         return true;
     }
 
-    function setFeeMultiplier(FeeType _feeType, uint256 _multiplier) external onlyGov whenNotPaused nonReentrant returns (bool) {
+    function setFeeMultiplier(FeeType _feeType, uint256 _multiplier)
+        external
+        onlyGov
+        whenNotPaused
+        nonReentrant
+        returns (bool)
+    {
         uint256 idx = uint256(_feeType);
         require(idx < feeMultiplier.length, "FeeManager: Invalid FeeType");
         feeMultiplier[idx] = _multiplier;

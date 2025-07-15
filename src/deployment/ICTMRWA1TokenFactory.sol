@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.22;
 
-import {Address} from "../CTMRWAUtils.sol";
+import { Address } from "../CTMRWAUtils.sol";
 
 interface ICTMRWA1TokenFactory {
     error CTMRWA1TokenFactory_Unauthorized(Address);

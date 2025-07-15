@@ -61,4 +61,4 @@ contract MaliciousERC20 is ITestERC20, ERC20 {
         }
         return result;
     }
-} 
+}

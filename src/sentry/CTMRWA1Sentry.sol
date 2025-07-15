@@ -4,9 +4,9 @@ pragma solidity ^0.8.22;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
+import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
 contract CTMRWA1Sentry {
     using Strings for *;
@@ -87,7 +87,8 @@ contract CTMRWA1Sentry {
         if (tokenAdmin != address(0)) {
             string memory tokenAdminStr = tokenAdmin.toHexString()._toLower();
             tokenAdminStr = _tokenAdmin.toHexString()._toLower();
-            _setWhitelist(tokenAdminStr._stringToArray(), CTMRWAUtils._boolToArray(true)); // don't strand tokens held by the old
+            _setWhitelist(tokenAdminStr._stringToArray(), CTMRWAUtils._boolToArray(true)); // don't strand tokens held
+                // by the old
                 // tokenAdmin
         }
 

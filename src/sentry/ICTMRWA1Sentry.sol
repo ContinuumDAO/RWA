@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.22;
 
-import {ICTMRWA} from "../core/ICTMRWA.sol";
+import { ICTMRWA } from "../core/ICTMRWA.sol";
 
 interface ICTMRWA1Sentry is ICTMRWA {
     function ID() external view returns (uint256);

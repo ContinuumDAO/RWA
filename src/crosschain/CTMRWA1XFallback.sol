@@ -5,7 +5,7 @@ pragma solidity ^0.8.22;
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1XFallback } from "./ICTMRWA1XFallback.sol";
 
-import { CTMRWAUtils, Address } from "../CTMRWAUtils.sol";
+import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -26,7 +26,9 @@ contract CTMRWA1XFallback is ICTMRWA1XFallback {
 
     modifier onlyRwa1X() {
         // require(msg.sender == rwa1X, "CTMRWA1XFallback: onlyRwa1X function");
-        if (msg.sender != rwa1X) revert CTMRWA1XFallback_Unauthorized(Address.Sender);
+        if (msg.sender != rwa1X) {
+            revert CTMRWA1XFallback_Unauthorized(Address.Sender);
+        }
         _;
     }
 

@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.22;
 
+import { Address, Uint } from "../CTMRWAUtils.sol";
+import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { SlotData } from "../core/ICTMRWA1.sol";
-import {ICTMRWA} from "../core/ICTMRWA.sol";
-import {Address, Uint} from "../CTMRWAUtils.sol";
 
 interface ICTMRWA1X is ICTMRWA {
     /// @dev New c3call for CTMRWA1 deployment on destination chain toChainIdStr

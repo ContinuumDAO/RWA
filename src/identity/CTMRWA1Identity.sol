@@ -8,11 +8,11 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 
+import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
 interface IZkMeVerify {
     function hasApproved(address cooperator, address user) external view returns (bool);

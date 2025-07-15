@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.22;
 
-import {ICTMRWA} from "../core/ICTMRWA.sol";
+import { ICTMRWA } from "../core/ICTMRWA.sol";
 
 interface ICTMRWA1SentryManager is ICTMRWA {
     function setGateway(address gateway) external;

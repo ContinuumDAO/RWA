@@ -8,12 +8,13 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
+import { Address, RWA } from "../CTMRWAUtils.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
-import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
-import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
+import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
+
 import { ICTMRWADeployer } from "./ICTMRWADeployer.sol";
-import {Address, RWA} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -67,7 +68,9 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
 
     modifier onlyRwaX() {
         // require(msg.sender == rwaX, "CTMRWADeployer: OnlyRwaX function");
-        if (msg.sender != rwaX) revert CTMRWADeployer_Unauthorized(Address.Sender);
+        if (msg.sender != rwaX) {
+            revert CTMRWADeployer_Unauthorized(Address.Sender);
+        }
         _;
     }
 
@@ -131,16 +134,20 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     /// @dev The main deploy function that calls the various deploy functions that call CREATE2 for this ID
     function deploy(uint256 _ID, uint256 _rwaType, uint256 _version, bytes memory deployData)
         external
-        onlyRwaX
         virtual
+        onlyRwaX
         returns (address, address, address, address)
     {
         address tokenAddr = ICTMRWA1TokenFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
 
         // require(ICTMRWA1(tokenAddr).RWA_TYPE() == _rwaType, "CTMRWADeployer: Wrong RWA type");
-        if (ICTMRWA1(tokenAddr).RWA_TYPE() != _rwaType) revert CTMRWADeployer_IncompatibleRWA(RWA.Type);
+        if (ICTMRWA1(tokenAddr).RWA_TYPE() != _rwaType) {
+            revert CTMRWADeployer_IncompatibleRWA(RWA.Type);
+        }
         // require(ICTMRWA1(tokenAddr).VERSION() == _version, "CTMRWADeployer: Wrong RWA version");
-        if (ICTMRWA1(tokenAddr).VERSION() != _version) revert CTMRWADeployer_IncompatibleRWA(RWA.Version);
+        if (ICTMRWA1(tokenAddr).VERSION() != _version) {
+            revert CTMRWADeployer_IncompatibleRWA(RWA.Version);
+        }
 
         address dividendAddr = deployDividend(_ID, tokenAddr, _rwaType, _version);
         address storageAddr = deployStorage(_ID, tokenAddr, _rwaType, _version);
@@ -227,11 +234,15 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         returns (address)
     {
         (bool ok,) = ICTMRWAMap(ctmRwaMap).getInvestContract(_ID, _rwaType, _version);
-        // require(!ok, "CTMDeploy: Investment contract already deployed"); 
-        if (ok) revert CTMRWADeployer_InvalidContract(Address.Invest);
+        // require(!ok, "CTMDeploy: Investment contract already deployed");
+        if (ok) {
+            revert CTMRWADeployer_InvalidContract(Address.Invest);
+        }
 
         // require(deployInvest != address(0), "CTMDeployer: deployInvest address not set");
-        if (deployInvest == address(0)) revert CTMRWADeployer_IsZeroAddress(Address.DeployInvest);
+        if (deployInvest == address(0)) {
+            revert CTMRWADeployer_IsZeroAddress(Address.DeployInvest);
+        }
 
         address investAddress = ICTMRWADeployInvest(deployInvest).deployInvest(_ID, _rwaType, _version, _feeToken);
         ICTMRWAMap(ctmRwaMap).setInvestmentContract(_ID, _rwaType, _version, investAddress);

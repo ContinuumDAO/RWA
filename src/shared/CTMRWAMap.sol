@@ -8,10 +8,10 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
+import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { ICTMRWAAttachment, ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import {CTMRWAUtils} from "../CTMRWAUtils.sol";
 
-import {ICTMRWA} from "../core/ICTMRWA.sol";
+import { ICTMRWA } from "../core/ICTMRWA.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -32,7 +32,6 @@ import {ICTMRWA} from "../core/ICTMRWA.sol";
  *
  * The 'attach' functions are called by CTMRWADeployer when the contracts are deployed.
  */
-
 contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     using Strings for *;
     using CTMRWAUtils for string;
@@ -290,13 +289,15 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         return true;
     }
 
-    function _checkRwaTypeVersion(
-        string memory _addrStr, 
-        uint256 _rwaType, 
-        uint256 _version
-    ) internal view returns(bool) {
+    function _checkRwaTypeVersion(string memory _addrStr, uint256 _rwaType, uint256 _version)
+        internal
+        view
+        returns (bool)
+    {
         // NOTE: Skip check if the token validly does not exist
-        if (bytes(_addrStr).length == 0) return false;
+        if (bytes(_addrStr).length == 0) {
+            return false;
+        }
         address _contractAddr = _addrStr._stringToAddress();
         uint256 rwaType = ICTMRWA(_contractAddr).RWA_TYPE();
         uint256 version = ICTMRWA(_contractAddr).VERSION();

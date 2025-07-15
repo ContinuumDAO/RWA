@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.22;
 
-import {Uint, Address, Time} from "../CTMRWAUtils.sol";
+import { Address, Time, Uint } from "../CTMRWAUtils.sol";
 
 struct Offering {
     uint256 tokenId;

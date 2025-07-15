@@ -1,20 +1,20 @@
-// SPDX-License-Identifier: MIT 
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.22;
 
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { ICTMRWA1, SlotData, Address, Uint } from "./ICTMRWA1.sol";
+import { Address, ICTMRWA1, SlotData, Uint } from "./ICTMRWA1.sol";
 import { ICTMRWA1Receiver } from "./ICTMRWA1Receiver.sol";
 
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { ICTMRWADeployer } from "../deployment/ICTMRWADeployer.sol";
 import { ICTMRWAERC20Deployer } from "../deployment/ICTMRWAERC20Deployer.sol";
 
+import { Address, Uint } from "../CTMRWAUtils.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1Storage } from "../storage/ICTMRWA1Storage.sol";
-import {Address, Uint} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -174,49 +174,65 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
 
     modifier onlyTokenAdmin() {
         // require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "RWA: onlyTokenAdmin");
-        if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
         _;
     }
 
     modifier onlyErc20Deployer() {
         // require(_erc20s[msg.sender], "RWA: Only CTMRWAERC20");
-        if (!_erc20s[msg.sender]) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (!_erc20s[msg.sender]) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
         _;
     }
 
     modifier onlyTokenFactory() {
         // require(msg.sender == tokenFactory, "RWA: Only TokenFactory");
-        if (msg.sender != tokenFactory) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (msg.sender != tokenFactory) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
         _;
     }
 
     modifier onlyCtmMap() {
         // require(msg.sender == ctmRwaMap, "RWA: onlyCTMRWAMap");
-        if (msg.sender != ctmRwaMap) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (msg.sender != ctmRwaMap) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
         _;
     }
 
     modifier onlyRwa1X() {
         // require(msg.sender == ctmRwa1X || msg.sender == rwa1XFallback, "RWA: Only CTMRWA1X");
-        if (msg.sender != ctmRwa1X && msg.sender != rwa1XFallback) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (msg.sender != ctmRwa1X && msg.sender != rwa1XFallback) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
         _;
     }
 
     modifier onlyMinter() {
         // require(ICTMRWA1X(ctmRwa1X).isMinter(msg.sender) || _erc20s[msg.sender], "RWA: onlyMinter");
-        if (!ICTMRWA1X(ctmRwa1X).isMinter(msg.sender) && !_erc20s[msg.sender]) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (!ICTMRWA1X(ctmRwa1X).isMinter(msg.sender) && !_erc20s[msg.sender]) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
         _;
     }
 
     modifier onlyDividend() {
         // require(msg.sender == dividendAddr, "RWA: onlyDividend");
-        if (msg.sender != dividendAddr) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (msg.sender != dividendAddr) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
         _;
     }
 
     modifier onlyERC20() {
         // require(_erc20s[msg.sender], "RWA: onlyCTMRWAERC20");
-        if (!_erc20s[msg.sender]) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (!_erc20s[msg.sender]) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
         _;
     }
 
@@ -244,7 +260,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function setOverrideWallet(address _overrideWallet) public onlyTokenAdmin {
         // require(ICTMRWA1Storage(storageAddr).regulatorWallet() != address(0), "RWA: Not a Security");
-        if (ICTMRWA1Storage(storageAddr).regulatorWallet() == address(0)) revert CTMRWA1_IsZeroAddress(Address.Regulator);
+        if (ICTMRWA1Storage(storageAddr).regulatorWallet() == address(0)) {
+            revert CTMRWA1_IsZeroAddress(Address.Regulator);
+        }
         overrideWallet = _overrideWallet;
     }
 
@@ -277,7 +295,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function attachId(uint256 nextID, address _tokenAdmin) external onlyRwa1X returns (bool) {
         // require(_tokenAdmin == tokenAdmin, "RWA: attachId is AdminOnly");
-        if (_tokenAdmin != tokenAdmin) revert CTMRWA1_Unauthorized(Address.TokenAdmin);
+        if (_tokenAdmin != tokenAdmin) {
+            revert CTMRWA1_Unauthorized(Address.TokenAdmin);
+        }
         if (ID == 0) {
             // not yet attached
             ID = nextID;
@@ -293,7 +313,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function attachDividend(address _dividendAddr) external onlyCtmMap returns (bool) {
         // require(dividendAddr == address(0), "RWA: Cannot reset dividend contract");
-        if (dividendAddr != address(0)) revert CTMRWA1_NotZeroAddress(Address.Dividend);
+        if (dividendAddr != address(0)) {
+            revert CTMRWA1_NotZeroAddress(Address.Dividend);
+        }
         dividendAddr = _dividendAddr;
         return (true);
     }
@@ -304,7 +326,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function attachStorage(address _storageAddr) external onlyCtmMap returns (bool) {
         // require(storageAddr == address(0), "RWA: Cannot reset storage contract");
-        if (storageAddr != address(0)) revert CTMRWA1_NotZeroAddress(Address.Storage);
+        if (storageAddr != address(0)) {
+            revert CTMRWA1_NotZeroAddress(Address.Storage);
+        }
         storageAddr = _storageAddr;
         return (true);
     }
@@ -315,7 +339,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function attachSentry(address _sentryAddr) external onlyCtmMap returns (bool) {
         // require(sentryAddr == address(0), "RWA: Cannot reset sentry contract");
-        if (sentryAddr != address(0)) revert CTMRWA1_NotZeroAddress(Address.Sentry);
+        if (sentryAddr != address(0)) {
+            revert CTMRWA1_NotZeroAddress(Address.Sentry);
+        }
         sentryAddr = _sentryAddr;
         return (true);
     }
@@ -325,7 +351,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _tokenId The unique tokenId (instance of TokenData)
      */
     function idOf(uint256 _tokenId) public view virtual returns (uint256) {
-        if (!_exists(_tokenId)) revert CTMRWA1_IDNonExistent(_tokenId);
+        if (!_exists(_tokenId)) {
+            revert CTMRWA1_IDNonExistent(_tokenId);
+        }
         return _allTokens[_allTokensIndex[_tokenId]].id;
     }
 
@@ -334,7 +362,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _tokenId The unique tokenId (instance of TokenData)
      */
     function balanceOf(uint256 _tokenId) public view virtual override returns (uint256) {
-        if (!_exists(_tokenId)) revert CTMRWA1_IDNonExistent(_tokenId);
+        if (!_exists(_tokenId)) {
+            revert CTMRWA1_IDNonExistent(_tokenId);
+        }
         return _allTokens[_allTokensIndex[_tokenId]].balance;
     }
 
@@ -344,7 +374,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function balanceOf(address _owner) public view virtual override returns (uint256) {
         // require(_owner != address(0), "RWA: zero address");
-        if (_owner == address(0)) revert CTMRWA1_IsZeroAddress(Address.Owner);
+        if (_owner == address(0)) {
+            revert CTMRWA1_IsZeroAddress(Address.Owner);
+        }
         return _addressData[_owner].ownedTokens.length;
     }
 
@@ -355,9 +387,13 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function balanceOf(address _owner, uint256 _slot) public view returns (uint256) {
         // require(_owner != address(0), "RWA: zero address");
-        if (_owner == address(0)) revert CTMRWA1_IsZeroAddress(Address.Owner);
+        if (_owner == address(0)) {
+            revert CTMRWA1_IsZeroAddress(Address.Owner);
+        }
         // require(slotExists(_slot), "RWA: slot not exist");
-        if (!slotExists(_slot)) revert CTMRWA1_InvalidSlot(_slot);
+        if (!slotExists(_slot)) {
+            revert CTMRWA1_InvalidSlot(_slot);
+        }
         return _balance[_owner][_slot];
     }
 
@@ -366,10 +402,14 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _tokenId The unique tokenId (instance of TokenData)
      */
     function ownerOf(uint256 _tokenId) public view virtual returns (address) {
-        if (!_exists(_tokenId)) revert CTMRWA1_IDNonExistent(_tokenId);
+        if (!_exists(_tokenId)) {
+            revert CTMRWA1_IDNonExistent(_tokenId);
+        }
         address owner = _allTokens[_allTokensIndex[_tokenId]].owner;
         // require(owner != address(0), "RWA: zero address");
-        if (owner == address(0)) revert CTMRWA1_IsZeroAddress(Address.Owner);
+        if (owner == address(0)) {
+            revert CTMRWA1_IsZeroAddress(Address.Owner);
+        }
         return owner;
     }
 
@@ -378,7 +418,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _tokenId The unique tokenId (instance of TokenData)
      */
     function slotOf(uint256 _tokenId) public view virtual override returns (uint256) {
-        if (!_exists(_tokenId)) revert CTMRWA1_IDNonExistent(_tokenId);
+        if (!_exists(_tokenId)) {
+            revert CTMRWA1_IDNonExistent(_tokenId);
+        }
         return _allTokens[_allTokensIndex[_tokenId]].slot;
     }
 
@@ -400,7 +442,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
         view
         returns (uint256, uint256, address, uint256, string memory, address)
     {
-        if (!_exists(_tokenId)) revert CTMRWA1_IDNonExistent(_tokenId);
+        if (!_exists(_tokenId)) {
+            revert CTMRWA1_IDNonExistent(_tokenId);
+        }
 
         uint256 slot = slotOf(_tokenId);
 
@@ -421,7 +465,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyDividend returns (bool) {
         // require(slotExists(_slot), "RWA: slot not exist");
-        if (!slotExists(_slot)) revert CTMRWA1_InvalidSlot(_slot);
+        if (!slotExists(_slot)) {
+            revert CTMRWA1_InvalidSlot(_slot);
+        }
         _allSlots[_allSlotsIndex[_slot]].dividendRate = _dividend;
         return (true);
     }
@@ -432,7 +478,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function getDividendRateBySlot(uint256 _slot) external view returns (uint256) {
         // require(slotExists(_slot), "RWA: slot not exist");
-        if (!slotExists(_slot)) revert CTMRWA1_InvalidSlot(_slot);
+        if (!slotExists(_slot)) {
+            revert CTMRWA1_InvalidSlot(_slot);
+        }
         return (_allSlots[_allSlotsIndex[_slot]].dividendRate);
     }
 
@@ -446,13 +494,20 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function deployErc20(uint256 _slot, string memory _erc20Name, address _feeToken) public onlyTokenAdmin {
         // require(slotExists(_slot), "RWA: Slot does not exist");
-        if (!slotExists(_slot)) revert CTMRWA1_InvalidSlot(_slot);
+        if (!slotExists(_slot)) {
+            revert CTMRWA1_InvalidSlot(_slot);
+        }
         // require(_erc20Slots[_slot] == address(0), "RWA: ERC20 slot already exists");
-        if (_erc20Slots[_slot] != address(0)) revert CTMRWA1_NotZeroAddress(Address.RWAERC20);
+        if (_erc20Slots[_slot] != address(0)) {
+            revert CTMRWA1_NotZeroAddress(Address.RWAERC20);
+        }
         // require(bytes(_erc20Name).length <= 128, "RWA: ERC20 name > 128");
-        if (bytes(_erc20Name).length > 128) revert CTMRWA1_NameTooLong();
-        address newErc20 =
-            ICTMRWAERC20Deployer(erc20Deployer).deployERC20(ID, RWA_TYPE, VERSION, _slot, _erc20Name, _symbol, _feeToken);
+        if (bytes(_erc20Name).length > 128) {
+            revert CTMRWA1_NameTooLong();
+        }
+        address newErc20 = ICTMRWAERC20Deployer(erc20Deployer).deployERC20(
+            ID, RWA_TYPE, VERSION, _slot, _erc20Name, _symbol, _feeToken
+        );
 
         _erc20s[newErc20] = true;
         _erc20Slots[_slot] = newErc20;
@@ -475,12 +530,14 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     function approve(uint256 _tokenId, address _to, uint256 _value) public payable virtual override {
         address owner = CTMRWA1.ownerOf(_tokenId);
         // require(_to != owner, "RWA: approval current owner");
-        if (_to == owner) revert CTMRWA1_Unauthorized(Address.To);
+        if (_to == owner) {
+            revert CTMRWA1_Unauthorized(Address.To);
+        }
 
         // require(isApprovedOrOwner(msg.sender, _tokenId), "RWA: approve caller not owner/approved");
-        if (isApprovedOrOwner(msg.sender, _tokenId))
-
-        _approveValue(_tokenId, _to, _value);
+        if (isApprovedOrOwner(msg.sender, _tokenId)) {
+            _approveValue(_tokenId, _to, _value);
+        }
     }
 
     /**
@@ -489,7 +546,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _operator The wallet address for which the allowance is sought
      */
     function allowance(uint256 _tokenId, address _operator) public view virtual override returns (uint256) {
-        if (!_exists(_tokenId)) revert CTMRWA1_IDNonExistent(_tokenId);
+        if (!_exists(_tokenId)) {
+            revert CTMRWA1_IDNonExistent(_tokenId);
+        }
         return _approvedValues[_tokenId][_operator];
     }
 
@@ -522,7 +581,12 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _toTokenId The desination tokenId
      * @param _value The fungible value being transferred
      */
-    function transferFrom(uint256 _fromTokenId, uint256 _toTokenId, uint256 _value) public override nonReentrant returns (address) {
+    function transferFrom(uint256 _fromTokenId, uint256 _toTokenId, uint256 _value)
+        public
+        override
+        nonReentrant
+        returns (address)
+    {
         spendAllowance(msg.sender, _fromTokenId, _value);
         _transferValue(_fromTokenId, _toTokenId, _value);
 
@@ -538,7 +602,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function transferFrom(address _from, address _to, uint256 _tokenId) public onlyRwa1X {
         // require(isApprovedOrOwner(msg.sender, _tokenId), "RWA: transfer caller not owner/approved");
-        if (!isApprovedOrOwner(msg.sender, _tokenId)) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (!isApprovedOrOwner(msg.sender, _tokenId)) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
         _transferTokenId(_from, _to, _tokenId);
     }
 
@@ -550,9 +616,13 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function forceTransfer(address _from, address _to, uint256 _tokenId) public returns (bool) {
         // require(overrideWallet != address(0), "RWA: Licensed Security override not set up");
-        if (overrideWallet == address(0)) revert CTMRWA1_IsZeroAddress(Address.Override);
+        if (overrideWallet == address(0)) {
+            revert CTMRWA1_IsZeroAddress(Address.Override);
+        }
         // require(msg.sender == overrideWallet, "RWA: Cannot forceTransfer");
-        if (msg.sender != overrideWallet) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (msg.sender != overrideWallet) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
         _transferTokenId(_from, _to, _tokenId);
 
         return true;
@@ -563,7 +633,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _tokenId The tokenId being examined
      */
     function getApproved(uint256 _tokenId) public view virtual returns (address) {
-        if (!_exists(_tokenId)) revert CTMRWA1_IDNonExistent(_tokenId);
+        if (!_exists(_tokenId)) {
+            revert CTMRWA1_IDNonExistent(_tokenId);
+        }
         return _allTokens[_allTokensIndex[_tokenId]].approved;
     }
 
@@ -580,7 +652,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function tokenByIndex(uint256 _index) public view virtual returns (uint256) {
         // require(_index < this.totalSupply(), "RWA: global index out of bounds");
-        if (_index >= this.totalSupply()) revert CTMRWA1_OutOfBounds();
+        if (_index >= this.totalSupply()) {
+            revert CTMRWA1_OutOfBounds();
+        }
         return _allTokens[_index].id;
     }
 
@@ -591,7 +665,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function tokenOfOwnerByIndex(address _owner, uint256 _index) external view virtual override returns (uint256) {
         // require(_index < CTMRWA1.balanceOf(_owner), "RWA: owner index out of bounds");
-        if (_index >= CTMRWA1.balanceOf(_owner)) revert CTMRWA1_OutOfBounds();
+        if (_index >= CTMRWA1.balanceOf(_owner)) {
+            revert CTMRWA1_OutOfBounds();
+        }
         return _addressData[_owner].ownedTokens[_index];
     }
 
@@ -602,11 +678,15 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _value The fungible value being given approval to spend
      */
     function spendAllowance(address _operator, uint256 _tokenId, uint256 _value) public virtual {
-        if (_value == 0) revert CTMRWA1_IsZeroUint(Uint.Value);
+        if (_value == 0) {
+            revert CTMRWA1_IsZeroUint(Uint.Value);
+        }
         uint256 currentAllowance = CTMRWA1.allowance(_tokenId, _operator);
         if (!isApprovedOrOwner(_operator, _tokenId) && currentAllowance != type(uint256).max) {
             // require(currentAllowance >= _value, "RWA: insufficient allowance");
-            if (currentAllowance < _value) revert CTMRWA1_InsufficientAllowance();
+            if (currentAllowance < _value) {
+                revert CTMRWA1_InsufficientAllowance();
+            }
             _approveValue(_tokenId, _operator, currentAllowance - _value);
         }
     }
@@ -630,10 +710,14 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     function approve(address _to, uint256 _tokenId) public virtual {
         address owner = ownerOf(_tokenId);
         // require(_to != owner, "RWA: approval current owner");
-        if (_to == owner) revert CTMRWA1_Unauthorized(Address.To);
+        if (_to == owner) {
+            revert CTMRWA1_Unauthorized(Address.To);
+        }
 
         // require(msg.sender == owner, "RWA: approve caller not owner");
-        if (msg.sender != owner) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (msg.sender != owner) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
 
         _approve(_to, _tokenId);
     }
@@ -644,7 +728,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      * @param _tokenId The tokenId which is being checked
      */
     function isApprovedOrOwner(address _operator, uint256 _tokenId) public view virtual returns (bool) {
-        if (!_exists(_tokenId)) revert CTMRWA1_IDNonExistent(_tokenId);
+        if (!_exists(_tokenId)) {
+            revert CTMRWA1_IDNonExistent(_tokenId);
+        }
         address owner = CTMRWA1.ownerOf(_tokenId);
         return (_operator == owner || getApproved(_tokenId) == _operator || _erc20s[_operator]);
     }
@@ -677,11 +763,17 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function _mint(address _to, uint256 _tokenId, uint256 _slot, string memory _slotName, uint256 _value) internal {
         // require(_to != address(0), "RWA: mint to zero address");
-        if (_to == address(0)) revert CTMRWA1_IsZeroAddress(Address.To);
+        if (_to == address(0)) {
+            revert CTMRWA1_IsZeroAddress(Address.To);
+        }
         // require(_tokenId != 0, "RWA: mint zero tokenId");
-        if (_tokenId == 0) revert CTMRWA1_IsZeroUint(Uint.TokenId);
+        if (_tokenId == 0) {
+            revert CTMRWA1_IsZeroUint(Uint.TokenId);
+        }
         // require(!_exists(_tokenId), "RWA: already minted");
-        if (_exists(_tokenId)) revert CTMRWA1_IDExists(_tokenId);
+        if (_exists(_tokenId)) {
+            revert CTMRWA1_IDExists(_tokenId);
+        }
 
         _beforeValueTransfer(address(0), _to, 0, _tokenId, _slot, _slotName, _value);
         __mintToken(_to, _tokenId, _slot);
@@ -742,13 +834,17 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     /// @dev burn a tokenId, checking permissions
     function burn(uint256 _tokenId) public virtual {
         // require(isApprovedOrOwner(msg.sender, _tokenId), "RWA: caller not owner/approved");
-        if (!isApprovedOrOwner(msg.sender, _tokenId)) revert CTMRWA1_Unauthorized(Address.Sender);
+        if (!isApprovedOrOwner(msg.sender, _tokenId)) {
+            revert CTMRWA1_Unauthorized(Address.Sender);
+        }
         _burn(_tokenId);
     }
 
     /// @dev Lowest level burn function
     function _burn(uint256 _tokenId) private {
-        if (!_exists(_tokenId)) revert CTMRWA1_IDNonExistent(_tokenId);
+        if (!_exists(_tokenId)) {
+            revert CTMRWA1_IDNonExistent(_tokenId);
+        }
 
         (, uint256 bal, address owner, uint256 slot, string memory thisSlotName,) = this.getTokenInfo(_tokenId);
 
@@ -770,12 +866,16 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
 
     /// @dev Burn value from an existing tokenId
     function _burnValue(uint256 _tokenId, uint256 _value) internal {
-        if (!_exists(_tokenId)) revert CTMRWA1_IDNonExistent(_tokenId);
+        if (!_exists(_tokenId)) {
+            revert CTMRWA1_IDNonExistent(_tokenId);
+        }
 
         (, uint256 bal, address owner, uint256 slot, string memory thisSlotName,) = this.getTokenInfo(_tokenId);
 
         // require(bal >= _value, "RWA: burn > balance");
-        if (bal < _value) revert CTMRWA1_InsufficientBalance();
+        if (bal < _value) {
+            revert CTMRWA1_InsufficientBalance();
+        }
 
         _beforeValueTransfer(owner, address(0), _tokenId, 0, slot, thisSlotName, _value);
 
@@ -858,7 +958,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     /// @dev Low level function to approve spending value from tokenId by an address
     function _approveValue(uint256 _tokenId, address _to, uint256 _value) internal {
         // require(_to != address(0), "RWA: approve to zero address");
-        if (_to == address(0)) revert CTMRWA1_IsZeroAddress(Address.To);
+        if (_to == address(0)) {
+            revert CTMRWA1_IsZeroAddress(Address.To);
+        }
         if (!_existApproveValue(_to, _tokenId)) {
             _allTokens[_allTokensIndex[_tokenId]].valueApprovals.push(_to);
         }
@@ -903,8 +1005,12 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     function _transferValue(uint256 _fromTokenId, uint256 _toTokenId, uint256 _value) internal {
         // require(_exists(_fromTokenId), "RWA: transfer from invalid token");
         // require(_exists(_toTokenId), "RWA: transfer to invalid token");
-        if (!_exists(_fromTokenId)) revert CTMRWA1_IDNonExistent(_fromTokenId);
-        if (!_exists(_toTokenId)) revert CTMRWA1_IDNonExistent(_toTokenId);
+        if (!_exists(_fromTokenId)) {
+            revert CTMRWA1_IDNonExistent(_fromTokenId);
+        }
+        if (!_exists(_toTokenId)) {
+            revert CTMRWA1_IDNonExistent(_toTokenId);
+        }
 
         TokenData storage fromTokenData = _allTokens[_allTokensIndex[_fromTokenId]];
         TokenData storage toTokenData = _allTokens[_allTokensIndex[_toTokenId]];
@@ -912,9 +1018,13 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
         uint256 slot = fromTokenData.slot;
 
         // require(fromTokenData.balance >= _value, "RWA: balance<value");
-        if (fromTokenData.balance < _value) revert CTMRWA1_InsufficientBalance();
+        if (fromTokenData.balance < _value) {
+            revert CTMRWA1_InsufficientBalance();
+        }
         // require(slot == toTokenData.slot, "RWA: transfer to different slot");
-        if (slot != toTokenData.slot) revert CTMRWA1_InvalidSlot(toTokenData.slot);
+        if (slot != toTokenData.slot) {
+            revert CTMRWA1_InvalidSlot(toTokenData.slot);
+        }
 
         string memory thisSlotName = slotNameOf(_fromTokenId);
 
@@ -935,17 +1045,23 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
         );
 
         // require(_checkOnCTMRWA1Received(_fromTokenId, _toTokenId, _value, ""), "RWA: transfer rejected by receiver");
-        if (!_checkOnCTMRWA1Received(_fromTokenId, _toTokenId, _value, "")) revert CTMRWA1_ReceiverRejected();
+        if (!_checkOnCTMRWA1Received(_fromTokenId, _toTokenId, _value, "")) {
+            revert CTMRWA1_ReceiverRejected();
+        }
     }
 
     /// @dev Burn 'value' from a pre-existing tokenId, callable by any 'Minter'
     function burnValueX(uint256 _fromTokenId, uint256 _value) external onlyMinter returns (bool) {
         // require(_exists(_fromTokenId), "RWA: transfer from invalid token ID");
-        if (!_exists(_fromTokenId)) revert CTMRWA1_IDNonExistent(_fromTokenId);
+        if (!_exists(_fromTokenId)) {
+            revert CTMRWA1_IDNonExistent(_fromTokenId);
+        }
 
         TokenData storage fromTokenData = _allTokens[_allTokensIndex[_fromTokenId]];
         // require(fromTokenData.balance >= _value, "RWA: balance<value");
-        if (fromTokenData.balance < _value) revert CTMRWA1_InsufficientBalance();
+        if (fromTokenData.balance < _value) {
+            revert CTMRWA1_InsufficientBalance();
+        }
 
         fromTokenData.balance -= _value;
         return (true);
@@ -957,18 +1073,24 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function mintValueX(uint256 _toTokenId, uint256 _slot, uint256 _value) external onlyMinter returns (bool) {
         // require(_exists(_toTokenId), "RWA: transfer to invalid token");
-        if (!_exists(_toTokenId)) revert CTMRWA1_IDNonExistent(_toTokenId);
+        if (!_exists(_toTokenId)) {
+            revert CTMRWA1_IDNonExistent(_toTokenId);
+        }
         address owner = ownerOf(_toTokenId);
         string memory toAddressStr = owner.toHexString();
 
         if (sentryAddr != address(0)) {
             // require(ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr), "RWA: Transfer not WL");
-            if (!ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr)) revert CTMRWA1_WhiteListRejected(owner);
+            if (!ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr)) {
+                revert CTMRWA1_WhiteListRejected(owner);
+            }
         }
 
         TokenData storage toTokenData = _allTokens[_allTokensIndex[_toTokenId]];
         // require(toTokenData.slot == _slot, "RWA: Dest slot != source slot");
-        if (toTokenData.slot != _slot) revert CTMRWA1_InvalidSlot(_slot);
+        if (toTokenData.slot != _slot) {
+            revert CTMRWA1_InvalidSlot(_slot);
+        }
 
         toTokenData.balance += _value;
         return (true);
@@ -977,9 +1099,13 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     /// @dev Transfer ownership of a tokenId to another wallet
     function _transferTokenId(address _from, address _to, uint256 _tokenId) internal {
         // require(ownerOf(_tokenId) == _from, "RWA: transfer from invalid owner");
-        if (ownerOf(_tokenId) != _from) revert CTMRWA1_Unauthorized(Address.Owner);
+        if (ownerOf(_tokenId) != _from) {
+            revert CTMRWA1_Unauthorized(Address.Owner);
+        }
         // require(_to != address(0), "RWA: transfer to the zero address");
-        if (_to == address(0)) revert CTMRWA1_IsZeroAddress(Address.To);
+        if (_to == address(0)) {
+            revert CTMRWA1_IsZeroAddress(Address.To);
+        }
 
         uint256 slot = CTMRWA1.slotOf(_tokenId);
         uint256 value = CTMRWA1.balanceOf(_tokenId);
@@ -1047,9 +1173,13 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     /// @dev Function is used to initialize the slot struct array on a newly deployed chain in this RWA
     function initializeSlotData(uint256[] memory _slotNumbers, string[] memory _slotNames) external onlyTokenFactory {
         // require(_slotNumbers.length == _slotNames.length, "RWA: SlotData length input mismatch");
-        if (_slotNumbers.length != _slotNames.length) revert CTMRWA1_LengthMismatch(Uint.SlotLength);
+        if (_slotNumbers.length != _slotNames.length) {
+            revert CTMRWA1_LengthMismatch(Uint.SlotLength);
+        }
         // require(_allSlots.length == 0, "RWA: Slot data must be uninit");
-        if (_allSlots.length != 0) revert CTMRWA1_NonZeroUint(Uint.SlotLength);
+        if (_allSlots.length != 0) {
+            revert CTMRWA1_NonZeroUint(Uint.SlotLength);
+        }
         for (uint256 i = 0; i < _slotNumbers.length; i++) {
             _allSlots.push(SlotData(_slotNumbers[i], _slotNames[i], 0, emptyUint256));
         }
@@ -1063,7 +1193,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function slotName(uint256 _slot) public view returns (string memory) {
         // require(slotExists(_slot), "RWA: slot not exist");
-        if (!slotExists(_slot)) revert CTMRWA1_InvalidSlot(_slot);
+        if (!slotExists(_slot)) {
+            revert CTMRWA1_InvalidSlot(_slot);
+        }
         return (_allSlots[_allSlotsIndex[_slot]].slotName);
     }
 
@@ -1073,7 +1205,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function slotByIndex(uint256 _index) public view returns (uint256) {
         // require(_index < slotCount(), "RWA: slot index out of bounds");
-        if (_index >= slotCount()) revert CTMRWA1_OutOfBounds();
+        if (_index >= slotCount()) {
+            revert CTMRWA1_OutOfBounds();
+        }
         return _allSlots[_index].slot;
     }
 
@@ -1121,7 +1255,9 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
      */
     function tokenInSlotByIndex(uint256 _slot, uint256 _index) public view returns (uint256) {
         // require(_index < this.tokenSupplyInSlot(_slot), "RWA: slot token index out of bounds");
-        if (_index >= this.tokenSupplyInSlot(_slot)) revert CTMRWA1_OutOfBounds();
+        if (_index >= this.tokenSupplyInSlot(_slot)) {
+            revert CTMRWA1_OutOfBounds();
+        }
         return _allSlots[_allSlotsIndex[_slot]].slotTokens[_index];
     }
 
@@ -1160,12 +1296,17 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
         uint256 _value
     ) internal virtual {
         // require(slotExists(_slot), "RWA: Slot not exist");
-        if (!slotExists(_slot)) revert CTMRWA1_InvalidSlot(_slot);
+        if (!slotExists(_slot)) {
+            revert CTMRWA1_InvalidSlot(_slot);
+        }
 
         if (sentryAddr != address(0)) {
             string memory toAddressStr = _to.toHexString();
-            // require( ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr), "RWA: Transfer token to address is not allowable");
-            if (!ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr)) revert CTMRWA1_Unauthorized(Address.To);
+            // require( ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr), "RWA: Transfer token to address is
+            // not allowable");
+            if (!ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr)) {
+                revert CTMRWA1_Unauthorized(Address.To);
+            }
         }
 
         //currently unused

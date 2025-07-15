@@ -7,14 +7,14 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {ICTMRWA1InvestWithTimeLock, Holding, Offering} from "./ICTMRWA1InvestWithTimeLock.sol";
-import { CTMRWAUtils, Uint, Address, Time } from "../CTMRWAUtils.sol";
+import { Address, CTMRWAUtils, Time, Uint } from "../CTMRWAUtils.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { Holding, ICTMRWA1InvestWithTimeLock, Offering } from "./ICTMRWA1InvestWithTimeLock.sol";
 
 contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuard {
     using Strings for *;
@@ -96,12 +96,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
     event ClaimDividendInEscrow(uint256 indexed ID, address holder, uint256 unclaimed);
 
-    constructor(
-        uint256 _ID,
-        address _ctmRwaMap,
-        uint256 _commissionRate,
-        address _feeManager
-    ) {
+    constructor(uint256 _ID, address _ctmRwaMap, uint256 _commissionRate, address _feeManager) {
         ID = _ID;
         ctmRwaMap = _ctmRwaMap;
         commissionRate = _commissionRate;
@@ -110,17 +105,23 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
         (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, RWA_TYPE, VERSION);
         // require(ok, "CTMInvest: There is no CTMRWA1 contract backing this ID");
-        if (!ok) revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Token);
+        if (!ok) {
+            revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Token);
+        }
 
         decimalsRwa = ICTMRWA1(ctmRwaToken).valueDecimals();
 
         (ok, ctmRwaDividend) = ICTMRWAMap(ctmRwaMap).getDividendContract(ID, RWA_TYPE, VERSION);
         // require(ok, "CTMInvest: There is no CTMRWA1Dividend contract backing this ID");
-        if (!ok) revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Dividend);
+        if (!ok) {
+            revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Dividend);
+        }
 
         (ok, ctmRwaSentry) = ICTMRWAMap(ctmRwaMap).getSentryContract(ID, RWA_TYPE, VERSION);
         // require(ok, "CTMInvest: There is no CTMRWA1Sentry contract backing this ID");
-        if (!ok) revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Sentry);
+        if (!ok) {
+            revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Sentry);
+        }
 
         ctmRwa1X = ICTMRWA1(ctmRwaToken).ctmRwa1X();
 
@@ -130,7 +131,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     // Pause a specific offering (only tokenAdmin)
     function pauseOffering(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) {
         // require(_indx < offerings.length, "CTMInvest: Offering index out of bounds");
-        if (_indx >= offerings.length) revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        if (_indx >= offerings.length) {
+            revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        }
         _isOfferingPaused[_indx] = true;
         emit OfferingPaused(ID, _indx, msg.sender);
     }
@@ -138,7 +141,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     /// @dev  Unpause a specific offering (only tokenAdmin)
     function unpauseOffering(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) {
         // require(_indx < offerings.length, "CTMInvest: Offering index out of bounds");
-        if (_indx >= offerings.length) revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        if (_indx >= offerings.length) {
+            revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        }
         _isOfferingPaused[_indx] = false;
         emit OfferingUnpaused(ID, _indx, msg.sender);
     }
@@ -146,7 +151,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     /// @dev Check if a specific offering is paused
     function isOfferingPaused(uint256 _indx) public view returns (bool) {
         // require(_indx < offerings.length, "CTMInvest: Offering index out of bounds");
-        if (_indx >= offerings.length) revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        if (_indx >= offerings.length) {
+            revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        }
         return _isOfferingPaused[_indx];
     }
 
@@ -165,21 +172,33 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         address _feeToken
     ) public onlyTokenAdmin(ctmRwaToken) {
         // require(ICTMRWA1(ctmRwaToken).exists(_tokenId), "CTMInvest: Token does not exist");
-        if (!ICTMRWA1(ctmRwaToken).exists(_tokenId)) revert CTMRWA1InvestWithTimeLock_NonExistentToken(_tokenId);
+        if (!ICTMRWA1(ctmRwaToken).exists(_tokenId)) {
+            revert CTMRWA1InvestWithTimeLock_NonExistentToken(_tokenId);
+        }
         // require(offerings.length < MAX_OFFERINGS, "CTMInvest: Max offerings reached");
-        if (offerings.length > MAX_OFFERINGS) revert CTMRWA1InvestWithTimeLock_MaxOfferings();
+        if (offerings.length > MAX_OFFERINGS) {
+            revert CTMRWA1InvestWithTimeLock_MaxOfferings();
+        }
         // require(bytes(_regulatorCountry).length <= 2, "CTMInvest: not 2 digit country code");
-        if (bytes(_regulatorCountry).length > 2) revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.CountryCode);
+        if (bytes(_regulatorCountry).length > 2) {
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.CountryCode);
+        }
         // require(bytes(_offeringType).length <= 128, "CTMInvest: offering Type length > 128");
-        if (bytes(_offeringType).length > 128) revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.Offering);
+        if (bytes(_offeringType).length > 128) {
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.Offering);
+        }
 
         uint256 offer = ICTMRWA1(ctmRwaToken).balanceOf(_tokenId);
         uint256 slot = ICTMRWA1(ctmRwaToken).slotOf(_tokenId);
 
         // require(_minInvestment <= offer * _price / 10 ** decimalsRwa, "CTMInvest: minInvestment too high");
-        if (_minInvestment > offer * _price / 10 ** decimalsRwa) revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.MinInvestment);
+        if (_minInvestment > offer * _price / 10 ** decimalsRwa) {
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.MinInvestment);
+        }
         // require(_maxInvestment > _minInvestment, "CTMInvest: minInvestment>maxInvestment");
-        if (_maxInvestment <= _minInvestment) revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.MinInvestment);
+        if (_maxInvestment <= _minInvestment) {
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.MinInvestment);
+        }
 
         _payFee(FeeType.OFFERING, _feeToken);
 
@@ -216,30 +235,53 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         emit CreateOffering(ID, indx, slot, offer);
     }
 
-    function investInOffering(uint256 _indx, uint256 _investment, address _feeToken) public nonReentrant returns (uint256) {
+    function investInOffering(uint256 _indx, uint256 _investment, address _feeToken)
+        public
+        nonReentrant
+        returns (uint256)
+    {
         // require(_indx < offerings.length, "CTMInvest: Offering index out of bounds");
-        if (_indx >= offerings.length) revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        if (_indx >= offerings.length) {
+            revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        }
         // require(!_isOfferingPaused[_indx], "CTMInvest: Offering is paused");
-        if (_isOfferingPaused[_indx]) revert CTMRWA1InvestWithTimeLock_Paused();
+        if (_isOfferingPaused[_indx]) {
+            revert CTMRWA1InvestWithTimeLock_Paused();
+        }
         // require(block.timestamp >= offerings[_indx].startTime, "CTMInvest: Offer not yet started");
-        if (block.timestamp < offerings[_indx].startTime) revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Early);
+        if (block.timestamp < offerings[_indx].startTime) {
+            revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Early);
+        }
         // require(block.timestamp <= offerings[_indx].endTime, "CTMInvest: Offer expired");
-        if (block.timestamp > offerings[_indx].endTime) revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Late);
+        if (block.timestamp > offerings[_indx].endTime) {
+            revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Late);
+        }
         address currency = offerings[_indx].currency;
-        // require(IERC20(currency).balanceOf(msg.sender) >= _investment, "CTMInvest: Investor has insufficient balance");
-        if (IERC20(currency).balanceOf(msg.sender) < _investment) revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
+        // require(IERC20(currency).balanceOf(msg.sender) >= _investment, "CTMInvest: Investor has insufficient
+        // balance");
+        if (IERC20(currency).balanceOf(msg.sender) < _investment) {
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
+        }
         // require(_investment >= offerings[_indx].minInvestment, "CTMInvest: investment too low");
-        if (_investment < offerings[_indx].minInvestment) revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Investment);
+        if (_investment < offerings[_indx].minInvestment) {
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Investment);
+        }
         if (offerings[_indx].maxInvestment > 0) {
             // require(_investment <= offerings[_indx].maxInvestment, "CTMInvest: investment too high");
-            if (_investment > offerings[_indx].maxInvestment) revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Investment);
+            if (_investment > offerings[_indx].maxInvestment) {
+                revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Investment);
+            }
         }
         // require(offerings[_indx].balRemaining >= _investment, "CTMInvest: Investment > balance left");
-        if (offerings[_indx].balRemaining < _investment) revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Investment);
+        if (offerings[_indx].balRemaining < _investment) {
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Investment);
+        }
 
         bool permitted = ICTMRWA1Sentry(ctmRwaSentry).isAllowableTransfer(msg.sender.toHexString());
         // require(permitted, "CTMInvest: Not whitelisted");
-        if (!permitted) revert CTMRWA1InvestWithTimeLock_NotWhiteListed(msg.sender);
+        if (!permitted) {
+            revert CTMRWA1InvestWithTimeLock_NotWhiteListed(msg.sender);
+        }
 
         uint256 tokenId = offerings[_indx].tokenId;
         string memory feeTokenStr = _feeToken.toHexString();
@@ -281,13 +323,17 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
     function withdrawInvested(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) nonReentrant returns (uint256) {
         // require(_indx < offerings.length, "CTMInvest: exceed offerings bounds");
-        if (_indx >= offerings.length) revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        if (_indx >= offerings.length) {
+            revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        }
 
         uint256 investment = offerings[_indx].investment;
         uint256 commission = commissionRate * investment / 10_000;
 
         // require(commission > 0 || commissionRate == 0, "CTMInvest: Commission too low");
-        if (commission == 0 && commissionRate != 0) revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Commission);
+        if (commission == 0 && commissionRate != 0) {
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Commission);
+        }
 
         if (investment > 0) {
             address currency = offerings[_indx].currency;
@@ -307,7 +353,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
     function unlockTokenId(uint256 _myIndx, address _feeToken) public nonReentrant returns (uint256) {
         // require(_myIndx < holdingsByAddress[msg.sender].length, "CTMInvest: exceed bounds");
-        if (_myIndx >= holdingsByAddress[msg.sender].length) revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        if (_myIndx >= holdingsByAddress[msg.sender].length) {
+            revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        }
 
         Holding memory thisHolding = holdingsByAddress[msg.sender][_myIndx];
 
@@ -316,7 +364,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
         if (owner == address(this)) {
             // require(block.timestamp >= thisHolding.escrowTime, "CTMInvest: tokenId is still locked");
-            if (block.timestamp < thisHolding.escrowTime) revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Early);
+            if (block.timestamp < thisHolding.escrowTime) {
+                revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Early);
+            }
 
             ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
 
@@ -334,7 +384,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
     function claimDividendInEscrow(uint256 _myIndx) public nonReentrant returns (uint256) {
         // require(_myIndx < holdingsByAddress[msg.sender].length, "CTMInvest: exceed bounds");
-        if (_myIndx >= holdingsByAddress[msg.sender].length) revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        if (_myIndx >= holdingsByAddress[msg.sender].length) {
+            revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        }
 
         /// @dev caller can only access tokenIds in their holdingsByAddress mapping
         Holding memory thisHolding = holdingsByAddress[msg.sender][_myIndx];
@@ -359,7 +411,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
             //     IERC20(dividendToken).balanceOf(address(this)) >= unclaimed,
             //     "CTMInvest: insufficient dividend to payout"
             // );
-            if (IERC20(dividendToken).balanceOf(address(this)) < unclaimed) revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Dividend);
+            if (IERC20(dividendToken).balanceOf(address(this)) < unclaimed) {
+                revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Dividend);
+            }
             ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
             IERC20(dividendToken).transfer(msg.sender, unclaimed);
 
@@ -381,7 +435,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
     function listOffering(uint256 _offerIndx) public view returns (Offering memory) {
         // require(_offerIndx < offerings.length, "CTMInvest: Offering out of bounds");
-        if (_offerIndx >= offerings.length) revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        if (_offerIndx >= offerings.length) {
+            revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        }
         return (offerings[_offerIndx]);
     }
 
@@ -395,7 +451,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
     function listEscrowHolding(address _holder, uint256 _myIndx) public view returns (Holding memory) {
         // require(_myIndx < holdingsByAddress[_holder].length, "CTMInvest: exceed bounds");
-        if (_myIndx >= holdingsByAddress[_holder].length) revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        if (_myIndx >= holdingsByAddress[_holder].length) {
+            revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+        }
         Holding memory thisHolding = holdingsByAddress[_holder][_myIndx];
 
         return (thisHolding);
@@ -404,7 +462,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     function _checkTokenAdmin(address _ctmRwaToken) internal {
         tokenAdmin = ICTMRWA1(_ctmRwaToken).tokenAdmin();
         // require(msg.sender == tokenAdmin, "CTMInvest: Not tokenAdmin");
-        if (msg.sender != tokenAdmin) revert CTMRWA1InvestWithTimeLock_Unauthorized(Address.Sender);
+        if (msg.sender != tokenAdmin) {
+            revert CTMRWA1InvestWithTimeLock_Unauthorized(Address.Sender);
+        }
     }
 
     /// @dev Pay offering fees

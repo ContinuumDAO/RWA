@@ -4,7 +4,7 @@ pragma solidity ^0.8.22;
 
 import { URICategory, URIType } from "./ICTMRWA1Storage.sol";
 
-import {ICTMRWA} from "../core/ICTMRWA.sol";
+import { ICTMRWA } from "../core/ICTMRWA.sol";
 
 interface ICTMRWA1StorageManager is ICTMRWA {
     function ctmRwaDeployer() external returns (address);

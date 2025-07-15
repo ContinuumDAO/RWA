@@ -5,10 +5,10 @@ pragma solidity ^0.8.22;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {ICTMRWADeployInvest} from "./ICTMRWADeployInvest.sol";
-import { CTMRWAUtils, Address } from "../CTMRWAUtils.sol";
+import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
 import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
+import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 
 contract CTMRWADeployInvest is ICTMRWADeployInvest {
     using Strings for *;
@@ -31,7 +31,9 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
 
     modifier onlyDeployer() {
         // require(msg.sender == ctmRwaDeployer);
-        if (msg.sender != ctmRwaDeployer) revert CTMRWADeployInvest_Unauthorized(Address.Sender);
+        if (msg.sender != ctmRwaDeployer) {
+            revert CTMRWADeployInvest_Unauthorized(Address.Sender);
+        }
         _;
     }
 
