@@ -3,8 +3,22 @@
 pragma solidity ^0.8.22;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
+import {Uint, Address, List} from "../CTMRWAUtils.sol";
 
 interface ICTMRWA1SentryManager is ICTMRWA {
+    error CTMRWA1SentryManager_Unauthorized(Address);
+    error CTMRWA1SentryManager_IsZeroAddress(Address);
+    error CTMRWA1SentryManager_InvalidContract(Address);
+
+    error CTMRWA1SentryManager_OptionsAlreadySet();
+    error CTMRWA1SentryManager_NoKYC();
+    error CTMRWA1SentryManager_KYCDisabled();
+    error CTMRWA1SentryManager_AccreditationDisabled();
+    error CTMRWA1SentryManager_LengthMismatch(Uint);
+    error CTMRWA1SentryManager_SameChain();
+
+    error CTMRWA1SentryManager_InvalidList(List);
+
     function setGateway(address gateway) external;
     function setFeeManager(address feeManager) external;
     function setCtmRwaDeployer(address deployer) external;
