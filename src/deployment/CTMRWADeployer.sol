@@ -9,8 +9,8 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
-import { ICTMRWADeployInvest } from "../deployment/ICTMRWADeployInvest.sol";
-import { ICTMRWAFactory } from "../deployment/ICTMRWAFactory.sol";
+import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
+import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWADeployer } from "./ICTMRWADeployer.sol";
 import {Address, RWA} from "../CTMRWAUtils.sol";
@@ -135,7 +135,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         virtual
         returns (address, address, address, address)
     {
-        address tokenAddr = ICTMRWAFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
+        address tokenAddr = ICTMRWA1TokenFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
 
         // require(ICTMRWA1(tokenAddr).RWA_TYPE() == _rwaType, "CTMRWADeployer: Wrong RWA type");
         if (ICTMRWA1(tokenAddr).RWA_TYPE() != _rwaType) revert CTMRWADeployer_IncompatibleRWA(RWA.Type);
@@ -157,7 +157,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         returns (address)
     {
         if (dividendFactory[_rwaType][_version] != address(0)) {
-            address dividendAddr = ICTMRWAFactory(dividendFactory[_rwaType][_version]).deployDividend(
+            address dividendAddr = ICTMRWA1TokenFactory(dividendFactory[_rwaType][_version]).deployDividend(
                 _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
             );
             return (dividendAddr);
@@ -172,7 +172,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         returns (address)
     {
         if (storageFactory[_rwaType][_version] != address(0)) {
-            address storageAddr = ICTMRWAFactory(storageFactory[_rwaType][_version]).deployStorage(
+            address storageAddr = ICTMRWA1TokenFactory(storageFactory[_rwaType][_version]).deployStorage(
                 _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
             );
             return (storageAddr);
@@ -187,7 +187,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         returns (address)
     {
         if (sentryFactory[_rwaType][_version] != address(0)) {
-            address sentryAddr = ICTMRWAFactory(sentryFactory[_rwaType][_version]).deploySentry(
+            address sentryAddr = ICTMRWA1TokenFactory(sentryFactory[_rwaType][_version]).deploySentry(
                 _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
             );
             return (sentryAddr);
