@@ -46,8 +46,8 @@ interface ICTMRWA1X is ICTMRWA {
     error CTMRWA1X_SameChain();
 
     // Permissions
-    error CTMRWA1X_WhiteListDisabled();
-    error CTMRWA1X_KYCDisabled();
+    error CTMRWA1X_WhiteListEnabled();
+    error CTMRWA1X_KYCEnabled();
 
     function isMinter(address) external returns (bool);
     function changeMinterStatus(address minter, bool set) external;

@@ -253,10 +253,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             bool whitelist = ICTMRWA1Sentry(sentryAddr).whitelistSwitch();
             bool kyc = ICTMRWA1Sentry(sentryAddr).kycSwitch();
             if (whitelist) {
-                revert CTMRWA1X_WhiteListDisabled();
+                revert CTMRWA1X_WhiteListEnabled();
             }
             if (kyc) {
-                revert CTMRWA1X_KYCDisabled();
+                revert CTMRWA1X_KYCEnabled();
             }
 
             tokenName = ICTMRWA1(ctmRwa1Addr).name();
