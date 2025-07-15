@@ -6,9 +6,10 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
+import {ICTMRWA1Identity} from "./ICTMRWA1Identity.sol";
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 
-import { CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { CTMRWAUtils, Address } from "../CTMRWAUtils.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
@@ -18,7 +19,7 @@ interface IZkMeVerify {
     function hasApproved(address cooperator, address user) external view returns (bool);
 }
 
-contract CTMRWA1Identity {
+contract CTMRWA1Identity is ICTMRWA1Identity {
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
@@ -31,7 +32,8 @@ contract CTMRWA1Identity {
     address public feeManager;
 
     modifier onlyIdChain() {
-        require(zkMeVerifierAddress != address(0));
+        // require(zkMeVerifierAddress != address(0));
+        if (zkMeVerifierAddress == address(0)) revert CTMRWA1Identity_IsZeroAddress(Address.ZKMe);
         _;
     }
 
@@ -59,23 +61,31 @@ contract CTMRWA1Identity {
         onlyIdChain
         returns (bool)
     {
-        require(zkMeVerifierAddress != address(0), "CTMRWA1Identity: zkMe verifier has to be set");
+        // require(zkMeVerifierAddress != address(0), "CTMRWA1Identity: zkMe verifier has to be set");
+        if (zkMeVerifierAddress == address(0)) revert CTMRWA1Identity_IsZeroAddress(Address.ZKMe);
 
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
-        require(ok, "CTMRWA1Identity: Could not find _ID or its sentry address");
+        // require(ok, "CTMRWA1Identity: Could not find _ID or its sentry address");
+        if (!ok) revert CTMRWA1Identity_InvalidContract(Address.Sentry);
 
-        require(ICTMRWA1Sentry(sentryAddr).kycSwitch(), "CTMRWA1Identity: KYC is not enabled for this CTMRWA1");
+        // WARN: should this check not need kyc switch to be true?
+        // require(ICTMRWA1Sentry(sentryAddr).kycSwitch(), "CTMRWA1Identity: KYC is not enabled for this CTMRWA1");
+        if (!ICTMRWA1Sentry(sentryAddr).kycSwitch()) revert CTMRWA1Identity_KYCDisabled();
 
-        require(
-            !ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(msg.sender.toHexString()),
-            "CTMRWA1Identity: User is already whitelisted"
-        );
+        // require(
+        //     !ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(msg.sender.toHexString()),
+        //     "CTMRWA1Identity: User is already whitelisted"
+        // );
+        if (ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(msg.sender.toHexString())) revert CTMRWA1Identity_AlreadyWhitelisted(msg.sender);
 
         (,, address cooperator) = ICTMRWA1Sentry(sentryAddr).getZkMeParams();
-        require(cooperator != address(0), "CTMRWA1Identity: zkMe cooperator address has not been set");
+        // require(cooperator != address(0), "CTMRWA1Identity: zkMe cooperator address has not been set");
+        if (cooperator == address(0)) revert CTMRWA1Identity_IsZeroAddress(Address.Cooperator);
         bool isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, msg.sender);
 
-        require(!isValid, "CTMRWA1Identity: Invalid KYC");
+        // WARN: why are we needing that isValid is false?
+        // require(!isValid, "CTMRWA1Identity: Invalid KYC");
+        if (isValid) revert CTMRWA1Identity_InvalidKYC(msg.sender);
 
         uint256 fee = _getFee(FeeType.KYC, 1, _chainIdsStr, _feeTokenStr);
         _payFee(fee, _feeTokenStr);
@@ -93,11 +103,14 @@ contract CTMRWA1Identity {
 
     function isVerifiedPerson(uint256 _ID, address _wallet) public view onlyIdChain returns (bool) {
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
-        require(ok, "CTMRWA1Identity: Could not find _ID or its sentry address");
-        require(ICTMRWA1Sentry(sentryAddr).kycSwitch(), "CTMRWA1Identity: KYC not set");
+        // require(ok, "CTMRWA1Identity: Could not find _ID or its sentry address");
+        if (!ok) revert CTMRWA1Identity_InvalidContract(Address.Sentry);
+        // require(ICTMRWA1Sentry(sentryAddr).kycSwitch(), "CTMRWA1Identity: KYC not set");
+        if (!ICTMRWA1Sentry(sentryAddr).kycSwitch()) revert CTMRWA1Identity_KYCDisabled();
 
         (,, address cooperator) = ICTMRWA1Sentry(sentryAddr).getZkMeParams();
-        require(cooperator != address(0), "CTMRWA1Identity: zkMe cooperator address not set");
+        // require(cooperator != address(0), "CTMRWA1Identity: zkMe cooperator address not set");
+        if (cooperator == address(0)) revert CTMRWA1Identity_IsZeroAddress(Address.Cooperator);
 
         bool isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, _wallet);
 
@@ -128,4 +141,10 @@ contract CTMRWA1Identity {
 
         return (fee * _nItems);
     }
+
+    // TODO: Implement functions
+    function setZkMeVerifierAddress(address verifierAddress) external {}
+    function setSentryManager(address _sentryManager) external {}
+    function setFeeManager(address _feeManager) external {}
+    function setCtmRwaMap(address _map) external {}
 }

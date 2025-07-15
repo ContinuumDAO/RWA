@@ -52,7 +52,9 @@ enum Address {
     Token,
     Invest,
     DeployInvest,
-    Spender
+    Spender,
+    ZKMe,
+    Cooperator
 }
 
 library CTMRWAUtils {

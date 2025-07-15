@@ -3,6 +3,7 @@
 pragma solidity ^0.8.22;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
+import {Address} from "../CTMRWAUtils.sol";
 
 enum RequestId {
     PERSONHOOD,
@@ -13,6 +14,12 @@ enum RequestId {
 }
 
 interface ICTMRWA1Identity is ICTMRWA {
+    error CTMRWA1Identity_IsZeroAddress(Address);
+    error CTMRWA1Identity_InvalidContract(Address);
+    error CTMRWA1Identity_KYCDisabled();
+    error CTMRWA1Identity_AlreadyWhitelisted(address);
+    error CTMRWA1Identity_InvalidKYC(address);
+
     function setZkMeVerifierAddress(address verifierAddress) external;
     function setSentryManager(address _sentryManager) external;
     function setFeeManager(address _feeManager) external;
