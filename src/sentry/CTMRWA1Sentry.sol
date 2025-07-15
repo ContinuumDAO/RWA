@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 
-pragma solidity ^0.8.22;
+pragma solidity 0.8.27;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -289,10 +289,4 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         return (res, true);
     }
 
-    // TODO: implement or remove these functions
-    function setSentryOptionsFlag() external {}
-
-    function setWhitelist() external {}
-
-    function switchCountry(bool choice) external {}
 }

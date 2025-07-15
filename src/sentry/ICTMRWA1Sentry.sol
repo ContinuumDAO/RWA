@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 
-pragma solidity ^0.8.22;
+pragma solidity 0.8.27;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
 import {Address, Uint} from "../CTMRWAUtils.sol";
@@ -16,7 +16,6 @@ interface ICTMRWA1Sentry is ICTMRWA {
     function ctmWhitelist(uint256 index) external view returns (string memory);
     function countryList(uint256 index) external view returns (string memory);
 
-    function setSentryOptionsFlag() external;
     function sentryOptionsSet() external returns (bool);
 
     function setZkMeParams(string memory appId, string memory programNo, address cooperator) external;
@@ -45,9 +44,6 @@ interface ICTMRWA1Sentry is ICTMRWA {
 
     function getWhitelistAddressAtIndx(uint256 _indx) external view returns (string memory);
     function getWhitelistLength() external returns (uint256);
-
-    function setWhitelist() external;
-    function switchCountry(bool choice) external;
 
     function isAllowableTransfer(string memory _user) external view returns (bool);
     function setWhitelistSentry(uint256 ID, string[] memory _wallets, bool[] memory _choices) external;

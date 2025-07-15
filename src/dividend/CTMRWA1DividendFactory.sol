@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 
-pragma solidity ^0.8.22;
+pragma solidity 0.8.27;
 
 import { CTMRWA1Dividend } from "./CTMRWA1Dividend.sol";
 import { ICTMRWA1DividendFactory } from "./ICTMRWA1DividendFactory.sol";

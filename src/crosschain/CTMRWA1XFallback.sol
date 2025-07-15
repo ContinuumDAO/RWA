@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 
-pragma solidity ^0.8.22;
+pragma solidity 0.8.27;
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1XFallback } from "./ICTMRWA1XFallback.sol";
