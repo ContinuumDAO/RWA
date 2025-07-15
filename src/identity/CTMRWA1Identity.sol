@@ -77,7 +77,6 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         // require(ok, "CTMRWA1Identity: Could not find _ID or its sentry address");
         if (!ok) revert CTMRWA1Identity_InvalidContract(Address.Sentry);
 
-        // WARN: should this check not need kyc switch to be true?
         // require(ICTMRWA1Sentry(sentryAddr).kycSwitch(), "CTMRWA1Identity: KYC is not enabled for this CTMRWA1");
         if (!ICTMRWA1Sentry(sentryAddr).kycSwitch()) revert CTMRWA1Identity_KYCDisabled();
 
@@ -92,9 +91,8 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         if (cooperator == address(0)) revert CTMRWA1Identity_IsZeroAddress(Address.Cooperator);
         bool isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, msg.sender);
 
-        // WARN: why are we needing that isValid is false?
-        // require(!isValid, "CTMRWA1Identity: Invalid KYC");
-        if (isValid) revert CTMRWA1Identity_InvalidKYC(msg.sender);
+        // require(isValid, "CTMRWA1Identity: Invalid KYC");
+        if (!isValid) revert CTMRWA1Identity_InvalidKYC(msg.sender);
 
         uint256 fee = _getFee(FeeType.KYC, 1, _chainIdsStr, _feeTokenStr);
         _payFee(fee, _feeTokenStr);
@@ -149,5 +147,4 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
 
         return (fee * _nItems);
     }
-
 }
