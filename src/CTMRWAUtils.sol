@@ -50,7 +50,8 @@ enum Address {
     Fallback,
     Token,
     Invest,
-    DeployInvest
+    DeployInvest,
+    Spender
 }
 
 library CTMRWAUtils {

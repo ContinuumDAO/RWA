@@ -3,18 +3,21 @@
 pragma solidity ^0.8.22;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
+import {ICTMRWAERC20} from "./ICTMRWAERC20.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import {Address} from "../CTMRWAUtils.sol";
 
 /**
  * This contract is an ERC20. The required interface functions are directly linked to various
  * functions in CTMRWA1. This contract is deployed by deployERC20() in the contract CTMRWAERC20Deployer
  * which uses CREATE2.
  */
-contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
+contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
     using Strings for string;
 
     /// @dev The ID of the CTMRWA1 that created this ERC20 is stored here
@@ -33,7 +36,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
     string slotName;
 
     /// @dev The name of this ERC20
-    string ctmRwaName;
+    string public ctmRwaName;
 
     /// @dev The symbol of this ERC20
     string ctmRwaSymbol;
@@ -71,9 +74,11 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
         bool ok;
 
         (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, _rwaType, _version);
-        require(ok, "CTMRWAERC20: There is no CTMRWA1 contract backing this ID");
+        // require(ok, "CTMRWAERC20: There is no CTMRWA1 contract backing this ID");
+        if (!ok) revert CTMRWAERC20_InvalidContract(Address.Token);
 
-        require(ICTMRWA1(ctmRwaToken).slotExists(slot), "CTMRWAERC20: Slot does not exist");
+        // require(ICTMRWA1(ctmRwaToken).slotExists(slot), "CTMRWAERC20: Slot does not exist");
+        if (ICTMRWA1(ctmRwaToken).slotExists(slot)) revert CTMRWAERC20_NonExistentSlot(slot);
 
         slotName = ICTMRWA1(ctmRwaToken).slotName(slot);
         ctmRwaDecimals = ICTMRWA1(ctmRwaToken).valueDecimals();
@@ -82,14 +87,14 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
     /**
      * @notice The ERC20 name returns the input name, pre-pended with the slot
      */
-    function name() public view override returns (string memory) {
+    function name() public view override(ERC20, ICTMRWAERC20) returns (string memory) {
         return ctmRwaName;
     }
 
     /**
      * @notice The ERC20 symbol
      */
-    function symbol() public view override returns (string memory) {
+    function symbol() public view override(ERC20, ICTMRWAERC20) returns (string memory) {
         return ctmRwaSymbol;
     }
 
@@ -97,7 +102,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
      * @notice The ERC20 decimals. This is not part of the official ERC20 interface, but is added here
      * for convenience
      */
-    function decimals() public view override returns (uint8) {
+    function decimals() public view override(ERC20, ICTMRWAERC20) returns (uint8) {
         return ctmRwaDecimals;
     }
 
@@ -105,7 +110,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
      * @notice The ERC20 totalSupply. This is derived from the CTMRWA1 and is the
      * total fungible balance summed over all tokenIds in the slot of this ERC20
      */
-    function totalSupply() public view override returns (uint256) {
+    function totalSupply() public view override(ERC20, IERC20) returns (uint256) {
         uint256 total = ICTMRWA1(ctmRwaToken).totalSupplyInSlot(slot);
         return total;
     }
@@ -115,7 +120,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
      * the fungible balances of all tokenIds in this slot for this _account
      * @param _account The wallet address of the balanceOf being sought
      */
-    function balanceOf(address _account) public view override returns (uint256) {
+    function balanceOf(address _account) public view override(ERC20, IERC20) returns (uint256) {
         uint256 bal = ICTMRWA1(ctmRwaToken).balanceOf(_account, slot);
         return (bal);
     }
@@ -125,7 +130,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
      * @param _owner The owner of the tokenIds who is granting approval to the spender
      * @param _spender The recipient, who is being granted approval to spend on behalf of _owner
      */
-    function allowance(address _owner, address _spender) public view override returns (uint256) {
+    function allowance(address _owner, address _spender) public view override(ERC20, IERC20) returns (uint256) {
         return super.allowance(_owner, _spender);
     }
 
@@ -134,7 +139,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
      * @param _spender The wallet address being granted approval to spend value
      * @param _value The fungible value being approved to spend by the spender
      */
-    function approve(address _spender, uint256 _value) public override returns (bool) {
+    function approve(address _spender, uint256 _value) public override(ERC20, IERC20) returns (bool) {
         _approve(msg.sender, _spender, _value, true);
         return true;
     }
@@ -146,7 +151,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
      * NOTE The _value is taken from the first tokenId owned by the caller and if this is not
      * sufficient, the balance is taken from the second owned tokenId etc.
      */
-    function transfer(address _to, uint256 _value) public override nonReentrant returns (bool) {
+    function transfer(address _to, uint256 _value) public override(ERC20, IERC20) nonReentrant returns (bool) {
         address owner = msg.sender;
         _transfer(owner, _to, _value);
         return true;
@@ -161,7 +166,7 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
      * NOTE The _value is taken from the first tokenId owned by the caller and if this is not
      * sufficient, the balance is taken from the second owned tokenId etc.
      */
-    function transferFrom(address _from, address _to, uint256 _value) public override nonReentrant returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public override(ERC20, IERC20) nonReentrant returns (bool) {
         _spendAllowance(_from, msg.sender, _value);
         _transfer(_from, _to, _value);
 
@@ -170,7 +175,8 @@ contract CTMRWAERC20 is ReentrancyGuard, ERC20 {
 
     /// @dev Low level function to approve spending
     function _approve(address _owner, address _spender, uint256 _value, bool _emitEvent) internal override {
-        require(_spender != address(0), "CTMRWAERC20: spender is zero address");
+        // require(_spender != address(0), "CTMRWAERC20: spender is zero address");
+        if (_spender == address(0)) revert CTMRWAERC20_IsZeroAddress(Address.Spender);
         super._approve(_owner, _spender, _value, _emitEvent);
     }
 

@@ -3,21 +3,19 @@
 pragma solidity ^0.8.22;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Address} from "../CTMRWAUtils.sol";
 
 interface ICTMRWAERC20 is IERC20 {
+    error CTMRWAERC20_InvalidContract(Address);
+    error CTMRWAERC20_NonExistentSlot(uint256);
+    error CTMRWAERC20_IsZeroAddress(Address);
+
     function ID() external view returns (uint256);
-    function ctmRwaName() external view returns (address);
+    function ctmRwaName() external view returns (string memory);
     function slot() external view returns (uint256);
 
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
-    function totalSupply() external view returns (uint256);
-    function balanceOf(address _account) external view returns (uint256);
-    function allowance(address _owner, address _spender) external view returns (uint256);
-    function approve(address _spender, uint256 _value) external returns (bool);
-    function transfer(address _to, uint256 _value) external returns (bool);
-    function transferFrom(address _from, address _to, uint256 _value) external returns (bool);
-
     function decimals() external view returns (uint8);
 
     function RWA_TYPE() external view returns (uint256);
