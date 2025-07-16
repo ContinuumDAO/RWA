@@ -302,7 +302,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     {
         // NOTE: Skip check if the token validly does not exist
         if (bytes(_addrStr).length == 0) {
-            return false;
+            return true;
         }
         address _contractAddr = _addrStr._stringToAddress();
         uint256 rwaType = ICTMRWA(_contractAddr).RWA_TYPE();
