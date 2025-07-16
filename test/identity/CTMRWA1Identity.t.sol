@@ -138,6 +138,20 @@ contract TestCTMRWA1Identity is Helpers {
         string memory userHex = user1.toHexString();
         assertTrue(sentry.isAllowableTransfer(userHex));
     }
+    function test_verifyPerson_gasUsage() public {
+        vm.prank(tokenAdmin);
+        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        vm.prank(tokenAdmin);
+        sentryManager.setZkMeParams(ID, "", "", address(0x1234));
+        zkMe.setApproved(true);
+        vm.prank(user1);
+        uint256 gasBefore = gasleft();
+        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        uint256 gasAfter = gasleft();
+        uint256 gasUsed = gasBefore - gasAfter;
+        // console.log("Gas used by verifyPerson (happy path):", gasUsed);
+        assertLt(gasUsed, 1_200_000, "verifyPerson should use less than 1,200,000 gas");
+    }
     // --- isVerifiedPerson ---
     function test_isVerifiedPerson_revertIfInvalidContract() public {
         uint256 badId = ID + 9999;
@@ -171,10 +185,4 @@ contract TestCTMRWA1Identity is Helpers {
         assertFalse(ok);
     }
 
-    function test_logKycFeeAndMultiplier() public {
-        uint256 kycMultiplier = feeManager.getFeeMultiplier(FeeType.KYC);
-        uint256 kycFee = feeManager.getXChainFee(chainIds, false, FeeType.KYC, feeTokenStr);
-        console.log("KYC Fee Multiplier:", kycMultiplier);
-        console.log("KYC Fee:", kycFee);
-    }
 }
