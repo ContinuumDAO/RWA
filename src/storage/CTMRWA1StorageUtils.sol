@@ -6,11 +6,11 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 
-import {ICTMRWA1StorageUtils} from "./ICTMRWA1StorageUtils.sol";
-import { CTMRWAUtils, Address } from "../CTMRWAUtils.sol";
+import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { CTMRWA1Storage } from "./CTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
+import { ICTMRWA1StorageUtils } from "./ICTMRWA1StorageUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -38,7 +38,9 @@ contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
 
     modifier onlyStorageManager() {
         // require(msg.sender == storageManager, "CTMRWA1StorageUtils: onlyStorageManager function");
-        if (msg.sender != storageManager) revert CTMRWA1StorageUtils_Unauthorized(Address.Sender);
+        if (msg.sender != storageManager) {
+            revert CTMRWA1StorageUtils_Unauthorized(Address.Sender);
+        }
         _;
     }
 
@@ -99,7 +101,9 @@ contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
 
             (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(ID, RWA_TYPE, VERSION);
             // require(ok, "CTMRWA1StorageUtils: Could not find _ID or its storage address");
-            if (!ok) revert CTMRWA1StorageUtils_InvalidContract(Address.Storage);
+            if (!ok) {
+                revert CTMRWA1StorageUtils_InvalidContract(Address.Storage);
+            }
 
             ICTMRWA1Storage(storageAddr).popURILocal(objectName.length);
             ICTMRWA1Storage(storageAddr).setNonce(startNonce);
@@ -114,7 +118,9 @@ contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         // require(ok, "CTMRWA1StorageUtils: The requested tokenID does not exist");
-        if (!ok) revert CTMRWA1StorageUtils_InvalidContract(Address.Token);
+        if (!ok) {
+            revert CTMRWA1StorageUtils_InvalidContract(Address.Token);
+        }
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
         return (tokenAddr, tokenAddrStr);

@@ -139,7 +139,9 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         string memory tokenAddrStr = _tokenAddrStr._toLower();
 
         uint256 id = contractToId[tokenAddrStr];
-        if (id == 0) return (false, 0);
+        if (id == 0) {
+            return (false, 0);
+        }
         bool ok = _checkRwaTypeVersion(tokenAddrStr, _rwaType, _version);
         return (ok, id);
     }
