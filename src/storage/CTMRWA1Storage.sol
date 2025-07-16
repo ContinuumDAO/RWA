@@ -200,7 +200,7 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
             //     "CTMRWA1Storage: Type CONTRACT and CATEGORY ISSUER must be the first stored element"
             // );
             if (this.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) == 0) {
-                revert CTMRWA1Storage_NoURIHash();
+                revert CTMRWA1Storage_IssuerNotFirst();
             }
         }
 
@@ -416,6 +416,4 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         return block.chainid;
     }
 
-    // TODO: implement
-    function greenfieldObject(URIType _uriType, uint256 _slot) external view returns (string memory) { }
 }

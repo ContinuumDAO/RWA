@@ -75,7 +75,6 @@ interface ICTMRWA1Storage is ICTMRWA {
     function setTokenAdmin(address _tokenAdmin) external returns (bool);
 
     function greenfieldBucket() external view returns (string memory);
-    function greenfieldObject(URIType _uriType, uint256 _slot) external view returns (string memory);
 
     function addURILocal(
         uint256 ID,
