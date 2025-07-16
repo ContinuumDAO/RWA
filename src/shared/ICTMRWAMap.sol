@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import {Address, RWA} from "../CTMRWAUtils.sol";
+import { Address, RWA } from "../CTMRWAUtils.sol";
 
 interface ICTMRWAMap {
     error CTMRWAMap_Unauthorized(Address);

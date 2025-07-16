@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import {Uint} from "../CTMRWAUtils.sol";
+import { Uint } from "../CTMRWAUtils.sol";
 
 enum FeeType {
     ADMIN,

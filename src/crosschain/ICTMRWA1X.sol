@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { Address, Uint, List } from "../CTMRWAUtils.sol";
+import { Address, List, Uint } from "../CTMRWAUtils.sol";
 import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { SlotData } from "../core/ICTMRWA1.sol";
 

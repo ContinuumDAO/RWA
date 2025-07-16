@@ -4,10 +4,10 @@ pragma solidity 0.8.27;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {ICTMRWA1Sentry} from "./ICTMRWA1Sentry.sol";
-import { CTMRWAUtils, Address, Uint } from "../CTMRWAUtils.sol";
+import { Address, CTMRWAUtils, Uint } from "../CTMRWAUtils.sol";
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
 
 contract CTMRWA1Sentry is ICTMRWA1Sentry {
     using Strings for *;
@@ -48,13 +48,17 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
     modifier onlyTokenAdmin() {
         // require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "CTMRWA1Storage: onlyTokenAdmin function");
-        if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) revert CTMRWA1Sentry_Unauthorized(Address.Sender);
+        if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
+            revert CTMRWA1Sentry_Unauthorized(Address.Sender);
+        }
         _;
     }
 
     modifier onlySentryManager() {
         // require(msg.sender == sentryManagerAddr, "CTMRWA1Sentry: onlySentryManager function");
-        if (msg.sender != sentryManagerAddr) revert CTMRWA1Sentry_Unauthorized(Address.Sender);
+        if (msg.sender != sentryManagerAddr) {
+            revert CTMRWA1Sentry_Unauthorized(Address.Sender);
+        }
         _;
     }
 
@@ -122,7 +126,9 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         bool _countryBL
     ) external onlySentryManager {
         // require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
-        if (_ID != ID) revert CTMRWA1Sentry_InvalidID(ID, _ID);
+        if (_ID != ID) {
+            revert CTMRWA1Sentry_InvalidID(ID, _ID);
+        }
 
         if (_whitelist) {
             whitelistSwitch = true;
@@ -155,7 +161,9 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         onlySentryManager
     {
         // require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
-        if (_ID != ID) revert CTMRWA1Sentry_InvalidID(ID, _ID);
+        if (_ID != ID) {
+            revert CTMRWA1Sentry_InvalidID(ID, _ID);
+        }
         _setWhitelist(_wallets, _choices);
     }
 
@@ -164,7 +172,9 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         onlySentryManager
     {
         // require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
-        if (_ID != ID) revert CTMRWA1Sentry_InvalidID(ID, _ID);
+        if (_ID != ID) {
+            revert CTMRWA1Sentry_InvalidID(ID, _ID);
+        }
 
         _setCountryList(_countryList, _choices);
     }
@@ -183,7 +193,9 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
             if (walletStr.equal(adminStr) && !_choices[i]) {
                 // revert("CTMRWA1Sentry: Cannot remove tokenAdmin from the whitelist");
-                if (walletStr.equal(adminStr) && !_choices[i]) revert CTMRWA1Sentry_Unauthorized(Address.Admin);
+                if (walletStr.equal(adminStr) && !_choices[i]) {
+                    revert CTMRWA1Sentry_Unauthorized(Address.Admin);
+                }
             } else if (indx != 0 && indx == ctmWhitelist.length - 1 && !_choices[i]) {
                 // last entry to be removed
                 whitelistIndx[walletStr] = 0;
@@ -212,7 +224,9 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
         for (uint256 i = 0; i < len; i++) {
             // require(bytes(_countries[i]).length == 2, "CTMRWA1Sentry: ISO Country must have 2 letters");
-            if (bytes(_countries[i]).length != 2) revert CTMRWA1Sentry_InvalidLength(Uint.CountryCode);
+            if (bytes(_countries[i]).length != 2) {
+                revert CTMRWA1Sentry_InvalidLength(Uint.CountryCode);
+            }
 
             indx = countryIndx[_countries[i]];
 
@@ -288,5 +302,4 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
         return (res, true);
     }
-
 }

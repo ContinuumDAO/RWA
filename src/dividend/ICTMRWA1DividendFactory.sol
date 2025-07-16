@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import {Address} from "../CTMRWAUtils.sol";
+import { Address } from "../CTMRWAUtils.sol";
 
 interface ICTMRWA1DividendFactory {
     error CTMRWA1DividendFactory_Unauthorized(Address);

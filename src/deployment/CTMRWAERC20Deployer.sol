@@ -6,8 +6,8 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
+import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 
 import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
@@ -75,7 +75,6 @@ contract CTMRWAERC20Deployer is ReentrancyGuard {
         (bool ok, address ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
         require(ok, "CTMRWAERC20: the ID does not link to a valid CTMRWA1");
         require(msg.sender == ctmRwaToken, "CTMRWAERC20: Deployer is not CTMRWA1");
-    
 
         _payFee(FeeType.ERC20, _feeToken);
 

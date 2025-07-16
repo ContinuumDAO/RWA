@@ -7,7 +7,8 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 
-import { CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { ICTMRWA1Storage } from "./ICTMRWA1Storage.sol";
 import { URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
 
@@ -24,7 +25,7 @@ import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
  * Its ID matches the ID in CTMRWA1.
  * The cross-chain functionality is managed by CTMRWA1StorageManager
  */
-contract CTMRWA1Storage {
+contract CTMRWA1Storage is ICTMRWA1Storage {
     using Strings for *;
     using CTMRWAUtils for string;
 
@@ -97,15 +98,21 @@ contract CTMRWA1Storage {
     event NewURI(URICategory uriCategory, URIType uriType, uint256 slot, bytes32 uriDataHash);
 
     modifier onlyTokenAdmin() {
-        require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "CTMRWA1Storage: onlyTokenAdmin function");
+        // require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "CTMRWA1Storage: onlyTokenAdmin function");
+        if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
+            revert CTMRWA1Storage_Unauthorized(Address.Sender);
+        }
         _;
     }
 
     modifier onlyStorageManager() {
-        require(
-            msg.sender == storageManagerAddr || msg.sender == storageUtilsAddr,
-            "CTMRWA1Storage: onlyStorageManager function"
-        );
+        // require(
+        //     msg.sender == storageManagerAddr || msg.sender == storageUtilsAddr,
+        //     "CTMRWA1Storage: onlyStorageManager function"
+        // );
+        if (msg.sender != storageManagerAddr && msg.sender != storageUtilsAddr) {
+            revert CTMRWA1Storage_Unauthorized(Address.Sender);
+        }
         _;
     }
 
@@ -166,20 +173,35 @@ contract CTMRWA1Storage {
         uint256 _timestamp,
         bytes32 _uriDataHash
     ) external onlyStorageManager {
-        require(_ID == ID, "CTMRWA1Storage: Attempt to add URI to an incorrect ID");
+        // require(_ID == ID, "CTMRWA1Storage: Attempt to add URI to an incorrect ID");
+        if (_ID != ID) {
+            revert CTMRWA1Storage_InvalidID(ID, _ID);
+        }
 
-        require(!existURIHash(_uriDataHash), "CTMRWA1Storage: Hash already exists");
+        // require(!existURIHash(_uriDataHash), "CTMRWA1Storage: Hash already exists");
+        if (!existURIHash(_uriDataHash)) {
+            revert CTMRWA1Storage_HashExists(_uriDataHash);
+        }
 
         if (_uriType == URIType.SLOT) {
             (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-            require(ok && ICTMRWA1(tokenAddr).slotExists(_slot), "CTMRWA1Storage: Slot does not exist");
+            // require(ok && ICTMRWA1(tokenAddr).slotExists(_slot), "CTMRWA1Storage: Slot does not exist");
+            if (!ok) {
+                revert CTMRWA1Storage_InvalidContract(Address.Token);
+            }
+            if (!ICTMRWA1(tokenAddr).slotExists(_slot)) {
+                revert CTMRWA1Storage_InvalidSlot(_slot);
+            }
         }
 
         if (_uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER) {
-            require(
-                this.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0,
-                "CTMRWA1Storage: Type CONTRACT and CATEGORY ISSUER must be the first stored element"
-            );
+            // require(
+            //     this.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0,
+            //     "CTMRWA1Storage: Type CONTRACT and CATEGORY ISSUER must be the first stored element"
+            // );
+            if (this.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) == 0) {
+                revert CTMRWA1Storage_NoURIHash();
+            }
         }
 
         uriData.push(URIData(_uriCategory, _uriType, _title, _slot, _objectName, _uriDataHash, _timestamp));
@@ -192,7 +214,10 @@ contract CTMRWA1Storage {
 
     /// @dev This function is only called by c3Fallback after a cross-chain failure
     function popURILocal(uint256 _toPop) external onlyStorageManager {
-        require(_toPop <= uriData.length, "CTMRWA1Storage: Cannot pop this number of uriData");
+        // require(_toPop <= uriData.length, "CTMRWA1Storage: Cannot pop this number of uriData");
+        if (_toPop > uriData.length) {
+            revert CTMRWA1Storage_OutOfBounds();
+        }
 
         for (uint256 i = 0; i < _toPop; i++) {
             uriData.pop();
@@ -205,7 +230,10 @@ contract CTMRWA1Storage {
      * NOTE This will be removed in later versions
      */
     function increaseNonce(uint256 _val) public onlyTokenAdmin {
-        require(_val > nonce, "CTMRWA1Storage: Can only increase the nonce value");
+        // require(_val > nonce, "CTMRWA1Storage: Can only increase the nonce value");
+        if (_val <= nonce) {
+            revert CTMRWA1Storage_IncreasingNonceOnly();
+        }
         nonce = _val;
     }
 
@@ -217,15 +245,18 @@ contract CTMRWA1Storage {
     /**
      * @notice Add the wallet address of the Security Regulator of this RWA
      * @param _regulatorWallet The Regulator's wallet address
-     * NOTE This function can only be called by the tokenAdmin (Issuer)
-     * NOTE The function can only be called AFTER a License for a Security has been obtained
+     * NOTE: This function can only be called by the tokenAdmin (Issuer)
+     * NOTE: The function can only be called AFTER a License for a Security has been obtained
      * and a Storage Object LICENSE has been created describing the License.
-     * NOTE Setting the Regulator's wallet address is required before being able to set a wallet
+     * NOTE: Setting the Regulator's wallet address is required before being able to set a wallet
      * address able to forceTransfer any holders tokenIds to another wallet.
      */
     function createSecurity(address _regulatorWallet) public onlyTokenAdmin {
         uint256 securityURICount = this.getURIHashCount(URICategory.LICENSE, URIType.CONTRACT);
-        require(securityURICount > 0, "CTMRWA1Storage: No description of the Security is present");
+        // require(securityURICount > 0, "CTMRWA1Storage: No description of the Security is present");
+        if (securityURICount == 0) {
+            revert CTMRWA1Storage_NoSecurityDescription();
+        }
 
         regulatorWallet = _regulatorWallet;
     }
@@ -384,4 +415,7 @@ contract CTMRWA1Storage {
     function cID() internal view returns (uint256) {
         return block.chainid;
     }
+
+    // TODO: implement
+    function greenfieldObject(URIType _uriType, uint256 _slot) external view returns (string memory) { }
 }

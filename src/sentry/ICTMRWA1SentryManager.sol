@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
+import { Address, List, Uint } from "../CTMRWAUtils.sol";
 import { ICTMRWA } from "../core/ICTMRWA.sol";
-import {Uint, Address, List} from "../CTMRWAUtils.sol";
 
 interface ICTMRWA1SentryManager is ICTMRWA {
     error CTMRWA1SentryManager_Unauthorized(Address);
@@ -29,13 +29,9 @@ interface ICTMRWA1SentryManager is ICTMRWA {
 
     function getLastReason() external view returns (string memory);
 
-    function deploySentry(
-        uint256 ID, 
-        address tokenAddr, 
-        uint256 rwaType, 
-        uint256 version, 
-        address map
-    ) external returns (address);
+    function deploySentry(uint256 ID, address tokenAddr, uint256 rwaType, uint256 version, address map)
+        external
+        returns (address);
 
     function setSentryOptions(
         uint256 ID,

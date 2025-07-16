@@ -68,10 +68,11 @@ enum Address {
 
 enum List {
     WhiteListDisabled, // whitelisting is disabled
-    WhiteListEnabled,  // whitelisting is enabled
-    NoWLOrBL,          // neither whitelist nor blacklist are defined
-    WLAndBL,           // whitelist and blacklist are defined
-    NoWLOrKYC          // neither whitelist nor kyc is enabled
+    WhiteListEnabled, // whitelisting is enabled
+    NoWLOrBL, // neither whitelist nor blacklist are defined
+    WLAndBL, // whitelist and blacklist are defined
+    NoWLOrKYC // neither whitelist nor kyc is enabled
+
 }
 
 library CTMRWAUtils {

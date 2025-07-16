@@ -2,6 +2,7 @@
 
 pragma solidity 0.8.27;
 
+import { Address } from "../CTMRWAUtils.sol";
 import { ICTMRWA } from "../core/ICTMRWA.sol";
 
 enum URICategory {
@@ -41,6 +42,16 @@ struct URIData {
 }
 
 interface ICTMRWA1Storage is ICTMRWA {
+    error CTMRWA1Storage_Unauthorized(Address);
+    error CTMRWA1Storage_InvalidID(uint256 expected, uint256 actual);
+    error CTMRWA1Storage_HashExists(bytes32);
+    error CTMRWA1Storage_InvalidSlot(uint256);
+    error CTMRWA1Storage_NoURIHash();
+    error CTMRWA1Storage_OutOfBounds();
+    error CTMRWA1Storage_IncreasingNonceOnly();
+    error CTMRWA1Storage_InvalidContract(Address);
+    error CTMRWA1Storage_NoSecurityDescription();
+
     function ID() external returns (uint256);
     function regulatorWallet() external returns (address);
     function nonce() external returns (uint256);
@@ -48,7 +59,17 @@ interface ICTMRWA1Storage is ICTMRWA {
     function ctmRwa1X() external returns (address);
     function ctmRwa1Map() external returns (address);
     function storageManagerAddr() external returns (address);
-    function uriData() external returns (URIData[] memory);
+    function uriData(uint256 index)
+        external
+        returns (
+            URICategory uriCategory,
+            URIType uriType,
+            string memory title,
+            uint256 slot,
+            string memory objectName,
+            bytes32 uriHash,
+            uint256 timeStamp
+        );
     function popURILocal(uint256 toPop) external;
 
     function setTokenAdmin(address _tokenAdmin) external returns (bool);
