@@ -79,6 +79,8 @@ enum List {
 }
 
 library CTMRWAUtils {
+    error CTMRWAUtils_InvalidLength(Uint);
+
     /// @dev Convert a string to lower case
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
@@ -98,7 +100,8 @@ library CTMRWAUtils {
     /// @dev Convert a string to an EVM address. Also checks the string length
     function _stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "RWA: Invalid addr length");
+        // require(strBytes.length == 42, "RWA: Invalid addr length");
+        if (strBytes.length != 42) revert CTMRWAUtils_InvalidLength(Uint.Address);
         bytes memory addrBytes = new bytes(20);
 
         for (uint256 i = 0; i < 20; i++) {
