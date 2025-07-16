@@ -205,7 +205,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         }
 
         address feeToken = _feeTokenStr._stringToAddress();
-        uint256 fee = baseFee * getFeeMultiplier(_feeType)*10**IERC20Extended(feeToken).decimals();
+        uint256 fee = baseFee * getFeeMultiplier(_feeType);
 
         return fee;
     }

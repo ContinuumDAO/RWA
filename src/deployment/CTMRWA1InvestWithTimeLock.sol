@@ -73,7 +73,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     address public tokenAdmin;
 
     /// @dev String representation of the local chainID
-    string cIDStr;
+    string cIdStr;
 
     modifier onlyTokenAdmin(address _ctmRwaToken) {
         _checkTokenAdmin(_ctmRwaToken);
@@ -125,7 +125,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
         ctmRwa1X = ICTMRWA1(ctmRwaToken).ctmRwa1X();
 
-        cIDStr = block.chainid.toString();
+        cIdStr = block.chainid.toString();
     }
 
     // Pause a specific offering (only tokenAdmin)
@@ -203,7 +203,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         _payFee(FeeType.OFFERING, _feeToken);
 
         ICTMRWA1X(ctmRwa1X).transferWholeTokenX(
-            tokenAdmin.toHexString(), address(this).toHexString(), cIDStr, _tokenId, ID, _feeToken.toHexString()
+            tokenAdmin.toHexString(), address(this).toHexString(), cIdStr, _tokenId, ID, _feeToken.toHexString()
         );
 
         Holding[] memory holdings;
@@ -296,7 +296,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         offerings[_indx].investment += _investment;
 
         uint256 newTokenId = ICTMRWA1X(ctmRwa1X).transferPartialTokenX(
-            tokenId, address(this).toHexString(), cIDStr, value, ID, feeTokenStr
+            tokenId, address(this).toHexString(), cIdStr, value, ID, feeTokenStr
         );
 
         Holding memory newHolding =
@@ -371,7 +371,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
             ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
 
             ICTMRWA1X(ctmRwa1X).transferWholeTokenX(
-                address(this).toHexString(), msg.sender.toHexString(), cIDStr, tokenId, ID, _feeToken.toHexString()
+                address(this).toHexString(), msg.sender.toHexString(), cIdStr, tokenId, ID, _feeToken.toHexString()
             );
 
             emit UnlockInvestmentToken(ID, msg.sender, _myIndx);
@@ -470,7 +470,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     /// @dev Pay offering fees
     function _payFee(FeeType _feeType, address _feeToken) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
-        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIDStr._stringToArray(), false, _feeType, feeTokenStr);
+        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), false, _feeType, feeTokenStr);
 
         if (feeWei > 0) {
             IERC20(_feeToken).transferFrom(msg.sender, address(this), feeWei);

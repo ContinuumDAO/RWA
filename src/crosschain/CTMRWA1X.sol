@@ -63,7 +63,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     address public fallbackAddr;
 
     /// @dev string representation of the chainID
-    string cIDStr;
+    string cIdStr;
 
     /// @dev Addresses of routers, including ContinuumDAO, permitted to bridge tokens cross-chain
     mapping(address => bool) public isMinter;
@@ -89,7 +89,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
         gateway = _gateway;
         feeManager = _feeManager;
-        cIDStr = cID().toString();
+        cIdStr = cID().toString();
         isMinter[address(this)] = true;
     }
 
@@ -447,7 +447,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         for (uint256 i = 0; i < _toChainIdsStr.length; i++) {
             toChainIdStr = _toChainIdsStr[i]._toLower();
 
-            if (toChainIdStr.equal(cIDStr)) {
+            if (toChainIdStr.equal(cIdStr)) {
                 _changeAdmin(currentAdmin, newAdmin, _ID);
             } else {
                 (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
@@ -519,7 +519,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa1Addr);
 
-        _payFee(FeeType.MINT, _feeTokenStr, cIDStr._stringToArray(), false);
+        _payFee(FeeType.MINT, _feeTokenStr, cIdStr._stringToArray(), false);
 
         if (_toTokenId > 0) {
             ICTMRWA1(ctmRwa1Addr).mintValueX(_toTokenId, _slot, _value);
@@ -577,7 +577,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         for (uint256 i = 0; i < len; i++) {
             toChainIdStr = _toChainIdsStr[i]._toLower();
-            if (!cIDStr.equal(toChainIdStr)) {
+            if (!cIdStr.equal(toChainIdStr)) {
                 (fromAddressStr, toRwaXStr) = _getRWAX(toChainIdStr);
                 string memory funcCall = "createNewSlotX(uint256,string,uint256,string)";
                 bytes memory callData = abi.encodeWithSignature(funcCall, _ID, fromAddressStr, _slot, _slotName);
@@ -655,7 +655,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             revert CTMRWA1X_Unauthorized(Address.Sender);
         }
 
-        if (toChainIdStr.equal(cIDStr)) {
+        if (toChainIdStr.equal(cIdStr)) {
             address toAddr = _toAddressStr._stringToAddress();
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(this), _fromTokenId);
             uint256 newTokenId = ICTMRWA1(ctmRwa1Addr).transferFrom(_fromTokenId, toAddr, _value);
@@ -711,7 +711,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             revert CTMRWA1X_Unauthorized(Address.Sender);
         }
 
-        if (toChainIdStr.equal(cIDStr)) {
+        if (toChainIdStr.equal(cIdStr)) {
             address toAddr = _toAddressStr._stringToAddress();
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(this), _fromTokenId);
             ICTMRWA1(ctmRwa1Addr).transferFrom(fromAddr, toAddr, _fromTokenId);
@@ -834,7 +834,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
     /// @dev Get the corresponding CTMRWA1X address on another chain with chainId _toChainIdStr
     function _getRWAX(string memory _toChainIdStr) internal view returns (string memory, string memory) {
-        if (_toChainIdStr.equal(cIDStr)) {
+        if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1X_SameChain();
         }
 

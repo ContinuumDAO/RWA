@@ -93,6 +93,7 @@ contract Deployer is Utils {
         feeManager.setFeeMultiplier(FeeType.TX, 1);
         feeManager.setFeeMultiplier(FeeType.WHITELIST, 1);
         feeManager.setFeeMultiplier(FeeType.COUNTRY, 1);
+        feeManager.setFeeMultiplier(FeeType.KYC, 1);
 
         string memory destChain = "1";
         string memory ctmAddrStr = _toLower(address(ctm).toHexString());

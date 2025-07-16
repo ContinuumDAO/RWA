@@ -5,6 +5,7 @@ pragma solidity 0.8.27;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { console } from "forge-std/console.sol";
 
 import {ICTMRWA1Identity} from "./ICTMRWA1Identity.sol";
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
@@ -30,6 +31,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
     address public sentryManager;
     address public zkMeVerifierAddress;
     address public feeManager;
+    string cIdStr;
 
     modifier onlyIdChain() {
         // require(zkMeVerifierAddress != address(0));
@@ -59,6 +61,8 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         sentryManager = _sentryManager;
         zkMeVerifierAddress = _verifierAddress;
         feeManager = _feeManager;
+
+        cIdStr = block.chainid.toString();
     }
 
     function setZkMeVerifierAddress(address _verifierAddress) external onlySentryManager {
@@ -94,8 +98,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         // require(isValid, "CTMRWA1Identity: Invalid KYC");
         if (!isValid) revert CTMRWA1Identity_InvalidKYC(msg.sender);
 
-        uint256 fee = _getFee(FeeType.KYC, 1, _chainIdsStr, _feeTokenStr);
-        _payFee(fee, _feeTokenStr);
+        _payFee(_feeTokenStr);
 
         ICTMRWA1SentryManager(sentryManager).addWhitelist(
             _ID, msg.sender.toHexString()._stringToArray(), CTMRWAUtils._boolToArray(true), _chainIdsStr, _feeTokenStr
@@ -124,27 +127,19 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         return isValid;
     }
 
-    function _payFee(uint256 _feeWei, string memory _feeTokenStr) internal returns (bool) {
-        if (_feeWei > 0) {
+    function _payFee(string memory _feeTokenStr) internal returns (bool) {
+        bool includeLocal = false;
+        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), includeLocal, FeeType.KYC, _feeTokenStr);
+
+        if (feeWei > 0) {
             address feeToken = _feeTokenStr._stringToAddress();
 
-            IERC20(feeToken).transferFrom(msg.sender, address(this), _feeWei);
+            IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
 
-            IERC20(feeToken).approve(feeManager, _feeWei);
-            IFeeManager(feeManager).payFee(_feeWei, _feeTokenStr);
+            IERC20(feeToken).approve(feeManager, feeWei);
+            IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);
         }
         return (true);
     }
 
-    function _getFee(FeeType _feeType, uint256 _nItems, string[] memory _toChainIdsStr, string memory _feeTokenStr)
-        internal
-        view
-        returns (uint256)
-    {
-        bool includeLocal = false;
-
-        uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, includeLocal, _feeType, _feeTokenStr);
-
-        return (fee * _nItems);
-    }
 }

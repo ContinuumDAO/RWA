@@ -337,7 +337,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         uint256 len = _wallets.length;
 
         if (msg.sender != identity) {
-            // charge a different fee if FeeType.KYC
+            // charge a different fee if FeeType.KYC, paid in the CTMRWAIdentity contract
             uint256 fee = _getFee(FeeType.WHITELIST, len, _chainIdsStr, _feeTokenStr);
             _payFee(fee, _feeTokenStr);
         }

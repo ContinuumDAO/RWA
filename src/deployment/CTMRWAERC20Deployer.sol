@@ -39,7 +39,7 @@ contract CTMRWAERC20Deployer is ReentrancyGuard {
     address public feeManager;
 
     /// @dev String representation of the local chainID
-    string cIDStr;
+    string cIdStr;
 
     constructor(address _ctmRwaMap, address _feeManager) {
         require(_ctmRwaMap != address(0), "CTMRWAERC20: ctmRwaMap set to 0");
@@ -48,7 +48,7 @@ contract CTMRWAERC20Deployer is ReentrancyGuard {
         ctmRwaMap = _ctmRwaMap;
         feeManager = _feeManager;
 
-        cIDStr = block.chainid.toString();
+        cIdStr = block.chainid.toString();
     }
 
     /**
@@ -89,7 +89,7 @@ contract CTMRWAERC20Deployer is ReentrancyGuard {
     /// @dev Pay the fee for deploying the ERC20
     function _payFee(FeeType _feeType, address _feeToken) internal nonReentrant returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
-        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIDStr._stringToArray(), false, _feeType, feeTokenStr);
+        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), false, _feeType, feeTokenStr);
 
         if (feeWei > 0) {
             IERC20(_feeToken).transferFrom(msg.sender, address(this), feeWei);

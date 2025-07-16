@@ -27,7 +27,7 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     address public feeManager;
 
     /// @dev String representation of the local chainID
-    string cIDStr;
+    string cIdStr;
 
     modifier onlyDeployer() {
         // require(msg.sender == ctmRwaDeployer);
@@ -43,7 +43,7 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
         commissionRate = _commissionRate;
         feeManager = _feeManager;
 
-        cIDStr = block.chainid.toString();
+        cIdStr = block.chainid.toString();
     }
 
     function setDeployerMapFee(address _deployer, address _ctmRwaMap, address _feeManager) external onlyDeployer {
@@ -74,7 +74,7 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     /// @dev Pay the fee for deploying the Invest contract
     function _payFee(FeeType _feeType, address _feeToken) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
-        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIDStr._stringToArray(), false, _feeType, feeTokenStr);
+        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), false, _feeType, feeTokenStr);
 
         if (feeWei > 0) {
             IERC20(_feeToken).transferFrom(msg.sender, address(this), feeWei);

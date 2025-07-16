@@ -367,8 +367,7 @@ contract TestFeeManager is Helpers {
 
     function test_FeeMultiplierNoOverflow() public {
         // Set a very large multiplier (should revert)
-        uint256 largeMultiplier = type(uint256).max / 100;
-        // vm.expectRevert("FeeManager: Multiplier too large");
+        uint256 largeMultiplier = 1e55 + 1; // MAX_SAFE_MULTIPLIER + 1 (hardcoded, since not public)
         vm.expectRevert(
             abi.encodeWithSelector(
                 IFeeManager.FeeManager_InvalidLength.selector,
@@ -378,7 +377,7 @@ contract TestFeeManager is Helpers {
         vm.prank(gov);
         feeManager.setFeeMultiplier(FeeType.TX, largeMultiplier);
         // Set a safe multiplier (should succeed)
-        uint256 safeMultiplier = uint256(type(uint256).max / 1e23);
+        uint256 safeMultiplier = 1e55; // MAX_SAFE_MULTIPLIER (hardcoded)
         vm.prank(gov);
         feeManager.setFeeMultiplier(FeeType.TX, safeMultiplier);
         // Set a base fee
@@ -391,8 +390,8 @@ contract TestFeeManager is Helpers {
         // Calculate fee, should not overflow
         string[] memory chains = new string[](1);
         chains[0] = chainIdStr;
-        uint8 decimals = IERC20Extended(address(feeToken)).decimals();
-        uint256 expectedFee = 100 * safeMultiplier * (10 ** decimals);
+        // uint8 decimals = IERC20Extended(address(feeToken)).decimals();
+        uint256 expectedFee = 100 * safeMultiplier; // baseFee is already in wei
         uint256 fee = feeManager.getXChainFee(chains, false, FeeType.TX, feeTokenStr);
         assertEq(fee, expectedFee, "Fee calculation should not overflow and should match contract logic");
     }
