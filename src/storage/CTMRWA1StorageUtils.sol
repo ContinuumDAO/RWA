@@ -6,7 +6,8 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 
-import { CTMRWAUtils } from "../CTMRWAUtils.sol";
+import {ICTMRWA1StorageUtils} from "./ICTMRWA1StorageUtils.sol";
+import { CTMRWAUtils, Address } from "../CTMRWAUtils.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { CTMRWA1Storage } from "./CTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
@@ -23,7 +24,7 @@ import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storag
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1Storage contract
  * deployments and c3Fallbacks.
  */
-contract CTMRWA1StorageUtils {
+contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
     using Strings for *;
     using CTMRWAUtils for string;
 
@@ -36,7 +37,8 @@ contract CTMRWA1StorageUtils {
     bytes public lastReason;
 
     modifier onlyStorageManager() {
-        require(msg.sender == storageManager, "CTMRWA1StorageUtils: onlyStorageManager function");
+        // require(msg.sender == storageManager, "CTMRWA1StorageUtils: onlyStorageManager function");
+        if (msg.sender != storageManager) revert CTMRWA1StorageUtils_Unauthorized(Address.Sender);
         _;
     }
 
@@ -96,7 +98,8 @@ contract CTMRWA1StorageUtils {
             );
 
             (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(ID, RWA_TYPE, VERSION);
-            require(ok, "CTMRWA1StorageUtils: Could not find _ID or its storage address");
+            // require(ok, "CTMRWA1StorageUtils: Could not find _ID or its storage address");
+            if (!ok) revert CTMRWA1StorageUtils_InvalidContract(Address.Storage);
 
             ICTMRWA1Storage(storageAddr).popURILocal(objectName.length);
             ICTMRWA1Storage(storageAddr).setNonce(startNonce);
@@ -110,7 +113,8 @@ contract CTMRWA1StorageUtils {
     /// @dev Get the address of the CTMRWA1 contract from the _ID
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        require(ok, "CTMRWA1StorageUtils: The requested tokenID does not exist");
+        // require(ok, "CTMRWA1StorageUtils: The requested tokenID does not exist");
+        if (!ok) revert CTMRWA1StorageUtils_InvalidContract(Address.Token);
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
         return (tokenAddr, tokenAddrStr);
