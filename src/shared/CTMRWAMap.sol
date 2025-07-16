@@ -135,8 +135,9 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         string memory tokenAddrStr = _tokenAddrStr._toLower();
 
         uint256 id = contractToId[tokenAddrStr];
-        _checkRwaTypeVersion(tokenAddrStr, _rwaType, _version);
-        return (id != 0, id);
+        if (id == 0) return (false, 0);
+        bool ok = _checkRwaTypeVersion(tokenAddrStr, _rwaType, _version);
+        return (ok, id);
     }
 
     /**
@@ -302,7 +303,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     {
         // NOTE: Skip check if the token validly does not exist
         if (bytes(_addrStr).length == 0) {
-            return true;
+            return false;
         }
         address _contractAddr = _addrStr._stringToAddress();
         uint256 rwaType = ICTMRWA(_contractAddr).RWA_TYPE();
