@@ -19,6 +19,7 @@ import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
 import { ICTMRWA1StorageUtils } from "./ICTMRWA1StorageUtils.sol";
+import {Address, Uint} from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -66,11 +67,11 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
     event URIAdded(uint256 ID);
 
     modifier onlyDeployer() {
-        require(msg.sender == ctmRwaDeployer, "CTMRWA1StorageManager: onlyDeployer function");
+        // require(msg.sender == ctmRwaDeployer, "CTMRWA1StorageManager: onlyDeployer function");
+        if (msg.sender != ctmRwaDeployer) revert CTMRWA1StorageManager_Unauthorized(Address.Sender);
         _;
     }
 
-    // TODO: Remove redundant _rwaType and _version parameters
     function initialize(
         address _gov,
         address _c3callerProxy,
@@ -184,27 +185,31 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         string memory _feeTokenStr
     ) public {
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
-        require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
+        // require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
+        if (!ok) revert CTMRWA1StorageManager_InvalidContract(Address.Storage);
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa1Addr);
 
-        require(
-            bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length > 0, "CTMRWA1StorageManager: This token does not have storage"
-        );
+        // require(
+        //     bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length > 0, "CTMRWA1StorageManager: This token does not have storage"
+        // );
+        if (bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length == 0) revert CTMRWA1StorageManager_NoStorage();
 
         uint256 fee;
         uint256 titleLength;
 
         titleLength = bytes(_title).length;
-        require(
-            !ICTMRWA1Storage(storageAddr).existObjectName(_objectName),
-            "CTMRWA1StorageManager: Object already exists in Storage"
-        );
-        require(
-            titleLength >= 10 && titleLength <= 256,
-            "CTMRWA1StorageManager: The title parameter must be between 10 and 256 characters"
-        );
+        // require(
+        //     !ICTMRWA1Storage(storageAddr).existObjectName(_objectName),
+        //     "CTMRWA1StorageManager: Object already exists in Storage"
+        // );
+        if (ICTMRWA1Storage(storageAddr).existObjectName(_objectName)) revert CTMRWA1StorageManager_ObjectAlreadyExists();
+        // require(
+        //     titleLength >= 10 && titleLength <= 256,
+        //     "CTMRWA1StorageManager: The title parameter must be between 10 and 256 characters"
+        // );
+        if (titleLength < 10 || titleLength > 256) revert CTMRWA1StorageManager_InvalidLength(Uint.Title);
 
         fee = _individualFee(_uriCategory, _feeTokenStr, _chainIdsStr, false);
 
@@ -258,14 +263,16 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
      */
     function transferURI(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr) public {
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
-        require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
+        // require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
+        if (!ok) revert CTMRWA1StorageManager_InvalidContract(Address.Storage);
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa1Addr);
 
-        require(
-            bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length > 0, "CTMRWA1StorageManager: This token does not have storage"
-        );
+        // require(
+        //     bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length > 0, "CTMRWA1StorageManager: This token does not have storage"
+        // );
+        if (bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length == 0) revert CTMRWA1StorageManager_NoStorage();
 
         (
             uint8[] memory uriCategory,
@@ -279,7 +286,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
 
         uint256 len = objectName.length;
 
-        require(len >= 1, "StorM: No URI to transfer");
+        // require(len >= 1, "StorM: No URI to transfer");
+        if (len < 1) revert CTMRWA1StorageManager_InvalidLength(Uint.URI);
 
         uint256 fee;
 
@@ -329,10 +337,12 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         bytes32[] memory _uriDataHash
     ) external onlyCaller returns (bool) {
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
-        require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
+        // require(ok, "CTMRWA1StorageManager: Could not find _ID or its storage address");
+        if (!ok) revert CTMRWA1StorageManager_InvalidContract(Address.Storage);
 
         uint256 currentNonce = ICTMRWA1Storage(storageAddr).nonce();
-        require(_startNonce == currentNonce, "CTMRWA0CTMRWA1StorageManager: addURI Starting nonce mismatch");
+        // require(_startNonce == currentNonce, "CTMRWA0CTMRWA1StorageManager: addURI Starting nonce mismatch");
+        if (_startNonce != currentNonce) revert CTMRWA1StorageManager_InvalidLength(Uint.Nonce);
 
         uint256 len = _objectName.length;
 
@@ -357,7 +367,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
     /// @dev Get the address of the CTMRWA1 corresponding to the _ID
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        require(ok, "CTMRWA1StorageManager: The requested tokenID does not exist");
+        // require(ok, "CTMRWA1StorageManager: The requested tokenID does not exist");
+        if (!ok) revert CTMRWA1StorageManager_InvalidContract(Address.Token);
         string memory tokenAddrStr = _toLower(tokenAddr.toHexString());
 
         return (tokenAddr, tokenAddrStr);
@@ -368,13 +379,15 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
      * with chainID (converted to a string) of _toChainIdStr
      */
     function _getSM(string memory _toChainIdStr) internal view returns (string memory, string memory) {
-        require(!_toChainIdStr.equal(cIdStr), "CTMRWA1StorageManager: Not a cross-chain tokenAdmin change");
+        // require(!_toChainIdStr.equal(cIdStr), "CTMRWA1StorageManager: Not a cross-chain tokenAdmin change");
+        if (_toChainIdStr.equal(cIdStr)) revert CTMRWA1StorageManager_SameChain();
 
         string memory fromAddressStr = _toLower(msg.sender.toHexString());
 
         (bool ok, string memory toSMStr) =
             ICTMRWAGateway(gateway).getAttachedStorageManager(RWA_TYPE, VERSION, _toChainIdStr);
-        require(ok, "CTMRWA1StorageManager: Target contract address not found");
+        // require(ok, "CTMRWA1StorageManager: Target contract address not found");
+        if (!ok) revert CTMRWA1StorageManager_InvalidContract(Address.Storage);
 
         return (fromAddressStr, toSMStr);
     }
@@ -387,7 +400,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = _toLower(currentAdmin.toHexString());
 
-        require(msg.sender == currentAdmin, "CTMRWA1StorageManager: Not tokenAdmin");
+        // require(msg.sender == currentAdmin, "CTMRWA1StorageManager: Not tokenAdmin");
+        if (msg.sender != currentAdmin) revert CTMRWA1StorageManager_Unauthorized(Address.Sender);
 
         return (currentAdmin, currentAdminStr);
     }
@@ -523,7 +537,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
     /// @dev Convert a string to an EVM address. Also checks the string length
     function stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
-        require(strBytes.length == 42, "CTMRWA1StorageManager: Invalid address length");
+        // require(strBytes.length == 42, "CTMRWA1StorageManager: Invalid address length");
+        if (strBytes.length != 42) revert CTMRWA1StorageManager_InvalidLength(Uint.Address);
         bytes memory addrBytes = new bytes(20);
 
         for (uint256 i = 0; i < 20; i++) {
