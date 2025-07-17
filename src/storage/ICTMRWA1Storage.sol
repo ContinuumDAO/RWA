@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { Address } from "../CTMRWAUtils.sol";
 import { ICTMRWA } from "../core/ICTMRWA.sol";
+import { Address } from "../CTMRWAUtils.sol";
 
 enum URICategory {
     ISSUER,
@@ -46,7 +46,7 @@ interface ICTMRWA1Storage is ICTMRWA {
     error CTMRWA1Storage_InvalidID(uint256 expected, uint256 actual);
     error CTMRWA1Storage_HashExists(bytes32);
     error CTMRWA1Storage_InvalidSlot(uint256);
-    error CTMRWA1Storage_NoURIHash();
+    error CTMRWA1Storage_IssuerNotFirst();
     error CTMRWA1Storage_OutOfBounds();
     error CTMRWA1Storage_IncreasingNonceOnly();
     error CTMRWA1Storage_InvalidContract(Address);

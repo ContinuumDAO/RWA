@@ -4,11 +4,10 @@ pragma solidity 0.8.27;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
-import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
-import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
+import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
+import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
 
 contract CTMRWADeployInvest is ICTMRWADeployInvest {
     using Strings for *;

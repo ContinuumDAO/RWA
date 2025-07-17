@@ -3,18 +3,13 @@ pragma solidity 0.8.27;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
-
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
-
 import { FeeType, IERC20Extended, IFeeManager } from "./IFeeManager.sol";
-
 import { CTMRWAUtils, Uint } from "../CTMRWAUtils.sol";
 
 contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUpgradeable, PausableUpgradeable {
@@ -232,7 +227,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
             baseFee += getToChainBaseFee(block.chainid.toString(), _feeTokenStr);
         }
 
-        address feeToken = _feeTokenStr._stringToAddress();
+        // address feeToken = _feeTokenStr._stringToAddress();
         uint256 fee = baseFee * getFeeMultiplier(_feeType);
 
         return fee;

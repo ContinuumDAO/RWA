@@ -75,7 +75,6 @@ enum List {
     NoWLOrBL, // neither whitelist nor blacklist are defined
     WLAndBL, // whitelist and blacklist are defined
     NoWLOrKYC // neither whitelist nor kyc is enabled
-
 }
 
 library CTMRWAUtils {

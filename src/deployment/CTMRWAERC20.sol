@@ -6,11 +6,10 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
-import { Address } from "../CTMRWAUtils.sol";
+import { ICTMRWAERC20 } from "./ICTMRWAERC20.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { ICTMRWAERC20 } from "./ICTMRWAERC20.sol";
+import { Address } from "../CTMRWAUtils.sol";
 
 /**
  * This contract is an ERC20. The required interface functions are directly linked to various

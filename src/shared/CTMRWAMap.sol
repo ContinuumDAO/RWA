@@ -3,15 +3,11 @@
 pragma solidity 0.8.27;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-
 import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
-
-import { Address, CTMRWAUtils, RWA } from "../CTMRWAUtils.sol";
-import { ICTMRWAAttachment, ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-
+import { ICTMRWAAttachment, ICTMRWAMap } from "./ICTMRWAMap.sol";
 import { ICTMRWA } from "../core/ICTMRWA.sol";
+import { Address, CTMRWAUtils, RWA } from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)

@@ -6,15 +6,14 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
-import { Address, CTMRWAUtils, Time, Uint } from "../CTMRWAUtils.sol";
+import { Holding, ICTMRWA1InvestWithTimeLock, Offering } from "./ICTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Holding, ICTMRWA1InvestWithTimeLock, Offering } from "./ICTMRWA1InvestWithTimeLock.sol";
+import { Address, CTMRWAUtils, Time, Uint } from "../CTMRWAUtils.sol";
 
 contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuard {
     using Strings for *;

@@ -5,14 +5,12 @@ pragma solidity 0.8.27;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
+import { CTMRWAERC20 } from "./CTMRWAERC20.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
-
-import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAERC20 } from "./CTMRWAERC20.sol";
+import { CTMRWAUtils } from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)

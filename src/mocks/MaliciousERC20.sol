@@ -2,10 +2,9 @@
 
 pragma solidity 0.8.27;
 
-import { ITestERC20 } from "./ITestERC20.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { console } from "forge-std/console.sol";
+import { ITestERC20 } from "./ITestERC20.sol";
 
 contract MaliciousERC20 is ITestERC20, ERC20 {
     uint8 _decimals;
@@ -48,13 +47,13 @@ contract MaliciousERC20 is ITestERC20, ERC20 {
     function transferFrom(address from, address to, uint256 amount) public override(ERC20, IERC20) returns (bool) {
         bool result = super.transferFrom(from, to, amount);
         if (attacker != address(0) && callbackData.length > 0) {
-            console.log("MaliciousERC20: About to call attacker");
+            // console.log("MaliciousERC20: About to call attacker");
             (bool success, bytes memory returndata) = attacker.call(callbackData);
-            console.log("MaliciousERC20: Attacker call success? %s", success);
+            // console.log("MaliciousERC20: Attacker call success? %s", success);
             if (!success) {
                 if (returndata.length > 0) {
                     // Try to decode revert reason
-                    console.logBytes(returndata);
+                    // console.logBytes(returndata);
                 }
                 revert("MaliciousERC20: attacker callback failed");
             }

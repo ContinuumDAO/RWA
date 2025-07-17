@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { Uint } from "../CTMRWAUtils.sol";
 import { IC3GovernDapp } from "@c3caller/gov/IC3GovernDapp.sol";
+import { Uint } from "../CTMRWAUtils.sol";
 
 struct ChainContract {
     string chainIdStr;

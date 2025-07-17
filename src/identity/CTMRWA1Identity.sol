@@ -5,20 +5,14 @@ pragma solidity 0.8.27;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { console } from "forge-std/console.sol";
-
-import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1Identity } from "./ICTMRWA1Identity.sol";
-
-import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { IZkMeVerify } from "./IZkMeVerify.sol";
+import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-
-interface IZkMeVerify {
-    function hasApproved(address cooperator, address user) external view returns (bool);
-}
+import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
 
 contract CTMRWA1Identity is ICTMRWA1Identity {
     using Strings for *;
