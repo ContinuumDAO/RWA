@@ -46,7 +46,6 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
     bool public age18Switch;
 
     modifier onlyTokenAdmin() {
-        // require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "CTMRWA1Storage: onlyTokenAdmin function");
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
             revert CTMRWA1Sentry_Unauthorized(Address.Sender);
         }
@@ -54,7 +53,6 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
     }
 
     modifier onlySentryManager() {
-        // require(msg.sender == sentryManagerAddr, "CTMRWA1Sentry: onlySentryManager function");
         if (msg.sender != sentryManagerAddr) {
             revert CTMRWA1Sentry_Unauthorized(Address.Sender);
         }
@@ -124,7 +122,6 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         bool _countryWL,
         bool _countryBL
     ) external onlySentryManager {
-        // require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
         if (_ID != ID) {
             revert CTMRWA1Sentry_InvalidID(ID, _ID);
         }
@@ -159,7 +156,6 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         external
         onlySentryManager
     {
-        // require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
         if (_ID != ID) {
             revert CTMRWA1Sentry_InvalidID(ID, _ID);
         }
@@ -170,7 +166,6 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         external
         onlySentryManager
     {
-        // require(_ID == ID, "CTMRWA1Sentry: Attempt to setSentryOptionsLocal to an incorrect ID");
         if (_ID != ID) {
             revert CTMRWA1Sentry_InvalidID(ID, _ID);
         }
@@ -222,7 +217,6 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         string memory oldLastStr;
 
         for (uint256 i = 0; i < len; i++) {
-            // require(bytes(_countries[i]).length == 2, "CTMRWA1Sentry: ISO Country must have 2 letters");
             if (bytes(_countries[i]).length != 2) {
                 revert CTMRWA1Sentry_InvalidLength(Uint.CountryCode);
             }

@@ -24,7 +24,6 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
     bytes public lastReason;
 
     modifier onlySentryManager() {
-        // require(msg.sender == sentryManager, "CTMRWA1SentryUtils: onlySentryManager function");
         if (msg.sender != sentryManager) {
             revert CTMRWA1SentryUtils_Unauthorized(Address.Sender);
         }
@@ -69,7 +68,6 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
 
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        // require(ok, "CTMRWA1StorageFallback: The requested tokenID does not exist");
         if (!ok) {
             revert CTMRWA1SentryUtils_InvalidContract(Address.Token);
         }

@@ -80,7 +80,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     event CountryListAdded(uint256 ID);
 
     modifier onlyDeployer() {
-        // require(msg.sender == ctmRwaDeployer, "CTMRWA1SentryManager: onlyDeployer function");
         if (msg.sender != ctmRwaDeployer) {
             revert CTMRWA1SentryManager_Unauthorized(Address.Sender);
         }
@@ -152,7 +151,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
      * @notice Governance can switch to a new CTMRWA1Identity contract
      */
     function setIdentity(address _id, address _zkMeVerifierAddr) external onlyGov {
-        // require(_id != address(0), "SM; Address is zero");
         if (_id == address(0)) {
             revert CTMRWA1SentryManager_IsZeroAddress(Address.Identity);
         }
@@ -194,13 +192,11 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         _checkTokenAdmin(ctmRwa1Addr);
 
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
-        // require(ok, "CTMRWA1SentryManager: Could not find _ID or its sentry address");
         if (!ok) {
             revert CTMRWA1SentryManager_InvalidContract(Address.Sentry);
         }
 
         bool sentryOptionsSet = ICTMRWA1Sentry(sentryAddr).sentryOptionsSet();
-        // require(!sentryOptionsSet, "CTMRWA1SentryManager: Error. setSentryOptions has already been called");
         if (sentryOptionsSet) {
             revert CTMRWA1SentryManager_OptionsAlreadySet();
         }
@@ -246,7 +242,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     function setZkMeParams(uint256 _ID, string memory _appId, string memory _programNo, address _cooperator) public {
-        // require(identity != address(0), "CTMRWA1SentryManager: the CTMRWA1Identity contract has not been set");
         if (identity == address(0)) {
             revert CTMRWA1SentryManager_IsZeroAddress(Address.Identity);
         }
@@ -267,13 +262,11 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         (address sentryAddr,) = _getSentryAddr(_ID);
 
         bool kyc = ICTMRWA1Sentry(sentryAddr).kycSwitch();
-        // require(kyc, "CTMRWA1SentryManager: KYC was not set, so cannot go public");
         if (!kyc) {
             revert CTMRWA1SentryManager_KYCDisabled();
         }
 
         bool accredited = ICTMRWA1Sentry(sentryAddr).accreditedSwitch();
-        // require(accredited, "CTMRWA1SentryManager: Accredited was not set, so cannot go public");
         if (!accredited) {
             revert CTMRWA1SentryManager_AccreditationDisabled();
         }
@@ -336,8 +329,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
-        // require(_choices.length == _wallets.length, "CTMRWA1SentryManager: addWhitelist parameters lengths not
-        // equal");
         if (_choices.length != _wallets.length) {
             revert CTMRWA1SentryManager_LengthMismatch(Uint.Input);
         }
@@ -348,7 +339,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         _checkTokenAdmin(ctmRwa1Addr);
 
         bool whitelistSwitch = ICTMRWA1Sentry(sentryAddr).whitelistSwitch();
-        // require(whitelistSwitch, "CTMRWA1SentryManager: The whitelistSwitch has not been set");
         if (!whitelistSwitch) {
             revert CTMRWA1SentryManager_InvalidList(List.WhiteListDisabled);
         }
@@ -400,9 +390,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
-        // require(
-        //     _choices.length == _countries.length, "CTMRWA1SentryManager: addCountryList parameters lengths not equal"
-        // );
         if (_choices.length != _countries.length) {
             revert CTMRWA1SentryManager_LengthMismatch(Uint.Input);
         }
@@ -414,10 +401,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
 
         bool countryWLSwitch = ICTMRWA1Sentry(sentryAddr).countryWLSwitch();
         bool countryBLSwitch = ICTMRWA1Sentry(sentryAddr).countryBLSwitch();
-        // require(
-        //     (countryWLSwitch || countryBLSwitch),
-        //     "CTMRWA1SentryManager: Neither country whitelist or blacklist has been set"
-        // );
         if (!countryWLSwitch && !countryBLSwitch) {
             revert CTMRWA1SentryManager_InvalidList(List.NoWLOrBL);
         }
@@ -491,7 +474,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
 
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        // require(ok, "CTMRWA1SentryManager: The requested tokenID does not exist");
         if (!ok) {
             revert CTMRWA1SentryManager_InvalidContract(Address.Token);
         }
@@ -502,7 +484,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
 
     function _getSentryAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
-        // require(ok, "CTMRWA1SentryManager: Could not find _ID or its sentry address");
         if (!ok) {
             revert CTMRWA1SentryManager_InvalidContract(Address.Sentry);
         }
@@ -512,7 +493,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     function _getSentry(string memory _toChainIdStr) internal view returns (string memory, string memory) {
-        // require(!_toChainIdStr.equal(cIdStr), "CTMRWA1SentryManager: Not a cross-chain tokenAdmin change");
         if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1SentryManager_SameChain();
         }
@@ -521,7 +501,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
 
         (bool ok, string memory toSentryStr) =
             ICTMRWAGateway(gateway).getAttachedSentryManager(RWA_TYPE, VERSION, _toChainIdStr);
-        // require(ok, "CTMRWA1SentryManager: Target contract address not found");
         if (!ok) {
             revert CTMRWA1SentryManager_InvalidContract(Address.SentryManager);
         }
@@ -533,7 +512,6 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = currentAdmin.toHexString()._toLower();
 
-        // require(msg.sender == currentAdmin || msg.sender == identity, "CTMRWA1SentryManager: Not tokenAdmin");
         if (msg.sender != currentAdmin && msg.sender != identity) {
             revert CTMRWA1SentryManager_Unauthorized(Address.Sender);
         }
