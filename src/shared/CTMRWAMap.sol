@@ -93,7 +93,6 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     modifier onlyDeployer() {
-        // require(msg.sender == ctmRwaDeployer, "CTMRWAMap: This is an onlyDeployer function");
         if (msg.sender != ctmRwaDeployer) {
             revert CTMRWAMap_Unauthorized(Address.Sender);
         }
@@ -101,7 +100,6 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
     }
 
     modifier onlyRwa1X() {
-        // require(msg.sender == ctmRwa1X, "CTMRWAMap: This is an onlyRwa1X function");
         if (msg.sender != ctmRwa1X) {
             revert CTMRWAMap_Unauthorized(Address.Sender);
         }
@@ -215,25 +213,21 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         address _sentryAddr
     ) external onlyDeployer {
         bool ok = _attachCTMRWAID(_ID, _tokenAddr, _dividendAddr, _storageAddr, _sentryAddr);
-        // require(ok, "CTMRWAMap: Failed to set token ID");
         if (!ok) {
             revert CTMRWAMap_AlreadyAttached(_ID, _tokenAddr);
         }
 
         ok = ICTMRWAAttachment(_tokenAddr).attachDividend(_dividendAddr);
-        // require(ok, "CTMRWAMap: Failed to set the dividend contract address");
         if (!ok) {
             revert CTMRWAMap_FailedAttachment(Address.Dividend);
         }
 
         ok = ICTMRWAAttachment(_tokenAddr).attachStorage(_storageAddr);
-        // require(ok, "CTMRWAMap: Failed to set the storage contract address");
         if (!ok) {
             revert CTMRWAMap_FailedAttachment(Address.Storage);
         }
 
         ok = ICTMRWAAttachment(_tokenAddr).attachSentry(_sentryAddr);
-        // require(ok, "CTMRWAMap: Failed to set the sentry contract address");
         if (!ok) {
             revert CTMRWAMap_FailedAttachment(Address.Sentry);
         }
@@ -318,7 +312,6 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
         address _contractAddr = _addrStr._stringToAddress();
         uint256 rwaType = ICTMRWA(_contractAddr).RWA_TYPE();
         uint256 version = ICTMRWA(_contractAddr).VERSION();
-        // require(_rwaType == rwaType && _version == version);
         if (_rwaType != rwaType) {
             revert CTMRWAMap_IncompatibleRWA(RWA.Type);
         }
