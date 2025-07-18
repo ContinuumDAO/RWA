@@ -24,7 +24,6 @@ contract CTMRWA1XFallback is ICTMRWA1XFallback {
     bytes public lastReason;
 
     modifier onlyRwa1X() {
-        // require(msg.sender == rwa1X, "CTMRWA1XFallback: onlyRwa1X function");
         if (msg.sender != rwa1X) {
             revert CTMRWA1XFallback_Unauthorized(Address.Sender);
         }
