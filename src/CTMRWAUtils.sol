@@ -80,6 +80,8 @@ enum List {
 
 library CTMRWAUtils {
     error CTMRWAUtils_InvalidLength(Uint);
+    error CTMRWAUtils_InvalidHexCharacter();
+    error CTMRWAUtils_StringTooLong();
 
     /// @dev Convert a string to lower case
     function _toLower(string memory str) internal pure returns (string memory) {
@@ -121,13 +123,13 @@ library CTMRWAUtils {
         } else if (byteValue >= uint8(bytes1("A")) && byteValue <= uint8(bytes1("F"))) {
             return 10 + byteValue - uint8(bytes1("A"));
         }
-        revert("Invalid hex character");
+        revert CTMRWAUtils_InvalidHexCharacter();
     }
 
     /// @dev Ensure string length is less than length
     function _checkStringLength(string memory _str, uint256 _len) internal pure {
         if (bytes(_str).length > _len) {
-            revert("Gateway: max string length exceeded");
+            revert CTMRWAUtils_StringTooLong();
         }
     }
 
