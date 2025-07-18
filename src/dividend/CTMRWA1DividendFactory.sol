@@ -21,7 +21,6 @@ contract CTMRWA1DividendFactory is ICTMRWA1DividendFactory {
     address public deployer;
 
     modifier onlyDeployer() {
-        // require(msg.sender == deployer, "CTMRWA1DividendFactory: onlyDeployer function");
         if (msg.sender != deployer) {
             revert CTMRWA1DividendFactory_Unauthorized(Address.Sender);
         }

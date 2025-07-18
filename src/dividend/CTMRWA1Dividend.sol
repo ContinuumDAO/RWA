@@ -52,7 +52,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
     event ClaimDividend(address claimant, uint256 dividend, address dividendToken);
 
     modifier onlyTokenAdmin() {
-        // require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "CTMRWA1Dividend: onlyTokenAdmin function");
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
             revert CTMRWA1Dividend_Unauthorized(Address.Sender);
         }
@@ -93,10 +92,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
      */
     function setDividendToken(address _dividendToken) external onlyTokenAdmin returns (bool) {
         if (dividendToken != address(0)) {
-            // require(
-            //     IERC20(dividendToken).balanceOf(address(this)) == 0,
-            //     "CTMRWA1Dividend: Cannot change dividend token address whilst there is unclaimed dividend"
-            // );
             if (IERC20(dividendToken).balanceOf(address(this)) != 0) {
                 revert CTMRWA1Dividend_InvalidDividend(Uint.Balance);
             }
@@ -173,12 +168,9 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
     function fundDividend() public onlyTokenAdmin returns (uint256) {
         uint256 dividendPayable = getTotalDividend();
 
+        // NOTE: ?
         // uint8 decimals = ICTMRWA1(tokenAddr).valueDecimals();
 
-        // require(
-        //     IERC20(dividendToken).transferFrom(msg.sender, address(this), dividendPayable),
-        //     "CTMRWA1Dividend: Did not fund the dividend"
-        // );
         if (!IERC20(dividendToken).transferFrom(msg.sender, address(this), dividendPayable)) {
             revert CTMRWA1Dividend_FailedTransaction();
         }
@@ -197,10 +189,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
             totalDividend += dividend;
         }
 
-        // require(
-        //     dividendPayable == totalDividend, "CTMRWA1Dividend: Dividend to be paid not equal to dividend to be
-        // funded"
-        // );
         if (dividendPayable != totalDividend) {
             revert CTMRWA1Dividend_InvalidDividend(Uint.Payable);
         }
@@ -215,10 +203,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
      */
     function claimDividend() public returns (bool) {
         uint256 dividend = unclaimedDividend[msg.sender];
-        // require(
-        //     IERC20(dividendToken).balanceOf(address(this)) >= dividend,
-        //     "CTMRWA1Dividend: Dividend contract has not been supplied with enough tokens to claim the dividend"
-        // );
         if (IERC20(dividendToken).balanceOf(address(this)) < dividend) {
             revert CTMRWA1Dividend_InvalidDividend(Uint.Balance);
         }
@@ -237,7 +221,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
     /// @dev the staking contract
     function resetDividendByToken(uint256 _tokenId) external {
         address owner = ICTMRWA1(tokenAddr).ownerOf(_tokenId);
-        // require(msg.sender == owner);
         if (msg.sender != owner) {
             revert CTMRWA1Dividend_Unauthorized(Address.Sender);
         }
