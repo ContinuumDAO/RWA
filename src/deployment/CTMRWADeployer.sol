@@ -66,7 +66,6 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
     modifier onlyRwaX() {
-        // require(msg.sender == rwaX, "CTMRWADeployer: OnlyRwaX function");
         if (msg.sender != rwaX) {
             revert CTMRWADeployer_Unauthorized(Address.Sender);
         }
@@ -157,11 +156,9 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     {
         address tokenAddr = ICTMRWA1TokenFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
 
-        // require(ICTMRWA1(tokenAddr).RWA_TYPE() == _rwaType, "CTMRWADeployer: Wrong RWA type");
         if (ICTMRWA1(tokenAddr).RWA_TYPE() != _rwaType) {
             revert CTMRWADeployer_IncompatibleRWA(RWA.Type);
         }
-        // require(ICTMRWA1(tokenAddr).VERSION() == _version, "CTMRWADeployer: Wrong RWA version");
         if (ICTMRWA1(tokenAddr).VERSION() != _version) {
             revert CTMRWADeployer_IncompatibleRWA(RWA.Version);
         }
@@ -251,12 +248,10 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         returns (address)
     {
         (bool ok,) = ICTMRWAMap(ctmRwaMap).getInvestContract(_ID, _rwaType, _version);
-        // require(!ok, "CTMDeploy: Investment contract already deployed");
         if (ok) {
             revert CTMRWADeployer_InvalidContract(Address.Invest);
         }
 
-        // require(deployInvest != address(0), "CTMDeployer: deployInvest address not set");
         if (deployInvest == address(0)) {
             revert CTMRWADeployer_IsZeroAddress(Address.DeployInvest);
         }

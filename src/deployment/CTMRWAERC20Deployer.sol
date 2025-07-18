@@ -6,11 +6,12 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { CTMRWAERC20 } from "./CTMRWAERC20.sol";
+import {ICTMRWAERC20Deployer} from "./ICTMRWAERC20Deployer.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { CTMRWAUtils, Address } from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -26,7 +27,7 @@ import { CTMRWAUtils } from "../CTMRWAUtils.sol";
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1Dividend contract
  * deployments.
  */
-contract CTMRWAERC20Deployer is ReentrancyGuard {
+contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
     using Strings for *;
     using CTMRWAUtils for string;
 
@@ -40,8 +41,8 @@ contract CTMRWAERC20Deployer is ReentrancyGuard {
     string cIdStr;
 
     constructor(address _ctmRwaMap, address _feeManager) {
-        require(_ctmRwaMap != address(0), "CTMRWAERC20: ctmRwaMap set to 0");
-        require(_feeManager != address(0), "CTMRWAERC20: feeManager set to 0");
+        if (_ctmRwaMap == address(0)) revert CTMRWAERC20Deployer_IsZeroAddress(Address.Map);
+        if (_feeManager == address(0)) revert CTMRWAERC20Deployer_IsZeroAddress(Address.FeeManager);
 
         ctmRwaMap = _ctmRwaMap;
         feeManager = _feeManager;
@@ -71,8 +72,8 @@ contract CTMRWAERC20Deployer is ReentrancyGuard {
         address _feeToken
     ) external returns (address) {
         (bool ok, address ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
-        require(ok, "CTMRWAERC20: the ID does not link to a valid CTMRWA1");
-        require(msg.sender == ctmRwaToken, "CTMRWAERC20: Deployer is not CTMRWA1");
+        if (!ok) revert CTMRWAERC20Deployer_InvalidContract(Address.Token);
+        if (msg.sender != ctmRwaToken) revert CTMRWAERC20Deployer_Unauthorized(Address.Sender);
 
         _payFee(FeeType.ERC20, _feeToken);
 

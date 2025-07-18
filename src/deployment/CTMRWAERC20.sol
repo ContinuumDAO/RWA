@@ -73,12 +73,10 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
         bool ok;
 
         (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, _rwaType, _version);
-        // require(ok, "CTMRWAERC20: There is no CTMRWA1 contract backing this ID");
         if (!ok) {
             revert CTMRWAERC20_InvalidContract(Address.Token);
         }
 
-        // require(ICTMRWA1(ctmRwaToken).slotExists(slot), "CTMRWAERC20: Slot does not exist");
         if (!ICTMRWA1(ctmRwaToken).slotExists(slot)) {
             revert CTMRWAERC20_NonExistentSlot(slot);
         }
@@ -183,7 +181,6 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
 
     /// @dev Low level function to approve spending
     function _approve(address _owner, address _spender, uint256 _value, bool _emitEvent) internal override {
-        // require(_spender != address(0), "CTMRWAERC20: spender is zero address");
         if (_spender == address(0)) {
             revert CTMRWAERC20_IsZeroAddress(Address.Spender);
         }
@@ -230,7 +227,8 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
                         return;
                     }
                 } else {
-                    revert("CTMRWAERC20: Exceeded max number of tokens 100");
+                    // revert("CTMRWAERC20: Exceeded max number of tokens 100");
+                    revert CTMRWAERC20_MaxTokens();
                 }
             }
         }

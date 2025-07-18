@@ -15,17 +15,17 @@ enum Uint {
     URI,
     Nonce,
     Address,
-    InvestmentLow,
     Balance,
     Dividend,
     Commission,
     CountryCode,
     Offering,
     MinInvestment,
+    InvestmentLow,
+    InvestmentHigh,
     Payable,
     ChainID,
-    Multiplier,
-    InvestmentHigh
+    Multiplier
 }
 
 enum Time {

@@ -22,7 +22,6 @@ contract CTMRWA1TokenFactory is ICTMRWA1TokenFactory {
     address public ctmRwaDeployer;
 
     modifier onlyDeployer() {
-        // require(msg.sender == ctmRwaDeployer, "RWATF: onlyDeployer");
         if (msg.sender != ctmRwaDeployer) {
             revert CTMRWA1TokenFactory_Unauthorized(Address.Sender);
         }

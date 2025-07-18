@@ -40,6 +40,7 @@ interface ICTMRWA1InvestWithTimeLock {
     error CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time);
     error CTMRWA1InvestWithTimeLock_InvalidAmount(Uint);
     error CTMRWA1InvestWithTimeLock_NotWhiteListed(address);
+    error CTMRWA1InvestWithTimeLock_AlreadyWithdrawn(uint256);
 
     // TODO: implement this function
     // function holdingsByAddress(address) external view returns (Holding[] memory);
