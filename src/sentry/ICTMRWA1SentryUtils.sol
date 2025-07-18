@@ -6,6 +6,7 @@ import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { Address } from "../CTMRWAUtils.sol";
 
 interface ICTMRWA1SentryUtils is ICTMRWA {
+    event LogFallback(bytes4 selector, bytes data, bytes reason);
     error CTMRWA1SentryUtils_Unauthorized(Address);
     error CTMRWA1SentryUtils_InvalidContract(Address);
 

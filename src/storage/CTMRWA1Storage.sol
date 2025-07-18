@@ -177,7 +177,7 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         }
 
         // require(!existURIHash(_uriDataHash), "CTMRWA1Storage: Hash already exists");
-        if (!existURIHash(_uriDataHash)) {
+        if (existURIHash(_uriDataHash)) {
             revert CTMRWA1Storage_HashExists(_uriDataHash);
         }
 

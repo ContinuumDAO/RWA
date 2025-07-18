@@ -359,7 +359,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         uint256 currentNonce = ICTMRWA1Storage(storageAddr).nonce();
         // require(_startNonce == currentNonce, "CTMRWA0CTMRWA1StorageManager: addURI Starting nonce mismatch");
         if (_startNonce != currentNonce) {
-            revert CTMRWA1StorageManager_InvalidLength(Uint.Nonce);
+            revert CTMRWA1StorageManager_StartNonce();
         }
 
         uint256 len = _objectName.length;

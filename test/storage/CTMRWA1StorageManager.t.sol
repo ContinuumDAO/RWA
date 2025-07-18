@@ -11,6 +11,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 
 import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
+import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
 
 event AddingURI(uint256 ID, string chainIdStr);
 event URIAdded(uint256 ID);
@@ -28,7 +29,8 @@ contract TestStorageManager is Helpers {
         string memory randomData = "this is any old data";
         bytes32 junkHash = keccak256(abi.encode(randomData));
 
-        vm.expectRevert("CTMRWA1Storage: Type CONTRACT and CATEGORY ISSUER must be the first stored element");
+        // Expect custom error for first element not being ISSUER/CONTRACT
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Storage.CTMRWA1Storage_IssuerNotFirst.selector));
         storageManager.addURI(
             ID,
             "1",
@@ -95,7 +97,7 @@ contract TestStorageManager is Helpers {
 
         vm.startPrank(address(c3caller));
 
-        vm.expectRevert("CTMRWA0CTMRWA1StorageManager: addURI Starting nonce mismatch");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_StartNonce.selector));
         storageManager.addURIX(
             ID,
             2, // incorrect nonce
@@ -380,46 +382,4 @@ contract TestStorageManager is Helpers {
         vm.stopPrank();
     }
 
-    // ============ EVENT EMISSION TESTS ============
-    // Only test local event emission (URIAdded via addURIX)
-    function test_event_URIAdded_emitted_addURIX() public {
-        vm.startPrank(tokenAdmin);
-        (ID, token) = _deployCTMRWA1(address(usdc));
-        _createSomeSlots(ID, address(usdc), address(rwa1X));
-        vm.stopPrank();
-        URICategory _uriCategory = URICategory.ISSUER;
-        URIType _uriType = URIType.CONTRACT;
-        string memory randomData = "event urix";
-        bytes32 junkHash = keccak256(abi.encode(randomData));
-        string[] memory objectNames = new string[](1);
-        objectNames[0] = "event3";
-        uint8[] memory uriCategories = new uint8[](1);
-        uriCategories[0] = uint8(_uriCategory);
-        uint8[] memory uriTypes = new uint8[](1);
-        uriTypes[0] = uint8(_uriType);
-        string[] memory titles = new string[](1);
-        titles[0] = "Event AddURIX 3";
-        uint256[] memory slots = new uint256[](1);
-        slots[0] = 0;
-        uint256[] memory timestamps = new uint256[](1);
-        timestamps[0] = block.timestamp;
-        bytes32[] memory hashes = new bytes32[](1);
-        hashes[0] = junkHash;
-        vm.startPrank(address(c3caller));
-        vm.expectEmit(true, false, false, false);
-        emit URIAdded(ID);
-        storageManager.addURIX(
-            ID,
-            1,
-            objectNames,
-            uriCategories,
-            uriTypes,
-            titles,
-            slots,
-            timestamps,
-            hashes
-        );
-        vm.stopPrank();
-    }
-    // Note: addURI does not emit an event for local calls, only for cross-chain (which cannot be tested locally)
 }

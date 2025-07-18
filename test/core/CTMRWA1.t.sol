@@ -643,7 +643,7 @@ contract TestCTMRWA1 is Helpers {
         uint256 tokenId2User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, tokenStr);
 
         // Licensed Security override not set up
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
+        vm.expectRevert(ICTMRWA1Storage.CTMRWA1Storage_ForceTransferNotSetup.selector);
         token.forceTransfer(user1, user2, tokenId1User1);
 
         string memory randomData = "this is any old data";
@@ -664,7 +664,7 @@ contract TestCTMRWA1 is Helpers {
         (, address stor) = map.getStorageContract(ID, RWA_TYPE, VERSION);
 
         // Attempt to set admin as the Regulator's wallet
-        vm.expectRevert("CTMRWA1Storage: No description of the Security is present");
+        vm.expectRevert(ICTMRWA1Storage.CTMRWA1Storage_NoSecurityDescription.selector);
         ICTMRWA1Storage(stor).createSecurity(admin);
 
         randomData = "this is a dummy security";
@@ -682,32 +682,36 @@ contract TestCTMRWA1 is Helpers {
             tokenStr
         );
 
-        // Licensed Security override not set up
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
+        // Licensed Security override not set up, since we didn't set the Regulator's wallet yet
+        vm.expectRevert(ICTMRWA1Storage.CTMRWA1Storage_ForceTransferNotSetup.selector);
         token.forceTransfer(user1, user2, tokenId1User1);
 
-        // set admin as the Regulator's wallet
+        // Try again to set admin as the Regulator's wallet
         ICTMRWA1Storage(stor).createSecurity(admin);
         assertEq(ICTMRWA1Storage(stor).regulatorWallet(), admin);
 
-        // Licensed Security override not set up
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
+        // Licensed Security override not set up, since we did not set the override wallet yet
+        vm.expectRevert(ICTMRWA1Storage.CTMRWA1Storage_ForceTransferNotSetup.selector);
         token.forceTransfer(user1, user2, tokenId1User1);
 
+        // Set the override wallet as tokenAdmin2. This should be a Multi-sig wallet, with admin as one of the signers.
         token.setOverrideWallet(tokenAdmin2);
         assertEq(token.overrideWallet(), tokenAdmin2);
 
+        // Try to force transfer again, should fail since the override wallet is not the sender (tokenAdmin)
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         vm.stopPrank();
 
         vm.startPrank(tokenAdmin2); // tokenAdmin2 is the override wallet
+        // Try a forceTransfer with the override wallet, should succeed
         token.forceTransfer(user1, user2, tokenId1User1);
         assertEq(token.ownerOf(tokenId1User1), user2); // successful forceTransfer
         vm.stopPrank();
 
         vm.startPrank(user2);
+        // Try a forceTransfer with the user2, should fail since user2 is not the override wallet (tokenAdmin2)
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
         token.forceTransfer(user1, user2, tokenId2User1);
 
@@ -719,7 +723,7 @@ contract TestCTMRWA1 is Helpers {
 
         vm.startPrank(tokenAdmin2);
         // Must re-setup override wallet if tokenAdmin has changed
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
+        vm.expectRevert(ICTMRWA1Storage.CTMRWA1Storage_ForceTransferNotSetup.selector);
         token.forceTransfer(user1, user2, tokenId2User1);
         vm.stopPrank();
     }

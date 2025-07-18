@@ -31,8 +31,6 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
         _;
     }
 
-    event LogFallback(bytes4 selector, bytes data, bytes reason);
-
     constructor(uint256 _rwaType, uint256 _version, address _map, address _sentryManager) {
         RWA_TYPE = _rwaType;
         VERSION = _version;

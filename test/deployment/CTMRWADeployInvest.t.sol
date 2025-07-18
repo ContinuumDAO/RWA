@@ -11,6 +11,7 @@ import { ICTMRWA1 } from "src/core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
+import { Uint } from "../../src/CTMRWAUtils.sol";
 
 // Malicious contract for reentrancy testing
 contract ReentrantAttacker {
@@ -193,6 +194,28 @@ contract TestInvest is Helpers {
         vm.stopPrank();
     }
 
+    function test_investmentBelowMinimumReverts() public {
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), minInvest - 1);
+        vm.expectRevert(abi.encodeWithSelector(
+            ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector,
+            uint8(Uint.InvestmentLow)
+        ));
+        investContract.investInOffering(0, minInvest - 1, currency);
+        vm.stopPrank();
+    }
+
+    function test_investmentAboveMaximumReverts() public {
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), maxInvest + 1);
+        vm.expectRevert(abi.encodeWithSelector(
+            ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector,
+            uint8(Uint.InvestmentHigh)
+        ));
+        investContract.investInOffering(0, maxInvest + 1, currency);
+        vm.stopPrank();
+    }
+
     // ============ ACCESS CONTROL TESTS ============
 
     function test_onlyAuthorizedCanInvest() public {
@@ -255,7 +278,7 @@ contract TestInvest is Helpers {
     function test_zeroAmountInvestment() public {
         vm.startPrank(user1);
         usdc.approve(address(investContract), 0);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, 8));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.Value)));
         investContract.investInOffering(0, 0, currency);
         vm.stopPrank();
     }
@@ -282,7 +305,7 @@ contract TestInvest is Helpers {
         vm.startPrank(user1);
         uint256 excessiveAmount = usdc.balanceOf(user1) + 1;
         usdc.approve(address(investContract), excessiveAmount);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.Balance)));
         investContract.investInOffering(0, excessiveAmount, currency);
         vm.stopPrank();
     }

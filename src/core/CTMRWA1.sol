@@ -614,7 +614,7 @@ contract CTMRWA1 is ReentrancyGuard, ICTMRWA1 {
     function forceTransfer(address _from, address _to, uint256 _tokenId) public returns (bool) {
         // require(overrideWallet != address(0), "RWA: Licensed Security override not set up");
         if (overrideWallet == address(0)) {
-            revert CTMRWA1_IsZeroAddress(Address.Override);
+            revert ICTMRWA1Storage.CTMRWA1Storage_ForceTransferNotSetup();
         }
         // require(msg.sender == overrideWallet, "RWA: Cannot forceTransfer");
         if (msg.sender != overrideWallet) {

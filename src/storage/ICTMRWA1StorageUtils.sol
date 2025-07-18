@@ -6,6 +6,8 @@ import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { Address } from "../CTMRWAUtils.sol";
 
 interface ICTMRWA1StorageUtils is ICTMRWA {
+    event LogFallback(bytes4 selector, bytes data, bytes reason);
+
     error CTMRWA1StorageUtils_Unauthorized(Address);
     error CTMRWA1StorageUtils_InvalidContract(Address);
 

@@ -42,7 +42,7 @@ contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
         _;
     }
 
-    event LogFallback(bytes4 selector, bytes data, bytes reason);
+
 
     bytes4 public AddURIX =
         bytes4(keccak256("addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])"));

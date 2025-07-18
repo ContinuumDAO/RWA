@@ -255,6 +255,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         if (block.timestamp > offerings[_indx].endTime) {
             revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Late);
         }
+        if (_investment == 0) {
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Value);
+        }
         address currency = offerings[_indx].currency;
         // require(IERC20(currency).balanceOf(msg.sender) >= _investment, "CTMInvest: Investor has insufficient
         // balance");
@@ -263,17 +266,17 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         }
         // require(_investment >= offerings[_indx].minInvestment, "CTMInvest: investment too low");
         if (_investment < offerings[_indx].minInvestment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Investment);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.InvestmentLow);
         }
         if (offerings[_indx].maxInvestment > 0) {
             // require(_investment <= offerings[_indx].maxInvestment, "CTMInvest: investment too high");
             if (_investment > offerings[_indx].maxInvestment) {
-                revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Investment);
+                revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.InvestmentHigh);
             }
         }
         // require(offerings[_indx].balRemaining >= _investment, "CTMInvest: Investment > balance left");
         if (offerings[_indx].balRemaining < _investment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Investment);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
         }
 
         bool permitted = ICTMRWA1Sentry(ctmRwaSentry).isAllowableTransfer(msg.sender.toHexString());

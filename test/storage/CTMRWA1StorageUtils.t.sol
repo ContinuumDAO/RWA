@@ -5,7 +5,8 @@ pragma solidity 0.8.27;
 import { Test } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
 import { Helpers } from "../helpers/Helpers.sol";
-import { CTMRWA1StorageUtils } from "../../src/storage/CTMRWA1StorageUtils.sol";
+import { ICTMRWA1StorageUtils } from "../../src/storage/ICTMRWA1StorageUtils.sol";
+import { Address } from "../../src/CTMRWAUtils.sol";
 import { CTMRWA1Storage } from "../../src/storage/CTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
@@ -37,7 +38,7 @@ contract CTMRWA1StorageUtilsTest is Helpers {
         assertTrue(result);
         // Should fail for non-storageManager
         vm.prank(address(0xBEEF));
-        vm.expectRevert("CTMRWA1StorageUtils: onlyStorageManager function");
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageUtils.CTMRWA1StorageUtils_Unauthorized.selector, Address.Sender));
         storageUtils.smC3Fallback(selector, data, reason);
     }
 
@@ -57,7 +58,7 @@ contract CTMRWA1StorageUtilsTest is Helpers {
         bytes memory data = "test data";
         bytes memory reason = "test reason";
         vm.expectEmit(true, true, true, true);
-        emit CTMRWA1StorageUtils.LogFallback(selector, data, reason);
+        emit ICTMRWA1StorageUtils.LogFallback(selector, data, reason);
         vm.prank(address(storageManager));
         storageUtils.smC3Fallback(selector, data, reason);
     }
