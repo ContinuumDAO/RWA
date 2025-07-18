@@ -28,7 +28,6 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
     string cIdStr;
 
     modifier onlyIdChain() {
-        // require(zkMeVerifierAddress != address(0));
         if (zkMeVerifierAddress == address(0)) {
             revert CTMRWA1Identity_IsZeroAddress(Address.ZKMe);
         }
@@ -72,38 +71,29 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         onlyIdChain
         returns (bool)
     {
-        // require(zkMeVerifierAddress != address(0), "CTMRWA1Identity: zkMe verifier has to be set");
         if (zkMeVerifierAddress == address(0)) {
             revert CTMRWA1Identity_IsZeroAddress(Address.ZKMe);
         }
 
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
-        // require(ok, "CTMRWA1Identity: Could not find _ID or its sentry address");
         if (!ok) {
             revert CTMRWA1Identity_InvalidContract(Address.Sentry);
         }
 
-        // require(ICTMRWA1Sentry(sentryAddr).kycSwitch(), "CTMRWA1Identity: KYC is not enabled for this CTMRWA1");
         if (!ICTMRWA1Sentry(sentryAddr).kycSwitch()) {
             revert CTMRWA1Identity_KYCDisabled();
         }
 
-        // require(
-        //     !ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(msg.sender.toHexString()),
-        //     "CTMRWA1Identity: User is already whitelisted"
-        // );
         if (ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(msg.sender.toHexString())) {
             revert CTMRWA1Identity_AlreadyWhitelisted(msg.sender);
         }
 
         (,, address cooperator) = ICTMRWA1Sentry(sentryAddr).getZkMeParams();
-        // require(cooperator != address(0), "CTMRWA1Identity: zkMe cooperator address has not been set");
         if (cooperator == address(0)) {
             revert CTMRWA1Identity_IsZeroAddress(Address.Cooperator);
         }
         bool isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, msg.sender);
 
-        // require(isValid, "CTMRWA1Identity: Invalid KYC");
         if (!isValid) {
             revert CTMRWA1Identity_InvalidKYC(msg.sender);
         }
@@ -123,17 +113,14 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
 
     function isVerifiedPerson(uint256 _ID, address _wallet) public view onlyIdChain returns (bool) {
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
-        // require(ok, "CTMRWA1Identity: Could not find _ID or its sentry address");
         if (!ok) {
             revert CTMRWA1Identity_InvalidContract(Address.Sentry);
         }
-        // require(ICTMRWA1Sentry(sentryAddr).kycSwitch(), "CTMRWA1Identity: KYC not set");
         if (!ICTMRWA1Sentry(sentryAddr).kycSwitch()) {
             revert CTMRWA1Identity_KYCDisabled();
         }
 
         (,, address cooperator) = ICTMRWA1Sentry(sentryAddr).getZkMeParams();
-        // require(cooperator != address(0), "CTMRWA1Identity: zkMe cooperator address not set");
         if (cooperator == address(0)) {
             revert CTMRWA1Identity_IsZeroAddress(Address.Cooperator);
         }
