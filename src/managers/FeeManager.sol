@@ -58,7 +58,6 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     }
 
     function addFeeToken(string memory feeTokenStr) external onlyGov whenNotPaused nonReentrant returns (bool) {
-        // require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
         if (bytes(feeTokenStr).length != 42) {
             revert FeeManager_InvalidLength(Uint.Address);
         }
@@ -71,12 +70,10 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     }
 
     function delFeeToken(string memory feeTokenStr) external onlyGov whenNotPaused nonReentrant returns (bool) {
-        // require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
         if (bytes(feeTokenStr).length != 42) {
             revert FeeManager_InvalidLength(Uint.Address);
         }
         address feeToken = feeTokenStr._stringToAddress();
-        // require(feeTokenIndexMap[feeToken] > 0, "FeeManager: token not exist");
         if (feeTokenIndexMap[feeToken] == 0) {
             revert FeeManager_NonExistentToken(feeToken);
         }
@@ -99,20 +96,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         return feeTokenList;
     }
 
-    function isValidFeeToken(string memory feeTokenStr) public view returns (bool) {
-        address feeToken = feeTokenStr._toLower()._stringToAddress();
-
-        for (uint256 i = 0; i < feeTokenList.length; i++) {
-            if (feeTokenList[i] == feeToken) {
-                return (true);
-            }
-        }
-
-        return (false);
-    }
-
     function getFeeTokenIndexMap(string memory feeTokenStr) external view returns (uint256) {
-        // require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
         if (bytes(feeTokenStr).length != 42) {
             revert FeeManager_InvalidLength(Uint.Address);
         }
@@ -134,12 +118,10 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         nonReentrant
         returns (bool)
     {
-        // require(bytes(dstChainIDStr).length > 0, "FeeManager: ChainID empty");
         if (bytes(dstChainIDStr).length == 0) {
             revert FeeManager_InvalidLength(Uint.ChainID);
         }
 
-        // require(feeTokensStr.length == baseFee.length, "FeeManager: Invalid list size");
         if (feeTokensStr.length != baseFee.length) {
             revert FeeManager_InvalidLength(Uint.Input);
         }
@@ -148,7 +130,6 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
 
         address[] memory localFeetokens = new address[](feeTokensStr.length);
         for (uint256 i = 0; i < feeTokensStr.length; i++) {
-            // require(bytes(feeTokensStr[i]).length == 42, "FeeManager: Fee token has incorrect length");
             if (bytes(feeTokensStr[i]).length != 42) {
                 revert FeeManager_InvalidLength(Uint.Address);
             }
@@ -156,7 +137,6 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         }
 
         for (uint256 index = 0; index < feeTokensStr.length; index++) {
-            // require(feeTokenIndexMap[localFeetokens[index]] > 0, "FeeManager: fee token does not exist");
             if (feeTokenIndexMap[localFeetokens[index]] == 0) {
                 revert FeeManager_NonExistentToken(localFeetokens[index]);
             }
@@ -173,11 +153,10 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         returns (bool)
     {
         uint256 idx = uint256(_feeType);
-        // require(idx < feeMultiplier.length, "FeeManager: Invalid FeeType");
         if (idx >= feeMultiplier.length) {
             revert FeeManager_InvalidLength(Uint.Input);
         }
-        // require(_multiplier <= MAX_SAFE_MULTIPLIER, "FeeManager: Multiplier too large");
+
         if (_multiplier > MAX_SAFE_MULTIPLIER) {
             revert FeeManager_InvalidLength(Uint.Multiplier);
         }
@@ -188,7 +167,6 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
 
     function getFeeMultiplier(FeeType _feeType) public view returns (uint256) {
         uint256 idx = uint256(_feeType);
-        // require(idx < feeMultiplier.length, "FeeManager: Invalid FeeType");
         if (idx >= feeMultiplier.length) {
             revert FeeManager_InvalidLength(Uint.Input);
         }
@@ -210,13 +188,11 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
             }
         }
 
-        // require(isValidFeeToken(_feeTokenStr), "FeeManager: Not a valid fee token");
         if (!ok) {
             revert FeeManager_NonExistentToken(_feeToken);
         }
         uint256 baseFee;
         for (uint256 i = 0; i < _toChainIDsStr.length; i++) {
-            // require(bytes(_toChainIDsStr[i]).length > 0, "FeeManager: Invalid chainIDStr");
             if (bytes(_toChainIDsStr[i]).length == 0) {
                 revert FeeManager_InvalidLength(Uint.ChainID);
             }
@@ -234,12 +210,10 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     }
 
     function payFee(uint256 fee, string memory feeTokenStr) external nonReentrant whenNotPaused returns (uint256) {
-        // require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has the wrong length");
         if (bytes(feeTokenStr).length != 42) {
             revert FeeManager_InvalidLength(Uint.Address);
         }
         address feeToken = feeTokenStr._stringToAddress();
-        // require(IERC20(feeToken).transferFrom(msg.sender, address(this), fee), "FM: Fee payment failed");
         if (!IERC20(feeToken).transferFrom(msg.sender, address(this), fee)) {
             revert FeeManager_FailedTransfer();
         }
@@ -253,12 +227,10 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         whenNotPaused
         returns (bool)
     {
-        // require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr has an incorrect length");
         if (bytes(feeTokenStr).length != 42) {
             revert FeeManager_InvalidLength(Uint.Address);
         }
         address feeToken = feeTokenStr._stringToAddress();
-        // require(bytes(treasuryStr).length == 42, "FeeManager: treasuryStr has an incorrect length");
         if (bytes(treasuryStr).length != 42) {
             revert FeeManager_InvalidLength(Uint.Address);
         }
@@ -268,7 +240,6 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
         if (bal < amount) {
             amount = bal;
         }
-        // require(IERC20(feeToken).transfer(treasury, amount), "FeeManager: transfer fail");
         if (!IERC20(feeToken).transfer(treasury, amount)) {
             revert FeeManager_FailedTransfer();
         }
@@ -277,14 +248,14 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     }
 
     function getToChainBaseFee(string memory toChainIDStr, string memory feeTokenStr) public view returns (uint256) {
-        // require(bytes(toChainIDStr).length > 0, "FeeManager: toChainIDStr has zero length");
         if (bytes(toChainIDStr).length == 0) {
             revert FeeManager_InvalidLength(Uint.ChainID);
         }
-        // require(bytes(feeTokenStr).length == 42, "FeeManager: feeTokenStr incorrect length");
+
         if (bytes(feeTokenStr).length != 42) {
             revert FeeManager_InvalidLength(Uint.Address);
         }
+
         address feeToken = feeTokenStr._stringToAddress();
         toChainIDStr = toChainIDStr._toLower();
         return _toFeeConfigs[toChainIDStr][feeToken];

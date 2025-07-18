@@ -58,7 +58,6 @@ interface IFeeManager {
     function setFeeMultiplier(FeeType feeType, uint256 multiplier) external returns (bool);
 
     function getFeeTokenList() external returns (address[] memory);
-    function isValidFeeToken(string memory feeTokenStr) external view returns (bool);
     function getFeeTokenIndexMap(string memory) external view returns (uint256);
     function payFee(uint256 fee, string memory feeTokenStr) external returns (uint256);
 }
