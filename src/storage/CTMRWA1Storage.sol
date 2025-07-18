@@ -96,7 +96,6 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
     event NewURI(URICategory uriCategory, URIType uriType, uint256 slot, bytes32 uriDataHash);
 
     modifier onlyTokenAdmin() {
-        // require(msg.sender == tokenAdmin || msg.sender == ctmRwa1X, "CTMRWA1Storage: onlyTokenAdmin function");
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
             revert CTMRWA1Storage_Unauthorized(Address.Sender);
         }
@@ -104,10 +103,6 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
     }
 
     modifier onlyStorageManager() {
-        // require(
-        //     msg.sender == storageManagerAddr || msg.sender == storageUtilsAddr,
-        //     "CTMRWA1Storage: onlyStorageManager function"
-        // );
         if (msg.sender != storageManagerAddr && msg.sender != storageUtilsAddr) {
             revert CTMRWA1Storage_Unauthorized(Address.Sender);
         }
@@ -171,19 +166,16 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         uint256 _timestamp,
         bytes32 _uriDataHash
     ) external onlyStorageManager {
-        // require(_ID == ID, "CTMRWA1Storage: Attempt to add URI to an incorrect ID");
         if (_ID != ID) {
             revert CTMRWA1Storage_InvalidID(ID, _ID);
         }
 
-        // require(!existURIHash(_uriDataHash), "CTMRWA1Storage: Hash already exists");
         if (existURIHash(_uriDataHash)) {
             revert CTMRWA1Storage_HashExists(_uriDataHash);
         }
 
         if (_uriType == URIType.SLOT) {
             (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-            // require(ok && ICTMRWA1(tokenAddr).slotExists(_slot), "CTMRWA1Storage: Slot does not exist");
             if (!ok) {
                 revert CTMRWA1Storage_InvalidContract(Address.Token);
             }
@@ -193,10 +185,6 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         }
 
         if (_uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER) {
-            // require(
-            //     this.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) > 0,
-            //     "CTMRWA1Storage: Type CONTRACT and CATEGORY ISSUER must be the first stored element"
-            // );
             if (this.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) == 0) {
                 revert CTMRWA1Storage_IssuerNotFirst();
             }
@@ -212,7 +200,6 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
 
     /// @dev This function is only called by c3Fallback after a cross-chain failure
     function popURILocal(uint256 _toPop) external onlyStorageManager {
-        // require(_toPop <= uriData.length, "CTMRWA1Storage: Cannot pop this number of uriData");
         if (_toPop > uriData.length) {
             revert CTMRWA1Storage_OutOfBounds();
         }
@@ -228,7 +215,6 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      * NOTE This will be removed in later versions
      */
     function increaseNonce(uint256 _val) public onlyTokenAdmin {
-        // require(_val > nonce, "CTMRWA1Storage: Can only increase the nonce value");
         if (_val <= nonce) {
             revert CTMRWA1Storage_IncreasingNonceOnly();
         }
@@ -251,7 +237,6 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      */
     function createSecurity(address _regulatorWallet) public onlyTokenAdmin {
         uint256 securityURICount = this.getURIHashCount(URICategory.LICENSE, URIType.CONTRACT);
-        // require(securityURICount > 0, "CTMRWA1Storage: No description of the Security is present");
         if (securityURICount == 0) {
             revert CTMRWA1Storage_NoSecurityDescription();
         }

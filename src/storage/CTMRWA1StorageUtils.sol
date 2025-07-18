@@ -35,14 +35,11 @@ contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
     bytes public lastReason;
 
     modifier onlyStorageManager() {
-        // require(msg.sender == storageManager, "CTMRWA1StorageUtils: onlyStorageManager function");
         if (msg.sender != storageManager) {
             revert CTMRWA1StorageUtils_Unauthorized(Address.Sender);
         }
         _;
     }
-
-
 
     bytes4 public AddURIX =
         bytes4(keccak256("addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])"));
@@ -98,7 +95,6 @@ contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
             );
 
             (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(ID, RWA_TYPE, VERSION);
-            // require(ok, "CTMRWA1StorageUtils: Could not find _ID or its storage address");
             if (!ok) {
                 revert CTMRWA1StorageUtils_InvalidContract(Address.Storage);
             }
@@ -115,7 +111,6 @@ contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
     /// @dev Get the address of the CTMRWA1 contract from the _ID
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        // require(ok, "CTMRWA1StorageUtils: The requested tokenID does not exist");
         if (!ok) {
             revert CTMRWA1StorageUtils_InvalidContract(Address.Token);
         }

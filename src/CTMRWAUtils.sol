@@ -144,4 +144,25 @@ library CTMRWAUtils {
         boolArray[0] = _bool;
         return (boolArray);
     }
+
+    /// @dev Convert an individual uint256 to an array with a single value
+    function _uint256ToArray(uint256 _myUint256) internal pure returns (uint256[] memory) {
+        uint256[] memory uintArray = new uint256[](1);
+        uintArray[0] = _myUint256;
+        return (uintArray);
+    }
+
+    /// @dev Convert an individual uint8 to an array with a single value
+    function _uint8ToArray(uint8 _myUint8) internal pure returns (uint8[] memory) {
+        uint8[] memory uintArray = new uint8[](1);
+        uintArray[0] = _myUint8;
+        return (uintArray);
+    }
+
+    /// @dev Convert an individual bytes32 to an array with a single value
+    function _bytes32ToArray(bytes32 _myBytes32) internal pure returns (bytes32[] memory) {
+        bytes32[] memory bytes32Array = new bytes32[](1);
+        bytes32Array[0] = _myBytes32;
+        return (bytes32Array);
+    }
 }
