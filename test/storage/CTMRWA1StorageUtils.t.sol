@@ -14,11 +14,6 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { CTMRWA1StorageManager } from "../../src/storage/CTMRWA1StorageManager.sol";
 
-contract TestableCTMRWA1StorageManager is CTMRWA1StorageManager {
-    function callC3Fallback(bytes4 selector, bytes calldata data, bytes calldata reason) public returns (bool) {
-        return _c3Fallback(selector, data, reason);
-    }
-}
 
 contract CTMRWA1StorageUtilsTest is Helpers {
     using Strings for *;

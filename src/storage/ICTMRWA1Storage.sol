@@ -46,7 +46,6 @@ interface ICTMRWA1Storage is ICTMRWA {
     error CTMRWA1Storage_InvalidID(uint256 expected, uint256 actual);
     error CTMRWA1Storage_HashExists(bytes32);
     error CTMRWA1Storage_InvalidSlot(uint256);
-    error CTMRWA1Storage_IssuerNotFirst();
     error CTMRWA1Storage_OutOfBounds();
     error CTMRWA1Storage_IncreasingNonceOnly();
     error CTMRWA1Storage_InvalidContract(Address);
