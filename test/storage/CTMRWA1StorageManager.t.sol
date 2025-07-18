@@ -382,4 +382,15 @@ contract TestStorageManager is Helpers {
         vm.stopPrank();
     }
 
+    function test_c3Fallback_executes() public {
+        // Prepare dummy data for fallback
+        bytes4 selector = bytes4(keccak256("dummyFunction()"));
+        bytes memory data = abi.encodePacked(uint256(123));
+        bytes memory reason = bytes("fallback reason");
+        // Call _c3Fallback (assuming it is public or internal and exposed for testing)
+        // If _c3Fallback is internal, you may need a helper contract or to test via a public wrapper
+        vm.prank(address(c3caller));
+        storageManager._c3Fallback(selector, data, reason);
+        // Optionally, check for state changes, events, or other effects
+    }
 }

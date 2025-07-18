@@ -13,7 +13,6 @@ contract TestCTMRWA1Sentry is Helpers {
     using Strings for address;
     ICTMRWA1Sentry sentry;
     address sentryAddr;
-    address tokenAddr;
 
     function setUp() public override {
         super.setUp();
@@ -22,7 +21,6 @@ contract TestCTMRWA1Sentry is Helpers {
         vm.stopPrank();
         (, sentryAddr) = map.getSentryContract(ID, RWA_TYPE, VERSION);
         sentry = ICTMRWA1Sentry(sentryAddr);
-        (, tokenAddr) = map.getTokenContract(ID, RWA_TYPE, VERSION);
     }
 
     // ========== GETTERS =============

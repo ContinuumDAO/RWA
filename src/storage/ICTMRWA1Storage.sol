@@ -5,6 +5,7 @@ pragma solidity 0.8.27;
 import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { Address } from "../CTMRWAUtils.sol";
 
+
 enum URICategory {
     ISSUER,
     PROVENANCE,
@@ -51,6 +52,7 @@ interface ICTMRWA1Storage is ICTMRWA {
     error CTMRWA1Storage_InvalidContract(Address);
     error CTMRWA1Storage_ForceTransferNotSetup();
     error CTMRWA1Storage_NoSecurityDescription();
+    error CTMRWA1Storage_IssuerNotFirst();
 
     function ID() external returns (uint256);
     function regulatorWallet() external returns (address);
