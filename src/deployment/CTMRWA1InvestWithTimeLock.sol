@@ -10,10 +10,25 @@ import { Holding, ICTMRWA1InvestWithTimeLock, Offering } from "./ICTMRWA1InvestW
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
-import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
+import { FeeType, IFeeManager, IERC20Extended } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { Address, CTMRWAUtils, Time, Uint } from "../CTMRWAUtils.sol";
+
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * This is a contract to allow an Issuer (tokenAdmin) to raise finance from investors.
+ * It can be deployed once on each chain that the RWA token is deployed to.
+ * The Issuer can create Offerings with start and end dates, min and max amounts to invest
+ * and with a lock up escrow period.
+ * The investors can still claim Dividends whilst their investments are locked up.
+ * Once the lockup period is over, the investors can withdraw their tokenIds
+ *
+ * Issuers can create multiple simultaneous Offerings.
+ *
+*/
 
 contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuard {
     using Strings for *;
@@ -50,12 +65,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     address public ctmRwaSentry;
 
     /**
-     * @dev ctmRwa1X is the single contract on each chain responsible for
-     *   Initiating deployment of an CTMRWA1 and its components
-     *   Changing the tokenAdmin
-     *   Defining Asset Classes (slots)
-     *   Minting new value to slots
-     *   Transfering value cross-chain via other ctmRwa1X contracts on other chains
+     * @dev 
      */
     address public ctmRwa1X;
 
@@ -124,7 +134,10 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         cIdStr = block.chainid.toString();
     }
 
-    // Pause a specific offering (only tokenAdmin)
+    /**
+     * @notice Pause a specific offering (only tokenAdmin)
+     * @param _indx The index of the Offering to pause
+     */
     function pauseOffering(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) {
         if (_indx >= offerings.length) {
             revert CTMRWA1InvestWithTimeLock_OutOfBounds();
@@ -133,7 +146,10 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         emit OfferingPaused(ID, _indx, msg.sender);
     }
 
-    /// @dev  Unpause a specific offering (only tokenAdmin)
+    /**
+     * @notice Unpause a specific offering (only tokenAdmin)
+     * @param _indx The index of the Offering to unpause
+     */
     function unpauseOffering(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) {
         if (_indx >= offerings.length) {
             revert CTMRWA1InvestWithTimeLock_OutOfBounds();
@@ -142,7 +158,10 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         emit OfferingUnpaused(ID, _indx, msg.sender);
     }
 
-    /// @dev Check if a specific offering is paused
+    /**
+     * @notice Check if a specific offering is paused
+     * @param _indx The index of the Offering to check if it is paused
+     */
     function isOfferingPaused(uint256 _indx) public view returns (bool) {
         if (_indx >= offerings.length) {
             revert CTMRWA1InvestWithTimeLock_OutOfBounds();
@@ -150,6 +169,12 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         return _isOfferingPaused[_indx];
     }
 
+    /**
+     * @notice Allow an Issuer(tokenAdmin) to create new investment Offering, with all parameters.
+     * @param _tokenId This is the tokenId of the tokenAdmin that is transferred to this contract.
+     * Its balance is the amount of the Offering and its Asset Class(slot) defines what is being offered
+     * @param _price The price of 
+     */
     function createOffering(
         uint256 _tokenId,
         uint256 _price,
@@ -274,12 +299,21 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
         _payFee(FeeType.INVEST, _feeToken);
 
-        uint256 value = _investment * 10 ** decimalsRwa / offerings[_indx].price;
-
-        offerings[_indx].balRemaining -= value;
+        uint8 decimalsCurrency = IERC20Extended(currency).decimals();
+        // decimalsRwa is already available
+        uint256 value;
+        if (decimalsRwa >= decimalsCurrency) {
+            uint256 scale = 10 ** (decimalsRwa - decimalsCurrency);
+            value = (_investment * scale) / offerings[_indx].price;
+        } else {
+            uint256 scale = 10 ** (decimalsCurrency - decimalsRwa);
+            value = _investment / (offerings[_indx].price * scale);
+        }
 
         IERC20(currency).transferFrom(msg.sender, address(this), _investment);
         offerings[_indx].investment += _investment;
+
+        offerings[_indx].balRemaining -= value;
 
         uint256 newTokenId = ICTMRWA1X(ctmRwa1X).transferPartialTokenX(
             tokenId, address(this).toHexString(), cIdStr, value, ID, feeTokenStr
@@ -298,14 +332,19 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         return newTokenId;
     }
 
-    // function withdraw(address _contractAddr) public onlyTokenAdmin(ctmRwaToken) returns(uint256) {
-    //     uint256 bal = IERC20(_contractAddr).balanceOf(address(this));
-    //     require(bal > 0, "CTMInvest: Zero balance");
+    function withdraw(address _contractAddr, uint256 _amount) public onlyTokenAdmin(ctmRwaToken) returns(uint256) {
+        uint256 bal = IERC20(_contractAddr).balanceOf(address(this));
+        if (bal == 0) {
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
+        }
+        if (_amount > bal) {
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
+        }
 
-    //     IERC20(_contractAddr).transferFrom(address(this), tokenAdmin, bal);
+        IERC20(_contractAddr).transfer(tokenAdmin, _amount);
 
-    //     return bal;
-    // }
+        return bal;
+    }
 
     function withdrawInvested(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) nonReentrant returns (uint256) {
         if (_indx >= offerings.length) {
