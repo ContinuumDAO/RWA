@@ -142,7 +142,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
     }
 
     /// @notice Governance function to set the CTMRWADeployInvest contract addresses
-    /// @notice for this contract (CTMRWADeployer), CTMRWAMap and FeeManager
+    /// for this contract (CTMRWADeployer), CTMRWAMap and FeeManager
     function setDeployerMapFee() external onlyGov {
         ICTMRWADeployInvest(deployInvest).setDeployerMapFee(address(this), ctmRwaMap, feeManager);
     }
@@ -243,6 +243,15 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         ICTMRWADeployInvest(deployInvest).setCommissionRate(_commissionRate);
     }
 
+    /** 
+    * @notice Deploy a new CTMRWA1Invest contract. Anyone can call this, but only tokenAdmin
+    * can create an offering and collect invested funds
+    * @param _ID The ID of the RWA token
+    * @param _rwaType The type of RWA (set to 1 for CTMRWA1)
+    * @param _version The version of RWA (set to 1 for current version)
+    * @param _feeToken Address of a valid fee token. See getFeeTokenList in FeeManager.
+    * NOTE only one CTMRWA1Invest contract can be deployed on each chain.
+    */
     function deployNewInvestment(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken)
         public
         returns (address)

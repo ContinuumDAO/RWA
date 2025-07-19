@@ -22,7 +22,7 @@ contract TestCTMRWAMap is Helpers {
         vm.stopPrank();
     }
 
-    function test_getTokenContract_and_getTokenId() public {
+    function test_getTokenContract_and_getTokenId() public view {
         // Get contract by ID
         (bool ok, address tokenAddr) = map.getTokenContract(ID, RWA_TYPE, VERSION);
         assertTrue(ok, "Should find token contract for ID");
@@ -36,7 +36,7 @@ contract TestCTMRWAMap is Helpers {
         assertEq(foundID, ID, "ID should match deployed ID");
     }
 
-    function test_getDividendContract() public {
+    function test_getDividendContract() public view {
         // Get the mapped dividend contract address for this ID
         (bool ok, address dividendAddr) = map.getDividendContract(ID, RWA_TYPE, VERSION);
         assertTrue(ok, "Should find dividend contract for ID");
@@ -45,21 +45,21 @@ contract TestCTMRWAMap is Helpers {
         assertTrue(dividendAddr != address(dividendFactory), "Dividend address should not be the factory");
     }
 
-    function test_getStorageContract() public {
+    function test_getStorageContract() public view {
         (bool ok, address storageAddr) = map.getStorageContract(ID, RWA_TYPE, VERSION);
         assertTrue(ok, "Should find storage contract for ID");
         assertTrue(storageAddr != address(0), "Storage address should not be zero");
         assertTrue(storageAddr != address(storageManager), "Storage address should not be the manager");
     }
 
-    function test_getSentryContract() public {
+    function test_getSentryContract() public view {
         (bool ok, address sentryAddr) = map.getSentryContract(ID, RWA_TYPE, VERSION);
         assertTrue(ok, "Should find sentry contract for ID");
         assertTrue(sentryAddr != address(0), "Sentry address should not be zero");
         assertTrue(sentryAddr != address(sentryManager), "Sentry address should not be the manager");
     }
 
-    function test_getInvestContract() public {
+    function test_getInvestContract() public view {
         // The invest contract may not be set for the ID unless explicitly set in the deployer
         // So just check that the call does not revert and returns an address (could be zero)
         bool ok;
@@ -75,7 +75,7 @@ contract TestCTMRWAMap is Helpers {
         assertTrue(ok || investAddr == address(0), "Should not revert and should return a valid address or zero");
     }
 
-    function test_nonExistentID_and_nonExistentContract() public {
+    function test_nonExistentID_and_nonExistentContract() public view {
         // Non-existent ID
         bool ok;
         address tokenAddr;

@@ -24,20 +24,20 @@ contract TestCTMRWA1Sentry is Helpers {
     }
 
     // ========== GETTERS =============
-    function test_ID() public {
+    function test_ID() public view {
         assertEq(sentry.ID(), ID);
     }
 
-    function test_tokenAdmin() public {
+    function test_tokenAdmin() public view {
         assertEq(sentry.tokenAdmin(), tokenAdmin);
     }
 
-    function test_RWA_TYPE_and_VERSION() public {
+    function test_RWA_TYPE_and_VERSION() public view {
         assertEq(sentry.RWA_TYPE(), RWA_TYPE);
         assertEq(sentry.VERSION(), VERSION);
     }
 
-    function test_ctmWhitelist_and_countryList_initial() public {
+    function test_ctmWhitelist_and_countryList_initial() public view {
         // ctmWhitelist[0] is always 0xffff...ffff
         assertEq(sentry.ctmWhitelist(0), "0xffffffffffffffffffffffffffffffffffffffff");
         // countryList[0] is always "NOGO"
@@ -52,7 +52,7 @@ contract TestCTMRWA1Sentry is Helpers {
         assertEq(sentry.getWhitelistAddressAtIndx(1), tokenAdmin.toHexString());
     }
 
-    function test_getZkMeParams_default() public {
+    function test_getZkMeParams_default() public view {
         (string memory appId, string memory programNo, address cooperator) = sentry.getZkMeParams();
         assertEq(appId, "");
         assertEq(programNo, "");

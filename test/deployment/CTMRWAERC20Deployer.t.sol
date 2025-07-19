@@ -71,7 +71,7 @@ contract TestERC20Deployer is Helpers {
         usdc.approve(address(feeManager), 100000000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
-        uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr);
+        // uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr); // unused
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 2000);
         assertEq(ICTMRWAERC20(newErc20).totalSupply(), 2000);
         rwa1X.mintNewTokenValueLocal(user2, 0, slot, 3000, ID, feeTokenStr);

@@ -16,6 +16,23 @@ import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storag
 import { ICTMRWA1, Address } from "../../src/core/ICTMRWA1.sol";
 import { List, Uint } from "../../src/CTMRWAUtils.sol";
 import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
+import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
+import { ICTMRWA1Identity } from "../../src/identity/ICTMRWA1Identity.sol";
+
+// Minimal mock for CTMRWA1Identity
+contract MockCTMRWA1Identity is ICTMRWA1Identity {
+    address public zkMeVerifier;
+    function setZkMeVerifierAddress(address _zkMeVerifier) external override {
+        zkMeVerifier = _zkMeVerifier;
+    }
+    // ICTMRWA1Identity stubs
+    function isKycChain() external pure override returns (bool) { return true; }
+    function isVerifiedPerson(uint256, address) external pure override returns (bool) { return false; }
+    function verifyPerson(uint256, string[] memory, string memory) external pure override returns (bool) { return false; }
+    // ICTMRWA stubs
+    function RWA_TYPE() external pure override returns (uint256) { return 1; }
+    function VERSION() external pure override returns (uint256) { return 1; }
+}
 
 contract TestSentryManager is Helpers {
     using Strings for *;
@@ -832,6 +849,224 @@ contract TestSentryManager is Helpers {
             _stringToArray("1"), // extend to another chain
             feeTokenStr
         );
+        vm.stopPrank();
+    }
+
+    // ============ ZKME TESTS ============
+
+    function test_setZkMeParams_requiresKycSwitch() public {
+        // Deploy mock identity and set in sentryManager
+        MockCTMRWA1Identity mockIdentity = new MockCTMRWA1Identity();
+        address dummyZkMeVerifier = address(0xBEEF);
+        vm.startPrank(gov);
+        sentryManager.setIdentity(address(mockIdentity), dummyZkMeVerifier);
+        vm.stopPrank();
+
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = address(usdc).toHexString();
+
+        // Set KYC switch to true
+        sentryManager.setSentryOptions(
+            ID,
+            false, // whitelistSwitch
+            true,  // kycSwitch
+            false, // kybSwitch
+            false, // over18Switch
+            false, // accreditedSwitch
+            false, // countryWLSwitch
+            false, // countryBLSwitch
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        // Should succeed
+        sentryManager.setZkMeParams(ID, "appId", "progNo", address(0x1234));
+
+        // Deploy a new sentry with KYC switch off
+        skip(10);
+        (uint256 newID, CTMRWA1 token2) = _deployCTMRWA1(address(usdc));
+
+        sentryManager.setSentryOptions(
+            newID,
+            true, // whitelistSwitch (set to true to pass list validation)
+            false, // kycSwitch (off)
+            false, // kybSwitch
+            false, // over18Switch
+            false, // accreditedSwitch
+            false, // countryWLSwitch
+            false, // countryBLSwitch
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        // Should revert
+        vm.expectRevert(ICTMRWA1SentryManager.CTMRWA1SentryManager_NoKYC.selector);
+        sentryManager.setZkMeParams(newID, "appId", "progNo", address(0x1234));
+        vm.stopPrank();
+    }
+
+    // ============ COUNTRY LIST TESTS ============
+
+    function test_addCountrylist_revertsOnInvalidCountryCodeLength() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        string memory feeTokenStr = address(usdc).toHexString();
+        // Enable KYC and country whitelist
+        sentryManager.setSentryOptions(
+            ID,
+            false, // whitelistSwitch
+            true,  // kycSwitch
+            false, // kybSwitch
+            false, // over18Switch
+            false, // accreditedSwitch
+            true,  // countryWLSwitch
+            false, // countryBLSwitch
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        // Valid country code (should succeed)
+        string[] memory validCountries = new string[](1);
+        validCountries[0] = "US";
+        bool[] memory choices = new bool[](1);
+        choices[0] = true;
+        sentryManager.addCountrylist(ID, validCountries, choices, _stringToArray(cIdStr), feeTokenStr);
+        // Invalid country code (should revert)
+        string[] memory invalidCountries = new string[](1);
+        invalidCountries[0] = "USA"; // 3 letters
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidLength.selector, Uint.CountryCode));
+        sentryManager.addCountrylist(ID, invalidCountries, choices, _stringToArray(cIdStr), feeTokenStr);
+        vm.stopPrank();
+    }
+
+    // ============ GAS USAGE TESTS ============
+
+    function test_gasUsage_addWhitelist() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = address(usdc).toHexString();
+        sentryManager.setSentryOptions(
+            ID,
+            true, // whitelistSwitch
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        uint256 n = 5;
+        string[] memory addresses = new string[](n);
+        bool[] memory choices = new bool[](n);
+        for (uint256 i = 0; i < n; i++) {
+            addresses[i] = address(uint160(uint256(keccak256(abi.encodePacked(i, block.timestamp))))).toHexString();
+            choices[i] = true;
+        }
+        uint256 gasBefore = gasleft();
+        sentryManager.addWhitelist(ID, addresses, choices, _stringToArray(cIdStr), feeTokenStr);
+        uint256 gasUsed = gasBefore - gasleft();
+        assertTrue(gasUsed < 1_000_000, string.concat("Gas used: ", vm.toString(gasUsed)));
+        vm.stopPrank();
+    }
+
+    function test_gasUsage_setWhitelistX() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = address(usdc).toHexString();
+        sentryManager.setSentryOptions(
+            ID,
+            true, // whitelistSwitch
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        uint256 n = 5;
+        string[] memory addresses = new string[](n);
+        bool[] memory choices = new bool[](n);
+        for (uint256 i = 0; i < n; i++) {
+            addresses[i] = address(uint160(uint256(keccak256(abi.encodePacked(i, block.timestamp + 1))))).toHexString();
+            choices[i] = true;
+        }
+        vm.stopPrank();
+        // Prank as c3caller
+        vm.startPrank(address(c3caller));
+        uint256 gasBefore = gasleft();
+        sentryManager.setWhitelistX(ID, addresses, choices);
+        uint256 gasUsed = gasBefore - gasleft();
+        assertTrue(gasUsed < 1_000_000, string.concat("Gas used: ", vm.toString(gasUsed)));
+        vm.stopPrank();
+    }
+
+    function test_gasUsage_addCountrylist() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = address(usdc).toHexString();
+        sentryManager.setSentryOptions(
+            ID,
+            false,
+            true, // kycSwitch
+            false,
+            false,
+            false,
+            true, // countryWLSwitch
+            false,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        uint256 n = 5;
+        string[] memory countries = new string[](n);
+        bool[] memory choices = new bool[](n);
+        for (uint256 i = 0; i < n; i++) {
+            countries[i] = i == 0 ? "US" : (i == 1 ? "GB" : (i == 2 ? "DE" : (i == 3 ? "FR" : "CN")));
+            choices[i] = true;
+        }
+        uint256 gasBefore = gasleft();
+        sentryManager.addCountrylist(ID, countries, choices, _stringToArray(cIdStr), feeTokenStr);
+        uint256 gasUsed = gasBefore - gasleft();
+        assertTrue(gasUsed < 500_000, string.concat("Gas used: ", vm.toString(gasUsed)));
+        vm.stopPrank();
+    }
+
+    function test_gasUsage_setCountryListX() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = address(usdc).toHexString();
+        sentryManager.setSentryOptions(
+            ID,
+            false,
+            true, // kycSwitch
+            false,
+            false,
+            false,
+            true, // countryWLSwitch
+            false,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        uint256 n = 5;
+        string[] memory countries = new string[](n);
+        bool[] memory choices = new bool[](n);
+        for (uint256 i = 0; i < n; i++) {
+            countries[i] = i == 0 ? "US" : (i == 1 ? "GB" : (i == 2 ? "DE" : (i == 3 ? "FR" : "CN")));
+            choices[i] = true;
+        }
+        vm.stopPrank();
+        // Prank as c3caller
+        vm.startPrank(address(c3caller));
+        uint256 gasBefore = gasleft();
+        sentryManager.setCountryListX(ID, countries, choices);
+        uint256 gasUsed = gasBefore - gasleft();
+        assertTrue(gasUsed < 1_000_000, string.concat("Gas used: ", vm.toString(gasUsed)));
         vm.stopPrank();
     }
 

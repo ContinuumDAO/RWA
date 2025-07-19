@@ -17,5 +17,10 @@ interface ICTMRWA1XFallback {
 
     function getLastReason() external view returns (string memory);
 
-    function rwa1XC3Fallback(bytes4 selector, bytes calldata data, bytes calldata reason) external returns (bool);
+    function rwa1XC3Fallback(
+        bytes4 selector, 
+        bytes calldata data, 
+        bytes calldata reason, 
+        address map
+    ) external returns (bool);
 }

@@ -85,20 +85,23 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         countryList.push("NOGO");
     }
 
+    /// @dev Thiss function is normally called by CTMRWA1X to set a new tokenAdmin
+    /// It can also be called by the current tokenAdmin, but htis should not normally be required
+    /// and would only happen to clean up in the event of a cross-chain failure to reset the tokenAdmin
     function setTokenAdmin(address _tokenAdmin) external onlyTokenAdmin returns (bool) {
         tokenAdmin = _tokenAdmin;
 
         if (tokenAdmin != address(0)) {
             string memory tokenAdminStr = tokenAdmin.toHexString()._toLower();
             tokenAdminStr = _tokenAdmin.toHexString()._toLower();
-            _setWhitelist(tokenAdminStr._stringToArray(), CTMRWAUtils._boolToArray(true)); // don't strand tokens held
-                // by the old
-                // tokenAdmin
+            // don't leave stranded tokens by the old tokenAdmin
+            _setWhitelist(tokenAdminStr._stringToArray(), CTMRWAUtils._boolToArray(true)); 
         }
 
         return (true);
     }
 
+    /// @dev This funtion is called by SentryManager. See there for details
     function setZkMeParams(string memory _appId, string memory _programNo, address _cooperator)
         external
         onlySentryManager
@@ -108,10 +111,14 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         cooperator = _cooperator;
     }
 
+    /**
+    * @notice Recover the currently stored parameters for the zkMe KYC service
+    */
     function getZkMeParams() public view returns (string memory, string memory, address) {
         return (appId, programNo, cooperator);
     }
 
+    /// @dev Set the sentry options on the local chain. This function is called by CTMRWA1SentryManager
     function setSentryOptionsLocal(
         uint256 _ID,
         bool _whitelist,
@@ -152,6 +159,8 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         sentryOptionsSet = true;
     }
 
+    /// @dev Set the Whitelist status on this chain. This contract holds the Whitelist state. This contract
+    /// is called by CTMRWA1SentryManager
     function setWhitelistSentry(uint256 _ID, string[] memory _wallets, bool[] memory _choices)
         external
         onlySentryManager
@@ -162,6 +171,8 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         _setWhitelist(_wallets, _choices);
     }
 
+    /// @dev Set the country Whitelist ot Blacklist on this chain. This contract holds the state. This contract
+    /// is called by CTMRWA1SentryManager
     function setCountryListLocal(uint256 _ID, string[] memory _countryList, bool[] memory _choices)
         external
         onlySentryManager
@@ -173,6 +184,7 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         _setCountryList(_countryList, _choices);
     }
 
+    /// @dev Internal function to manage the wallet Whitelist
     function _setWhitelist(string[] memory _wallets, bool[] memory _choices) internal {
         uint256 len = _wallets.length;
 
@@ -209,17 +221,13 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         }
     }
 
-    // This function uses the 2 letter ISO Country Codes listed here:
-    // https://docs.dnb.com/partner/en-US/iso_country_codes
+    /// @dev Internal function to manage the state for a stored country Whitelist or Blacklist on this chain
     function _setCountryList(string[] memory _countries, bool[] memory _choices) internal {
         uint256 len = _countries.length;
         uint256 indx;
         string memory oldLastStr;
 
         for (uint256 i = 0; i < len; i++) {
-            if (bytes(_countries[i]).length != 2) {
-                revert CTMRWA1Sentry_InvalidLength(Uint.CountryCode);
-            }
 
             indx = countryIndx[_countries[i]];
 
@@ -242,6 +250,12 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         }
     }
 
+    /**
+    * @notice This function checks if an address is allowed to receive value. It is called by
+    * _beforeValueTransfer in CTMRWA1 before any transfers. The contracts CTMRWA1Dividend and
+    * CTMRWA1Storage are allowed to pass.
+    * @param _user address as a string that is being checked
+    */
     function isAllowableTransfer(string memory _user) public view returns (bool) {
         bool ok;
         address dividendContract;
@@ -260,14 +274,26 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         }
     }
 
+    /// @notice Get the number of Whitelisted wallet addresses (excluding the unused first one)
     function getWhitelistLength() public view returns (uint256) {
         return (ctmWhitelist.length - 1);
     }
 
+    /**
+    * @notice Get the Whitelist wallet address at an index as string
+    * @param _indx The index of into the Whitelist to check
+    */
     function getWhitelistAddressAtIndx(uint256 _indx) public view returns (string memory) {
+        if (_indx >= ctmWhitelist.length) {
+            revert CTMRWA1Sentry_OutofBounds();
+        }
         return (ctmWhitelist[_indx]);
     }
 
+    /**
+    * @notice Check if a particular address (as a string) is Whitelisted
+    * @param _walletStr The address (as a string) to check
+    */
     function _isWhitelisted(string memory _walletStr) internal view returns (bool) {
         uint256 indx = whitelistIndx[_walletStr];
 
@@ -282,17 +308,4 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         return block.chainid;
     }
 
-    function strToUint(string memory _str) internal pure returns (uint256 res, bool err) {
-        if (bytes(_str).length == 0) {
-            return (0, true);
-        }
-        for (uint256 i = 0; i < bytes(_str).length; i++) {
-            if ((uint8(bytes(_str)[i]) - 48) < 0 || (uint8(bytes(_str)[i]) - 48) > 9) {
-                return (0, false);
-            }
-            res += (uint8(bytes(_str)[i]) - 48) * 10 ** (bytes(_str).length - i - 1);
-        }
-
-        return (res, true);
-    }
 }

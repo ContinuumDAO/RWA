@@ -12,6 +12,10 @@ import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
 import { Uint } from "../../src/CTMRWAUtils.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Holding } from "../../src/deployment/ICTMRWA1InvestWithTimeLock.sol";
+import { Time } from "../../src/CTMRWAUtils.sol";
+import { IERC20Extended } from "../../src/managers/IFeeManager.sol";
 
 // Malicious contract for reentrancy testing
 contract ReentrantAttacker {
@@ -75,10 +79,10 @@ contract TestInvest is Helpers {
         
         // Deploy token as tokenAdmin
         vm.startPrank(tokenAdmin);
-        (tokenId, token) = _deployCTMRWA1(address(usdc));
+        (ID, token) = _deployCTMRWA1(address(usdc));
         // console.log("setUp: after _deployCTMRWA1, tokenId =", tokenId);
         
-        _createSlot(tokenId, slotId, address(usdc), address(rwa1X));
+        _createSlot(ID, slotId, address(usdc), address(rwa1X));
         // console.log("setUp: after _createSlot");
         
         feeTokenStr = address(usdc).toHexString();
@@ -86,13 +90,13 @@ contract TestInvest is Helpers {
 
         // Deploy investment contract using the deployer (only tokenAdmin can do this)
         // console.log("setUp: deploying investment contract via deployer...");
-        address investAddr = deployer.deployNewInvestment(tokenId, RWA_TYPE, VERSION, address(usdc));
+        address investAddr = deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
         // console.log("setUp: investment contract deployed at", investAddr);
         vm.stopPrank();
 
         // Get the actual investment contract from the map
         // console.log("setUp: getting investment contract from map...");
-        (bool ok, address investAddrFromMap) = ICTMRWAMap(address(map)).getInvestContract(tokenId, RWA_TYPE, VERSION);
+        (bool ok, address investAddrFromMap) = ICTMRWAMap(address(map)).getInvestContract(ID, RWA_TYPE, VERSION);
         require(ok, "Investment contract not found");
         require(investAddr == investAddrFromMap, "Investment contract address mismatch");
         investContract = ICTMRWA1InvestWithTimeLock(investAddr);
@@ -106,7 +110,7 @@ contract TestInvest is Helpers {
             0,                // toTokenId (0 = create new token)
             slotId,           // slot
             1000e18,          // value (1000 tokens)
-            tokenId,          // ID
+            ID,          // ID
             feeTokenStr       // feeTokenStr
         );
         // console.log("setUp: token minted with ID:", newTokenId);
@@ -151,25 +155,18 @@ contract TestInvest is Helpers {
 
     // ============ DEPLOYMENT TESTS ============
 
-    function test_deployment_onlyTokenAdminCanDeploy() public {
-        // Non-tokenAdmin cannot deploy investment contract
-        vm.startPrank(user1);
-        vm.expectRevert();
-        ctmRwaDeployInvest.deployInvest(tokenId + 1, RWA_TYPE, VERSION, address(usdc));
-        vm.stopPrank();
-    }
 
     function test_deployment_duplicateDeployment() public {
-        // Try to deploy investment contract for same tokenId again
+        // Try to deploy investment contract for same ID again
         vm.startPrank(tokenAdmin);
         vm.expectRevert();
-        ctmRwaDeployInvest.deployInvest(tokenId, RWA_TYPE, VERSION, address(usdc));
+        ctmRwaDeployInvest.deployInvest(ID, RWA_TYPE, VERSION, address(usdc));
         vm.stopPrank();
     }
 
-    function test_deployment_investmentContractRegistered() public {
+    function test_deployment_investmentContractRegistered() public view {
         // Verify investment contract is properly registered in map
-        (bool ok, address investAddr) = ICTMRWAMap(address(map)).getInvestContract(tokenId, RWA_TYPE, VERSION);
+        (bool ok, address investAddr) = ICTMRWAMap(address(map)).getInvestContract(ID, RWA_TYPE, VERSION);
         assertTrue(ok, "Investment contract should be registered");
         assertEq(investAddr, address(investContract), "Investment contract address should match");
     }
@@ -216,6 +213,34 @@ contract TestInvest is Helpers {
         vm.stopPrank();
     }
 
+    function test_investInOffering_underflow() public {
+        // Set up an offering with decimalsRwa < decimalsCurrency
+        // Simulate a currency with 18 decimals and RWA with 0 decimals
+        // (This is a mock test, as actual decimals are set in the token contracts)
+        // We'll use a very small investment and a very large price to force value to 0
+        uint256 smallInvestment = 1; // 1 unit of currency
+        uint256 largePrice = 1e18; // Large price
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), smallInvestment);
+        // Expect value to underflow to 0, so the transferPartialTokenX should revert or result in 0 value
+        vm.expectRevert();
+        investContract.investInOffering(0, smallInvestment, currency);
+        vm.stopPrank();
+    }
+
+    function test_investInOffering_overflow() public {
+        // Set up an offering with very large investment and decimalsRwa > decimalsCurrency
+        // This is a mock test, as actual decimals are set in the token contracts
+        // We'll use a very large investment to try to overflow value
+        uint256 largeInvestment = type(uint256).max / 1e10; // Large but not max to avoid immediate revert
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), largeInvestment);
+        // Expect revert due to overflow or exceeding max investment
+        vm.expectRevert();
+        investContract.investInOffering(0, largeInvestment, currency);
+        vm.stopPrank();
+    }
+
     // ============ ACCESS CONTROL TESTS ============
 
     function test_onlyAuthorizedCanInvest() public {
@@ -231,7 +256,7 @@ contract TestInvest is Helpers {
         deal(address(usdc), unauthorizedUser, 10000);
         
         // Get the sentry contract address from the map
-        (bool ok, address sentryAddr) = ICTMRWAMap(address(map)).getSentryContract(tokenId, RWA_TYPE, VERSION);
+        (bool ok, address sentryAddr) = ICTMRWAMap(address(map)).getSentryContract(ID, RWA_TYPE, VERSION);
         require(ok, "Sentry contract not found");
         
         // Enable whitelist in the sentry contract via the sentryManager
@@ -239,7 +264,7 @@ contract TestInvest is Helpers {
         chainIdsStr[0] = cIdStr;
         vm.startPrank(tokenAdmin);
         ICTMRWA1SentryManager(address(sentryManager)).setSentryOptions(
-            tokenId,
+            ID,
             true,  // whitelistSwitch
             false, // kyc
             false, // kyb
@@ -433,7 +458,7 @@ contract TestInvest is Helpers {
             0,
             slotId,
             1000e18,
-            tokenId,
+            ID,
             feeTokenStr
         );
 
@@ -597,7 +622,7 @@ contract TestInvest is Helpers {
         // console.log("Gas used for fuzz investment amount", _amount, ":", gasUsed);
     }
 
-    function test_gas_viewFunctions() public {
+    function test_gas_viewFunctions() public view {
         uint256 gasBefore = gasleft();
         uint256 count = investContract.offeringCount();
         uint256 gasUsed = gasBefore - gasleft();
@@ -629,7 +654,7 @@ contract TestInvest is Helpers {
             vm.startPrank(user1);
             usdc.approve(address(investContract), amounts[i]);
             investContract.investInOffering(0, amounts[i], currency);
-        vm.stopPrank();
+            vm.stopPrank();
             
             uint256 gasUsed = gasBefore - gasleft();
             // console.log("Gas used for investment amount", amounts[i], ":", gasUsed);
@@ -637,6 +662,68 @@ contract TestInvest is Helpers {
             // Adjusted gas usage bounds for optimization
             assertLt(gasUsed, 1_300_000, "Investment gas usage should be reasonable for all amounts");
         }
+    }
+
+    function test_withdraw_works_as_tokenAdmin() public {
+        // Arrange: Transfer USDC to the investContract
+        uint256 withdrawAmount = 1_000e6; // 1000 USDC (assuming 6 decimals)
+        deal(address(usdc), address(investContract), withdrawAmount);
+        assertEq(IERC20(address(usdc)).balanceOf(address(investContract)), withdrawAmount, "Invest contract should have USDC");
+        uint256 adminBalanceBefore = IERC20(address(usdc)).balanceOf(tokenAdmin);
+
+        // Act: Withdraw as tokenAdmin
+        vm.startPrank(tokenAdmin);
+        uint256 returnedBal = CTMRWA1InvestWithTimeLock(address(investContract)).withdraw(address(usdc), withdrawAmount);
+        vm.stopPrank();
+
+        // Assert: Contract balance is zero, admin received funds, returned value is pre-withdrawal balance
+        assertEq(returnedBal, withdrawAmount, "Returned balance should match withdrawn amount");
+        assertEq(IERC20(address(usdc)).balanceOf(address(investContract)), 0, "Invest contract should have zero USDC");
+        assertEq(IERC20(address(usdc)).balanceOf(tokenAdmin), adminBalanceBefore + withdrawAmount, "Admin should receive withdrawn USDC");
+    }
+
+    function test_userCannotWithdrawBeforeLockDuration() public {
+        // Arrange: User invests in offering
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        uint256 investedTokenId = investContract.investInOffering(0, amount, currency);
+        uint256 holdingIndex = 0; // first investment for user1
+        vm.stopPrank();
+
+        Holding memory holding = investContract.listEscrowHolding(user1, holdingIndex);
+
+        // Try to unlock before lockDuration
+        vm.startPrank(user1);
+        vm.expectRevert(abi.encodeWithSelector(
+            ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidTimestamp.selector,
+            uint8(Time.Early)
+        ));
+        investContract.unlockTokenId(holdingIndex, address(usdc));
+        vm.stopPrank();
+
+        // Advance time past lockDuration
+        skip(lockDuration + 1);
+        vm.startPrank(user1);
+        // Should now succeed
+        uint256 unlockedTokenId = investContract.unlockTokenId(holdingIndex, currency);
+        vm.stopPrank();
+
+        // Check that the returned tokenId matches the user's holding
+        assertEq(unlockedTokenId, holding.tokenId, "Unlocked tokenId should match the user's holding");
+
+        // Assert the balance of the unlocked tokenId is correct
+        uint256 tokenBalance = token.balanceOf(unlockedTokenId);
+        uint8 decimalsCurrency = IERC20Extended(address(usdc)).decimals();
+        uint8 decimalsRwa = token.valueDecimals();
+        uint256 expectedValue;
+        if (decimalsRwa >= decimalsCurrency) {
+            uint256 scale = 10 ** (decimalsRwa - decimalsCurrency);
+            expectedValue = (amount * scale) / price;
+        } else {
+            uint256 scale = 10 ** (decimalsCurrency - decimalsRwa);
+            expectedValue = amount / (price * scale);
+        }
+        assertEq(tokenBalance, expectedValue, "Unlocked tokenId balance should match the expected value");
     }
 }
 

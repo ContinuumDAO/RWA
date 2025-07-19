@@ -16,6 +16,7 @@ interface ICTMRWA1SentryManager is ICTMRWA {
     error CTMRWA1SentryManager_AccreditationDisabled();
     error CTMRWA1SentryManager_LengthMismatch(Uint);
     error CTMRWA1SentryManager_SameChain();
+    error CTMRWA1SentryManager_InvalidLength(Uint);
 
     error CTMRWA1SentryManager_InvalidList(List);
 

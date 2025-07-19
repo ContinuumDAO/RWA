@@ -148,7 +148,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
      * in an object in decentralized storage (e.g. BNB Greenfield) in an object with name _objectName.
      * Also stored in the CTMRWA1Storage are the title of the record, the type of information, the
      * Asset Class (slot) and a hash of the checksum of the stored data.
-     * @param _ID The ID of the RWA
+     * @param _ID The ID of the RWA token
      * @param _objectName The name of the object stored in decentralized storage (e.g. BNB Greenfield)
      * It should be identical to the string version of the nonce() in the RWA's CTMRWA1Storage contract.
      * @param _uriCategory The category type of the data being stored. The allowable values are the enums
@@ -536,7 +536,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         return block.chainid;
     }
 
-    /// @dev Manage a cross0chain fallback from c3Caller. See CTMRWA1StorageUtils
+    /// @dev Manage a cross-chain fallback from c3Caller. See CTMRWA1StorageUtils
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal
         override

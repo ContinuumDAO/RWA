@@ -905,7 +905,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         override
         returns (bool)
     {
-        bool ok = ICTMRWA1XFallback(fallbackAddr).rwa1XC3Fallback(_selector, _data, _reason);
+        bool ok = ICTMRWA1XFallback(fallbackAddr).rwa1XC3Fallback(_selector, _data, _reason, ctmRwa1Map);
 
         return ok;
     }

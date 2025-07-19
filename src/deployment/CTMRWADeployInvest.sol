@@ -50,10 +50,12 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
         feeManager = _feeManager;
     }
 
+    /// @dev This allows a commission to be charged on the offering, payable to the FeeManager contract
     function setCommissionRate(uint256 _commissionRate) external onlyDeployer {
         commissionRate = _commissionRate;
     }
 
+    /// @dev This deploys a new CTMRWA1Invest contract
     function deployInvest(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken)
         external
         onlyDeployer

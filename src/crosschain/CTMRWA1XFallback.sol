@@ -4,6 +4,7 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1XFallback } from "./ICTMRWA1XFallback.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
+import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
 
 /**
@@ -16,6 +17,9 @@ import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
  */
 contract CTMRWA1XFallback is ICTMRWA1XFallback {
     using CTMRWAUtils for string;
+
+    uint256 constant RWA_TYPE = 1;
+    uint256 constant VERSION = 1;
 
     address public rwa1X;
 
@@ -30,7 +34,7 @@ contract CTMRWA1XFallback is ICTMRWA1XFallback {
         _;
     }
 
-    bytes4 public MintX = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256,uint256,string)"));
+    bytes4 public MintX = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256)"));
 
     constructor(address _rwa1X) {
         rwa1X = _rwa1X;
@@ -46,11 +50,12 @@ contract CTMRWA1XFallback is ICTMRWA1XFallback {
      * @param _selector is the function selector called by c3Caller's execute on the destination
      * @param _data is the abi encoded data sent to the destinatin chain
      * @param _reason is the revert string from the destination chain
+     * @param _map is the address of the CTMRWAMap contract
      * @dev If the failing function was mintX (used for transferFrom), then this function will mint the fungible
      * balance in the CTMRWA1 with ID, as a new tokenId, effectively replacing the value that was
      * burned.
      */
-    function rwa1XC3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
+    function rwa1XC3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason, address _map)
         external
         onlyRwa1X
         returns (bool)
@@ -63,15 +68,15 @@ contract CTMRWA1XFallback is ICTMRWA1XFallback {
             uint256 ID_;
             string memory fromAddressStr_;
             string memory toAddressStr_;
-            uint256 fromTokenId_;
             uint256 slot_;
             uint256 value_;
-            string memory ctmRwa1AddrStr_;
+            address ctmRwa1Addr;
 
-            (ID_, fromAddressStr_, toAddressStr_, fromTokenId_, slot_, value_, ctmRwa1AddrStr_) =
-                abi.decode(_data, (uint256, string, string, uint256, uint256, uint256, string));
+            (ID_, fromAddressStr_, toAddressStr_, slot_, value_) =
+                abi.decode(_data, (uint256, string, string, uint256, uint256));
 
-            address ctmRwa1Addr = ctmRwa1AddrStr_._stringToAddress();
+            (, ctmRwa1Addr) = ICTMRWAMap(_map).getTokenContract(ID_, RWA_TYPE, VERSION);
+
             address fromAddr = fromAddressStr_._stringToAddress();
 
             string memory thisSlotName = ICTMRWA1(ctmRwa1Addr).slotName(slot_);

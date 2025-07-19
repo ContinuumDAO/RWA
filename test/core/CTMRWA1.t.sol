@@ -35,10 +35,10 @@ contract ReentrantContract {
 
     // This will be called during the first transferFrom
     function onERC3525Received(
-        uint256 _fromTokenId,
-        uint256 _toTokenId,
-        uint256 _value,
-        bytes calldata _data
+        uint256 /*_fromTokenId*/,
+        uint256 /*_toTokenId*/,
+        uint256 /*_value*/,
+        bytes calldata /*_data*/
     ) external returns (bytes4) {
         if (!reentered) {
             reentered = true;

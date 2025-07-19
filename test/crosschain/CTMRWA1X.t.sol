@@ -13,6 +13,7 @@ import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { ICTMRWA1, Address } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
 import { CTMRWA1X } from "../../src/crosschain/CTMRWA1X.sol";
+import { ICTMRWA1XFallback } from "../../src/crosschain/ICTMRWA1XFallback.sol";
 import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
 
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
@@ -1448,6 +1449,26 @@ contract TestCTMRWA1X is Helpers {
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_Unauthorized.selector, Address.Sender));
         rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), ID, address(usdc).toHexString());
         vm.stopPrank();
+    }
+
+    // ============ FALLBACK TESTS ============
+    
+    function test_c3FallbackWithMintXSelector() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        // (_tokenId1, _tokenId2, _tokenId3) = _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), address(user1));
+        vm.stopPrank();
+
+        bytes4 selector = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256)"));
+        bytes memory data = abi.encode(ID, user1.toHexString(), user2.toHexString(), 3, 1000);
+        bytes memory reason = "mintX failed"; // A dummy revert string from the destination contract
+
+        assertEq(rwa1X.fallbackAddr(), address(rwa1XFallback));
+        assertEq(ICTMRWA1XFallback(rwa1X.fallbackAddr()).rwa1X(), address(rwa1X));
+
+        vm.prank(address(rwa1X));
+        rwa1XFallback.rwa1XC3Fallback(selector, data, reason, address(map));
     }
 
 }

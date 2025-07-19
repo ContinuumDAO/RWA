@@ -269,13 +269,13 @@ contract TestGateway is Helpers {
     }
 
     // (3) Getter Edge Cases
-    function test_getAttachedRWAX_nonexistent_returnsFalse() public {
+    function test_getAttachedRWAX_nonexistent_returnsFalse() public view {
         (bool found, string memory addr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, "nonexistent");
         assertFalse(found);
         assertEq(addr, "0");
     }
 
-    function test_getAttachedRWAX_emptyString_returnsFalse() public {
+    function test_getAttachedRWAX_emptyString_returnsFalse() public view {
         (bool found, string memory addr) = gateway.getAttachedRWAX(RWA_TYPE, VERSION, "");
         assertFalse(found);
         assertEq(addr, "0");

@@ -86,11 +86,8 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         _;
     }
 
-    // TODO: Remove redundant _rwaType and _version parameters
     function initialize(
         address _gov,
-        // uint256 _rwaType,
-        // uint256 _version,
         address _c3callerProxy,
         address _txSender,
         uint256 _dappID,
@@ -173,8 +170,41 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     /**
-     * @notice The tokenAdmin (Issuer) can optionally set conditions for trading the RWA via zkProofs.
-     *
+     * @notice The tokenAdmin (Issuer) can optionally set options to control which wallet addresses
+     * can be transferred to using a Whitelist, identical on all chains that the RWA token is deployed to.
+     * The tokenAdmin can also require KYC via zkProofs, which then allows a user to add themselves to the Whitelist
+     * using the verifyPerson function in CTMRWAI1dentity function. Either or both _whitelist and _kyc
+     * can be set. The other options can only be set if _kyc is set. These are not required for all
+     * zkProof verifiers though, since some control geo-fencing and age criteria themselves (e.g. zkMe).
+     * These other options are still useful for on-chain information purposes though.
+     * @param _ID The ID of the RWA token
+     * @param _whitelist A switch which, if set, enables the tokenAdmin to control a Whitelist of wallets
+     * that may be sent value.
+     * @param _kyc A switch which, if set, allows KYC via a zkProof to allow users to add themselves to the
+     * Whitelist.
+     * @param _kyb A switch which, if set, allows a business to undergo KYB via zkProofs. To set this
+     * switch, _kyc must also be set. The zkMe system does not require this to be set. Note however that
+     * the switch cannot be set later.
+     * @param _over18 A switch, if set, only allows those over 18 years of age to trade. To set this
+     * switch, _kyc must also be set. The zkMe system does not require this to be set. Note however that
+     * the switch cannot be set later.
+     * @param _accredited A switch, if set, only allows Accredited, or Sophisticated Investors to trade.
+     * To set this switch, _kyc must also be set. The zkMe system does not require this to be set.
+     * Note however that the switch cannot be set later.
+     * @param _countryWL a switch, which if set, allows a tokenAdmin to maintain a Whitelist of countries
+     * from which investors are allowed to trade value. This does not specify whether citizenship or residency
+     * is the criterion. If _countrWL is set, then _countryBL must NOT be set. The zkMe system does not require
+     * this to be set. Note however that the switch cannot be set later.
+     * @param _countryBL a switch, which if set, allows a tokenAdmin to maintain a Blacklist of countries
+     * from which investors are allowed to trade value.This does not specify whether citizenship or residency
+     * is the criterion. If _countrBL is set, then _countryWL must NOT be set. The zkMe system does not require
+     * this to be set. Note however that the switch cannot be set later.
+     * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
+     * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
+     * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
+     * NOTE For EVM chains, the address of the fee token must be converted to a string
+     * NOTE The function setSentryOptions CAN ONLY BE CALLED ONCE.
+     * NOTE Once the function setSentryOptions has beed called, NO NEW CHAINS CAN BE ADDED TO THIS RWA TOKEN
      */
     function setSentryOptions(
         uint256 _ID,
@@ -241,6 +271,19 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         }
     }
 
+    /**
+    * @notice This function is used to store important parameters relating to the zKMe zkProof KYC
+    * implementation. It can only be called by the tokenAdmin (Issuer). It can only be called if the
+    * _kyc switch has been set in setSentryOptions. See https://dashboard.zk.me for details.
+    * @param _ID The ID of the RWA token
+    * @param _appId The appId that the tokenAdmin can generate in the zkMe Dashboard from their apiKey
+    * @param _programNo The programNo for the Schema, which details access restrictions (e.g. geo-fencing).
+    * NOTE The tokenAdmin can change the _programNo if they update the access restrictions, so that all
+    * new users undergoing KYC will be subject to these updated restrictions.
+    * @param _cooperator This address is the zkMe verifier contract that allows AssetX to check if a user
+    * has undergone KYC AND passes the access restrictions in the Schema (_programNo). AssetX calls the
+    * hasApproved function in this contract.
+    */
     function setZkMeParams(uint256 _ID, string memory _appId, string memory _programNo, address _cooperator) public {
         if (identity == address(0)) {
             revert CTMRWA1SentryManager_IsZeroAddress(Address.Identity);
@@ -251,10 +294,26 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
 
         (address sentryAddr,) = _getSentryAddr(_ID);
 
+        bool kyc = ICTMRWA1Sentry(sentryAddr).kycSwitch();
+
+        if (!kyc) {
+            revert CTMRWA1SentryManager_NoKYC();
+        }
+
         ICTMRWA1Sentry(sentryAddr).setZkMeParams(_appId, _programNo, _cooperator);
     }
 
-    // removes the Accredited flag if KYC set
+    /**
+    * @notice This function removes the Accredited flag, _accredited, if KYC is set. It is designed
+    * to remove the obstacle of allowing only Accredited Investors to trade the RWA token and typically
+    * would be called after a time period had elapsed as determined by a Regulator, so that the token
+    * can be publicly traded.
+    * @param _ID The ID of the RWA token
+    * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
+    * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
+    * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
+    * NOTE This function has no effect if zkMe is the KYC provider and is then only for information purposes.
+    */ 
     function goPublic(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr) public {
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa1Addr);
@@ -301,6 +360,8 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         }
     }
 
+    /// @dev This is the function called on the destination chain by the setSentryoptions function.
+    /// See this function for the parameter descriptions. It is an onlyCaller function.
     function setSentryOptionsX(
         uint256 _ID,
         bool _whitelist,
@@ -322,6 +383,18 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         return (true);
     }
 
+    /**
+    * @notice This function allows the tokenAdmin (Issuer) to maintain a Whitelist of user wallets
+    * on all chains that may receive value in the RWA token.
+    * @param _ID The ID of the RWA token
+    * @param _wallets An array of wallets as strings for which the access status is being updated.
+    * @param _choices An array of switches corresponding to _wallets. If an entry is true, then this
+    * wallet address may receive value. The function _isAllowableTransfer in CTMRWA1Sentry is called to check
+    * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
+    * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
+    * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
+    * NOTE This function can only be called if the _whitelist switch has been set in setSentryOptions
+    */
     function addWhitelist(
         uint256 _ID,
         string[] memory _wallets,
@@ -369,6 +442,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         }
     }
 
+    /// @dev This function is only called on the destination chain by addWhitelist. It is an onlyCaller function
     function setWhitelistX(uint256 _ID, string[] memory _wallets, bool[] memory _choices)
         external
         onlyCaller
@@ -383,6 +457,20 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         return (true);
     }
 
+    /**
+    * @notice This function allows the tokenAdmin to maintain a list of countries from which users are allowed to trade.
+    * The list can be either a Country Whitelist OR a Country Blacklist as determined by setSentryOptions
+    * @param _ID The ID of the RWA token.
+    * @param _countries Is an array of strings representing the countries whose access is being set here
+    * The strings must each be an ISO3166 2 letter country code. See https://datahub.io/core/country-list
+    * @param _choices An array of switches corresponding to the _countries array.
+    * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
+    * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
+    * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
+    * NOTE This function can only be called if both _kyc and either _countryWL, or _countryBL has been set
+    * in setSentryOptions.
+    * NOTE This function has no effect if zkMe is the KYC provider and is then only for information purposes.
+    */
     function addCountrylist(
         uint256 _ID,
         string[] memory _countries,
@@ -412,6 +500,11 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         _payFee(fee, _feeTokenStr);
 
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
+            
+            if (bytes(_countries[i]).length != 2) {
+                revert CTMRWA1SentryManager_InvalidLength(Uint.CountryCode);
+            }
+
             string memory chainIdStr = _chainIdsStr[i]._toLower();
 
             if (chainIdStr.equal(cIdStr)) {
@@ -429,6 +522,8 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         }
     }
 
+    /// @dev This function is only called on the destination chain by addCountrylist. It is an onlyCaller function.
+    /// See addCountrylist for details of the params.
     function setCountryListX(uint256 _ID, string[] memory _countries, bool[] memory _choices)
         external
         onlyCaller
@@ -443,6 +538,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         return (true);
     }
 
+    /// @dev Pay a fee, calculated by the feeType, the fee token and the chains in question
     function _payFee(uint256 _feeWei, string memory _feeTokenStr) internal returns (bool) {
         if (_feeWei > 0) {
             address feeToken = _feeTokenStr._stringToAddress();
@@ -455,6 +551,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         return (true);
     }
 
+    /// @dev Get the fee payable, depending on the _feeType
     function _getFee(FeeType _feeType, uint256 _nItems, string[] memory _toChainIdsStr, string memory _feeTokenStr)
         internal
         view
@@ -467,11 +564,13 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         return (fee * _nItems);
     }
 
+    /// @dev This reports on the latest revert string if a cross-chain call failed for whatever reason
     function getLastReason() public view returns (string memory) {
         string memory lastReason = ICTMRWA1SentryUtils(utilsAddr).getLastReason();
         return (lastReason);
     }
 
+    /// @dev Get the CTMRWA1 contract address corresponding to the ID on this chain
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
@@ -482,6 +581,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         return (tokenAddr, tokenAddrStr);
     }
 
+    /// @dev Get the CTMRWA1Sentry address corresponding to the ID on this chain
     function _getSentryAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
@@ -492,6 +592,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         return (sentryAddr, sentryAddrStr);
     }
 
+    /// @dev Get the sentryManager address on a destination chain for a c3call
     function _getSentry(string memory _toChainIdStr) internal view returns (string memory, string memory) {
         if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1SentryManager_SameChain();
@@ -508,6 +609,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         return (fromAddressStr, toSentryStr);
     }
 
+    /// @dev Check that the msg.sender is the same as the tokenAdmin for this RWA token
     function _checkTokenAdmin(address _tokenAddr) internal returns (address, string memory) {
         address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = currentAdmin.toHexString()._toLower();
@@ -519,6 +621,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         return (currentAdmin, currentAdminStr);
     }
 
+    /// @dev The fallback function for this GovernDapp in the event of a cross-chain call failure
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal
         override
