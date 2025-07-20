@@ -205,7 +205,7 @@ contract TestCTMRWADeployer is Helpers {
         deployer.setRwaX(address(0));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Map));
         deployer.setMap(address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Erc20Deployer));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.ERC20Deployer));
         deployer.setErc20DeployerAddress(address(0));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.DeployInvest));
         deployer.setDeployInvest(address(0));

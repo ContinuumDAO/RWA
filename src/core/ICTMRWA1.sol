@@ -58,6 +58,7 @@ interface ICTMRWA1 is ICTMRWA {
      */
     event SlotChanged(uint256 indexed tokenId, uint256 indexed oldSlot, uint256 indexed newSlot);
 
+    /// @dev Pause errors
     error CTMRWA1_Unauthorized(Address addr, Address unauth); // `addr` cannot be `unauth`
     error CTMRWA1_OnlyAuthorized(Address addr, Address auth); // `addr` must be `auth`
 

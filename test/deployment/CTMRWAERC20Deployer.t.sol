@@ -13,6 +13,8 @@ import { ICTMRWAERC20Deployer } from "../../src/deployment/ICTMRWAERC20Deployer.
 import { ICTMRWA1, Address } from "../../src/core/ICTMRWA1.sol";
 import { IERC20Errors } from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
+error EnforcedPause();
+
 contract TestERC20Deployer is Helpers {
     using Strings for *;
 
@@ -208,6 +210,127 @@ contract TestERC20Deployer is Helpers {
         vm.startPrank(admin);
         vm.expectRevert();
         ICTMRWAERC20(newErc20).transferFrom(user2, user1, type(uint256).max);
+        vm.stopPrank();
+    }
+
+    function test_erc20_transfer_paused_unpaused() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        uint256 slot = 1;
+        string memory name = "Pause ERC20 Transfer";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        token.deployErc20(slot, name, address(usdc));
+        address newErc20 = token.getErc20(slot);
+        // Mint some tokens to user1
+        rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, feeTokenStr);
+        vm.stopPrank();
+
+        // Pause the CTMRWA1 contract
+        vm.startPrank(tokenAdmin);
+        token.pause();
+        vm.stopPrank();
+
+        // Try to transfer as user1 while paused, should revert
+        vm.startPrank(user1);
+        vm.expectRevert(EnforcedPause.selector);
+        ICTMRWAERC20(newErc20).transfer(user2, 100);
+        vm.stopPrank();
+
+        // Unpause the CTMRWA1 contract
+        vm.startPrank(tokenAdmin);
+        token.unpause();
+        vm.stopPrank();
+
+        // Try to transfer as user1 again, should succeed
+        vm.startPrank(user1);
+        ICTMRWAERC20(newErc20).transfer(user2, 100);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 900);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 100);
+        vm.stopPrank();
+    }
+
+    function test_erc20_transferFrom_paused_unpaused() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        uint256 slot = 1;
+        string memory name = "Pause ERC20 TransferFrom";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        usdc.approve(address(feeManager), 100000000);
+        token.deployErc20(slot, name, address(usdc));
+        address newErc20 = token.getErc20(slot);
+        // Mint some tokens to user1
+        rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, feeTokenStr);
+        vm.stopPrank();
+
+        // Approve user2 to spend 200 tokens from user1
+        vm.startPrank(user1);
+        ICTMRWAERC20(newErc20).approve(user2, 200);
+        vm.stopPrank();
+
+        // Pause the CTMRWA1 contract
+        vm.startPrank(tokenAdmin);
+        token.pause();
+        vm.stopPrank();
+
+        // Try to transferFrom as user2 while paused, should revert
+        vm.startPrank(user2);
+        vm.expectRevert(EnforcedPause.selector);
+        ICTMRWAERC20(newErc20).transferFrom(user1, user2, 100);
+        vm.stopPrank();
+
+        // Unpause the CTMRWA1 contract
+        vm.startPrank(tokenAdmin);
+        token.unpause();
+        vm.stopPrank();
+
+        // Try to transferFrom as user2 again, should succeed
+        vm.startPrank(user2);
+        ICTMRWAERC20(newErc20).transferFrom(user1, user2, 100);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 900);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 100);
+        assertEq(ICTMRWAERC20(newErc20).allowance(user1, user2), 100);
+        vm.stopPrank();
+    }
+
+    function test_erc20_transfer_whitelist_enforced() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        uint256 slot = 1;
+        string memory name = "Whitelist Test";
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        token.deployErc20(slot, name, address(usdc));
+        address newErc20 = token.getErc20(slot);
+        // Mint some tokens to user1
+        rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, feeTokenStr);
+        vm.stopPrank();
+
+        // Enable whitelist via SentryManager
+        vm.startPrank(tokenAdmin);
+        string[] memory chainIds = _stringToArray(cIdStr);
+        sentryManager.setSentryOptions(ID, true, false, false, false, false, false, false, chainIds, feeTokenStr);
+        vm.stopPrank();
+
+        // user2 is NOT whitelisted, user1 tries to transfer to user2, should revert with CTMRWA1_OnlyAuthorized
+        vm.startPrank(user1);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, 2, 29));
+        ICTMRWAERC20(newErc20).transfer(user2, 100);
+        vm.stopPrank();
+
+        // Now add user2 to the whitelist
+        vm.startPrank(tokenAdmin);
+        string[] memory wallets = _stringToArray(_toLower(user2.toHexString()));
+        bool[] memory choices = _boolToArray(true);
+        sentryManager.addWhitelist(ID, wallets, choices, chainIds, feeTokenStr);
+        vm.stopPrank();
+
+        // Now user1 can transfer to user2
+        vm.startPrank(user1);
+        ICTMRWAERC20(newErc20).transfer(user2, 100);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 900);
+        assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 100);
         vm.stopPrank();
     }
 }

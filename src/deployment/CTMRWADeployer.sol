@@ -128,7 +128,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
      */
     function setErc20DeployerAddress(address _erc20Deployer) external onlyGov {
         if (_erc20Deployer == address(0)) {
-            revert CTMRWADeployer_IsZeroAddress(Address.Erc20Deployer);
+            revert CTMRWADeployer_IsZeroAddress(Address.ERC20Deployer);
         }
         erc20Deployer = _erc20Deployer;
     }

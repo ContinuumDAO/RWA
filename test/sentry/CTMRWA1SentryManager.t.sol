@@ -341,7 +341,7 @@ contract TestSentryManager is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
         
         // Don't enable whitelist
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WhiteListDisabled));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_Disabled));
         sentryManager.addWhitelist(
             ID,
             _stringToArray(user1.toHexString()),
@@ -360,7 +360,7 @@ contract TestSentryManager is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
         
         // Don't enable country lists
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.NoWLOrBL));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_BL_Undefined));
         sentryManager.addCountrylist(
             ID,
             _stringToArray("US"),
@@ -380,7 +380,7 @@ contract TestSentryManager is Helpers {
         
         string memory feeTokenStr = address(usdc).toHexString();
         
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.NoWLOrKYC));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_KYC_Disabled));
         sentryManager.setSentryOptions(
             ID,
             false, // whitelistSwitch
@@ -518,7 +518,7 @@ contract TestSentryManager is Helpers {
         
         string memory feeTokenStr = address(usdc).toHexString();
         
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WLAndBL));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_BL_Defined));
         sentryManager.setSentryOptions(
             ID,
             false, // whitelistSwitch

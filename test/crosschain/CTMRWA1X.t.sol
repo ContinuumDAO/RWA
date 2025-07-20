@@ -22,6 +22,8 @@ import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 import { C3CallerStructLib } from "../../lib/c3caller/src/C3CallerStructLib.sol";
 import { Uint } from "../../src/CTMRWAUtils.sol";
 
+error EnforcedPause();
+
 // Mock contract for reentrancy testing
 contract ReentrantContract {
     using Strings for address;
@@ -143,7 +145,7 @@ contract TestCTMRWA1X is Helpers {
 
         // ID2 will be the same as ID because the block.timestamp is the same
         // as well as all the other params in the abi.encode used to generate ID
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidTokenContract.selector));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidContract.selector, Address.Token));
         _deployCTMRWA1(address(usdc));
         vm.stopPrank();
 
@@ -1469,6 +1471,84 @@ contract TestCTMRWA1X is Helpers {
 
         vm.prank(address(rwa1X));
         rwa1XFallback.rwa1XC3Fallback(selector, data, reason, address(map));
+    }
+
+    function test_transferPartialTokenX_paused_unpaused() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        (uint256 tokenId,,) = _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
+        string memory feeTokenStr = address(usdc).toHexString();
+        token.pause();
+        vm.stopPrank();
+
+        // Paused: should revert
+        vm.startPrank(user1);
+        vm.expectRevert(EnforcedPause.selector);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 5, ID, feeTokenStr);
+        vm.stopPrank();
+
+        // Unpause and try again
+        vm.prank(tokenAdmin);
+        token.unpause();
+
+        vm.startPrank(user1);
+        uint256 balBefore = token.balanceOf(tokenId);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 5, ID, feeTokenStr);
+        uint256 balAfter = token.balanceOf(tokenId);
+        assertEq(balBefore, balAfter + 5);
+        address owned = rwa1X.getAllTokensByOwnerAddress(user2)[0];
+        assertEq(owned, address(token));
+        uint256 newTokenId = token.tokenOfOwnerByIndex(user2, 0);
+        assertEq(token.ownerOf(newTokenId), user2);
+        uint256 balNewToken = token.balanceOf(newTokenId);
+        assertEq(balNewToken, 5);
+        vm.stopPrank();
+    }
+
+    function test_transferWholeTokenX_paused_unpaused() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        (uint256 tokenId,,) = _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
+        string memory feeTokenStr = address(usdc).toHexString();
+        token.pause();
+        vm.stopPrank();
+
+        // Paused: should revert
+        vm.prank(user1);
+        vm.expectRevert(EnforcedPause.selector);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+
+        // Unpause and try again
+        vm.prank(tokenAdmin);
+        token.unpause();
+
+        vm.prank(user1);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+        address owner = token.ownerOf(tokenId);
+        assertEq(owner, user2);
+    }
+
+    function test_mintNewTokenValueLocal_paused_unpaused() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = address(usdc).toHexString();
+        token.pause();
+        vm.stopPrank();
+
+        // Paused: should revert
+        vm.prank(tokenAdmin);
+        vm.expectRevert(EnforcedPause.selector);
+        rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+
+        // Unpause and try again
+        vm.prank(tokenAdmin);
+        token.unpause();
+
+        vm.prank(tokenAdmin);
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+        assertEq(token.ownerOf(tokenId), user1);
+        assertEq(token.balanceOf(tokenId), 1000);
     }
 
 }

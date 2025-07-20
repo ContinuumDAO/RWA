@@ -17,6 +17,8 @@ import { Holding } from "../../src/deployment/ICTMRWA1InvestWithTimeLock.sol";
 import { Time } from "../../src/CTMRWAUtils.sol";
 import { IERC20Extended } from "../../src/managers/IFeeManager.sol";
 
+error EnforcedPause();
+
 // Malicious contract for reentrancy testing
 contract ReentrantAttacker {
     CTMRWA1InvestWithTimeLock public targetContract;
@@ -80,18 +82,12 @@ contract TestInvest is Helpers {
         // Deploy token as tokenAdmin
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
-        // console.log("setUp: after _deployCTMRWA1, tokenId =", tokenId);
         
         _createSlot(ID, slotId, address(usdc), address(rwa1X));
-        // console.log("setUp: after _createSlot");
         
         feeTokenStr = address(usdc).toHexString();
-        // console.log("setUp: feeTokenStr =", feeTokenStr);
 
-        // Deploy investment contract using the deployer (only tokenAdmin can do this)
-        // console.log("setUp: deploying investment contract via deployer...");
         address investAddr = deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
-        // console.log("setUp: investment contract deployed at", investAddr);
         vm.stopPrank();
 
         // Get the actual investment contract from the map
@@ -238,6 +234,29 @@ contract TestInvest is Helpers {
         // Expect revert due to overflow or exceeding max investment
         vm.expectRevert();
         investContract.investInOffering(0, largeInvestment, currency);
+        vm.stopPrank();
+    }
+
+    function test_investInOffering_paused_unpaused() public {
+        // Pause the CTMRWA1 token
+        vm.prank(tokenAdmin);
+        token.pause();
+
+        // Try to invest while paused, should revert
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        vm.expectRevert(EnforcedPause.selector);
+        investContract.investInOffering(0, amount, currency);
+        vm.stopPrank();
+
+        // Unpause the CTMRWA1 token
+        vm.prank(tokenAdmin);
+        token.unpause();
+
+        // Try to invest again, should succeed
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        investContract.investInOffering(0, amount, currency);
         vm.stopPrank();
     }
 

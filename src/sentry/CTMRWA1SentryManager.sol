@@ -233,7 +233,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
 
         if (!_kyc) {
             if (!_whitelist) {
-                revert CTMRWA1SentryManager_InvalidList(List.NoWLOrKYC);
+                revert CTMRWA1SentryManager_InvalidList(List.WL_KYC_Disabled);
             }
 
             if (_kyb || _over18 || _accredited || _countryWL || _countryBL) {
@@ -241,7 +241,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
             }
         } else {
             if (_countryWL && _countryBL) {
-                revert CTMRWA1SentryManager_InvalidList(List.WLAndBL);
+                revert CTMRWA1SentryManager_InvalidList(List.WL_BL_Defined);
             }
         }
 
@@ -413,7 +413,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
 
         bool whitelistSwitch = ICTMRWA1Sentry(sentryAddr).whitelistSwitch();
         if (!whitelistSwitch) {
-            revert CTMRWA1SentryManager_InvalidList(List.WhiteListDisabled);
+            revert CTMRWA1SentryManager_InvalidList(List.WL_Disabled);
         }
 
         uint256 len = _wallets.length;
@@ -490,7 +490,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         bool countryWLSwitch = ICTMRWA1Sentry(sentryAddr).countryWLSwitch();
         bool countryBLSwitch = ICTMRWA1Sentry(sentryAddr).countryBLSwitch();
         if (!countryWLSwitch && !countryBLSwitch) {
-            revert CTMRWA1SentryManager_InvalidList(List.NoWLOrBL);
+            revert CTMRWA1SentryManager_InvalidList(List.WL_BL_Undefined);
         }
 
         uint256 len = _countries.length;

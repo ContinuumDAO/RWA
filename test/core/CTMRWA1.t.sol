@@ -10,6 +10,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { ICTMRWA1, Address, Uint } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 
+
 // Mock contract for reentrancy testing
 contract ReentrantContract {
     ICTMRWA1 public token;
@@ -61,6 +62,8 @@ contract TestCTMRWA1 is Helpers {
     uint256 testTokenId2;
     uint256 testSlot;
 
+    error EnforcedPause();
+
     function setUp() public override {
         super.setUp();
 
@@ -75,6 +78,7 @@ contract TestCTMRWA1 is Helpers {
 
         testTokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, testSlot, 1000, ID, tokenStr);
         testTokenId2 = rwa1X.mintNewTokenValueLocal(user2, 0, testSlot, 1000, ID, tokenStr);
+        
         vm.stopPrank();
 
         // Deploy reentrant contract
@@ -499,6 +503,24 @@ contract TestCTMRWA1 is Helpers {
         vm.stopPrank();
     }
 
+    function test_spendAllowance_reverts_when_not_approved_or_owner_and_no_allowance() public {
+        // user2 is not owner or approved for testTokenId1 and has no allowance
+        vm.startPrank(user2);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InsufficientAllowance.selector));
+        token.spendAllowance(user2, testTokenId1, 100);
+        vm.stopPrank();
+
+        // Approve user2 for a value less than 100
+        vm.startPrank(user1);
+        token.approve(testTokenId1, user2, 50);
+        vm.stopPrank();
+
+        // Try to spend 100 again, should still revert
+        vm.startPrank(user2);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InsufficientAllowance.selector));
+        token.spendAllowance(user2, testTokenId1, 100);
+        vm.stopPrank();
+    }
 
     // ============ ERC20 DEPLOYMENT TESTS ============
 
@@ -550,6 +572,27 @@ contract TestCTMRWA1 is Helpers {
         token.burnValueX(testTokenId2, 1000);
 
         vm.stopPrank();
+    }
+
+    function test_burn_paused_unpaused() public {
+        // Pause the contract
+        vm.prank(tokenAdmin);
+        token.pause();
+
+        // Try to burn while paused, should revert
+        vm.prank(user1);
+        vm.expectRevert(EnforcedPause.selector);
+        token.burn(testTokenId1);
+
+        // Unpause the contract
+        vm.prank(tokenAdmin);
+        token.unpause();
+
+        // Burn should now succeed
+        vm.prank(user1);
+        token.burn(testTokenId1);
+        // After burn, token should not exist
+        assertFalse(token.exists(testTokenId1));
     }
 
     // ============ SLOT MANAGEMENT TESTS ============
@@ -725,6 +768,28 @@ contract TestCTMRWA1 is Helpers {
         // Must re-setup override wallet if tokenAdmin has changed
         vm.expectRevert(ICTMRWA1Storage.CTMRWA1Storage_ForceTransferNotSetup.selector);
         token.forceTransfer(user1, user2, tokenId2User1);
+        vm.stopPrank();
+    }
+
+    function test_transferFrom_paused_unpaused() public {
+        // Pause the contract as tokenAdmin
+        vm.prank(tokenAdmin);
+        token.pause();
+
+        // Try transferFrom while paused, should revert with custom error
+        vm.startPrank(user1);
+        vm.expectRevert(EnforcedPause.selector);
+        token.transferFrom(testTokenId1, testTokenId2, 100);
+        vm.stopPrank();
+
+        // Unpause the contract as tokenAdmin
+        vm.prank(tokenAdmin);
+        token.unpause();
+
+        // Now transferFrom should succeed
+        vm.startPrank(user1);
+        // No need to approve if user1 is already owner of testTokenId1
+        token.transferFrom(testTokenId1, testTokenId2, 100);
         vm.stopPrank();
     }
 }
