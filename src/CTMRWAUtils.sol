@@ -46,6 +46,7 @@ enum Address {
     From,
     Regulator,
     TokenAdmin,
+    Factory,
     Deployer,
     Dividend,
     Identity,
@@ -67,15 +68,17 @@ enum Address {
     Gateway,
     FeeManager,
     RWAX,
-    Erc20Deployer
+    ERC20Deployer,
+    Allowable,
+    ApprovedOrOwner
 }
 
 enum List {
-    WhiteListDisabled, // whitelisting is disabled
-    WhiteListEnabled, // whitelisting is enabled
-    NoWLOrBL, // neither whitelist nor blacklist are defined
-    WLAndBL, // whitelist and blacklist are defined
-    NoWLOrKYC // neither whitelist nor kyc is enabled
+    WL_Disabled, // whitelisting is disabled
+    WL_Enabled, // whitelisting is enabled
+    WL_BL_Undefined, // neither whitelist nor blacklist are defined
+    WL_BL_Defined, // whitelist and blacklist are defined
+    WL_KYC_Disabled // neither whitelist nor kyc is enabled
 }
 
 library CTMRWAUtils {

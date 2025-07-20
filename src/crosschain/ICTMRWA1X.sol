@@ -34,7 +34,7 @@ interface ICTMRWA1X is ICTMRWA {
     // Address
     error CTMRWA1X_Unauthorized(Address);
     error CTMRWA1X_IsZeroAddress(Address);
-    error CTMRWA1X_InvalidTokenContract();
+    error CTMRWA1X_InvalidContract(Address);
     error CTMRWA1X_InvalidAddress(Address);
 
     // Input Validation

@@ -243,7 +243,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             ID = _existingID;
             (bool ok, address rwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(ID, _rwaType, _version);
             if (!ok) {
-                revert CTMRWA1X_InvalidTokenContract();
+                revert CTMRWA1X_InvalidContract(Address.Token);
             }
             ctmRwa1Addr = rwa1Addr;
 
@@ -295,7 +295,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     ) internal returns (address) {
         (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (ok) {
-            revert CTMRWA1X_InvalidTokenContract();
+            revert CTMRWA1X_InvalidContract(Address.Token);
         }
 
         bytes memory deployData = abi.encode(
@@ -375,7 +375,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     ) external onlyCaller returns (bool) {
         (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (ok) {
-            revert CTMRWA1X_InvalidTokenContract();
+            revert CTMRWA1X_InvalidContract(Address.Token);
         }
 
         address newAdmin = _newAdminStr._stringToAddress();
@@ -469,7 +469,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     {
         (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1X_InvalidTokenContract();
+            revert CTMRWA1X_InvalidContract(Address.Token);
         }
 
         address newAdmin = _newAdminStr._stringToAddress();
@@ -599,7 +599,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     {
         (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1X_InvalidTokenContract();
+            revert CTMRWA1X_InvalidContract(Address.Token);
         }
         if (ICTMRWA1(ctmRwa1Addr).slotExists(_slot)) {
             revert CTMRWA1X_SlotExists(_slot);
@@ -750,7 +750,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1X_InvalidTokenContract();
+            revert CTMRWA1X_InvalidContract(Address.Token);
         }
 
         bool slotExists = ICTMRWA1(ctmRwa1Addr).slotExists(_slot);
@@ -819,7 +819,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1X_InvalidTokenContract();
+            revert CTMRWA1X_InvalidContract(Address.Token);
         }
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
