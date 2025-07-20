@@ -380,18 +380,17 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         }
     }
 
-    // TODO test this
     /**
      * @notice Return the full Storage struct corresponding to a given Object name
      * NOTE This function returns an EMPTY record if the Object name was not found
      */
-    function getURIHashByObjectName(string memory _objectName) public view returns (URIData memory) {
+    function getURIByObjectName(string memory _objectName) public view returns (URIData memory) {
         uint256 indx = uriDataIndex[_objectName];
 
         if (indx == 0) {
             return (URIData(URICategory.EMPTY, URIType.EMPTY, "", 0, "", 0, 0));
         } else {
-            return (uriData[indx]);
+            return (uriData[indx - 1]);
         }
     }
 

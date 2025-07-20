@@ -114,5 +114,5 @@ interface ICTMRWA1Storage is ICTMRWA {
     function getURIHash(bytes32 _hash) external view returns (URIData memory);
     function existURIHash(bytes32 uriHash) external view returns (bool);
     function existObjectName(string memory objectName) external view returns (bool);
-    function getURIHashByObjectName(string memory objectName) external view returns (URIData memory);
+    function getURIByObjectName(string memory objectName) external view returns (URIData memory);
 }

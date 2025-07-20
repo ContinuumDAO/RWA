@@ -14,17 +14,44 @@ import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
 
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract is to allow a user to register their KYC credentials and if they
+ * satisfy the requirements of the KYC Schema, then their address is Whitelisted in the RWA token
+ * on all chains. It allows truly decentralized & anonymous cross-chain credential verifications.
+ * NOTE This contract currently is only configured to work with zkMe (https://zk.me), but will be extended
+ * in the future to include other zkProof identity systems.
+ * NOTE This contract is only deployed on some chains, corrsponding to where the zkMe verifier contract is.
+ * This means that if an Issuer wants to use KYC using zkMe, they must first add one of these chains to their
+ * RWA token AND ONLY THEN call setSentryOptions to enable the _kyc flag. IT HAS TO BE DONE IN THIS ORDER.
+ */
+
 contract CTMRWA1Identity is ICTMRWA1Identity {
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
 
+    /// @dev rwaType is the RWA type defining CTMRWA1
     uint256 public immutable RWA_TYPE;
+
+    /// @dev version is the single integer version of this RWA type
     uint256 public immutable VERSION;
+    
+    /// @dev The address of the CTMRWAMap contract
     address public ctmRwa1Map;
+
+    /// @dev The address of the CTMRWA1SentryManager contract
     address public sentryManager;
+
+    /// @dev The address of the zKMe Verifier contract
     address public zkMeVerifierAddress;
+
+    /// @dev The address of the FeeManager contract
     address public feeManager;
+
+    /// @dev The chainId as a string
     string cIdStr;
 
     modifier onlyIdChain() {
@@ -62,10 +89,21 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         cIdStr = block.chainid.toString();
     }
 
+    /// @dev Set the zkMe Verifier address (see https://docs.zk.me/zkme-dochub/verify-with-zkme-protocol/integration-guide)
     function setZkMeVerifierAddress(address _verifierAddress) external onlySentryManager {
         zkMeVerifierAddress = _verifierAddress;
     }
 
+
+    /**
+     * @notice Once a user has performed KYC with the provider, this function lets them
+     * submit their credentials to the Verifier by calling the hasApproved function. If they pass,
+     * then their wallet address is added tot he RWA token Whitelist via a call to CTMRWASentryManager
+     * @param _ID The ID of the RWA token
+     * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
+     * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
+     * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
+     */
     function verifyPerson(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr)
         public
         onlyIdChain
@@ -107,10 +145,20 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         return (true);
     }
 
+    /** @dev This checks if the zkMe Verifier contract has been set for this chain. If it returns false,
+     * then either the zkMeVerifier contract address has not yet been set (a deployment issue), or the
+     * current chain does not allow zkMe verification
+    */
     function isKycChain() public view returns (bool) {
         return (zkMeVerifierAddress != address(0));
     }
 
+    /**
+     * @notice Check if a wallet address has the correct credentials to satisfy the Schema of
+     * the currently implemeted zkMe programNo.
+     * NOTE that since the zkMe parameters can be updated, a user wallet can change its status
+     * NOTE This function does NOT check if a wallet address is currently Whitelisted
+     */
     function isVerifiedPerson(uint256 _ID, address _wallet) public view onlyIdChain returns (bool) {
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
@@ -130,6 +178,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         return isValid;
     }
 
+    /// @dev Pay the fees for verifyPerson KYC
     function _payFee(string memory _feeTokenStr) internal returns (bool) {
         bool includeLocal = false;
         uint256 feeWei =

@@ -5,7 +5,7 @@ pragma solidity 0.8.27;
 import { Test } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
 import { Helpers } from "../helpers/Helpers.sol";
-import { ICTMRWA1Storage, URICategory, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
+import { ICTMRWA1Storage, URICategory, URIType, URIData } from "../../src/storage/ICTMRWA1Storage.sol";
 import { Address } from "../../src/CTMRWAUtils.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -255,5 +255,38 @@ contract CTMRWA1StorageTest is Helpers {
         emit NewURI(category, uriType, slot, hash);
         vm.prank(address(storageManager));
         stor.addURILocal(ID, objectName, category, uriType, title, slot, timestamp, hash);
+    }
+
+    function test_getURIHashByObjectName_returnsCorrectData() public {
+        // Add a URI
+        string memory objectName = "1";
+        URICategory category = URICategory.ISSUER;
+        URIType uriType = URIType.CONTRACT;
+        string memory title = "Test Title";
+        uint256 slot = 42;
+        uint256 timestamp = block.timestamp;
+        bytes32 hash = keccak256("test-uri-hash");
+        vm.prank(address(storageManager));
+        stor.addURILocal(ID, objectName, category, uriType, title, slot, timestamp, hash);
+
+        // Retrieve by object name
+        URIData memory data = stor.getURIByObjectName(objectName);
+        assertEq(uint8(data.uriCategory), uint8(category));
+        assertEq(uint8(data.uriType), uint8(uriType));
+        assertEq(data.title, title);
+        assertEq(data.slot, slot);
+        assertEq(data.objectName, objectName);
+        assertEq(data.uriHash, hash);
+        assertEq(data.timeStamp, timestamp);
+
+        // Test for non-existent object name
+        URIData memory emptyData = stor.getURIByObjectName("doesnotexist");
+        assertEq(uint8(emptyData.uriCategory), uint8(URICategory.EMPTY));
+        assertEq(uint8(emptyData.uriType), uint8(URIType.EMPTY));
+        assertEq(emptyData.title, "");
+        assertEq(emptyData.slot, 0);
+        assertEq(emptyData.objectName, "");
+        assertEq(emptyData.uriHash, 0);
+        assertEq(emptyData.timeStamp, 0);
     }
 }

@@ -170,10 +170,25 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     }
 
     /**
-     * @notice Allow an Issuer(tokenAdmin) to create new investment Offering, with all parameters.
+     * @notice Allow an Issuer(tokenAdmin) to create a new investment Offering, with all parameters.
+     * One of the tokenAdmin's tokenIds is transferred to the contract and then when an investor invests,
+     * they get a tokenId, which is held by this contract for an escrow period, after which they can withdraw it.
      * @param _tokenId This is the tokenId of the tokenAdmin that is transferred to this contract.
      * Its balance is the amount of the Offering and its Asset Class(slot) defines what is being offered
-     * @param _price The price of 
+     * @param _price The price of 1 unit of value in the tokenId.
+     * @param _currency The ERC20 address of the  token required to be invested
+     * @param _minInvestment The minimum allowable investment
+     * @param _maxInvestment The maximum allowable investment
+     * @param _regulatorCountry The 2 letter Country Code of the Regulator
+     * @param _regulatorAcronym The acronym of the Regulator
+     * @param _offeringType The short AssetX description of the offering
+     * @param _startTime The time after which offers will be accepted
+     * @param _endTime The end time, after which offers will no longer be allowed
+     * @param _lockDuration The time for which the investors tokenId will be held in escrow for.
+     * After this time they may unlock their tokenId into their own wallet. They may claim dividends
+     * during the escrow period.
+     * @param _feeToken The address of the ERC20 token used to pay fees to AssetX. See getFeeTokenList in
+     * the FeeManager contract for allowable fee addresses
      */
     function createOffering(
         uint256 _tokenId,
@@ -247,6 +262,15 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         emit CreateOffering(ID, indx, slot, offer);
     }
 
+    /**
+     * @notice An investor makes an investment for an Offering and is given a tokenId with a value 
+     * corresponding to their investment and with the same Asset Class (slot). This is held in escrow
+     * in the contract for a period, during which they may still receive dividends.
+     * @param _indx The zero based index of the Offering. The tokenAdmin may have created several such Offerings
+     * @param _investment The investment amount being made. It must conform to the parameters in the Offering.
+     * @param _feeToken The address of the ERC20 token used to pay fees to AssetX. See getFeeTokenList in
+     * the FeeManager contract for allowable fee addresses.
+     */
     function investInOffering(uint256 _indx, uint256 _investment, address _feeToken)
         public
         nonReentrant
@@ -300,7 +324,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         _payFee(FeeType.INVEST, _feeToken);
 
         uint8 decimalsCurrency = IERC20Extended(currency).decimals();
-        // decimalsRwa is already available
+        
         uint256 value;
         if (decimalsRwa >= decimalsCurrency) {
             uint256 scale = 10 ** (decimalsRwa - decimalsCurrency);
@@ -332,6 +356,13 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         return newTokenId;
     }
 
+    /**
+     * @notice This function allows the tokenAdmin to withdraw any ERC20 token held by this contract.
+     * @param _contractAddr The address of the ERC20
+     * @param _amount The amount of the ERC20 to withdraw in wei
+     * NOTE This is an emergency only function. The normal route for a tokenAdmin to withdraw investments
+     * is to use the withdrawInvested function. The withdraw function will be removed ata a later stage.
+     */
     function withdraw(address _contractAddr, uint256 _amount) public onlyTokenAdmin(ctmRwaToken) returns(uint256) {
         uint256 bal = IERC20(_contractAddr).balanceOf(address(this));
         if (bal == 0) {
@@ -346,6 +377,12 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         return bal;
     }
 
+    /**
+     * @notice Allow an Issuer (tokenAdmin) to withdraw funds that have been invested in an Offering
+     * @param _indx The zero based index of the Offering for which to withdraw funds from.
+     * NOTE The tokenAdmin can withdraw funds whenevr there are finds to withdraw. No need to wait until
+     * after the Offering is over.
+     */
     function withdrawInvested(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) nonReentrant returns (uint256) {
         if (_indx >= offerings.length) {
             revert CTMRWA1InvestWithTimeLock_OutOfBounds();
@@ -374,6 +411,13 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         }
     }
 
+    /**
+     * @notice A holder of an investment can withdraw their tokenId from escrow into their possesion.
+     * @param _myIndx The zero based index of the Holding to unlock. An investor can have multipe Holdings
+     * in this Offering
+     * @param _feeToken The address of the ERC20 token used to pay fees to AssetX. See getFeeTokenList in
+     * the FeeManager contract for allowable fee addresses.
+     */
     function unlockTokenId(uint256 _myIndx, address _feeToken) public nonReentrant returns (uint256) {
         if (_myIndx >= holdingsByAddress[msg.sender].length) {
             revert CTMRWA1InvestWithTimeLock_OutOfBounds();
@@ -404,6 +448,10 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         }
     }
 
+    /**
+     * @notice Claim dividends for a tokenId held in a Holding in escrow.
+     * @param _myIndx The zero based index of a Holding for which to claim dividends
+     */
     function claimDividendInEscrow(uint256 _myIndx) public nonReentrant returns (uint256) {
         if (_myIndx >= holdingsByAddress[msg.sender].length) {
             revert CTMRWA1InvestWithTimeLock_OutOfBounds();
@@ -443,14 +491,24 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         }
     }
 
+    /**
+     * @notice Get the total number of Offerings generated by the Issuer (tokenAdmin).
+     */
     function offeringCount() public view returns (uint256) {
         return (offerings.length);
     }
 
+    /**
+     * @notice Return all the Offerings generated by the Issuer (tokenAdmin).
+     */
     function listOfferings() public view returns (Offering[] memory) {
         return (offerings);
     }
 
+    /**
+     * @notice Return the Offering made by the Issuer (tokenAdmin) at an index.
+     * @param _offerIndx The zero based index of the Offering to return.
+     */
     function listOffering(uint256 _offerIndx) public view returns (Offering memory) {
         if (_offerIndx >= offerings.length) {
             revert CTMRWA1InvestWithTimeLock_OutOfBounds();
@@ -458,14 +516,27 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         return (offerings[_offerIndx]);
     }
 
+    /**
+     * @notice Return the number of Holdings held by an address in this contract
+     * @param _holder The address of the holder.
+     */
     function escrowHoldingCount(address _holder) public view returns (uint256) {
         return holdingsByAddress[_holder].length;
     }
 
+    /**
+     * @notice Return a all the Holding records held by an address.
+     * @param _holder The address of the holder.
+     */
     function listEscrowHoldings(address _holder) public view returns (Holding[] memory) {
         return holdingsByAddress[_holder];
     }
 
+    /**
+     * @notice Return a Holding record of an address at an index.
+     * @param _holder The address of the holder.
+     * @param _myIndx The zero based index of the Holding to return.
+     */
     function listEscrowHolding(address _holder, uint256 _myIndx) public view returns (Holding memory) {
         if (_myIndx >= holdingsByAddress[_holder].length) {
             revert CTMRWA1InvestWithTimeLock_OutOfBounds();
@@ -475,6 +546,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         return (thisHolding);
     }
 
+    /// @dev Check that msg.sender is the tokenAdmin of a CTMRWA1 address
     function _checkTokenAdmin(address _ctmRwaToken) internal {
         tokenAdmin = ICTMRWA1(_ctmRwaToken).tokenAdmin();
         if (msg.sender != tokenAdmin) {

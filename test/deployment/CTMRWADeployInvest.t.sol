@@ -219,7 +219,7 @@ contract TestInvest is Helpers {
         // (This is a mock test, as actual decimals are set in the token contracts)
         // We'll use a very small investment and a very large price to force value to 0
         uint256 smallInvestment = 1; // 1 unit of currency
-        uint256 largePrice = 1e18; // Large price
+        // uint256 largePrice = 1e18; // Large price
         vm.startPrank(user1);
         usdc.approve(address(investContract), smallInvestment);
         // Expect value to underflow to 0, so the transferPartialTokenX should revert or result in 0 value
@@ -570,7 +570,7 @@ contract TestInvest is Helpers {
         uint256 gasBefore = gasleft();
         
         vm.startPrank(user1);
-        uint256 claimed = investContract.claimDividendInEscrow(0);
+        investContract.claimDividendInEscrow(0);
         vm.stopPrank();
         
         uint256 gasUsed = gasBefore - gasleft();
@@ -686,7 +686,7 @@ contract TestInvest is Helpers {
         // Arrange: User invests in offering
         vm.startPrank(user1);
         usdc.approve(address(investContract), amount);
-        uint256 investedTokenId = investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, currency);
         uint256 holdingIndex = 0; // first investment for user1
         vm.stopPrank();
 

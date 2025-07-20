@@ -7,9 +7,6 @@ import { Address } from "../CTMRWAUtils.sol";
 interface ICTMRWADeployInvest {
     error CTMRWADeployInvest_Unauthorized(Address);
 
-    // TODO: implement this function/variable
-    // function ID() external view returns (uint256);
-
     function commissionRate() external view returns (uint256);
 
     function setCommissionRate(uint256 commissionRate) external;

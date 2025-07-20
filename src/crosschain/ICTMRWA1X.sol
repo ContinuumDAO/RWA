@@ -133,7 +133,6 @@ interface ICTMRWA1X is ICTMRWA {
         string memory feeTokenStr
     ) external;
 
-    // TODO: remove `_fromTokenId` & `_fromTokenStr`
     function mintX(
         uint256 _ID,
         string memory _fromAddressStr,

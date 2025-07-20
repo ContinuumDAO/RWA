@@ -31,7 +31,6 @@ contract CTMRWA1DividendFactory is ICTMRWA1DividendFactory {
         deployer = _deployer;
     }
 
-    // BUG: this function is defined in this contract and CTMRWA1TokenFactory
     /**
      * @dev Deploy a new CTMRWA1Dividend using 'salt' ID to ensure a unique contract address
      */

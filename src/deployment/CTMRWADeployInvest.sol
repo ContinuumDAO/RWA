@@ -9,6 +9,15 @@ import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
 
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice This contract deploys an CTMRWA1InvestWithTimeLock contract. Only one such contract
+ * can be deployed for an RWA token per chain, since the salt is tied to the _ID, _rwaType, _version.
+ * The contract address of the CTMRWA1InvestWithTimeLock can be got using CTMRWAMap.
+*/
+
 contract CTMRWADeployInvest is ICTMRWADeployInvest {
     using Strings for *;
     using CTMRWAUtils for string;

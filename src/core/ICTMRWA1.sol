@@ -85,6 +85,9 @@ interface ICTMRWA1 is ICTMRWA {
 
     function ID() external view returns (uint256);
     function tokenAdmin() external returns (address);
+    function pause() external;
+    function unpause() external;
+    function isPaused() external view returns (bool);
     function setOverrideWallet(address overrideWallet) external;
     function overrideWallet() external returns (address);
     function ctmRwa1X() external returns (address);

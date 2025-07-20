@@ -10,6 +10,15 @@ import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
 
+/**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
+ * @notice The main purpose of this contract is to deploy an instance of CTMRWA1Sentry for a CTMRWA1
+ * It also houses the required c3caller fallback function, which currently does not do anything except
+ * emit the LogFallback event
+ */
+
 contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
     using Strings for *;
     using CTMRWAUtils for string;
@@ -37,6 +46,7 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
         sentryManager = _sentryManager;
     }
 
+    /// @dev Deploy an instance of CTMRWA1Sentry with salt including its unique ID
     function deploySentry(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _map)
         external
         onlySentryManager
@@ -48,10 +58,12 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
         return (address(ctmRwa1Sentry));
     }
 
+    /// @dev Get the last revert string for a faile cross-chain c3call. For debug purposes
     function getLastReason() public view returns (string memory) {
         return (string(lastReason));
     }
 
+    /// @dev The required c3caller fallback function
     function sentryC3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         external
         onlySentryManager
@@ -66,6 +78,7 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
         return (true);
     }
 
+    /// @dev Get the deployed contract address on this chain for this CTMRWA1 ID
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {

@@ -841,7 +841,7 @@ contract TestCTMRWA1X is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
         // Mint with a
         vm.prank(tokenAdmin);
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, a, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(user1, 0, 5, a, ID, feeTokenStr);
         // Try to mint with b (should not overflow)
         vm.prank(tokenAdmin);
         uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, b, ID, feeTokenStr);
@@ -916,7 +916,7 @@ contract TestCTMRWA1X is Helpers {
         vm.prank(tokenAdmin);
         uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, feeTokenStr);
         
-        (uint256 id, uint256 bal, address owner, uint256 slotNum, string memory slotName,) = token.getTokenInfo(tokenId);
+        (,,, uint256 slotNum,,) = token.getTokenInfo(tokenId);
         assertEq(slotNum, slot);
     }
 
@@ -1432,7 +1432,7 @@ contract TestCTMRWA1X is Helpers {
 
     function test_revert_NonExistentSlot() public {
         vm.startPrank(tokenAdmin);
-        (uint256 ID, CTMRWA1 token) = _deployCTMRWA1(address(usdc));
+        (uint256 ID,) = _deployCTMRWA1(address(usdc));
         // Try to mint to a non-existent slot
         string memory feeTokenStr = address(usdc).toHexString();
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_NonExistentSlot.selector, 999));

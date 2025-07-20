@@ -12,6 +12,9 @@ import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { Address } from "../CTMRWAUtils.sol";
 
 /**
+ * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
+ * @author @Selqui ContinuumDAO
+ *
  * This contract is an ERC20. The required interface functions are directly linked to various
  * functions in CTMRWA1. This contract is deployed by deployERC20() in the contract CTMRWAERC20Deployer
  * which uses CREATE2.

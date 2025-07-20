@@ -42,9 +42,6 @@ interface ICTMRWA1InvestWithTimeLock {
     error CTMRWA1InvestWithTimeLock_NotWhiteListed(address);
     error CTMRWA1InvestWithTimeLock_AlreadyWithdrawn(uint256);
 
-    // TODO: implement this function
-    // function holdingsByAddress(address) external view returns (Holding[] memory);
-
     function commissionRate() external view returns (uint256);
 
     function pauseOffering(uint256 _indx) external;
@@ -66,6 +63,8 @@ interface ICTMRWA1InvestWithTimeLock {
         uint256 lockDuration,
         address feeToken
     ) external;
+
+    function ID() external returns(uint256);
 
     function investInOffering(uint256 indx, uint256 investment, address feeToken) external returns (uint256);
 

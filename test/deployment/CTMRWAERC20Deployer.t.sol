@@ -21,7 +21,6 @@ contract TestERC20Deployer is Helpers {
         (ID, token) = _deployCTMRWA1(address(usdc));
         uint256 nonExistentSlot = 42;
         string memory name = "No Slot";
-        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
         usdc.approve(address(feeManager), 100000000);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InvalidSlot.selector, nonExistentSlot));
         token.deployErc20(nonExistentSlot, name, address(usdc));
@@ -34,7 +33,6 @@ contract TestERC20Deployer is Helpers {
         _createSomeSlots(ID, address(usdc), address(rwa1X));
         uint256 slot = 1;
         string memory name = "Basic Stuff";
-        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
         usdc.approve(address(feeManager), 100000000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
@@ -51,7 +49,6 @@ contract TestERC20Deployer is Helpers {
         _createSomeSlots(ID, address(usdc), address(rwa1X));
         uint256 slot = ICTMRWA1(address(token)).slotByIndex(0); // just use the first slot
         string memory name = "Basic Stuff";
-        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
         usdc.approve(address(feeManager), 100000000);
         token.deployErc20(slot, name, address(usdc));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.RWAERC20));
@@ -71,7 +68,7 @@ contract TestERC20Deployer is Helpers {
         usdc.approve(address(feeManager), 100000000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
-        uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr);
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 2000);
         assertEq(ICTMRWAERC20(newErc20).totalSupply(), 2000);
         rwa1X.mintNewTokenValueLocal(user2, 0, slot, 3000, ID, feeTokenStr);

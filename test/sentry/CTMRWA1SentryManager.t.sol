@@ -885,7 +885,7 @@ contract TestSentryManager is Helpers {
 
         // Deploy a new sentry with KYC switch off
         skip(10);
-        (uint256 newID, CTMRWA1 token2) = _deployCTMRWA1(address(usdc));
+        (uint256 newID,) = _deployCTMRWA1(address(usdc));
 
         sentryManager.setSentryOptions(
             newID,
