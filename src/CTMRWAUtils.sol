@@ -25,7 +25,8 @@ enum Uint {
     InvestmentHigh,
     Payable,
     ChainID,
-    Multiplier
+    Multiplier,
+    BaseURI
 }
 
 enum Time {

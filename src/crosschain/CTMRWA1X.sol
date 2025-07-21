@@ -210,6 +210,11 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
             revert CTMRWA1X_InvalidLength(Uint.Symbol);
         }
 
+        len = bytes(_baseURI).length;
+        if (len > 4) {
+            revert CTMRWA1X_InvalidLength(Uint.BaseURI);
+        }
+
         uint256 nChains = _toChainIdsStr.length;
 
         string memory ctmRwa1AddrStr;

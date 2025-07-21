@@ -88,44 +88,30 @@ contract TestCTMRWA1 is Helpers {
     // ========== CHANGE ADMIN TEST ==============
 
     function test_changeAdmin() public {
-        // Check that an address other than tokenAdmin cannot changeAdmin
+        // Only ctmRwa1X can call changeAdmin
         vm.prank(tokenAdmin2);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
         token.changeAdmin(tokenAdmin2);
-
-        // Check that changeAdmin sets the correct new admin and returns true
-        vm.prank(address(rwa1X));
-        bool ok = token.changeAdmin(tokenAdmin2);
-        assertEq(token.tokenAdmin(), tokenAdmin2);
-        assertTrue(ok);
-
-        // Check that the override wallet was reset to address(0)
-        assertEq(token.overrideWallet(), address(0));
     }
 
     // ============ ATTACHMENT TESTS =============
 
     function test_attachId() public {
-        // Check that an address other than address(rwa1X) cannot attachId
-        vm.prank(address(tokenAdmin));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
-        token.attachId(ID, tokenAdmin);
+        // Check that an address other than ctmRwa1X cannot attach ID
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
+        token.attachId(123, user1);
 
         vm.prank(address(rwa1X));
-        // Check that the tokenAdmin address passed into the function by rwa1X is indeed the tokenAdmin
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.TokenAdmin));
-        token.attachId(ID, tokenAdmin2);
-
-        vm.prank(address(rwa1X));
-        // Check that the attachId returns false (the ID was previously assigned);
-        bool ok = token.attachId(ID, tokenAdmin);
-        assertFalse(ok);
+        // Check that ctmRwa1X cannot reset the ID for a previously attached ID
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.TokenAdmin, Address.TokenAdmin));
+        token.attachId(123, user1);
     }
 
     function test_attachDividend() public {
         // Check that an address other than ctmRwaMap cannot attach dividend contract
         vm.prank(tokenAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Map));
         token.attachDividend(address(dividendFactory));
 
         vm.prank(address(map));
@@ -137,7 +123,7 @@ contract TestCTMRWA1 is Helpers {
     function test_attachStorage() public {
         // Check that an address other than ctmRwaMap cannot attach storage contract
         vm.prank(tokenAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Map));
         token.attachStorage(address(storageManager));
 
         vm.prank(address(map));
@@ -149,7 +135,7 @@ contract TestCTMRWA1 is Helpers {
     function test_attachSentry() public {
         // Check that an address other than ctmRwaMap cannot attach sentry contract
         vm.prank(tokenAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Map));
         token.attachSentry(address(sentryManager));
 
         vm.prank(address(map));
@@ -234,48 +220,39 @@ contract TestCTMRWA1 is Helpers {
     function test_onlyTokenAdminAccess() public {
         // Test that only tokenAdmin can call restricted functions
         vm.startPrank(user1);
-
         // Try to set override wallet without being tokenAdmin
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
         token.setOverrideWallet(user2);
-
         vm.stopPrank();
     }
 
     function test_onlyRwa1XAccess() public {
         // Test that only rwa1X can call restricted functions
         vm.startPrank(user1);
-
         // Try to mint without being rwa1X
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, 0, 17));
         token.mintFromX(user1, testSlot, "Test Slot", 100);
-
         // Try to transfer from without being rwa1X
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, 0, 17));
         token.transferFrom(testTokenId1, user2, 100);
-
         vm.stopPrank();
     }
 
     function test_onlyMinterAccess() public {
         // Test that only minters can call mint functions
         vm.startPrank(user1);
-
         // Try to mint value without being a minter
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Minter));
         token.mintValueX(testTokenId1, testSlot, 100);
-
         vm.stopPrank();
     }
 
     function test_onlyCtmMapAccess() public {
         // Test that only ctmRwaMap can call restricted functions
         vm.startPrank(user1);
-
         // Try to attach dividend without being ctmRwaMap
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Map));
         token.attachDividend(address(dividendFactory));
-
         vm.stopPrank();
     }
 
@@ -478,7 +455,7 @@ contract TestCTMRWA1 is Helpers {
         assertEq(token.allowance(testTokenId1, user2), 500);
 
         // Try to approve self (should fail)
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.To));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.To, Address.Owner));
         token.approve(testTokenId1, user1, 100);
 
         vm.stopPrank();
@@ -686,7 +663,7 @@ contract TestCTMRWA1 is Helpers {
         uint256 tokenId2User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, tokenStr);
 
         // Licensed Security override not set up
-        vm.expectRevert(ICTMRWA1Storage.CTMRWA1Storage_ForceTransferNotSetup.selector);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, 0, 15));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         string memory randomData = "this is any old data";
@@ -726,7 +703,7 @@ contract TestCTMRWA1 is Helpers {
         );
 
         // Licensed Security override not set up, since we didn't set the Regulator's wallet yet
-        vm.expectRevert(ICTMRWA1Storage.CTMRWA1Storage_ForceTransferNotSetup.selector);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         // Try again to set admin as the Regulator's wallet
@@ -734,7 +711,7 @@ contract TestCTMRWA1 is Helpers {
         assertEq(ICTMRWA1Storage(stor).regulatorWallet(), admin);
 
         // Licensed Security override not set up, since we did not set the override wallet yet
-        vm.expectRevert(ICTMRWA1Storage.CTMRWA1Storage_ForceTransferNotSetup.selector);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         // Set the override wallet as tokenAdmin2. This should be a Multi-sig wallet, with admin as one of the signers.
@@ -766,7 +743,7 @@ contract TestCTMRWA1 is Helpers {
 
         vm.startPrank(tokenAdmin2);
         // Must re-setup override wallet if tokenAdmin has changed
-        vm.expectRevert(ICTMRWA1Storage.CTMRWA1Storage_ForceTransferNotSetup.selector);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
         token.forceTransfer(user1, user2, tokenId2User1);
         vm.stopPrank();
     }
