@@ -1448,7 +1448,7 @@ contract TestCTMRWA1X is Helpers {
         (uint256 ID, ) = _deployCTMRWA1(address(usdc));
         vm.stopPrank();
         vm.startPrank(tokenAdmin2);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, Address.Sender, Address.ApprovedOrOwner));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, Address.Sender, Address.Admin));
         rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), ID, address(usdc).toHexString());
         vm.stopPrank();
     }
