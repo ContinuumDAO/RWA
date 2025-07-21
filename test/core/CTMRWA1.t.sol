@@ -229,12 +229,12 @@ contract TestCTMRWA1 is Helpers {
     function test_onlyRwa1XAccess() public {
         // Test that only rwa1X can call restricted functions
         vm.startPrank(user1);
-        // Try to mint without being rwa1X
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, 0, 17));
-        token.mintFromX(user1, testSlot, "Test Slot", 100);
-        // Try to transfer from without being rwa1X
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, 0, 17));
-        token.transferFrom(testTokenId1, user2, 100);
+        // Try to change admin without being rwa1X
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
+        token.changeAdmin(address(0x1234));
+        // Try to attachId without being rwa1X
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
+        token.attachId(100, address(0x5678));
         vm.stopPrank();
     }
 
@@ -663,7 +663,7 @@ contract TestCTMRWA1 is Helpers {
         uint256 tokenId2User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, tokenStr);
 
         // Licensed Security override not set up
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, 0, 15));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         string memory randomData = "this is any old data";
@@ -719,7 +719,7 @@ contract TestCTMRWA1 is Helpers {
         assertEq(token.overrideWallet(), tokenAdmin2);
 
         // Try to force transfer again, should fail since the override wallet is not the sender (tokenAdmin)
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Override));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         vm.stopPrank();
@@ -732,7 +732,7 @@ contract TestCTMRWA1 is Helpers {
 
         vm.startPrank(user2);
         // Try a forceTransfer with the user2, should fail since user2 is not the override wallet (tokenAdmin2)
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Override));
         token.forceTransfer(user1, user2, tokenId2User1);
 
         vm.stopPrank();
