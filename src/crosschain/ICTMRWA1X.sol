@@ -32,7 +32,7 @@ interface ICTMRWA1X is ICTMRWA {
     event AdminChanged(uint256 ID, string newAdmin);
 
     // Address
-    error CTMRWA1X_Unauthorized(Address);
+    error CTMRWA1X_OnlyAuthorized(Address addr, Address auth); // `addr` must be `auth`
     error CTMRWA1X_IsZeroAddress(Address);
     error CTMRWA1X_InvalidContract(Address);
     error CTMRWA1X_InvalidAddress(Address);

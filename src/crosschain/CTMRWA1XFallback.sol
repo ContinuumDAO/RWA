@@ -29,7 +29,7 @@ contract CTMRWA1XFallback is ICTMRWA1XFallback {
 
     modifier onlyRwa1X() {
         if (msg.sender != rwa1X) {
-            revert CTMRWA1XFallback_Unauthorized(Address.Sender);
+            revert CTMRWA1XFallback_OnlyAuthorized(Address.Sender, Address.RWAX);
         }
         _;
     }

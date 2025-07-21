@@ -651,7 +651,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         if (!ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId)) {
-            revert CTMRWA1X_Unauthorized(Address.Sender);
+            revert CTMRWA1X_OnlyAuthorized(Address.Sender, Address.ApprovedOrOwner);
         }
 
         if (toChainIdStr.equal(cIdStr)) {
@@ -707,7 +707,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         address fromAddr = _fromAddrStr._stringToAddress();
         if (!ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId)) {
-            revert CTMRWA1X_Unauthorized(Address.Sender);
+            revert CTMRWA1X_OnlyAuthorized(Address.Sender, Address.ApprovedOrOwner);
         }
 
         if (toChainIdStr.equal(cIdStr)) {
@@ -850,14 +850,13 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     /**
      * @dev Return the tokenAdmin address for a CTMRWA1 with address _tokenAddr and
      * check that the msg.sender is the tokenAdmin and revert if not so.
-     * OPTIMIZE: this function could be removed (in favour of local errors) if size reduction is needed
      */
     function _checkTokenAdmin(address _tokenAddr) internal returns (address, string memory) {
         address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = currentAdmin.toHexString()._toLower();
 
         if (msg.sender != currentAdmin) {
-            revert CTMRWA1X_Unauthorized(Address.Sender);
+            revert CTMRWA1X_OnlyAuthorized(Address.Sender, Address.Admin);
         }
 
         return (currentAdmin, currentAdminStr);

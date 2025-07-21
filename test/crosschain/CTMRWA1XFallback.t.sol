@@ -10,7 +10,7 @@ import { CTMRWA1XFallback } from "../../src/crosschain/CTMRWA1XFallback.sol";
 import { ICTMRWA1XFallback } from "../../src/crosschain/ICTMRWA1XFallback.sol";
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
-import { CTMRWAUtils } from "../../src/CTMRWAUtils.sol";
+import { CTMRWAUtils, Address } from "../../src/CTMRWAUtils.sol";
 
 contract CTMRWA1XFallbackTest is Helpers {
     using CTMRWAUtils for string;
@@ -35,7 +35,7 @@ contract CTMRWA1XFallbackTest is Helpers {
         bytes memory reason = "test reason";
 
         // Should revert when called by non-RWA1X address
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1XFallback.CTMRWA1XFallback_Unauthorized.selector, 0));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1XFallback.CTMRWA1XFallback_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
         rwa1XFallback.rwa1XC3Fallback(selector, data, reason, address(map));
     }
 

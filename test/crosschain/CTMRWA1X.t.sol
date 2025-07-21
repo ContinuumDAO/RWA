@@ -341,7 +341,7 @@ contract TestCTMRWA1X is Helpers {
         address[] memory feeTokenList = feeManager.getFeeTokenList();
         string memory feeTokenStr = feeTokenList[0].toHexString();
 
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, Address.Sender, Address.ApprovedOrOwner));
         rwa1X.transferPartialTokenX(tokenId, user1.toHexString(), cIdStr, 5, ID, feeTokenStr);
         vm.stopPrank();
 
@@ -382,7 +382,7 @@ contract TestCTMRWA1X is Helpers {
 
         vm.startPrank(user2);
         // Check that user2 cannot transfer tokenId to user1 (since it is tokenAdmin's)
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, Address.Sender, Address.ApprovedOrOwner));
         rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
         vm.stopPrank();
 
@@ -1448,13 +1448,13 @@ contract TestCTMRWA1X is Helpers {
         (uint256 ID, ) = _deployCTMRWA1(address(usdc));
         vm.stopPrank();
         vm.startPrank(tokenAdmin2);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, Address.Sender, Address.ApprovedOrOwner));
         rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), ID, address(usdc).toHexString());
         vm.stopPrank();
     }
 
     // ============ FALLBACK TESTS ============
-    
+
     function test_c3FallbackWithMintXSelector() public {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));

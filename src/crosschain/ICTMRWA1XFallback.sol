@@ -8,7 +8,7 @@ interface ICTMRWA1XFallback {
     event LogFallback(bytes4 selector, bytes data, bytes reason);
     event ReturnValueFallback(address to, uint256 slot, uint256 value);
 
-    error CTMRWA1XFallback_Unauthorized(Address);
+    error CTMRWA1XFallback_OnlyAuthorized(Address addr, Address auth); // `addr` must be `auth`
 
     function rwa1X() external returns (address);
     function lastSelector() external returns (bytes4);
