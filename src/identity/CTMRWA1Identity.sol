@@ -2,17 +2,17 @@
 
 pragma solidity 0.8.27;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { ICTMRWA1Identity } from "./ICTMRWA1Identity.sol";
-import { IZkMeVerify } from "./IZkMeVerify.sol";
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { ICTMRWA1Identity } from "./ICTMRWA1Identity.sol";
+import { IZkMeVerify } from "./IZkMeVerify.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -27,7 +27,6 @@ import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
  * This means that if an Issuer wants to use KYC using zkMe, they must first add one of these chains to their
  * RWA token AND ONLY THEN call setSentryOptions to enable the _kyc flag. IT HAS TO BE DONE IN THIS ORDER.
  */
-
 contract CTMRWA1Identity is ICTMRWA1Identity {
     using Strings for *;
     using SafeERC20 for IERC20;
@@ -38,7 +37,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
 
     /// @dev version is the single integer version of this RWA type
     uint256 public immutable VERSION;
-    
+
     /// @dev The address of the CTMRWAMap contract
     address public ctmRwa1Map;
 
@@ -89,11 +88,11 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         cIdStr = block.chainid.toString();
     }
 
-    /// @dev Set the zkMe Verifier address (see https://docs.zk.me/zkme-dochub/verify-with-zkme-protocol/integration-guide)
+    /// @dev Set the zkMe Verifier address (see
+    /// https://docs.zk.me/zkme-dochub/verify-with-zkme-protocol/integration-guide)
     function setZkMeVerifierAddress(address _verifierAddress) external onlySentryManager {
         zkMeVerifierAddress = _verifierAddress;
     }
-
 
     /**
      * @notice Once a user has performed KYC with the provider, this function lets them
@@ -145,10 +144,11 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         return (true);
     }
 
-    /** @dev This checks if the zkMe Verifier contract has been set for this chain. If it returns false,
+    /**
+     * @dev This checks if the zkMe Verifier contract has been set for this chain. If it returns false,
      * then either the zkMeVerifier contract address has not yet been set (a deployment issue), or the
      * current chain does not allow zkMe verification
-    */
+     */
     function isKycChain() public view returns (bool) {
         return (zkMeVerifierAddress != address(0));
     }

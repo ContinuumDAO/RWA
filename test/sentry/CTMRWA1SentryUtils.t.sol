@@ -2,13 +2,13 @@
 
 pragma solidity 0.8.27;
 
-import { Test } from "forge-std/Test.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { console } from "forge-std/console.sol";
-import { Helpers } from "../helpers/Helpers.sol";
-import { ICTMRWA1SentryUtils } from "../../src/sentry/ICTMRWA1SentryUtils.sol";
-import { Address } from "../../src/CTMRWAUtils.sol";
 import { CTMRWA1Sentry } from "../../src/sentry/CTMRWA1Sentry.sol";
+import { ICTMRWA1SentryUtils } from "../../src/sentry/ICTMRWA1SentryUtils.sol";
+import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { Helpers } from "../helpers/Helpers.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { Test } from "forge-std/Test.sol";
+import { console } from "forge-std/console.sol";
 
 contract CTMRWA1SentryUtilsTest is Helpers {
     using Strings for *;
@@ -28,7 +28,9 @@ contract CTMRWA1SentryUtilsTest is Helpers {
         assertTrue(result);
         // Should fail for non-sentryManager
         vm.prank(address(0xBEEF));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryUtils.CTMRWA1SentryUtils_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1SentryUtils.CTMRWA1SentryUtils_Unauthorized.selector, Address.Sender)
+        );
         sentryUtils.sentryC3Fallback(selector, data, reason);
     }
 

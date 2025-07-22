@@ -14,6 +14,7 @@ import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storag
 import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
 
 event AddingURI(uint256 ID, string chainIdStr);
+
 event URIAdded(uint256 ID);
 
 contract TestStorageManager is Helpers {
@@ -369,17 +370,8 @@ contract TestStorageManager is Helpers {
         vm.startPrank(address(0));
         vm.expectRevert();
         storageManager.addURI(
-            0,
-            "zero",
-            URICategory.ISSUER,
-            URIType.CONTRACT,
-            "Zero Address",
-            0,
-            bytes32(0),
-            _stringToArray(cIdStr),
-            ""
+            0, "zero", URICategory.ISSUER, URIType.CONTRACT, "Zero Address", 0, bytes32(0), _stringToArray(cIdStr), ""
         );
         vm.stopPrank();
     }
-
 }

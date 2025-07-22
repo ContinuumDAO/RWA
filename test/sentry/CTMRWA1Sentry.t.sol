@@ -2,15 +2,16 @@
 
 pragma solidity 0.8.27;
 
-import { Helpers } from "../helpers/Helpers.sol";
-import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { Address } from "../../src/core/ICTMRWA1.sol";
-import { Uint } from "../../src/CTMRWAUtils.sol";
+import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
+import { Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { Helpers } from "../helpers/Helpers.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract TestCTMRWA1Sentry is Helpers {
     using Strings for address;
+
     ICTMRWA1Sentry sentry;
     address sentryAddr;
 
@@ -125,7 +126,7 @@ contract TestCTMRWA1Sentry is Helpers {
         // Deploy a new token and sentry for this test
         vm.startPrank(tokenAdmin);
         skip(10);
-        (uint256 newID, ) = _deployCTMRWA1(address(usdc));
+        (uint256 newID,) = _deployCTMRWA1(address(usdc));
         vm.stopPrank();
         (, address newSentryAddr) = map.getSentryContract(newID, RWA_TYPE, VERSION);
         ICTMRWA1Sentry newSentry = ICTMRWA1Sentry(newSentryAddr);
@@ -145,7 +146,7 @@ contract TestCTMRWA1Sentry is Helpers {
         // Deploy a new token and sentry for this test
         vm.startPrank(tokenAdmin);
         skip(10);
-        (uint256 newID, ) = _deployCTMRWA1(address(usdc));
+        (uint256 newID,) = _deployCTMRWA1(address(usdc));
         vm.stopPrank();
         (, address newSentryAddr) = map.getSentryContract(newID, RWA_TYPE, VERSION);
         ICTMRWA1Sentry newSentry = ICTMRWA1Sentry(newSentryAddr);

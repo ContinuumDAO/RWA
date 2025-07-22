@@ -2,18 +2,18 @@
 
 pragma solidity 0.8.27;
 
+import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
+import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
+import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
+import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
+import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
+import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { Address, CTMRWAUtils, Time, Uint } from "../utils/CTMRWAUtils.sol";
+import { Holding, ICTMRWA1InvestWithTimeLock, Offering } from "./ICTMRWA1InvestWithTimeLock.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { Holding, ICTMRWA1InvestWithTimeLock, Offering } from "./ICTMRWA1InvestWithTimeLock.sol";
-import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
-import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
-import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
-import { FeeType, IFeeManager, IERC20Extended } from "../managers/IFeeManager.sol";
-import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils, Time, Uint } from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -28,8 +28,7 @@ import { Address, CTMRWAUtils, Time, Uint } from "../CTMRWAUtils.sol";
  *
  * Issuers can create multiple simultaneous Offerings.
  *
-*/
-
+ */
 contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuard {
     using Strings for *;
     using SafeERC20 for IERC20;
@@ -65,7 +64,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     address public ctmRwaSentry;
 
     /**
-     * @dev 
+     * @dev
      */
     address public ctmRwa1X;
 
@@ -140,7 +139,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
      */
     function setTokenAdmin(address _tokenAdmin, bool _force) public onlyTokenAdmin(ctmRwaToken) returns (bool) {
         /// @dev if the CTMRWA1 is being locked and there are Offerings, DO NOT change tokenAdmin
-        /// for this Investment contract. The tokenAdmin can manually set to address(0) with the 
+        /// for this Investment contract. The tokenAdmin can manually set to address(0) with the
         /// override _force == true
         if (_tokenAdmin == address(0) && offerings.length != 0 && !_force) {
             return false;
@@ -279,7 +278,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     }
 
     /**
-     * @notice An investor makes an investment for an Offering and is given a tokenId with a value 
+     * @notice An investor makes an investment for an Offering and is given a tokenId with a value
      * corresponding to their investment and with the same Asset Class (slot). This is held in escrow
      * in the contract for a period, during which they may still receive dividends.
      * @param _indx The zero based index of the Offering. The tokenAdmin may have created several such Offerings
@@ -340,7 +339,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         _payFee(FeeType.INVEST, _feeToken);
 
         uint8 decimalsCurrency = IERC20Extended(currency).decimals();
-        
+
         uint256 value;
         if (decimalsRwa >= decimalsCurrency) {
             uint256 scale = 10 ** (decimalsRwa - decimalsCurrency);
@@ -379,7 +378,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
      * NOTE This is an emergency only function. The normal route for a tokenAdmin to withdraw investments
      * is to use the withdrawInvested function. The withdraw function will be removed ata a later stage.
      */
-    function withdraw(address _contractAddr, uint256 _amount) public onlyTokenAdmin(ctmRwaToken) returns(uint256) {
+    function withdraw(address _contractAddr, uint256 _amount) public onlyTokenAdmin(ctmRwaToken) returns (uint256) {
         uint256 bal = IERC20(_contractAddr).balanceOf(address(this));
         if (bal == 0) {
             revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
@@ -507,7 +506,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     //     }
     // }
 
-    function getTokenIdsInEscrow() external returns(uint256[] memory, address[] memory) {
+    function getTokenIdsInEscrow() external returns (uint256[] memory, address[] memory) {
         uint256[] memory tokensInEscrow;
         address[] memory ownersInEscrow;
         return (tokensInEscrow, ownersInEscrow);

@@ -2,17 +2,17 @@
 
 pragma solidity 0.8.27;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { CTMRWAERC20 } from "./CTMRWAERC20.sol";
-import {ICTMRWAERC20Deployer} from "./ICTMRWAERC20Deployer.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address } from "../utils/CTMRWAUtils.sol";
+import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAERC20 } from "./CTMRWAERC20.sol";
+import { ICTMRWAERC20Deployer } from "./ICTMRWAERC20Deployer.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -42,8 +42,12 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
     string cIdStr;
 
     constructor(address _ctmRwaMap, address _feeManager) {
-        if (_ctmRwaMap == address(0)) revert CTMRWAERC20Deployer_IsZeroAddress(Address.Map);
-        if (_feeManager == address(0)) revert CTMRWAERC20Deployer_IsZeroAddress(Address.FeeManager);
+        if (_ctmRwaMap == address(0)) {
+            revert CTMRWAERC20Deployer_IsZeroAddress(Address.Map);
+        }
+        if (_feeManager == address(0)) {
+            revert CTMRWAERC20Deployer_IsZeroAddress(Address.FeeManager);
+        }
 
         ctmRwaMap = _ctmRwaMap;
         feeManager = _feeManager;
@@ -73,8 +77,12 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
         address _feeToken
     ) external returns (address) {
         (bool ok, address ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
-        if (!ok) revert CTMRWAERC20Deployer_InvalidContract(Address.Token);
-        if (msg.sender != ctmRwaToken) revert CTMRWAERC20Deployer_Unauthorized(Address.Sender);
+        if (!ok) {
+            revert CTMRWAERC20Deployer_InvalidContract(Address.Token);
+        }
+        if (msg.sender != ctmRwaToken) {
+            revert CTMRWAERC20Deployer_Unauthorized(Address.Sender);
+        }
 
         _payFee(FeeType.ERC20, _feeToken);
 

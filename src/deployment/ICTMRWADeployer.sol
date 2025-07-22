@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address } from "../utils/CTMRWAUtils.sol";
+import { Address, RWA } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWADeployer {
     error CTMRWADeployer_Unauthorized(Address);

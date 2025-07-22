@@ -2,24 +2,25 @@
 
 pragma solidity 0.8.27;
 
+import { ICTMRWA1, ITokenContract, SlotData, TokenContract } from "../core/ICTMRWA1.sol";
+
+import { ICTMRWA1InvestWithTimeLock } from "../deployment/CTMRWA1InvestWithTimeLock.sol";
+import { ICTMRWADeployer } from "../deployment/ICTMRWADeployer.sol";
+import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
+import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
+import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
+import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { ICTMRWA1Storage, URICategory, URIType } from "../storage/ICTMRWA1Storage.sol";
+import { Address, CTMRWAUtils, List, Uint } from "../utils/CTMRWAUtils.sol";
+import { ICTMRWA1X } from "./ICTMRWA1X.sol";
+import { ICTMRWA1XFallback } from "./ICTMRWA1XFallback.sol";
+import { ICTMRWAGateway } from "./ICTMRWAGateway.sol";
+import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
-import { ICTMRWA1XFallback } from "./ICTMRWA1XFallback.sol";
-import { ICTMRWAGateway } from "./ICTMRWAGateway.sol";
-import { ICTMRWA1X } from "./ICTMRWA1X.sol";
-import { ICTMRWA1, ITokenContract, SlotData, TokenContract } from "../core/ICTMRWA1.sol";
-import { ICTMRWADeployer } from "../deployment/ICTMRWADeployer.sol";
-import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
-import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
-import { ICTMRWA1Storage, URICategory, URIType } from "../storage/ICTMRWA1Storage.sol";
-import { ICTMRWA1InvestWithTimeLock } from "../deployment/CTMRWA1InvestWithTimeLock.sol";
-import { Address, CTMRWAUtils, List, Uint } from "../CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -409,7 +410,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         (, address ctmRwa1SentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
 
         (bool ok, address ctmRwaInvestAddr) = ICTMRWAMap(ctmRwa1Map).getInvestContract(_ID, RWA_TYPE, VERSION);
-        if (ok) ICTMRWA1InvestWithTimeLock(ctmRwaInvestAddr).setTokenAdmin(_newAdmin, false);
+        if (ok) {
+            ICTMRWA1InvestWithTimeLock(ctmRwaInvestAddr).setTokenAdmin(_newAdmin, false);
+        }
 
         ICTMRWA1Sentry(ctmRwa1SentryAddr).setTokenAdmin(_newAdmin);
 

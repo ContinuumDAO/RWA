@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { Address } from "../CTMRWAUtils.sol";
+import { Address } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1XFallback {
     event LogFallback(bytes4 selector, bytes data, bytes reason);
@@ -17,10 +17,7 @@ interface ICTMRWA1XFallback {
 
     function getLastReason() external view returns (string memory);
 
-    function rwa1XC3Fallback(
-        bytes4 selector, 
-        bytes calldata data, 
-        bytes calldata reason, 
-        address map
-    ) external returns (bool);
+    function rwa1XC3Fallback(bytes4 selector, bytes calldata data, bytes calldata reason, address map)
+        external
+        returns (bool);
 }

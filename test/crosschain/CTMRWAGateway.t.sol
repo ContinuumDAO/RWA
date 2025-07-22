@@ -7,9 +7,9 @@ import { console } from "forge-std/console.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { Helpers } from "../helpers/Helpers.sol";
 import { ICTMRWAGateway } from "../../src/crosschain/ICTMRWAGateway.sol";
-import { CTMRWAUtils, Uint } from "../../src/CTMRWAUtils.sol";
+import { CTMRWAUtils, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { Helpers } from "../helpers/Helpers.sol";
 
 contract TestGateway is Helpers {
     using Strings for *;
@@ -91,13 +91,17 @@ contract TestGateway is Helpers {
 
         vm.startPrank(gov);
         vm.expectRevert(CTMRWAUtils.CTMRWAUtils_StringTooLong.selector);
-        gateway.attachRWAX(RWA_TYPE, VERSION, 
+        gateway.attachRWAX(
+            RWA_TYPE,
+            VERSION,
             _stringToArray("012345678901234567890123456789012345678901234567890123456789012345"), //len 65
             _stringToArray("Dummy")
         );
 
         vm.expectRevert(CTMRWAUtils.CTMRWAUtils_StringTooLong.selector);
-        gateway.attachRWAX(RWA_TYPE, VERSION, 
+        gateway.attachRWAX(
+            RWA_TYPE,
+            VERSION,
             _stringToArray("2"),
             _stringToArray("AVeryLongContractAddress999999999999999999999999999999999999999999") // len 65
         );
@@ -129,13 +133,17 @@ contract TestGateway is Helpers {
 
         vm.startPrank(gov);
         vm.expectRevert(CTMRWAUtils.CTMRWAUtils_StringTooLong.selector);
-        gateway.attachStorageManager(RWA_TYPE, VERSION, 
+        gateway.attachStorageManager(
+            RWA_TYPE,
+            VERSION,
             _stringToArray("012345678901234567890123456789012345678901234567890123456789012345"), //len 65
             _stringToArray("Dummy")
         );
 
         vm.expectRevert(CTMRWAUtils.CTMRWAUtils_StringTooLong.selector);
-        gateway.attachStorageManager(RWA_TYPE, VERSION, 
+        gateway.attachStorageManager(
+            RWA_TYPE,
+            VERSION,
             _stringToArray("2"),
             _stringToArray("AVeryLongContractAddress999999999999999999999999999999999999999999") // len 65
         );
@@ -167,13 +175,17 @@ contract TestGateway is Helpers {
 
         vm.startPrank(gov);
         vm.expectRevert(CTMRWAUtils.CTMRWAUtils_StringTooLong.selector);
-        gateway.attachSentryManager(RWA_TYPE, VERSION, 
+        gateway.attachSentryManager(
+            RWA_TYPE,
+            VERSION,
             _stringToArray("012345678901234567890123456789012345678901234567890123456789012345"), //len 65
             _stringToArray("Dummy")
         );
 
         vm.expectRevert(CTMRWAUtils.CTMRWAUtils_StringTooLong.selector);
-        gateway.attachSentryManager(RWA_TYPE, VERSION, 
+        gateway.attachSentryManager(
+            RWA_TYPE,
+            VERSION,
             _stringToArray("2"),
             _stringToArray("AVeryLongContractAddress999999999999999999999999999999999999999999") // len 65
         );

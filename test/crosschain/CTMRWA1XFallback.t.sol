@@ -2,15 +2,15 @@
 
 pragma solidity 0.8.27;
 
-import { Test } from "forge-std/Test.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { Test } from "forge-std/Test.sol";
 
-import { Helpers } from "../helpers/Helpers.sol";
-import { CTMRWA1XFallback } from "../../src/crosschain/CTMRWA1XFallback.sol";
-import { ICTMRWA1XFallback } from "../../src/crosschain/ICTMRWA1XFallback.sol";
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
-import { CTMRWAUtils, Address } from "../../src/CTMRWAUtils.sol";
+import { CTMRWA1XFallback } from "../../src/crosschain/CTMRWA1XFallback.sol";
+import { ICTMRWA1XFallback } from "../../src/crosschain/ICTMRWA1XFallback.sol";
+import { Address, CTMRWAUtils } from "../../src/utils/CTMRWAUtils.sol";
+import { Helpers } from "../helpers/Helpers.sol";
 
 contract CTMRWA1XFallbackTest is Helpers {
     using CTMRWAUtils for string;
@@ -35,7 +35,11 @@ contract CTMRWA1XFallbackTest is Helpers {
         bytes memory reason = "test reason";
 
         // Should revert when called by non-RWA1X address
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1XFallback.CTMRWA1XFallback_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1XFallback.CTMRWA1XFallback_OnlyAuthorized.selector, Address.Sender, Address.RWAX
+            )
+        );
         rwa1XFallback.rwa1XC3Fallback(selector, data, reason, address(map));
     }
 
@@ -56,7 +60,7 @@ contract CTMRWA1XFallbackTest is Helpers {
 
     function test_Rwa1XC3Fallback_MintXSelector() public {
         bytes4 mintXSelector = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256)"));
-        
+
         string memory fromAddressStr = _toLower(user1.toHexString());
         string memory toAddressStr = _toLower(user2.toHexString());
         uint256 slot = 1;
@@ -82,10 +86,9 @@ contract CTMRWA1XFallbackTest is Helpers {
         assertEq(finalBalance, initialBalance + value);
     }
 
-   
     function test_Rwa1XC3Fallback_MintXSelector_InvalidAddress() public {
         bytes4 mintXSelector = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256)"));
-        
+
         string memory fromAddressStr = "invalid_address";
         string memory toAddressStr = _toLower(user2.toHexString());
         uint256 slot = 1;
@@ -99,10 +102,9 @@ contract CTMRWA1XFallbackTest is Helpers {
         rwa1XFallback.rwa1XC3Fallback(mintXSelector, data, reason, address(map));
     }
 
-
     function test_Rwa1XC3Fallback_MintXSelector_NonExistentSlot() public {
         bytes4 mintXSelector = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256)"));
-        
+
         string memory fromAddressStr = _toLower(user1.toHexString());
         string memory toAddressStr = _toLower(user2.toHexString());
         uint256 slot = 999; // Non-existent slot
@@ -131,7 +133,7 @@ contract CTMRWA1XFallbackTest is Helpers {
 
     function test_Rwa1XC3Fallback_Events() public {
         bytes4 selector = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256)"));
-        
+
         string memory fromAddressStr = _toLower(user1.toHexString());
         string memory toAddressStr = _toLower(user2.toHexString());
         uint256 slot = 1;
@@ -143,10 +145,10 @@ contract CTMRWA1XFallbackTest is Helpers {
         vm.prank(address(rwa1X));
         vm.expectEmit(true, true, true, true);
         emit ICTMRWA1XFallback.ReturnValueFallback(user1, slot, value);
-        
+
         vm.expectEmit(true, true, true, true);
         emit ICTMRWA1XFallback.LogFallback(selector, data, reason);
-        
+
         rwa1XFallback.rwa1XC3Fallback(selector, data, reason, address(map));
     }
 
@@ -158,13 +160,13 @@ contract CTMRWA1XFallbackTest is Helpers {
         vm.prank(address(rwa1X));
         vm.expectEmit(true, true, true, true);
         emit ICTMRWA1XFallback.LogFallback(selector, data, reason);
-        
+
         rwa1XFallback.rwa1XC3Fallback(selector, data, reason, address(map));
     }
 
     function test_Rwa1XC3Fallback_MintXSelector_LargeValue() public {
         bytes4 mintXSelector = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256)"));
-        
+
         string memory fromAddressStr = _toLower(user1.toHexString());
         string memory toAddressStr = _toLower(user2.toHexString());
         uint256 slot = 1;
@@ -186,7 +188,7 @@ contract CTMRWA1XFallbackTest is Helpers {
 
     function test_Rwa1XC3Fallback_MintXSelector_ZeroValue() public {
         bytes4 mintXSelector = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256)"));
-        
+
         string memory fromAddressStr = _toLower(user1.toHexString());
         string memory toAddressStr = _toLower(user2.toHexString());
         uint256 slot = 1;
@@ -208,7 +210,7 @@ contract CTMRWA1XFallbackTest is Helpers {
 
     function test_Rwa1XC3Fallback_MintXSelector_MultipleCalls() public {
         bytes4 mintXSelector = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256)"));
-        
+
         string memory fromAddressStr = _toLower(user1.toHexString());
         string memory toAddressStr = _toLower(user2.toHexString());
         uint256 slot = 1;
@@ -237,13 +239,13 @@ contract CTMRWA1XFallbackTest is Helpers {
 
     function test_Rwa1XC3Fallback_MintXSelector_DifferentSlots() public {
         bytes4 mintXSelector = bytes4(keccak256("mintX(uint256,string,string,uint256,uint256)"));
-        
+
         // Create additional slots with proper permissions
         vm.startPrank(tokenAdmin);
         _createSlot(ID, 8, address(usdc), address(rwa1X));
         _createSlot(ID, 9, address(usdc), address(rwa1X));
         vm.stopPrank();
-        
+
         string memory fromAddressStr = _toLower(user1.toHexString());
         string memory toAddressStr = _toLower(user2.toHexString());
         uint256 value = 1000;
@@ -339,4 +341,3 @@ contract CTMRWA1XFallbackTest is Helpers {
         assertEq(rwa1XFallback.lastReason(), newReason);
     }
 }
-

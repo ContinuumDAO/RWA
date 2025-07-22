@@ -2,14 +2,13 @@
 
 pragma solidity 0.8.27;
 
-import { console } from "forge-std/console.sol";
-import { Test } from "forge-std/Test.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { Test } from "forge-std/Test.sol";
+import { console } from "forge-std/console.sol";
 
-import { Helpers } from "../helpers/Helpers.sol";
-import { ICTMRWA1, Address, Uint } from "../../src/core/ICTMRWA1.sol";
+import { Address, ICTMRWA1, Uint } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
-
+import { Helpers } from "../helpers/Helpers.sol";
 
 // Mock contract for reentrancy testing
 contract ReentrantContract {
@@ -36,9 +35,9 @@ contract ReentrantContract {
 
     // This will be called during the first transferFrom
     function onERC3525Received(
-        uint256 /*_fromTokenId*/,
-        uint256 /*_toTokenId*/,
-        uint256 /*_value*/,
+        uint256, /*_fromTokenId*/
+        uint256, /*_toTokenId*/
+        uint256, /*_value*/
         bytes calldata /*_data*/
     ) external returns (bytes4) {
         if (!reentered) {
@@ -78,7 +77,7 @@ contract TestCTMRWA1 is Helpers {
 
         testTokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, testSlot, 1000, ID, tokenStr);
         testTokenId2 = rwa1X.mintNewTokenValueLocal(user2, 0, testSlot, 1000, ID, tokenStr);
-        
+
         vm.stopPrank();
 
         // Deploy reentrant contract
@@ -104,7 +103,9 @@ contract TestCTMRWA1 is Helpers {
 
         vm.prank(address(rwa1X));
         // Check that ctmRwa1X cannot reset the ID for a previously attached ID
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.TokenAdmin, Address.TokenAdmin));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.TokenAdmin, Address.TokenAdmin)
+        );
         token.attachId(123, user1);
     }
 
@@ -221,7 +222,9 @@ contract TestCTMRWA1 is Helpers {
         // Test that only tokenAdmin can call restricted functions
         vm.startPrank(user1);
         // Try to set override wallet without being tokenAdmin
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
+        );
         token.setOverrideWallet(user2);
         vm.stopPrank();
     }
@@ -242,7 +245,9 @@ contract TestCTMRWA1 is Helpers {
         // Test that only minters can call mint functions
         vm.startPrank(user1);
         // Try to mint value without being a minter
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Minter));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Minter)
+        );
         token.mintValueX(testTokenId1, testSlot, 100);
         vm.stopPrank();
     }
@@ -260,7 +265,7 @@ contract TestCTMRWA1 is Helpers {
 
     function test_invalidTokenIdValidation() public {
         // Test that invalid token IDs are properly rejected
-        uint256 invalidTokenId = 999999;
+        uint256 invalidTokenId = 999_999;
 
         // Try to get info for non-existent token
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IDNonExistent.selector, invalidTokenId));
@@ -302,7 +307,8 @@ contract TestCTMRWA1 is Helpers {
         vm.startPrank(tokenAdmin);
 
         // Create a name that's too long (129 characters)
-        string memory longName = "This is a very long name that exceeds the maximum allowed length of 128 characters and should cause a revert when trying to deploy an ERC20 token";
+        string memory longName =
+            "This is a very long name that exceeds the maximum allowed length of 128 characters and should cause a revert when trying to deploy an ERC20 token";
 
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NameTooLong.selector));
         token.deployErc20(testSlot, longName, address(usdc));
@@ -314,7 +320,7 @@ contract TestCTMRWA1 is Helpers {
 
     function test_fuzz_mintValue(uint256 value) public {
         // Fuzz test for minting values
-        vm.assume(value > 0 && value <= 1000000); // Reasonable bounds
+        vm.assume(value > 0 && value <= 1_000_000); // Reasonable bounds
 
         vm.startPrank(address(rwa1X));
 
@@ -643,7 +649,7 @@ contract TestCTMRWA1 is Helpers {
         uint256 gasUsed = gasBefore - gasleft();
 
         // Gas usage should be reasonable (less than 400k for basic operations)
-        assertTrue(gasUsed < 400000);
+        assertTrue(gasUsed < 400_000);
 
         vm.stopPrank();
     }
@@ -719,7 +725,9 @@ contract TestCTMRWA1 is Helpers {
         assertEq(token.overrideWallet(), tokenAdmin2);
 
         // Try to force transfer again, should fail since the override wallet is not the sender (tokenAdmin)
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Override));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Override)
+        );
         token.forceTransfer(user1, user2, tokenId1User1);
 
         vm.stopPrank();
@@ -732,7 +740,9 @@ contract TestCTMRWA1 is Helpers {
 
         vm.startPrank(user2);
         // Try a forceTransfer with the user2, should fail since user2 is not the override wallet (tokenAdmin2)
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Override));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Override)
+        );
         token.forceTransfer(user1, user2, tokenId2User1);
 
         vm.stopPrank();

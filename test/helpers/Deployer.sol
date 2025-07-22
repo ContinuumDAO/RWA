@@ -102,8 +102,8 @@ contract Deployer is Utils {
         tokensStr.push(ctmAddrStr);
         tokensStr.push(usdcAddrStr);
 
-        fees.push(10**18);  // 1 CTM baseFee
-        fees.push(10**6);   // 1 USDC baseFee
+        fees.push(10 ** 18); // 1 CTM baseFee
+        fees.push(10 ** 6); // 1 USDC baseFee
 
         feeManager.addFeeToken(destChain, tokensStr, fees);
     }
@@ -123,7 +123,8 @@ contract Deployer is Utils {
         address rwa1XImpl = address(new CTMRWA1X());
         rwa1X = CTMRWA1X(
             _deployProxy(
-                rwa1XImpl, abi.encodeCall(
+                rwa1XImpl,
+                abi.encodeCall(
                     CTMRWA1X.initialize, (address(gateway), address(feeManager), gov, address(c3caller), admin, 2)
                 )
             )
@@ -149,7 +150,8 @@ contract Deployer is Utils {
         address mapImpl = address(new CTMRWAMap());
         map = CTMRWAMap(
             _deployProxy(
-                mapImpl, abi.encodeCall(
+                mapImpl,
+                abi.encodeCall(
                     CTMRWAMap.initialize, (gov, address(c3caller), address(admin), 87, address(gateway), address(rwa1X))
                 )
             )
@@ -158,18 +160,24 @@ contract Deployer is Utils {
 
     function _deployCTMRWADeployer(address gov, address admin) internal {
         address deployerImpl = address(new CTMRWADeployer());
-        deployer = CTMRWADeployer(_deployProxy(deployerImpl, abi.encodeCall(
-            CTMRWADeployer.initialize, (
-                gov,
-                address(gateway),
-                address(feeManager),
-                address(rwa1X),
-                address(map),
-                address(c3caller),
-                admin,
-                3
+        deployer = CTMRWADeployer(
+            _deployProxy(
+                deployerImpl,
+                abi.encodeCall(
+                    CTMRWADeployer.initialize,
+                    (
+                        gov,
+                        address(gateway),
+                        address(feeManager),
+                        address(rwa1X),
+                        address(map),
+                        address(c3caller),
+                        admin,
+                        3
+                    )
+                )
             )
-        )));
+        );
 
         ctmRwaDeployInvest = new CTMRWADeployInvest(
             address(map),
@@ -200,17 +208,10 @@ contract Deployer is Utils {
         address storageManagerImpl = address(new CTMRWA1StorageManager());
         storageManager = CTMRWA1StorageManager(
             _deployProxy(
-                storageManagerImpl, abi.encodeCall(
+                storageManagerImpl,
+                abi.encodeCall(
                     CTMRWA1StorageManager.initialize,
-                    (
-                        gov,
-                        address(c3caller),
-                        admin,
-                        88,
-                        address(deployer),
-                        address(gateway),
-                        address(feeManager)
-                    )
+                    (gov, address(c3caller), admin, 88, address(deployer), address(gateway), address(feeManager))
                 )
             )
         );
@@ -238,17 +239,10 @@ contract Deployer is Utils {
         address sentryManagerImpl = address(new CTMRWA1SentryManager());
         sentryManager = CTMRWA1SentryManager(
             _deployProxy(
-                sentryManagerImpl, abi.encodeCall(
+                sentryManagerImpl,
+                abi.encodeCall(
                     CTMRWA1SentryManager.initialize,
-                    (
-                        gov,
-                        address(c3caller),
-                        admin,
-                        88,
-                        address(deployer),
-                        address(gateway),
-                        address(feeManager)
-                    )
+                    (gov, address(c3caller), admin, 88, address(deployer), address(gateway), address(feeManager))
                 )
             )
         );

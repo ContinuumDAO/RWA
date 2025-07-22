@@ -6,10 +6,10 @@ import { console } from "forge-std/console.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { Helpers } from "../helpers/Helpers.sol";
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
-import { RWA } from "../../src/CTMRWAUtils.sol";
+import { RWA } from "../../src/utils/CTMRWAUtils.sol";
+import { Helpers } from "../helpers/Helpers.sol";
 
 contract TestCTMRWAMap is Helpers {
     using Strings for address;
@@ -79,7 +79,7 @@ contract TestCTMRWAMap is Helpers {
         // Non-existent ID
         bool ok;
         address tokenAddr;
-        (ok, tokenAddr) = map.getTokenContract(999999, RWA_TYPE, VERSION);
+        (ok, tokenAddr) = map.getTokenContract(999_999, RWA_TYPE, VERSION);
         assertTrue(!ok, "Should not find token contract for non-existent ID");
         assertEq(tokenAddr, address(0), "Address should be zero for non-existent ID");
 
@@ -95,7 +95,9 @@ contract TestCTMRWAMap is Helpers {
         // Try to attach the same contracts again (should revert)
         vm.startPrank(address(deployer));
         vm.expectRevert();
-        map.attachContracts(ID, address(token), address(dividendFactory), address(storageManager), address(sentryManager));
+        map.attachContracts(
+            ID, address(token), address(dividendFactory), address(storageManager), address(sentryManager)
+        );
         vm.stopPrank();
     }
 

@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.27;
 
-import { URICategory, URIType } from "./ICTMRWA1Storage.sol";
 import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { Address, Uint } from "../CTMRWAUtils.sol";
+import { Address, Uint } from "../utils/CTMRWAUtils.sol";
+import { URICategory, URIType } from "./ICTMRWA1Storage.sol";
 
 interface ICTMRWA1StorageManager is ICTMRWA {
     error CTMRWA1StorageManager_Unauthorized(Address);

@@ -80,6 +80,7 @@ enum List {
     WL_BL_Undefined, // neither whitelist nor blacklist are defined
     WL_BL_Defined, // whitelist and blacklist are defined
     WL_KYC_Disabled // neither whitelist nor kyc is enabled
+
 }
 
 library CTMRWAUtils {
@@ -107,7 +108,9 @@ library CTMRWAUtils {
     function _stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         // require(strBytes.length == 42, "RWA: Invalid addr length");
-        if (strBytes.length != 42) revert CTMRWAUtils_InvalidLength(Uint.Address);
+        if (strBytes.length != 42) {
+            revert CTMRWAUtils_InvalidLength(Uint.Address);
+        }
         bytes memory addrBytes = new bytes(20);
 
         for (uint256 i = 0; i < 20; i++) {

@@ -8,9 +8,9 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
+import { Address, ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWAERC20 } from "../../src/deployment/ICTMRWAERC20.sol";
 import { ICTMRWAERC20Deployer } from "../../src/deployment/ICTMRWAERC20Deployer.sol";
-import { ICTMRWA1, Address } from "../../src/core/ICTMRWA1.sol";
 import { IERC20Errors } from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 error EnforcedPause();
@@ -23,7 +23,7 @@ contract TestERC20Deployer is Helpers {
         (ID, token) = _deployCTMRWA1(address(usdc));
         uint256 nonExistentSlot = 42;
         string memory name = "No Slot";
-        usdc.approve(address(feeManager), 100000000);
+        usdc.approve(address(feeManager), 100_000_000);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InvalidSlot.selector, nonExistentSlot));
         token.deployErc20(nonExistentSlot, name, address(usdc));
         vm.stopPrank();
@@ -35,7 +35,7 @@ contract TestERC20Deployer is Helpers {
         _createSomeSlots(ID, address(usdc), address(rwa1X));
         uint256 slot = 1;
         string memory name = "Basic Stuff";
-        usdc.approve(address(feeManager), 100000000);
+        usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
         assertEq(stringsEqual(ICTMRWAERC20(newErc20).name(), "slot 1| Basic Stuff"), true);
@@ -51,7 +51,7 @@ contract TestERC20Deployer is Helpers {
         _createSomeSlots(ID, address(usdc), address(rwa1X));
         uint256 slot = ICTMRWA1(address(token)).slotByIndex(0); // just use the first slot
         string memory name = "Basic Stuff";
-        usdc.approve(address(feeManager), 100000000);
+        usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.RWAERC20));
         token.deployErc20(slot, name, address(usdc));
@@ -67,7 +67,7 @@ contract TestERC20Deployer is Helpers {
         uint256 slot = 1;
         string memory name = "Basic Stuff";
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        usdc.approve(address(feeManager), 100000000);
+        usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
         rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr);
@@ -88,7 +88,7 @@ contract TestERC20Deployer is Helpers {
         uint256 slot = 1;
         string memory name = "Basic Stuff";
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        usdc.approve(address(feeManager), 100000000);
+        usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
         rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr);
@@ -122,7 +122,7 @@ contract TestERC20Deployer is Helpers {
         uint256 slot = 1;
         string memory name = "Basic Stuff";
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        usdc.approve(address(feeManager), 100000000);
+        usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
         rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, feeTokenStr);
@@ -143,7 +143,7 @@ contract TestERC20Deployer is Helpers {
         uint256 slot = 1;
         string memory name = "Basic Stuff";
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        usdc.approve(address(feeManager), 100000000);
+        usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
         rwa1X.mintNewTokenValueLocal(user1, 0, slot, amount, ID, feeTokenStr);
@@ -162,7 +162,7 @@ contract TestERC20Deployer is Helpers {
         uint256 slot = 1;
         string memory name = "Basic Stuff";
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        usdc.approve(address(feeManager), 100000000);
+        usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
         rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, feeTokenStr);
@@ -180,7 +180,7 @@ contract TestERC20Deployer is Helpers {
         uint256 slot = 1;
         string memory name = "Basic Stuff";
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        usdc.approve(address(feeManager), 100000000);
+        usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
         rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, feeTokenStr);
@@ -199,7 +199,7 @@ contract TestERC20Deployer is Helpers {
         uint256 slot = 1;
         string memory name = "Basic Stuff";
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        usdc.approve(address(feeManager), 100000000);
+        usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
         rwa1X.mintNewTokenValueLocal(user2, 0, slot, 1000, ID, feeTokenStr);
@@ -257,7 +257,7 @@ contract TestERC20Deployer is Helpers {
         uint256 slot = 1;
         string memory name = "Pause ERC20 TransferFrom";
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        usdc.approve(address(feeManager), 100000000);
+        usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
         // Mint some tokens to user1

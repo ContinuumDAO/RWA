@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity 0.8.27;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { CTMRWAUtils, Uint } from "../utils/CTMRWAUtils.sol";
+import { FeeType, IERC20Extended, IFeeManager } from "./IFeeManager.sol";
+import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
-import { FeeType, IERC20Extended, IFeeManager } from "./IFeeManager.sol";
-import { CTMRWAUtils, Uint } from "../CTMRWAUtils.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -23,9 +23,8 @@ import { CTMRWAUtils, Uint } from "../CTMRWAUtils.sol";
  * involved and different base fees can be set up for each chain. The service fees are multiples of the base fee.
  * Some fees include the local chain and some only for cross-chain components, depending on the includeLocal flag
  * Governance can withdraw fees from this contract to a treasury address.
- * This contract is deployed once on each chain. 
+ * This contract is deployed once on each chain.
  */
-
 contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUpgradeable, PausableUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;

@@ -9,29 +9,45 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
-import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
+import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
+import { Address, ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
+import { ICTMRWA1Identity } from "../../src/identity/ICTMRWA1Identity.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
+import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
-import { ICTMRWA1, Address } from "../../src/core/ICTMRWA1.sol";
-import { List, Uint } from "../../src/CTMRWAUtils.sol";
-import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
-import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
-import { ICTMRWA1Identity } from "../../src/identity/ICTMRWA1Identity.sol";
+import { List, Uint } from "../../src/utils/CTMRWAUtils.sol";
 
 // Minimal mock for CTMRWA1Identity
 contract MockCTMRWA1Identity is ICTMRWA1Identity {
     address public zkMeVerifier;
+
     function setZkMeVerifierAddress(address _zkMeVerifier) external override {
         zkMeVerifier = _zkMeVerifier;
     }
     // ICTMRWA1Identity stubs
-    function isKycChain() external pure override returns (bool) { return true; }
-    function isVerifiedPerson(uint256, address) external pure override returns (bool) { return false; }
-    function verifyPerson(uint256, string[] memory, string memory) external pure override returns (bool) { return false; }
+
+    function isKycChain() external pure override returns (bool) {
+        return true;
+    }
+
+    function isVerifiedPerson(uint256, address) external pure override returns (bool) {
+        return false;
+    }
+
+    function verifyPerson(uint256, string[] memory, string memory) external pure override returns (bool) {
+        return false;
+    }
     // ICTMRWA stubs
-    function RWA_TYPE() external pure override returns (uint256) { return 1; }
-    function VERSION() external pure override returns (uint256) { return 1; }
+
+    function RWA_TYPE() external pure override returns (uint256) {
+        return 1;
+    }
+
+    function VERSION() external pure override returns (uint256) {
+        return 1;
+    }
 }
 
 contract TestSentryManager is Helpers {
@@ -49,7 +65,9 @@ contract TestSentryManager is Helpers {
 
         // Test non-admin cannot set sentry options
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender)
+        );
         sentryManager.setSentryOptions(
             ID,
             true, // whitelistSwitch
@@ -85,9 +103,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Enable whitelist
         sentryManager.setSentryOptions(
             ID,
@@ -105,13 +123,11 @@ contract TestSentryManager is Helpers {
 
         // Test non-admin cannot add whitelist
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender)
+        );
         sentryManager.addWhitelist(
-            ID,
-            _stringToArray(user1.toHexString()),
-            _boolToArray(true),
-            _stringToArray(cIdStr),
-            feeTokenStr
+            ID, _stringToArray(user1.toHexString()), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
         );
         vm.stopPrank();
     }
@@ -120,9 +136,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Enable country whitelist
         sentryManager.setSentryOptions(
             ID,
@@ -140,14 +156,10 @@ contract TestSentryManager is Helpers {
 
         // Test non-admin cannot add country list
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender));
-        sentryManager.addCountrylist(
-            ID,
-            _stringToArray("US"),
-            _boolToArray(true),
-            _stringToArray(cIdStr),
-            feeTokenStr
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender)
         );
+        sentryManager.addCountrylist(ID, _stringToArray("US"), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
 
@@ -155,9 +167,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Set up KYC and accredited
         sentryManager.setSentryOptions(
             ID,
@@ -175,14 +187,24 @@ contract TestSentryManager is Helpers {
 
         // Test non-admin cannot go public
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender)
+        );
         sentryManager.goPublic(ID, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
 
     // ============ FUZZ TESTS ============
 
-    function test_fuzz_setSentryOptions(uint8 whitelist, uint8 kyc, uint8 kyb, uint8 over18, uint8 accredited, uint8 countryWL, uint8 countryBL) public {
+    function test_fuzz_setSentryOptions(
+        uint8 whitelist,
+        uint8 kyc,
+        uint8 kyb,
+        uint8 over18,
+        uint8 accredited,
+        uint8 countryWL,
+        uint8 countryBL
+    ) public {
         // Only test valid combinations to avoid too many rejections
         bool whitelistBool = whitelist % 2 == 1;
         bool kycBool = kyc % 2 == 1;
@@ -193,13 +215,27 @@ contract TestSentryManager is Helpers {
         bool countryBLBool = countryBL % 2 == 1;
 
         // Only run if valid
-        if (!(whitelistBool || kycBool)) return;
-        if (kybBool && !kycBool) return;
-        if (over18Bool && !kycBool) return;
-        if (accreditedBool && !kycBool) return;
-        if (accreditedBool && !countryWLBool) return;
-        if ((countryWLBool || countryBLBool) && !kycBool) return;
-        if (countryWLBool && countryBLBool) return;
+        if (!(whitelistBool || kycBool)) {
+            return;
+        }
+        if (kybBool && !kycBool) {
+            return;
+        }
+        if (over18Bool && !kycBool) {
+            return;
+        }
+        if (accreditedBool && !kycBool) {
+            return;
+        }
+        if (accreditedBool && !countryWLBool) {
+            return;
+        }
+        if ((countryWLBool || countryBLBool) && !kycBool) {
+            return;
+        }
+        if (countryWLBool && countryBLBool) {
+            return;
+        }
 
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
@@ -230,13 +266,13 @@ contract TestSentryManager is Helpers {
 
     function test_fuzz_addWhitelist(uint256 numAddresses) public {
         vm.assume(numAddresses > 0 && numAddresses <= 10); // Reasonable bounds
-        
+
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Enable whitelist
         sentryManager.setSentryOptions(
             ID,
@@ -254,7 +290,7 @@ contract TestSentryManager is Helpers {
         // Generate random addresses
         string[] memory addresses = new string[](numAddresses);
         bool[] memory choices = new bool[](numAddresses);
-        
+
         for (uint256 i = 0; i < numAddresses; i++) {
             address randomAddr = address(uint160(uint256(keccak256(abi.encodePacked(i, block.timestamp)))));
             addresses[i] = randomAddr.toHexString();
@@ -262,7 +298,7 @@ contract TestSentryManager is Helpers {
         }
 
         sentryManager.addWhitelist(ID, addresses, choices, _stringToArray(cIdStr), feeTokenStr);
-        
+
         // Verify whitelist was set correctly
         (, address sentry) = map.getSentryContract(ID, RWA_TYPE, VERSION);
         for (uint256 i = 0; i < numAddresses; i++) {
@@ -278,9 +314,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Enable whitelist
         sentryManager.setSentryOptions(
             ID,
@@ -298,7 +334,7 @@ contract TestSentryManager is Helpers {
         // Test empty arrays
         string[] memory emptyAddresses = new string[](0);
         bool[] memory emptyChoices = new bool[](0);
-        
+
         sentryManager.addWhitelist(ID, emptyAddresses, emptyChoices, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
@@ -307,9 +343,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Enable whitelist
         sentryManager.setSentryOptions(
             ID,
@@ -327,8 +363,10 @@ contract TestSentryManager is Helpers {
         // Test mismatched array lengths
         string[] memory addresses = _stringToArray(user1.toHexString());
         bool[] memory choices = new bool[](2); // Different length
-        
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_LengthMismatch.selector, Uint.Input));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_LengthMismatch.selector, Uint.Input)
+        );
         sentryManager.addWhitelist(ID, addresses, choices, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
@@ -337,17 +375,15 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Don't enable whitelist
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_Disabled));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_Disabled)
+        );
         sentryManager.addWhitelist(
-            ID,
-            _stringToArray(user1.toHexString()),
-            _boolToArray(true),
-            _stringToArray(cIdStr),
-            feeTokenStr
+            ID, _stringToArray(user1.toHexString()), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
         );
         vm.stopPrank();
     }
@@ -356,18 +392,16 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Don't enable country lists
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_BL_Undefined));
-        sentryManager.addCountrylist(
-            ID,
-            _stringToArray("US"),
-            _boolToArray(true),
-            _stringToArray(cIdStr),
-            feeTokenStr
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_BL_Undefined
+            )
         );
+        sentryManager.addCountrylist(ID, _stringToArray("US"), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
 
@@ -377,10 +411,14 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_KYC_Disabled));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_KYC_Disabled
+            )
+        );
         sentryManager.setSentryOptions(
             ID,
             false, // whitelistSwitch
@@ -400,9 +438,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_NoKYC.selector));
         sentryManager.setSentryOptions(
             ID,
@@ -423,9 +461,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_NoKYC.selector));
         sentryManager.setSentryOptions(
             ID,
@@ -446,9 +484,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_NoKYC.selector));
         sentryManager.setSentryOptions(
             ID,
@@ -469,9 +507,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // No expectRevert here, as contract does not revert
         sentryManager.setSentryOptions(
             ID,
@@ -492,9 +530,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_NoKYC.selector));
         sentryManager.setSentryOptions(
             ID,
@@ -515,10 +553,12 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_BL_Defined));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_BL_Defined)
+        );
         sentryManager.setSentryOptions(
             ID,
             false, // whitelistSwitch
@@ -540,9 +580,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Set up KYC and accredited
         sentryManager.setSentryOptions(
             ID,
@@ -572,9 +612,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Set up whitelist only (no KYC)
         sentryManager.setSentryOptions(
             ID,
@@ -598,9 +638,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Set up KYC but not accredited
         sentryManager.setSentryOptions(
             ID,
@@ -615,7 +655,9 @@ contract TestSentryManager is Helpers {
             feeTokenStr
         );
 
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_AccreditationDisabled.selector));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_AccreditationDisabled.selector)
+        );
         sentryManager.goPublic(ID, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
@@ -626,7 +668,7 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
         string memory user1Str = user1.toHexString();
         string memory user2Str = user2.toHexString();
@@ -657,19 +699,11 @@ contract TestSentryManager is Helpers {
 
         // Add addresses to whitelist
         sentryManager.addWhitelist(
-            ID,
-            _stringToArray(user1Str),
-            _boolToArray(true),
-            _stringToArray(cIdStr),
-            feeTokenStr
+            ID, _stringToArray(user1Str), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
         );
 
         sentryManager.addWhitelist(
-            ID,
-            _stringToArray(user2Str),
-            _boolToArray(true),
-            _stringToArray(cIdStr),
-            feeTokenStr
+            ID, _stringToArray(user2Str), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
         );
 
         // Verify addresses are now allowable
@@ -678,11 +712,7 @@ contract TestSentryManager is Helpers {
 
         // Remove address from whitelist
         sentryManager.addWhitelist(
-            ID,
-            _stringToArray(user1Str),
-            _boolToArray(false),
-            _stringToArray(cIdStr),
-            feeTokenStr
+            ID, _stringToArray(user1Str), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr
         );
 
         // Verify address is no longer allowable
@@ -698,7 +728,7 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
         string memory tokenAdminStr = tokenAdmin.toHexString();
 
@@ -718,7 +748,7 @@ contract TestSentryManager is Helpers {
 
         // Change token admin
         rwa1X.changeTokenAdmin(user1.toHexString(), _stringToArray(cIdStr), ID, feeTokenStr);
-        
+
         (, address sentry) = map.getSentryContract(ID, RWA_TYPE, VERSION);
         address newAdmin = ICTMRWA1Sentry(sentry).tokenAdmin();
         assertEq(newAdmin, user1);
@@ -733,11 +763,7 @@ contract TestSentryManager is Helpers {
         vm.startPrank(user1);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_Unauthorized.selector, Address.Admin));
         sentryManager.addWhitelist(
-            ID,
-            _stringToArray(newAdminStr),
-            _boolToArray(false),
-            _stringToArray(cIdStr),
-            feeTokenStr
+            ID, _stringToArray(newAdminStr), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr
         );
         vm.stopPrank();
     }
@@ -777,9 +803,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Set sentry options
         sentryManager.setSentryOptions(
             ID,
@@ -815,9 +841,9 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
-        
+
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         // Set up KYC and accredited
         sentryManager.setSentryOptions(
             ID,
@@ -871,7 +897,7 @@ contract TestSentryManager is Helpers {
         sentryManager.setSentryOptions(
             ID,
             false, // whitelistSwitch
-            true,  // kycSwitch
+            true, // kycSwitch
             false, // kybSwitch
             false, // over18Switch
             false, // accreditedSwitch
@@ -915,11 +941,11 @@ contract TestSentryManager is Helpers {
         sentryManager.setSentryOptions(
             ID,
             false, // whitelistSwitch
-            true,  // kycSwitch
+            true, // kycSwitch
             false, // kybSwitch
             false, // over18Switch
             false, // accreditedSwitch
-            true,  // countryWLSwitch
+            true, // countryWLSwitch
             false, // countryBLSwitch
             _stringToArray(cIdStr),
             feeTokenStr
@@ -933,7 +959,9 @@ contract TestSentryManager is Helpers {
         // Invalid country code (should revert)
         string[] memory invalidCountries = new string[](1);
         invalidCountries[0] = "USA"; // 3 letters
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidLength.selector, Uint.CountryCode));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidLength.selector, Uint.CountryCode)
+        );
         sentryManager.addCountrylist(ID, invalidCountries, choices, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
@@ -1069,5 +1097,4 @@ contract TestSentryManager is Helpers {
         assertTrue(gasUsed < 1_000_000, string.concat("Gas used: ", vm.toString(gasUsed)));
         vm.stopPrank();
     }
-
 }

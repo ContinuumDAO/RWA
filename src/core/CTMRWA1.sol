@@ -2,17 +2,17 @@
 
 pragma solidity 0.8.27;
 
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { Address, ICTMRWA1, SlotData, Uint } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1Receiver } from "./ICTMRWA1Receiver.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { ICTMRWADeployer } from "../deployment/ICTMRWADeployer.sol";
 import { ICTMRWAERC20Deployer } from "../deployment/ICTMRWAERC20Deployer.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1Storage } from "../storage/ICTMRWA1Storage.sol";
-import { Address, Uint } from "../CTMRWAUtils.sol";
+import { Address, Uint } from "../utils/CTMRWAUtils.sol";
+import { ICTMRWA1, SlotData } from "./ICTMRWA1.sol";
+import { ICTMRWA1Receiver } from "./ICTMRWA1Receiver.sol";
+import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -52,7 +52,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// CTMRWA1
     address ctmRwaMap;
 
-    /// @dev ctmRwa1X is the single contract on each chain responsible for deploying, minting, and transferring the 
+    /// @dev ctmRwa1X is the single contract on each chain responsible for deploying, minting, and transferring the
     /// CTMRWA1 and its components
     address public ctmRwa1X;
 
@@ -165,7 +165,9 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     }
 
     modifier onlyTokenAdmin() {
-        if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+        if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
+            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+        }
         _;
     }
 
@@ -1043,7 +1045,12 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @dev Mint 'value' to an existing tokenId, providing the slot is the same and the address is
      *  whitelisted (if whitelisting is enabled). Function is callable by any Minter
      */
-    function mintValueX(uint256 _toTokenId, uint256 _slot, uint256 _value) external onlyMinter whenNotPaused returns (bool) {
+    function mintValueX(uint256 _toTokenId, uint256 _slot, uint256 _value)
+        external
+        onlyMinter
+        whenNotPaused
+        returns (bool)
+    {
         if (!_exists(_toTokenId)) {
             revert CTMRWA1_IDNonExistent(_toTokenId);
         }
@@ -1242,12 +1249,12 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * being transferred to is whitelisted (if whitelisting is enabled). Also checks that the slot exists
      */
     function _beforeValueTransfer(
-        address /*_from*/,
+        address, /*_from*/
         address _to,
-        uint256 /*_fromTokenId*/,
-        uint256 /*_toTokenId*/,
+        uint256, /*_fromTokenId*/
+        uint256, /*_toTokenId*/
         uint256 _slot,
-        string memory /*_slotName*/,
+        string memory, /*_slotName*/
         uint256 /*_value*/
     ) internal virtual {
         if (!slotExists(_slot)) {

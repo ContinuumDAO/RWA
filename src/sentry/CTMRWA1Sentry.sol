@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.27;
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils, Uint } from "../CTMRWAUtils.sol";
+import { Address, CTMRWAUtils, Uint } from "../utils/CTMRWAUtils.sol";
+import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract CTMRWA1Sentry is ICTMRWA1Sentry {
     using Strings for *;
@@ -95,7 +95,7 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
             string memory tokenAdminStr = tokenAdmin.toHexString()._toLower();
             tokenAdminStr = _tokenAdmin.toHexString()._toLower();
             // don't leave stranded tokens by the old tokenAdmin
-            _setWhitelist(tokenAdminStr._stringToArray(), CTMRWAUtils._boolToArray(true)); 
+            _setWhitelist(tokenAdminStr._stringToArray(), CTMRWAUtils._boolToArray(true));
         }
 
         return (true);
@@ -112,8 +112,8 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
     }
 
     /**
-    * @notice Recover the currently stored parameters for the zkMe KYC service
-    */
+     * @notice Recover the currently stored parameters for the zkMe KYC service
+     */
     function getZkMeParams() public view returns (string memory, string memory, address) {
         return (appId, programNo, cooperator);
     }
@@ -228,7 +228,6 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         string memory oldLastStr;
 
         for (uint256 i = 0; i < len; i++) {
-
             indx = countryIndx[_countries[i]];
 
             if (indx != 0 && indx == countryList.length - 1 && !_choices[i]) {
@@ -251,11 +250,11 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
     }
 
     /**
-    * @notice This function checks if an address is allowed to receive value. It is called by
-    * _beforeValueTransfer in CTMRWA1 before any transfers. The contracts CTMRWA1Dividend and
-    * CTMRWA1Storage are allowed to pass.
-    * @param _user address as a string that is being checked
-    */
+     * @notice This function checks if an address is allowed to receive value. It is called by
+     * _beforeValueTransfer in CTMRWA1 before any transfers. The contracts CTMRWA1Dividend and
+     * CTMRWA1Storage are allowed to pass.
+     * @param _user address as a string that is being checked
+     */
     function isAllowableTransfer(string memory _user) public view returns (bool) {
         bool ok;
         address dividendContract;
@@ -280,9 +279,9 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
     }
 
     /**
-    * @notice Get the Whitelist wallet address at an index as string
-    * @param _indx The index of into the Whitelist to check
-    */
+     * @notice Get the Whitelist wallet address at an index as string
+     * @param _indx The index of into the Whitelist to check
+     */
     function getWhitelistAddressAtIndx(uint256 _indx) public view returns (string memory) {
         if (_indx >= ctmWhitelist.length) {
             revert CTMRWA1Sentry_OutofBounds();
@@ -291,9 +290,9 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
     }
 
     /**
-    * @notice Check if a particular address (as a string) is Whitelisted
-    * @param _walletStr The address (as a string) to check
-    */
+     * @notice Check if a particular address (as a string) is Whitelisted
+     * @param _walletStr The address (as a string) to check
+     */
     function _isWhitelisted(string memory _walletStr) internal view returns (bool) {
         uint256 indx = whitelistIndx[_walletStr];
 
@@ -307,5 +306,4 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
     function cID() internal view returns (uint256) {
         return block.chainid;
     }
-
 }

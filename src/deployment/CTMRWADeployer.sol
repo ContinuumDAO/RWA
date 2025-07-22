@@ -2,12 +2,6 @@
 
 pragma solidity 0.8.27;
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
-import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
-import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
-import { ICTMRWADeployer } from "./ICTMRWADeployer.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1DividendFactory } from "../dividend/ICTMRWA1DividendFactory.sol";
 import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
@@ -15,6 +9,12 @@ import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1StorageManager } from "../storage/ICTMRWA1StorageManager.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
 import { Address, RWA } from "../utils/CTMRWAUtils.sol";
+import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
+import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
+import { ICTMRWADeployer } from "./ICTMRWADeployer.sol";
+import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -244,15 +244,15 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
         ICTMRWADeployInvest(deployInvest).setCommissionRate(_commissionRate);
     }
 
-    /** 
-    * @notice Deploy a new CTMRWA1Invest contract. Anyone can call this, but only tokenAdmin
-    * can create an offering and collect invested funds
-    * @param _ID The ID of the RWA token
-    * @param _rwaType The type of RWA (set to 1 for CTMRWA1)
-    * @param _version The version of RWA (set to 1 for current version)
-    * @param _feeToken Address of a valid fee token. See getFeeTokenList in FeeManager.
-    * NOTE only one CTMRWA1Invest contract can be deployed on each chain.
-    */
+    /**
+     * @notice Deploy a new CTMRWA1Invest contract. Anyone can call this, but only tokenAdmin
+     * can create an offering and collect invested funds
+     * @param _ID The ID of the RWA token
+     * @param _rwaType The type of RWA (set to 1 for CTMRWA1)
+     * @param _version The version of RWA (set to 1 for current version)
+     * @param _feeToken Address of a valid fee token. See getFeeTokenList in FeeManager.
+     * NOTE only one CTMRWA1Invest contract can be deployed on each chain.
+     */
     function deployNewInvestment(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken)
         public
         returns (address)

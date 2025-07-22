@@ -2,12 +2,12 @@
 
 pragma solidity 0.8.27;
 
+import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
+import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { Helpers } from "../helpers/Helpers.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Test } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
-import { Helpers } from "../helpers/Helpers.sol";
-import { ICTMRWA1Storage, URICategory, URIType, URIData } from "../../src/storage/ICTMRWA1Storage.sol";
-import { Address } from "../../src/CTMRWAUtils.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract CTMRWA1StorageTest is Helpers {
     using Strings for *;
@@ -34,7 +34,9 @@ contract CTMRWA1StorageTest is Helpers {
         // Should fail for non-storageManager
         vm.prank(address(0xBEEF));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Storage.CTMRWA1Storage_Unauthorized.selector, Address.Sender));
-        stor.addURILocal(ID, "2", URICategory.ISSUER, URIType.CONTRACT, "Title2", 0, block.timestamp, keccak256("data2"));
+        stor.addURILocal(
+            ID, "2", URICategory.ISSUER, URIType.CONTRACT, "Title2", 0, block.timestamp, keccak256("data2")
+        );
     }
 
     function test_gas_addURILocal() public {
@@ -49,19 +51,23 @@ contract CTMRWA1StorageTest is Helpers {
         vm.prank(address(storageManager));
         // Use a unique object name for each fuzz run, starting with '1' and appending the hash
         string memory objectName = string(abi.encodePacked("1", vm.toString(uint256(fuzzHash))));
-        stor.addURILocal(ID, objectName, URICategory.ISSUER, URIType.CONTRACT, "Fuzz Title", 0, block.timestamp, fuzzHash);
+        stor.addURILocal(
+            ID, objectName, URICategory.ISSUER, URIType.CONTRACT, "Fuzz Title", 0, block.timestamp, fuzzHash
+        );
         assertTrue(stor.existURIHash(fuzzHash));
     }
 
     function test_invalidIDReverts() public {
         vm.prank(address(storageManager));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Storage.CTMRWA1Storage_InvalidID.selector, ID, ID + 1));
-        stor.addURILocal(ID + 1, "1", URICategory.ISSUER, URIType.CONTRACT, "Title", 0, block.timestamp, keccak256("data"));
+        stor.addURILocal(
+            ID + 1, "1", URICategory.ISSUER, URIType.CONTRACT, "Title", 0, block.timestamp, keccak256("data")
+        );
     }
 
     function test_duplicateHashReverts() public {
         bytes32 hash = keccak256("dup");
-        vm.prank( address(storageManager) );
+        vm.prank(address(storageManager));
         stor.addURILocal(ID, "1", URICategory.ISSUER, URIType.CONTRACT, "Title", 0, block.timestamp, hash);
         vm.prank(address(storageManager));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Storage.CTMRWA1Storage_HashExists.selector, hash));
@@ -151,7 +157,9 @@ contract CTMRWA1StorageTest is Helpers {
         stor.createSecurity(regulator);
         // Add a LICENSE/CONTRACT URI
         vm.prank(address(storageManager));
-        stor.addURILocal(ID, "2", URICategory.LICENSE, URIType.CONTRACT, "License Title", 0, block.timestamp, keccak256("license"));
+        stor.addURILocal(
+            ID, "2", URICategory.LICENSE, URIType.CONTRACT, "License Title", 0, block.timestamp, keccak256("license")
+        );
         // Should succeed now
         vm.prank(tokenAdmin);
         stor.createSecurity(regulator);
@@ -161,11 +169,56 @@ contract CTMRWA1StorageTest is Helpers {
     function test_getAllURIData_returnsCorrectData() public {
         // Add 5 URIs
         vm.startPrank(address(storageManager));
-        stor.addURILocal(ID, "1", URICategory.ISSUER, URIType.CONTRACT, "Issuer Contract", 0, block.timestamp, keccak256("issuer-contract"));
-        stor.addURILocal(ID, "2", URICategory.LEGAL, URIType.CONTRACT, "Legal Contract", 0, block.timestamp, keccak256("legal-contract"));
-        stor.addURILocal(ID, "3", URICategory.FINANCIAL, URIType.SLOT, "Financial Slot 3", 3, block.timestamp, keccak256("financial-slot-3"));
-        stor.addURILocal(ID, "4", URICategory.LICENSE, URIType.CONTRACT, "License Contract", 0, block.timestamp, keccak256("license-contract"));
-        stor.addURILocal(ID, "5", URICategory.REDEMPTION, URIType.SLOT, "Redemption Slot 5", 5, block.timestamp, keccak256("redemption-slot-5"));
+        stor.addURILocal(
+            ID,
+            "1",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Issuer Contract",
+            0,
+            block.timestamp,
+            keccak256("issuer-contract")
+        );
+        stor.addURILocal(
+            ID,
+            "2",
+            URICategory.LEGAL,
+            URIType.CONTRACT,
+            "Legal Contract",
+            0,
+            block.timestamp,
+            keccak256("legal-contract")
+        );
+        stor.addURILocal(
+            ID,
+            "3",
+            URICategory.FINANCIAL,
+            URIType.SLOT,
+            "Financial Slot 3",
+            3,
+            block.timestamp,
+            keccak256("financial-slot-3")
+        );
+        stor.addURILocal(
+            ID,
+            "4",
+            URICategory.LICENSE,
+            URIType.CONTRACT,
+            "License Contract",
+            0,
+            block.timestamp,
+            keccak256("license-contract")
+        );
+        stor.addURILocal(
+            ID,
+            "5",
+            URICategory.REDEMPTION,
+            URIType.SLOT,
+            "Redemption Slot 5",
+            5,
+            block.timestamp,
+            keccak256("redemption-slot-5")
+        );
         vm.stopPrank();
 
         // Call getAllURIData
@@ -214,11 +267,56 @@ contract CTMRWA1StorageTest is Helpers {
     function test_getURIHashByIndex_returnsCorrectDataAndHandlesOutOfBounds() public {
         // Add 5 URIs
         vm.startPrank(address(storageManager));
-        stor.addURILocal(ID, "1", URICategory.ISSUER, URIType.CONTRACT, "Issuer Contract", 0, block.timestamp, keccak256("issuer-contract"));
-        stor.addURILocal(ID, "2", URICategory.LEGAL, URIType.CONTRACT, "Legal Contract", 0, block.timestamp, keccak256("legal-contract"));
-        stor.addURILocal(ID, "3", URICategory.FINANCIAL, URIType.SLOT, "Financial Slot 3", 3, block.timestamp, keccak256("financial-slot-3"));
-        stor.addURILocal(ID, "4", URICategory.LICENSE, URIType.CONTRACT, "License Contract", 0, block.timestamp, keccak256("license-contract"));
-        stor.addURILocal(ID, "5", URICategory.REDEMPTION, URIType.SLOT, "Redemption Slot 5", 5, block.timestamp, keccak256("redemption-slot-5"));
+        stor.addURILocal(
+            ID,
+            "1",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Issuer Contract",
+            0,
+            block.timestamp,
+            keccak256("issuer-contract")
+        );
+        stor.addURILocal(
+            ID,
+            "2",
+            URICategory.LEGAL,
+            URIType.CONTRACT,
+            "Legal Contract",
+            0,
+            block.timestamp,
+            keccak256("legal-contract")
+        );
+        stor.addURILocal(
+            ID,
+            "3",
+            URICategory.FINANCIAL,
+            URIType.SLOT,
+            "Financial Slot 3",
+            3,
+            block.timestamp,
+            keccak256("financial-slot-3")
+        );
+        stor.addURILocal(
+            ID,
+            "4",
+            URICategory.LICENSE,
+            URIType.CONTRACT,
+            "License Contract",
+            0,
+            block.timestamp,
+            keccak256("license-contract")
+        );
+        stor.addURILocal(
+            ID,
+            "5",
+            URICategory.REDEMPTION,
+            URIType.SLOT,
+            "Redemption Slot 5",
+            5,
+            block.timestamp,
+            keccak256("redemption-slot-5")
+        );
         vm.stopPrank();
 
         // Get the hash and object name for the third FINANCIAL/SLOT entry (index 0, since only one exists)

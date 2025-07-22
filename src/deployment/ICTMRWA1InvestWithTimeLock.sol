@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { Address, Time, Uint } from "../CTMRWAUtils.sol";
+import { Address, Time, Uint } from "../utils/CTMRWAUtils.sol";
 
 struct Offering {
     uint256 tokenId;
@@ -64,7 +64,7 @@ interface ICTMRWA1InvestWithTimeLock {
         address feeToken
     ) external;
 
-    function ID() external returns(uint256);
+    function ID() external returns (uint256);
 
     function setTokenAdmin(address _tokenAdmin, bool _force) external returns (bool);
 
@@ -75,7 +75,7 @@ interface ICTMRWA1InvestWithTimeLock {
     function unlockTokenId(uint256 myIndx, address feeToken) external returns (uint256);
 
     // function claimDividendInEscrow(uint256 myIndx) external returns (uint256);
-    function getTokenIdsInEscrow() external returns(uint256[] memory, address[] memory);
+    function getTokenIdsInEscrow() external returns (uint256[] memory, address[] memory);
 
     function offeringCount() external view returns (uint256);
     function listOfferings() external view returns (Offering[] memory);

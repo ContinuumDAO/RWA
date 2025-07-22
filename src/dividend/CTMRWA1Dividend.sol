@@ -2,12 +2,13 @@
 
 pragma solidity 0.8.27;
 
-import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+
 import { ICTMRWA1InvestWithTimeLock } from "../deployment/ICTMRWA1InvestWithTimeLock.sol";
-import { Address, Uint } from "../CTMRWAUtils.sol";
+import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { Address, Uint } from "../utils/CTMRWAUtils.sol";
+import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
+import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -166,7 +167,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
      * MultiCall on all chains simultaneously by the frontend to prevent such an exploit.
      */
     function fundDividend() public returns (uint256) {
-
         uint256 tokenId;
         address holder;
         uint256 dividend;
@@ -174,10 +174,10 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
         uint256[] memory tokenIdsInEscrow;
         address[] memory holdersInEscrow;
 
-        (bool investContractExists, address ctmRwaInvest) = ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
+        (bool investContractExists, address ctmRwaInvest) =
+            ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
         if (investContractExists) {
-            (tokenIdsInEscrow, holdersInEscrow) 
-            = ICTMRWA1InvestWithTimeLock(ctmRwaInvest).getTokenIdsInEscrow();
+            (tokenIdsInEscrow, holdersInEscrow) = ICTMRWA1InvestWithTimeLock(ctmRwaInvest).getTokenIdsInEscrow();
         }
 
         uint256 indx;
@@ -191,7 +191,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
                     holder = holdersInEscrow[indx];
                 }
             }
-            // if the tokenId was in an escrow Holding, the holder is reassigned to the 
+            // if the tokenId was in an escrow Holding, the holder is reassigned to the
             // beneficial owner, but NOT if the tokenId is in an Offering
             if (holder != ctmRwaInvest) {
                 dividend = _getDividendByToken(tokenId);
@@ -247,7 +247,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
         return (ICTMRWA1(tokenAddr).getDividendRateBySlot(slot) * ICTMRWA1(tokenAddr).balanceOf(_tokenId));
     }
 
-    function _tokenIdInList(uint256 _tokenIdToFind) internal returns(uint256) {
+    function _tokenIdInList(uint256 _tokenIdToFind) internal returns (uint256) {
         return 0;
     }
 }

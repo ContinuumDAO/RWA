@@ -2,13 +2,13 @@
 
 pragma solidity 0.8.27;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
-import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address } from "../utils/CTMRWAUtils.sol";
+import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
+import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -17,8 +17,7 @@ import { Address } from "../utils/CTMRWAUtils.sol";
  * @notice This contract deploys an CTMRWA1InvestWithTimeLock contract. Only one such contract
  * can be deployed for an RWA token per chain, since the salt is tied to the _ID, _rwaType, _version.
  * The contract address of the CTMRWA1InvestWithTimeLock can be got using CTMRWAMap.
-*/
-
+ */
 contract CTMRWADeployInvest is ICTMRWADeployInvest {
     using Strings for *;
     using CTMRWAUtils for string;

@@ -2,13 +2,13 @@
 
 pragma solidity 0.8.27;
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
+import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { CTMRWA1Storage } from "./CTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageUtils } from "./ICTMRWA1StorageUtils.sol";
-import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)

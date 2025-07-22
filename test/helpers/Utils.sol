@@ -7,7 +7,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Test } from "forge-std/Test.sol";
 
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
-import {CTMRWAProxy} from "../../src/CTMRWAProxy.sol";
+import { CTMRWAProxy } from "../../src/utils/CTMRWAProxy.sol";
 
 contract Utils is Test {
     using Strings for *;
@@ -67,19 +67,22 @@ contract Utils is Test {
     // Helper to convert address to string
     function addressToString(address _addr) internal pure returns (string memory) {
         bytes memory s = new bytes(40);
-        for (uint i = 0; i < 20; i++) {
-            bytes1 b = bytes1(uint8(uint(uint160(_addr)) / (2**(8*(19 - i)))));
+        for (uint256 i = 0; i < 20; i++) {
+            bytes1 b = bytes1(uint8(uint256(uint160(_addr)) / (2 ** (8 * (19 - i)))));
             bytes1 hi = bytes1(uint8(b) / 16);
             bytes1 lo = bytes1(uint8(b) - 16 * uint8(hi));
-            s[2*i] = char(hi);
-            s[2*i+1] = char(lo);
+            s[2 * i] = char(hi);
+            s[2 * i + 1] = char(lo);
         }
         return string(abi.encodePacked("0x", s));
     }
 
     function char(bytes1 b) internal pure returns (bytes1 c) {
-        if (uint8(b) < 10) return bytes1(uint8(b) + 0x30);
-        else return bytes1(uint8(b) + 0x57);
+        if (uint8(b) < 10) {
+            return bytes1(uint8(b) + 0x30);
+        } else {
+            return bytes1(uint8(b) + 0x57);
+        }
     }
 
     function cID() internal view returns (uint256) {
@@ -101,11 +104,13 @@ contract Utils is Test {
         return string(bLower);
     }
 
-    function _includesAddress(address _addr, address[] memory _addressList) internal pure returns(bool) {
+    function _includesAddress(address _addr, address[] memory _addressList) internal pure returns (bool) {
         uint256 len = _addressList.length;
 
-        for (uint256 i=0; i<len; i++) {
-            if (_addressList[i] == _addr) return true;
+        for (uint256 i = 0; i < len; i++) {
+            if (_addressList[i] == _addr) {
+                return true;
+            }
         }
         return false;
     }

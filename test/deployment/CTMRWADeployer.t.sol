@@ -2,18 +2,19 @@
 
 pragma solidity 0.8.27;
 
-import { console } from "forge-std/console.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { Helpers } from "../helpers/Helpers.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
-import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
+
+import { ICTMRWADeployInvest } from "../../src/deployment/ICTMRWADeployInvest.sol";
 import { ICTMRWADeployer } from "../../src/deployment/ICTMRWADeployer.sol";
 import { ICTMRWA1DividendFactory } from "../../src/dividend/ICTMRWA1DividendFactory.sol";
-import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
-import { ICTMRWADeployInvest } from "../../src/deployment/ICTMRWADeployInvest.sol";
-import { Address, RWA } from "../../src/CTMRWAUtils.sol";
-import { Uint } from "../../src/CTMRWAUtils.sol";
+import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
+import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
+
+import { Address, RWA, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { Helpers } from "../helpers/Helpers.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { console } from "forge-std/console.sol";
 
 error CTMRWA1X_InvalidLength(Uint);
 
@@ -26,7 +27,7 @@ contract TestCTMRWADeployer is Helpers {
 
     function test_deploysAllContracts() public {
         vm.startPrank(address(rwa1X));
-        uint256 testID = 12345;
+        uint256 testID = 12_345;
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "TestToken", "TTK", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
@@ -55,7 +56,7 @@ contract TestCTMRWADeployer is Helpers {
 
     function test_deployNewInvestment() public {
         vm.startPrank(address(rwa1X));
-        uint256 testID = 23456;
+        uint256 testID = 23_456;
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "TestToken2", "TTK2", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
@@ -67,7 +68,7 @@ contract TestCTMRWADeployer is Helpers {
 
     function test_mapHasCorrectContracts() public {
         vm.startPrank(address(rwa1X));
-        uint256 testID = 34567;
+        uint256 testID = 34_567;
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "TestToken3", "TTK3", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
@@ -86,7 +87,7 @@ contract TestCTMRWADeployer is Helpers {
 
     function test_revertOnWrongRWAType() public {
         vm.startPrank(address(rwa1X));
-        uint256 testID = 45678;
+        uint256 testID = 45_678;
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "TestToken4", "TTK4", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
@@ -98,7 +99,7 @@ contract TestCTMRWADeployer is Helpers {
 
     function test_revertOnWrongVersion() public {
         vm.startPrank(address(rwa1X));
-        uint256 testID = 56789;
+        uint256 testID = 56_789;
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "TestToken5", "TTK5", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
@@ -109,7 +110,7 @@ contract TestCTMRWADeployer is Helpers {
     }
 
     function test_revertIfNotRwaX() public {
-        uint256 testID = 67890;
+        uint256 testID = 67_890;
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "TestToken6", "TTK6", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
@@ -148,7 +149,7 @@ contract TestCTMRWADeployer is Helpers {
     // Double Investment Revert
     function test_revertOnDoubleInvestment() public {
         vm.startPrank(address(rwa1X));
-        uint256 testID = 88888;
+        uint256 testID = 88_888;
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "DoubleInvest", "DBL", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
@@ -162,7 +163,7 @@ contract TestCTMRWADeployer is Helpers {
     // Incompatible RWA Type/Version
     function test_revertOnIncompatibleRWATypeOrVersion() public {
         vm.startPrank(address(rwa1X));
-        uint256 testID = 99999;
+        uint256 testID = 99_999;
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "BadType", "BAD", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
@@ -199,22 +200,28 @@ contract TestCTMRWADeployer is Helpers {
         vm.startPrank(gov);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Gateway));
         deployer.setGateway(address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.FeeManager));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.FeeManager)
+        );
         deployer.setFeeManager(address(0));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.RWAX));
         deployer.setRwaX(address(0));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Map));
         deployer.setMap(address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.ERC20Deployer));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.ERC20Deployer)
+        );
         deployer.setErc20DeployerAddress(address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.DeployInvest));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.DeployInvest)
+        );
         deployer.setDeployInvest(address(0));
         vm.stopPrank();
     }
 
     // Explicit array input test cases spanning length 1 to 50
     function test_arrayInputs_explicit() public {
-        uint[] memory lengths = new uint[](7);
+        uint256[] memory lengths = new uint256[](7);
         lengths[0] = 1;
         lengths[1] = 5;
         lengths[2] = 10;
@@ -222,19 +229,18 @@ contract TestCTMRWADeployer is Helpers {
         lengths[4] = 30;
         lengths[5] = 40;
         lengths[6] = 50;
-        for (uint i = 0; i < lengths.length; i++) {
-            uint len = lengths[i];
+        for (uint256 i = 0; i < lengths.length; i++) {
+            uint256 len = lengths[i];
             uint256[] memory slotNumbers = new uint256[](len);
             string[] memory slotNames = new string[](len);
-            for (uint j = 0; j < len; j++) {
+            for (uint256 j = 0; j < len; j++) {
                 slotNumbers[j] = j + 1;
                 slotNames[j] = string(abi.encodePacked("Slot", Strings.toString(j + 1)));
             }
             vm.startPrank(address(rwa1X));
-            uint256 testID = 654321 + i;
-            bytes memory deployData = abi.encode(
-                testID, tokenAdmin, "ArrayToken", "ARY", 18, "GFLD", slotNumbers, slotNames, address(rwa1X)
-            );
+            uint256 testID = 654_321 + i;
+            bytes memory deployData =
+                abi.encode(testID, tokenAdmin, "ArrayToken", "ARY", 18, "GFLD", slotNumbers, slotNames, address(rwa1X));
             (address tokenAddr,,,) = deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
             assertTrue(tokenAddr != address(0), "CTMRWA1 not deployed");
             vm.stopPrank();
@@ -249,7 +255,7 @@ contract TestCTMRWADeployer is Helpers {
         vm.stopPrank();
         // rwa1X tries to deploy, should revert due to missing factory
         vm.startPrank(address(rwa1X));
-        uint256 testID = 77777;
+        uint256 testID = 77_777;
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "NoFactory", "NOF", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );

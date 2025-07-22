@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { Address } from "../CTMRWAUtils.sol";
+import { Address } from "../utils/CTMRWAUtils.sol";
 
 enum RequestId {
     PERSONHOOD,

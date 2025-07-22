@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity 0.8.27;
 
-import { Test } from "forge-std/Test.sol";
-import { console } from "forge-std/console.sol";
+import { FeeManager } from "../../src/managers/FeeManager.sol";
+import { FeeType, IERC20Extended, IFeeManager } from "../../src/managers/IFeeManager.sol";
+
+import { MaliciousERC20 } from "../../src/mocks/MaliciousERC20.sol";
+import { TestERC20 } from "../../src/mocks/TestERC20.sol";
+import { Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { Helpers } from "../helpers/Helpers.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { FeeManager } from "../../src/managers/FeeManager.sol";
-import { IFeeManager, FeeType, IERC20Extended } from "../../src/managers/IFeeManager.sol";
-import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { Helpers } from "../helpers/Helpers.sol";
-import { TestERC20 } from "../../src/mocks/TestERC20.sol";
-import { MaliciousERC20 } from "../../src/mocks/MaliciousERC20.sol";
-import {Uint} from "../../src/CTMRWAUtils.sol";
-
+import { Test } from "forge-std/Test.sol";
+import { console } from "forge-std/console.sol";
 
 // Mock contract to test reentrancy
 contract ReentrancyAttacker {
@@ -66,8 +66,8 @@ contract TestFeeManager is Helpers {
     string public feeTokenStr;
     string public chainIdStr = "421614"; // Example chain ID
 
-    uint256 public constant INITIAL_SUPPLY = 1_000_000 * 10**18;
-    uint256 public constant FEE_AMOUNT = 100 * 10**18;
+    uint256 public constant INITIAL_SUPPLY = 1_000_000 * 10 ** 18;
+    uint256 public constant FEE_AMOUNT = 100 * 10 ** 18;
 
     event AddFeeToken(address indexed feeToken);
     event DelFeeToken(address indexed feeToken);
@@ -238,9 +238,13 @@ contract TestFeeManager is Helpers {
         // TokenA and TokenC should still be present
         bool foundA = false;
         bool foundC = false;
-        for (uint i = 0; i < tokenList.length; i++) {
-            if (tokenList[i] == tokenA) foundA = true;
-            if (tokenList[i] == tokenC) foundC = true;
+        for (uint256 i = 0; i < tokenList.length; i++) {
+            if (tokenList[i] == tokenA) {
+                foundA = true;
+            }
+            if (tokenList[i] == tokenC) {
+                foundC = true;
+            }
             assert(tokenList[i] != tokenB); // TokenB should not be present
         }
         assertTrue(foundA, "TokenA should still be present after deleting TokenB");
@@ -252,8 +256,10 @@ contract TestFeeManager is Helpers {
         tokenList = feeManager.getFeeTokenList();
         // Only TokenA should remain
         foundA = false;
-        for (uint i = 0; i < tokenList.length; i++) {
-            if (tokenList[i] == tokenA) foundA = true;
+        for (uint256 i = 0; i < tokenList.length; i++) {
+            if (tokenList[i] == tokenA) {
+                foundA = true;
+            }
             assert(tokenList[i] != tokenB && tokenList[i] != tokenC); // TokenB and TokenC should not be present
         }
         assertTrue(foundA, "TokenA should still be present after deleting TokenC");
@@ -283,8 +289,10 @@ contract TestFeeManager is Helpers {
         // Check all tokens except deleted one are present
         for (uint8 i = 0; i < numTokens; i++) {
             bool found = false;
-            for (uint j = 0; j < tokenList.length; j++) {
-                if (tokenList[j] == tokens[i]) found = true;
+            for (uint256 j = 0; j < tokenList.length; j++) {
+                if (tokenList[j] == tokens[i]) {
+                    found = true;
+                }
             }
             if (i == deleteMid) {
                 assertTrue(!found, "Deleted token should not be present");
@@ -294,15 +302,19 @@ contract TestFeeManager is Helpers {
         }
         // Delete a token from the end (last in the original array, unless it was already deleted)
         uint8 deleteEnd = numTokens - 1;
-        if (deleteEnd == deleteMid) deleteEnd--;
+        if (deleteEnd == deleteMid) {
+            deleteEnd--;
+        }
         vm.prank(gov);
         feeManager.delFeeToken(tokenStrs[deleteEnd]);
         tokenList = feeManager.getFeeTokenList();
         // Check all tokens except deleted ones are present
         for (uint8 i = 0; i < numTokens; i++) {
             bool found = false;
-            for (uint j = 0; j < tokenList.length; j++) {
-                if (tokenList[j] == tokens[i]) found = true;
+            for (uint256 j = 0; j < tokenList.length; j++) {
+                if (tokenList[j] == tokens[i]) {
+                    found = true;
+                }
             }
             if (i == deleteMid || i == deleteEnd) {
                 assertTrue(!found, "Deleted token should not be present");
@@ -330,7 +342,11 @@ contract TestFeeManager is Helpers {
         uint256 paid = feeManager.payFee(FEE_AMOUNT, feeTokenStr);
         assertEq(paid, FEE_AMOUNT, "Paid amount should match input");
         assertEq(feeToken.balanceOf(user1), userBalanceBefore - FEE_AMOUNT, "User balance should decrease");
-        assertEq(feeToken.balanceOf(address(feeManager)), contractBalanceBefore + FEE_AMOUNT, "Contract balance should increase");
+        assertEq(
+            feeToken.balanceOf(address(feeManager)),
+            contractBalanceBefore + FEE_AMOUNT,
+            "Contract balance should increase"
+        );
     }
 
     function test_WithdrawFeeTransfersTokens() public {
@@ -346,7 +362,11 @@ contract TestFeeManager is Helpers {
         vm.prank(gov);
         feeManager.withdrawFee(feeTokenStr, FEE_AMOUNT, addressToString(treasury));
         assertEq(feeToken.balanceOf(treasury), treasuryBalanceBefore + FEE_AMOUNT, "Treasury balance should increase");
-        assertEq(feeToken.balanceOf(address(feeManager)), contractBalanceBefore - FEE_AMOUNT, "Contract balance should decrease");
+        assertEq(
+            feeToken.balanceOf(address(feeManager)),
+            contractBalanceBefore - FEE_AMOUNT,
+            "Contract balance should decrease"
+        );
     }
 
     // Overflow/Underflow Tests
@@ -361,19 +381,16 @@ contract TestFeeManager is Helpers {
         uint256 treasuryBalanceBefore = feeToken.balanceOf(treasury);
         vm.prank(gov);
         feeManager.withdrawFee(feeTokenStr, largeAmount, addressToString(treasury));
-        assertEq(feeToken.balanceOf(treasury), treasuryBalanceBefore + FEE_AMOUNT, "Should withdraw only available balance");
+        assertEq(
+            feeToken.balanceOf(treasury), treasuryBalanceBefore + FEE_AMOUNT, "Should withdraw only available balance"
+        );
         assertEq(feeToken.balanceOf(address(feeManager)), 0, "Contract balance should be 0");
     }
 
     function test_FeeMultiplierNoOverflow() public {
         // Set a very large multiplier (should revert)
         uint256 largeMultiplier = 1e55 + 1; // MAX_SAFE_MULTIPLIER + 1 (hardcoded, since not public)
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IFeeManager.FeeManager_InvalidLength.selector,
-                Uint.Multiplier
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_InvalidLength.selector, Uint.Multiplier));
         vm.prank(gov);
         feeManager.setFeeMultiplier(FeeType.TX, largeMultiplier);
         // Set a safe multiplier (should succeed)
@@ -429,7 +446,9 @@ contract TestFeeManager is Helpers {
         uint256 paid = feeManager.payFee(amount, feeTokenStr);
         assertEq(paid, amount, "Paid amount should match input");
         assertEq(feeToken.balanceOf(user1), userBalanceBefore - amount, "User balance should decrease");
-        assertEq(feeToken.balanceOf(address(feeManager)), contractBalanceBefore + amount, "Contract balance should increase");
+        assertEq(
+            feeToken.balanceOf(address(feeManager)), contractBalanceBefore + amount, "Contract balance should increase"
+        );
     }
 
     function test_FuzzSetFeeMultiplier(uint8 feeTypeRaw, uint256 multiplier) public {
@@ -445,7 +464,9 @@ contract TestFeeManager is Helpers {
     function invariant_FeeTokenListConsistency() public view {
         address[] memory tokenList = feeManager.getFeeTokenList();
         for (uint256 i = 0; i < tokenList.length; i++) {
-            assertGt(feeManager.getFeeTokenIndexMap(addressToString(tokenList[i])), 0, "Listed token should have valid index");
+            assertGt(
+                feeManager.getFeeTokenIndexMap(addressToString(tokenList[i])), 0, "Listed token should have valid index"
+            );
         }
     }
 

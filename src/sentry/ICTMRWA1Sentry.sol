@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { Address, Uint } from "../CTMRWAUtils.sol";
+import { Address, Uint } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1Sentry is ICTMRWA {
     error CTMRWA1Sentry_Unauthorized(Address);
