@@ -33,6 +33,7 @@ contract CTMRWA1DividendFactory is ICTMRWA1DividendFactory {
 
     /**
      * @dev Deploy a new CTMRWA1Dividend using 'salt' ID to ensure a unique contract address
+     * @return dividendAddr The address of the deployed CTMRWA1Dividend contract
      */
     function deployDividend(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _map)
         external

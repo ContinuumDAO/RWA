@@ -80,6 +80,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
      * @param _feeTokenStr The fee token address (as a string) to add
      * NOTE This only adds a fee token to the list. Its parameters must still be configured
      * with a call to the other addFeeToken function
+     * @return success True if the fee token was added, false otherwise.
      */
     function addFeeToken(string memory _feeTokenStr) external onlyGov whenNotPaused nonReentrant returns (bool) {
         if (bytes(_feeTokenStr).length != 42) {
@@ -96,6 +97,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     /**
      * @notice Remove a fee token from the list of allowable fee tokens
      * @param _feeTokenStr The fee token address (as a string) to remove
+     * @return success True if the fee token was removed, false otherwise.
      */
     function delFeeToken(string memory _feeTokenStr) external onlyGov whenNotPaused nonReentrant returns (bool) {
         if (bytes(_feeTokenStr).length != 42) {
@@ -122,6 +124,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
 
     /**
      * @notice Get a list of all allowable fee token addresses as an array of strings
+     * @return feeTokenList The list of all allowable fee token addresses as an array of strings
      */
     function getFeeTokenList() external view virtual returns (address[] memory) {
         return feeTokenList;
@@ -130,6 +133,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     /**
      * @notice Get the index into the fee token list for a particular fee token
      * @param _feeTokenStr The fee token address (as a string) to examine
+     * @return feeTokenIndexMap The index into the fee token list for a particular fee token
      */
     function getFeeTokenIndexMap(string memory _feeTokenStr) external view returns (uint256) {
         if (bytes(_feeTokenStr).length != 42) {
@@ -145,6 +149,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
      * @param feeTokensStr An array of fee tokens, as strings, that the fees are being set for
      * @param baseFee This is an array of fees, in wei, for each fee token and to the destination chainId
      * NOTE The actual fee paid for an operation to a chainId is the baseFee multiplied by the fee multiplier
+     * @return success True if the fee token parameters were added, false otherwise.
      */
     function addFeeToken(string memory dstChainIDStr, string[] memory feeTokensStr, uint256[] memory baseFee)
         external
@@ -181,6 +186,9 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     }
 
     /// @dev Set the fee multiplier (of baseFee) for a particular FeeType
+    /// @param _feeType The FeeType enum to set the fee multiplier for
+    /// @param _multiplier The multiplier to set for the FeeType
+    /// @return success True if the fee multiplier was set, false otherwise.
     function setFeeMultiplier(FeeType _feeType, uint256 _multiplier)
         external
         onlyGov
@@ -202,6 +210,8 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     }
 
     /// @dev Get the fee multiplier for a given FeeType
+    /// @param _feeType The FeeType enum to get the fee multiplier for
+    /// @return feeMultiplier The fee multiplier for a given FeeType
     function getFeeMultiplier(FeeType _feeType) public view returns (uint256) {
         uint256 idx = uint256(_feeType);
         if (idx >= feeMultiplier.length) {
@@ -217,6 +227,8 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
      * @param _includeLocal When to include the local chain in the fee calculation or not
      * @param _feeType The FeeType enum to get the fee for
      * @param _feeTokenStr The fee token address (as a string) to calculate the fee in
+     * @return fee The fee for a given AssetX operation, depending on the FeeType and the array of
+     * chains involved and whether to include the the local chain or not
      */
     function getXChainFee(
         string[] memory _toChainIDsStr,
@@ -257,6 +269,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
      * @notice Pay a fee to this contract for an AssetX service
      * @param _fee The fee to pay in wei
      * @param _feeTokenStr The fee token address (as a string) to pay in
+     * @return _fee The fee paid in wei
      */
     function payFee(uint256 _fee, string memory _feeTokenStr) external nonReentrant whenNotPaused returns (uint256) {
         if (bytes(_feeTokenStr).length != 42) {
@@ -274,6 +287,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
      * @param _feeTokenStr The fee contract address (as a string) to withdraw
      * @param _amount The amount to withdraw in wei
      * @param _treasuryStr The wallet address (as a string) to withdraw to.
+     * @return success True if the fee was withdrawn, false otherwise.
      */
     function withdrawFee(string memory _feeTokenStr, uint256 _amount, string memory _treasuryStr)
         external
@@ -306,6 +320,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
      * @notice Get the configured base fee for a cross chain operation
      * @param _toChainIDStr The chainID (as a string) to consider the fee for
      * @param _feeTokenStr The fee token address (as a string)
+     * @return baseFee The configured base fee for a cross chain operation
      */
     function getToChainBaseFee(string memory _toChainIDStr, string memory _feeTokenStr) public view returns (uint256) {
         if (bytes(_toChainIDStr).length == 0) {
@@ -322,6 +337,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDapp, UU
     }
 
     /// @dev The c3caller required fallback contract in the event of a cross-chain error
+    /// @return success True if the fallback was successful, false otherwise.
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal
         virtual

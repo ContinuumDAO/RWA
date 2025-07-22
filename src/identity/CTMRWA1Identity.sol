@@ -102,6 +102,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
      * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
+     * @return success True if the person was verified, false otherwise.
      */
     function verifyPerson(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr)
         public
@@ -148,6 +149,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
      * @dev This checks if the zkMe Verifier contract has been set for this chain. If it returns false,
      * then either the zkMeVerifier contract address has not yet been set (a deployment issue), or the
      * current chain does not allow zkMe verification
+     * @return success True if the chain is a KYC chain, false otherwise.
      */
     function isKycChain() public view returns (bool) {
         return (zkMeVerifierAddress != address(0));
@@ -179,6 +181,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
     }
 
     /// @dev Pay the fees for verifyPerson KYC
+    /// @return success True if the fee was paid, false otherwise.
     function _payFee(string memory _feeTokenStr) internal returns (bool) {
         bool includeLocal = false;
         uint256 feeWei =

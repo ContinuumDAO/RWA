@@ -65,6 +65,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
     /**
      * @notice Governor function to add addresses of CTMRWAGateway contracts on other chains.
      * @dev All input address are arrays of strings
+     * @return success True if the addresses were added, false otherwise.
      */
     function addChainContract(string[] memory _newChainIdsStr, string[] memory _contractAddrsStr)
         external
@@ -102,6 +103,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
     /**
      * @notice Get the address string for a CTMRWAGateway contract on another chainId
      * @param _chainIdStr The chainId converted to a string
+     * @return contractStr The address string for a CTMRWAGateway contract on another chainId
      */
     function getChainContract(string memory _chainIdStr) external view returns (string memory) {
         for (uint256 i = 0; i < chainContract.length; i++) {
@@ -115,12 +117,15 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
     /**
      * @notice Get the chainId and address of a CTMRWAGateway contract at an index _pos
      * @param _pos The index into the stored array
+     * @return chainIdStr The chainId of the CTMRWAGateway contract at the index
+     * @return contractStr The address string for a CTMRWAGateway contract at the index
      */
     function getChainContract(uint256 _pos) public view returns (string memory, string memory) {
         return (chainContract[_pos].chainIdStr, chainContract[_pos].contractStr);
     }
 
     /// @notice Get the number of stored chainIds and CTMRWAGateway pairs stored
+    /// @return The number of stored chainIds and CTMRWAGateway pairs stored
     function getChainCount() public view returns (uint256) {
         return (chainContract.length);
     }
@@ -129,6 +134,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @notice Get all the chainIds of all CTMRWA1X contracts
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
+     * @return rwaXChains The array of chainIds of all CTMRWA1X contracts
      */
     function getAllRwaXChains(uint256 _rwaType, uint256 _version) public view returns (string[] memory) {
         return (rwaXChains[_rwaType][_version]);
@@ -139,6 +145,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdStr The chainId converted to a string to check for
+     * @return success True if the chainId exists, false otherwise.
      */
     function existRwaXChain(uint256 _rwaType, uint256 _version, string memory _chainIdStr) public view returns (bool) {
         for (uint256 i = 0; i < rwaXChains[_rwaType][_version].length; i++) {
@@ -155,6 +162,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _indx The index position to return data from
+     * @return chainIdStr The chainId of the CTMRWA1X contract at the index
+     * @return contractStr The address string for a CTMRWA1X contract at the index
      */
     function getAttachedRWAX(uint256 _rwaType, uint256 _version, uint256 _indx)
         public
@@ -168,6 +177,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @notice get the total number of stored CTMRWA1X contracts for all chainIds (including this one)
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
+     * @return The total number of stored CTMRWA1X contracts for all chainIds (including this one)
      */
     function getRWAXCount(uint256 _rwaType, uint256 _version) public view returns (uint256) {
         return (rwaX[_rwaType][_version].length);
@@ -178,6 +188,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdStr The chainId (as a string) being examined
+     * @return success True if the chainId exists, false otherwise.
+     * @return contractStr The address string for a CTMRWA1X contract at the index
      */
     function getAttachedRWAX(uint256 _rwaType, uint256 _version, string memory _chainIdStr)
         public
@@ -199,6 +211,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _indx The index position to return data from
+     * @return chainIdStr The chainId of the CTMRWA1StorageManager contract at the index
+     * @return contractStr The address string for a CTMRWA1StorageManager contract at the index
      */
     function getAttachedStorageManager(uint256 _rwaType, uint256 _version, uint256 _indx)
         public
@@ -215,6 +229,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * chainIds (including this one)
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
+     * @return The total number of stored CTMRWA1StorageManager contracts for all chainIds (including this one)
      */
     function getStorageManagerCount(uint256 _rwaType, uint256 _version) public view returns (uint256) {
         return (storageManager[_rwaType][_version].length);
@@ -226,6 +241,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdStr The chainId (as a string) being examined
+     * @return success True if the chainId exists, false otherwise.
+     * @return contractStr The address string for a CTMRWA1StorageManager contract at the index
      */
     function getAttachedStorageManager(uint256 _rwaType, uint256 _version, string memory _chainIdStr)
         public
@@ -247,6 +264,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _indx The index position to return data from
+     * @return chainIdStr The chainId of the CTMRWA1SentryManager contract at the index
+     * @return contractStr The address string for a CTMRWA1SentryManager contract at the index
      */
     function getAttachedSentryManager(uint256 _rwaType, uint256 _version, uint256 _indx)
         public
@@ -262,6 +281,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * chainIds (including this one)
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
+     * @return The total number of stored CTMRWA1SentryManager contracts for all chainIds (including this one)
      */
     function getSentryManagerCount(uint256 _rwaType, uint256 _version) public view returns (uint256) {
         return (sentryManager[_rwaType][_version].length);
@@ -273,6 +293,8 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdStr The chainId (as a string) being examined
+     * @return success True if the chainId exists, false otherwise.
+     * @return contractStr The address string for a CTMRWA1SentryManager contract at the index
      */
     function getAttachedSentryManager(uint256 _rwaType, uint256 _version, string memory _chainIdStr)
         public
@@ -294,6 +316,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdsStr Array of chainIds converted to strings
      * @param _rwaXAddrsStr Array of the CTMRWA1X contract addresses converted to strings
+     * @return success True if the addresses were added, false otherwise.
      */
     function attachRWAX(uint256 _rwaType, uint256 _version, string[] memory _chainIdsStr, string[] memory _rwaXAddrsStr)
         external
@@ -345,6 +368,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @param _chainIdsStr Array of chainIds converted to strings
      * @param _storageManagerAddrsStr Array of the CTMRWA1StorageManager contract addresses
      * converted to strings
+     * @return success True if the addresses were added, false otherwise.
      */
     function attachStorageManager(
         uint256 _rwaType,
@@ -392,6 +416,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
      * @param _chainIdsStr Array of chainIds converted to strings
      * @param _sentryManagerAddrsStr Array of the CTMRWA1SentryManager contract addresses
      * converted to strings
+     * @return success True if the addresses were added, false otherwise.
      */
     function attachSentryManager(
         uint256 _rwaType,
@@ -437,6 +462,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDapp, UUPSUpgradeable {
     }
 
     /// @dev Fallback function for a failed c3call. Only logs an event at present
+    /// @return success True if the fallback was successful, false otherwise.
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal
         override

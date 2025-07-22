@@ -89,6 +89,8 @@ library CTMRWAUtils {
     error CTMRWAUtils_StringTooLong();
 
     /// @dev Convert a string to lower case
+    /// @param str The string to convert to lower case
+    /// @return The lower case string
     function _toLower(string memory str) internal pure returns (string memory) {
         bytes memory bStr = bytes(str);
         bytes memory bLower = new bytes(bStr.length);
@@ -105,6 +107,8 @@ library CTMRWAUtils {
     }
 
     /// @dev Convert a string to an EVM address. Also checks the string length
+    /// @param str The string to convert to an EVM address
+    /// @return The EVM address
     function _stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         // require(strBytes.length == 42, "RWA: Invalid addr length");
@@ -121,6 +125,8 @@ library CTMRWAUtils {
     }
 
     /// @dev Convert a single hex character to its byte representation
+    /// @param char The hex character to convert to a byte
+    /// @return The byte value of the hex character
     function _hexCharToByte(bytes1 char) internal pure returns (uint8) {
         uint8 byteValue = uint8(char);
         if (byteValue >= uint8(bytes1("0")) && byteValue <= uint8(bytes1("9"))) {
@@ -134,6 +140,8 @@ library CTMRWAUtils {
     }
 
     /// @dev Ensure string length is less than length
+    /// @param _str The string to check the length of
+    /// @param _len The maximum length of the string
     function _checkStringLength(string memory _str, uint256 _len) internal pure {
         if (bytes(_str).length > _len) {
             revert CTMRWAUtils_StringTooLong();
@@ -141,6 +149,8 @@ library CTMRWAUtils {
     }
 
     /// @dev Convert an individual string to an array with a single value
+    /// @param _string The string to convert to an array
+    /// @return The array of strings
     function _stringToArray(string memory _string) internal pure returns (string[] memory) {
         string[] memory strArray = new string[](1);
         strArray[0] = _string;
@@ -148,6 +158,8 @@ library CTMRWAUtils {
     }
 
     /// @dev Convert an individual boolean to an array with a single value
+    /// @param _bool The boolean to convert to an array
+    /// @return The array of booleans
     function _boolToArray(bool _bool) internal pure returns (bool[] memory) {
         bool[] memory boolArray = new bool[](1);
         boolArray[0] = _bool;
@@ -155,6 +167,8 @@ library CTMRWAUtils {
     }
 
     /// @dev Convert an individual uint256 to an array with a single value
+    /// @param _myUint256 The uint256 to convert to an array
+    /// @return The array of uint256s
     function _uint256ToArray(uint256 _myUint256) internal pure returns (uint256[] memory) {
         uint256[] memory uintArray = new uint256[](1);
         uintArray[0] = _myUint256;
@@ -162,6 +176,8 @@ library CTMRWAUtils {
     }
 
     /// @dev Convert an individual uint8 to an array with a single value
+    /// @param _myUint8 The uint8 to convert to an array
+    /// @return The array of uint8s
     function _uint8ToArray(uint8 _myUint8) internal pure returns (uint8[] memory) {
         uint8[] memory uintArray = new uint8[](1);
         uintArray[0] = _myUint8;
@@ -169,6 +185,8 @@ library CTMRWAUtils {
     }
 
     /// @dev Convert an individual bytes32 to an array with a single value
+    /// @param _myBytes32 The bytes32 to convert to an array
+    /// @return The array of bytes32s
     function _bytes32ToArray(bytes32 _myBytes32) internal pure returns (bytes32[] memory) {
         bytes32[] memory bytes32Array = new bytes32[](1);
         bytes32Array[0] = _myBytes32;

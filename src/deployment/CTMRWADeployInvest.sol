@@ -53,6 +53,10 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
         cIdStr = block.chainid.toString();
     }
 
+    /// @dev This allows the deployer, map and fee manager to be set
+    /// @param _deployer The address of the deployer
+    /// @param _ctmRwaMap The address of the CTMRWAMap contract
+    /// @param _feeManager The address of the FeeManager contract
     function setDeployerMapFee(address _deployer, address _ctmRwaMap, address _feeManager) external onlyDeployer {
         ctmRwaDeployer = _deployer;
         ctmRwaMap = _ctmRwaMap;
@@ -60,11 +64,17 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     }
 
     /// @dev This allows a commission to be charged on the offering, payable to the FeeManager contract
+    /// @param _commissionRate The commission rate to set
     function setCommissionRate(uint256 _commissionRate) external onlyDeployer {
         commissionRate = _commissionRate;
     }
 
     /// @dev This deploys a new CTMRWA1Invest contract
+    /// @param _ID The ID of the RWA token
+    /// @param _rwaType The type of RWA token
+    /// @param _version The version of the RWA token
+    /// @param _feeToken The address of the fee token
+    /// @return The address of the deployed CTMRWA1Invest contract
     function deployInvest(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken)
         external
         onlyDeployer
@@ -81,6 +91,8 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     }
 
     /// @dev Pay the fee for deploying the Invest contract
+    /// @param _feeType The type of fee to pay
+    /// @param _feeToken The address of the fee token
     function _payFee(FeeType _feeType, address _feeToken) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
         uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), false, _feeType, feeTokenStr);

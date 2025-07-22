@@ -54,6 +54,7 @@ contract CTMRWA1XFallback is ICTMRWA1XFallback {
      * @dev If the failing function was mintX (used for transferFrom), then this function will mint the fungible
      * balance in the CTMRWA1 with ID, as a new tokenId, effectively replacing the value that was
      * burned.
+     * @return success True if the fallback was successful, false otherwise.
      */
     function rwa1XC3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason, address _map)
         external

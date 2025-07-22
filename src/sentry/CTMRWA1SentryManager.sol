@@ -159,6 +159,12 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     /**
      * @dev This function is called by CTMRWADeployer, allowing CTMRWA1SentryUtils to
      * deploy a CTMRWA1Sentry contract with the same ID as for the CTMRWA1 contract
+     * @param _ID The ID of the RWA token
+     * @param _tokenAddr The address of the CTMRWA1 contract
+     * @param _rwaType The type of RWA (set to 1 for CTMRWA1)
+     * @param _version The version of RWA (set to 1 for current version)
+     * @param _map The address of the CTMRWAMap contract
+     * @return sentryAddr The address of the deployed CTMRWA1Sentry contract
      */
     function deploySentry(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _map)
         external
@@ -444,6 +450,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     /// @dev This function is only called on the destination chain by addWhitelist. It is an onlyCaller function
+    /// @param _ID The ID of the RWA token
+    /// @param _wallets The list of wallets to set the state for
+    /// @param _choices The list of choices for the wallets
+    /// @return success True if the whitelist was set, false otherwise.
     function setWhitelistX(uint256 _ID, string[] memory _wallets, bool[] memory _choices)
         external
         onlyCaller
@@ -525,6 +535,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
 
     /// @dev This function is only called on the destination chain by addCountrylist. It is an onlyCaller function.
     /// See addCountrylist for details of the params.
+    /// @param _ID The ID of the RWA token
+    /// @param _countries The list of countries to set the state for
+    /// @param _choices The list of choices for the countries
+    /// @return success True if the country list was set, false otherwise.
     function setCountryListX(uint256 _ID, string[] memory _countries, bool[] memory _choices)
         external
         onlyCaller
@@ -540,6 +554,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     /// @dev Pay a fee, calculated by the feeType, the fee token and the chains in question
+    /// @param _feeWei The fee to pay in wei
+    /// @param _feeTokenStr The fee token address (as a string) to pay in
+    /// @return success True if the fee was paid, false otherwise.
     function _payFee(uint256 _feeWei, string memory _feeTokenStr) internal returns (bool) {
         if (_feeWei > 0) {
             address feeToken = _feeTokenStr._stringToAddress();
@@ -553,6 +570,11 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     /// @dev Get the fee payable, depending on the _feeType
+    /// @param _feeType The type of fee to get
+    /// @param _nItems The number of items to get the fee for
+    /// @param _toChainIdsStr The list of chainIds to get the fee for
+    /// @param _feeTokenStr The fee token address (as a string) to get the fee in
+    /// @return fee The fee to pay in wei
     function _getFee(FeeType _feeType, uint256 _nItems, string[] memory _toChainIdsStr, string memory _feeTokenStr)
         internal
         view
@@ -566,12 +588,16 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     /// @dev This reports on the latest revert string if a cross-chain call failed for whatever reason
+    /// @return lastReason The latest revert string if a cross-chain call failed for whatever reason
     function getLastReason() public view returns (string memory) {
         string memory lastReason = ICTMRWA1SentryUtils(utilsAddr).getLastReason();
         return (lastReason);
     }
 
     /// @dev Get the CTMRWA1 contract address corresponding to the ID on this chain
+    /// @param _ID The ID of the RWA token
+    /// @return tokenAddr The address of the CTMRWA1 contract
+    /// @return tokenAddrStr The string version of the CTMRWA1 contract address
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
@@ -583,6 +609,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     /// @dev Get the CTMRWA1Sentry address corresponding to the ID on this chain
+    /// @param _ID The ID of the RWA token
+    /// @return sentryAddr The address of the CTMRWA1Sentry contract
+    /// @return sentryAddrStr The string version of the CTMRWA1Sentry contract address
     function _getSentryAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
@@ -594,6 +623,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     /// @dev Get the sentryManager address on a destination chain for a c3call
+    /// @param _toChainIdStr The chainId of the destination chain
+    /// @return fromAddressStr The address of the CTMRWA1SentryManager contract on this chain
+    /// @return toSentryStr The address of the CTMRWA1SentryManager contract on the destination chain
     function _getSentry(string memory _toChainIdStr) internal view returns (string memory, string memory) {
         if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1SentryManager_SameChain();
@@ -611,6 +643,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     /// @dev Check that the msg.sender is the same as the tokenAdmin for this RWA token
+    /// @param _tokenAddr The address of the CTMRWA1 contract
+    /// @return currentAdmin The current tokenAdmin address
+    /// @return currentAdminStr The string version of the current tokenAdmin address
     function _checkTokenAdmin(address _tokenAddr) internal returns (address, string memory) {
         address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
         string memory currentAdminStr = currentAdmin.toHexString()._toLower();
@@ -623,6 +658,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     }
 
     /// @dev The fallback function for this GovernDapp in the event of a cross-chain call failure
+    /// @param _selector The selector of the function that failed
+    /// @param _data The data of the function that failed
+    /// @param _reason The reason for the failure
+    /// @return ok True if the fallback was successful, false otherwise.
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal
         override

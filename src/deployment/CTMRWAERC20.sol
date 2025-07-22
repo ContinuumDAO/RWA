@@ -90,6 +90,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
 
     /**
      * @notice The ERC20 name returns the input name, pre-pended with the slot
+     * @return ctmRwaName The name of the ERC20
      */
     function name() public view override(ERC20, ICTMRWAERC20) returns (string memory) {
         return ctmRwaName;
@@ -97,6 +98,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
 
     /**
      * @notice The ERC20 symbol
+     * @return symbol The symbol of the ERC20
      */
     function symbol() public view override(ERC20, ICTMRWAERC20) returns (string memory) {
         return ctmRwaSymbol;
@@ -105,6 +107,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
     /**
      * @notice The ERC20 decimals. This is not part of the official ERC20 interface, but is added here
      * for convenience
+     * @return decimals The decimals of the ERC20
      */
     function decimals() public view override(ERC20, ICTMRWAERC20) returns (uint8) {
         return ctmRwaDecimals;
@@ -113,6 +116,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
     /**
      * @notice The ERC20 totalSupply. This is derived from the CTMRWA1 and is the
      * total fungible balance summed over all tokenIds in the slot of this ERC20
+     * @return total The total supply of the ERC20
      */
     function totalSupply() public view override(ERC20, IERC20) returns (uint256) {
         uint256 total = ICTMRWA1(ctmRwaToken).totalSupplyInSlot(slot);
@@ -123,6 +127,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
      * @notice The ERC20 balanceOf. This is derived from the CTMRWA1 and is the sum of
      * the fungible balances of all tokenIds in this slot for this _account
      * @param _account The wallet address of the balanceOf being sought
+     * @return bal The balance of the _account
      */
     function balanceOf(address _account) public view override(ERC20, IERC20) returns (uint256) {
         uint256 bal = ICTMRWA1(ctmRwaToken).balanceOf(_account, slot);
@@ -133,6 +138,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
      * @notice Returns the ERC20 allowance of _spender on behalf of _owner
      * @param _owner The owner of the tokenIds who is granting approval to the spender
      * @param _spender The recipient, who is being granted approval to spend on behalf of _owner
+     * @return The allowance of _spender on behalf of _owner
      */
     function allowance(address _owner, address _spender) public view override(ERC20, IERC20) returns (uint256) {
         return super.allowance(_owner, _spender);
@@ -142,6 +148,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
      * @notice Grant approval to a spender to spend a fungible value from the slot
      * @param _spender The wallet address being granted approval to spend value
      * @param _value The fungible value being approved to spend by the spender
+     * @return success True if the approval was successful, false otherwise.
      */
     function approve(address _spender, uint256 _value) public override(ERC20, IERC20) returns (bool) {
         _approve(msg.sender, _spender, _value, true);
@@ -154,6 +161,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
      * @param _value The fungible amount being transferred.
      * NOTE The _value is taken from the first tokenId owned by the caller and if this is not
      * sufficient, the balance is taken from the second owned tokenId etc.
+     * @return success True if the transfer was successful, false otherwise.
      */
     function transfer(address _to, uint256 _value) public override(ERC20, IERC20) nonReentrant returns (bool) {
         address owner = msg.sender;
@@ -169,6 +177,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
      * NOTE The caller must have sufficient allowance granted to it by the _from wallet
      * NOTE The _value is taken from the first tokenId owned by the caller and if this is not
      * sufficient, the balance is taken from the second owned tokenId etc.
+     * @return success True if the transfer was successful, false otherwise.
      */
     function transferFrom(address _from, address _to, uint256 _value)
         public

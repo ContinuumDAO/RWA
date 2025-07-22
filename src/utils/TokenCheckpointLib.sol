@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.27;
 
 /// @title TokenCheckpoints
 /// @notice Library for tracking historical values and ownership for tokenIds, using 64-byte checkpoints (timestamp,
@@ -45,6 +45,9 @@ library TokenCheckpoints {
     }
 
     /// @notice Returns the value in the first (oldest) checkpoint with key >= search key, or zero if none.
+    /// @param _key The key to search for
+    /// @return value The value in the checkpoint
+    /// @return owner The owner of the checkpoint
     function lowerLookup(Trace storage self, uint96 key) internal view returns (uint256, address) {
         uint256 len = self._checkpoints.length;
         uint256 pos = _lowerBinaryLookup(self._checkpoints, key, 0, len);
@@ -56,6 +59,9 @@ library TokenCheckpoints {
     }
 
     /// @notice Returns the value in the last (most recent) checkpoint with key <= search key, or zero if none.
+    /// @param _key The key to search for
+    /// @return value The value in the checkpoint
+    /// @return owner The owner of the checkpoint
     function upperLookup(Trace storage self, uint96 key) internal view returns (uint256, address) {
         uint256 len = self._checkpoints.length;
         uint256 pos = _upperBinaryLookup(self._checkpoints, key, 0, len);
@@ -68,6 +74,9 @@ library TokenCheckpoints {
 
     /// @notice Returns the value in the last (most recent) checkpoint with key <= search key, or zero if none.
     /// @dev Optimized for recent checkpoints (high keys)
+    /// @param _key The key to search for
+    /// @return value The value in the checkpoint
+    /// @return owner The owner of the checkpoint
     function upperLookupRecent(Trace storage self, uint96 key) internal view returns (uint256, address) {
         uint256 len = self._checkpoints.length;
         uint256 low = 0;
@@ -89,6 +98,8 @@ library TokenCheckpoints {
     }
 
     /// @notice Returns the value in the most recent checkpoint, or zero if none.
+    /// @return value The value in the checkpoint
+    /// @return owner The owner of the checkpoint
     function latest(Trace storage self) internal view returns (uint256, address) {
         uint256 len = self._checkpoints.length;
         if (len == 0) {
@@ -100,6 +111,10 @@ library TokenCheckpoints {
 
     /// @notice Returns whether there is a checkpoint, and if so the key, value, and owner in the most recent
     /// checkpoint.
+    /// @return exists True if there is a checkpoint, false otherwise
+    /// @return key The key of the checkpoint
+    /// @return value The value in the checkpoint
+    /// @return owner The owner of the checkpoint
     function latestCheckpoint(Trace storage self)
         internal
         view
@@ -115,17 +130,27 @@ library TokenCheckpoints {
     }
 
     /// @notice Returns the number of checkpoints.
+    /// @return The number of checkpoints
     function length(Trace storage self) internal view returns (uint256) {
         return self._checkpoints.length;
     }
 
     /// @notice Returns checkpoint at given position.
+    /// @param _pos The position of the checkpoint
+    /// @return key The key of the checkpoint
+    /// @return value The value in the checkpoint
+    /// @return owner The owner of the checkpoint
     function at(Trace storage self, uint32 pos) internal view returns (uint96, uint256, address) {
         CheckpointFull storage cp = self._checkpoints[pos];
         return (cp.timestamp, cp.value, cp.owner);
     }
 
     // --- Internal helpers ---
+    /// @param _self The checkpoint array
+    /// @param _key The key to search for
+    /// @param _low The lower bound of the search
+    /// @param _high The upper bound of the search
+    /// @return The position of the checkpoint
     function _upperBinaryLookup(CheckpointFull[] storage self, uint96 key, uint256 low, uint256 high)
         private
         view
@@ -142,6 +167,11 @@ library TokenCheckpoints {
         return high;
     }
 
+    /// @param _self The checkpoint array
+    /// @param _key The key to search for
+    /// @param _low The lower bound of the search
+    /// @param _high The upper bound of the search
+    /// @return The position of the checkpoint
     function _lowerBinaryLookup(CheckpointFull[] storage self, uint96 key, uint256 low, uint256 high)
         private
         view

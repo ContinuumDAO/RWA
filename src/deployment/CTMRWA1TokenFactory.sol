@@ -36,6 +36,8 @@ contract CTMRWA1TokenFactory is ICTMRWA1TokenFactory {
 
     /**
      * @dev Deploy a new CTMRWA1 using 'salt' ID to ensure a unique contract address
+     * @param _deployData The data to deploy the CTMRWA1 contract
+     * @return ctmRwa1Addr The address of the deployed CTMRWA1 contract
      */
     function deploy(bytes memory _deployData) external onlyDeployer returns (address) {
         (

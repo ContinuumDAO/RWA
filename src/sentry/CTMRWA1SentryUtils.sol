@@ -46,6 +46,12 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
     }
 
     /// @dev Deploy an instance of CTMRWA1Sentry with salt including its unique ID
+    /// @param _ID The ID of the RWA token
+    /// @param _tokenAddr The address of the CTMRWA1 contract
+    /// @param _rwaType The type of RWA token
+    /// @param _version The version of the RWA token
+    /// @param _map The address of the CTMRWA1Map contract
+    /// @return The address of the deployed CTMRWA1Sentry contract
     function deploySentry(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _map)
         external
         onlySentryManager
@@ -58,11 +64,16 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
     }
 
     /// @dev Get the last revert string for a faile cross-chain c3call. For debug purposes
+    /// @return lastReason The latest revert string if a cross-chain call failed for whatever reason
     function getLastReason() public view returns (string memory) {
         return (string(lastReason));
     }
 
     /// @dev The required c3caller fallback function
+    /// @param _selector The selector of the function that failed
+    /// @param _data The data of the function that failed
+    /// @param _reason The reason for the failure
+    /// @return ok True if the fallback was successful, false otherwise.
     function sentryC3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         external
         onlySentryManager
@@ -78,6 +89,9 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
     }
 
     /// @dev Get the deployed contract address on this chain for this CTMRWA1 ID
+    /// @param _ID The ID of the RWA token
+    /// @return tokenAddr The address of the CTMRWA1 contract
+    /// @return tokenAddrStr The string version of the CTMRWA1 contract address
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {

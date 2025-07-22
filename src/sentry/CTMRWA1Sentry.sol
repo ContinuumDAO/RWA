@@ -85,9 +85,12 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         countryList.push("NOGO");
     }
 
-    /// @dev Thiss function is normally called by CTMRWA1X to set a new tokenAdmin
-    /// It can also be called by the current tokenAdmin, but htis should not normally be required
-    /// and would only happen to clean up in the event of a cross-chain failure to reset the tokenAdmin
+    /** @dev Thiss function is normally called by CTMRWA1X to set a new tokenAdmin
+     * It can also be called by the current tokenAdmin, but htis should not normally be required
+     * and would only happen to clean up in the event of a cross-chain failure to reset the tokenAdmin
+     * @param _tokenAdmin The new tokenAdmin address
+     * @return success True if the tokenAdmin was set, false otherwise.
+     */
     function setTokenAdmin(address _tokenAdmin) external onlyTokenAdmin returns (bool) {
         tokenAdmin = _tokenAdmin;
 
@@ -101,7 +104,11 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         return (true);
     }
 
-    /// @dev This funtion is called by SentryManager. See there for details
+    /** @dev This funtion is called by SentryManager. See there for details
+     * @param _appId The appId for the zkMe KYC service
+     * @param _programNo The programNo for the zkMe KYC service
+     * @param _cooperator The cooperator address for the zkMe KYC service
+     */
     function setZkMeParams(string memory _appId, string memory _programNo, address _cooperator)
         external
         onlySentryManager
@@ -113,12 +120,21 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
     /**
      * @notice Recover the currently stored parameters for the zkMe KYC service
+     * @return appId The appId for the zkMe KYC service
+     * @return programNo The programNo for the zkMe KYC service
+     * @return cooperator The cooperator address for the zkMe KYC service
      */
     function getZkMeParams() public view returns (string memory, string memory, address) {
         return (appId, programNo, cooperator);
     }
 
-    /// @dev Set the sentry options on the local chain. This function is called by CTMRWA1SentryManager
+    /** @dev Set the sentry options on the local chain. This function is called by CTMRWA1SentryManager
+     * @param _ID The ID of the RWA token
+     * @param _whitelist The whitelist switch
+     * @param _kyc The KYC switch
+     * @param _kyb The KYB switch
+     * @param _over18 The over 18 switch
+     */
     function setSentryOptionsLocal(
         uint256 _ID,
         bool _whitelist,
@@ -159,8 +175,12 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         sentryOptionsSet = true;
     }
 
-    /// @dev Set the Whitelist status on this chain. This contract holds the Whitelist state. This contract
-    /// is called by CTMRWA1SentryManager
+    /** @dev Set the Whitelist status on this chain. This contract holds the Whitelist state. This contract
+     * is called by CTMRWA1SentryManager
+     * @param _ID The ID of the RWA token
+     * @param _wallets The list of wallets to set the state for
+     * @param _choices The list of choices for the wallets
+     */
     function setWhitelistSentry(uint256 _ID, string[] memory _wallets, bool[] memory _choices)
         external
         onlySentryManager
@@ -171,8 +191,12 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         _setWhitelist(_wallets, _choices);
     }
 
-    /// @dev Set the country Whitelist ot Blacklist on this chain. This contract holds the state. This contract
-    /// is called by CTMRWA1SentryManager
+    /** @dev Set the country Whitelist ot Blacklist on this chain. This contract holds the state. This contract
+     * is called by CTMRWA1SentryManager
+     * @param _ID The ID of the RWA token
+     * @param _countryList The list of countries to set the state for
+     * @param _choices The list of choices for the countries
+     */
     function setCountryListLocal(uint256 _ID, string[] memory _countryList, bool[] memory _choices)
         external
         onlySentryManager
@@ -184,7 +208,10 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         _setCountryList(_countryList, _choices);
     }
 
-    /// @dev Internal function to manage the wallet Whitelist
+    /** @dev Internal function to manage the wallet Whitelist
+     * @param _wallets The list of wallets to set the state for
+     * @param _choices The list of choices for the wallets
+     */
     function _setWhitelist(string[] memory _wallets, bool[] memory _choices) internal {
         uint256 len = _wallets.length;
 
@@ -221,7 +248,10 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         }
     }
 
-    /// @dev Internal function to manage the state for a stored country Whitelist or Blacklist on this chain
+    /** @dev Internal function to manage the state for a stored country Whitelist or Blacklist on this chain
+     * @param _countries The list of countries to set the state for
+     * @param _choices The list of choices for the countries
+     */
     function _setCountryList(string[] memory _countries, bool[] memory _choices) internal {
         uint256 len = _countries.length;
         uint256 indx;

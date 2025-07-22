@@ -66,6 +66,7 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
      * in the return from feeTokenList() in FeeManager
      * NOTE The resulting ERC20 is only valid if this function is called from a CTMRWA1 contract
      * otherwise it will not be linked to it.
+     * @return The address of the deployed ERC20 contract
      */
     function deployERC20(
         uint256 _ID,
@@ -94,6 +95,9 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
     }
 
     /// @dev Pay the fee for deploying the ERC20
+    /// @param _feeType The type of fee to pay
+    /// @param _feeToken The address of the fee token
+    /// @return success True if the fee was paid, false otherwise
     function _payFee(FeeType _feeType, address _feeToken) internal nonReentrant returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
         uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), false, _feeType, feeTokenStr);

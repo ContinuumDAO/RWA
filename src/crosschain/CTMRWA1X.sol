@@ -513,6 +513,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * NOTE For EVM chains, the address of the fee token must be converted to a string.
      * NOTE This is not a cross-chain function. You must switch to each chain that you wish to mint value to.
+     * @return newTokenId The tokenId that was minted.
      */
     function mintNewTokenValueLocal(
         address _toAddress,
@@ -555,6 +556,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * NOTE For EVM chains, the address of the fee token must be converted to a string.
+     * @return success True if the slot was created, false otherwise.
      */
     function createNewSlot(
         uint256 _ID,
@@ -603,6 +605,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      * @dev Create a new slot for RWA with ID.
      * This function is only callable by the MPC network. It checks that the tokenAdmin of the
      * RWA on the source chain is the same as the tokenAdmin of the RWA on this chain.
+     * @return success True if the slot was created, false otherwise.
      */
     function createNewSlotX(uint256 _ID, string memory _fromAddressStr, uint256 _slot, string memory _slotName)
         external
@@ -645,6 +648,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      * NOTE For EVM chains, the address of the fee token must be converted to a string.
      * NOTE A new tokenId will be created for the _toAddressStr on the destination chain. They can then
      * move this balance to an existing tokenId if they wish to using CTMRWA1().transferFrom
+     * @return newTokenId The tokenId that was minted.
      */
     function transferPartialTokenX(
         uint256 _fromTokenId,
@@ -748,6 +752,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      * @dev Mint value in a new slot to an address
      * NOTE: This function is only callable by the MPC network
      * NOTE: It creates a new tokenId
+     * @return success True if the value was minted, false otherwise.
      */
     function mintX(
         uint256 _ID,
@@ -784,6 +789,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     // End of cross chain transfers
 
     /// @dev Update a list of CTMRWA1 addresses that _ownerAddr has one or more tokenIds in
+    /// @return success True if the address was updated, false otherwise.
     function _updateOwnedCtmRwa1(address _ownerAddr, address _tokenAddr) internal returns (bool) {
         uint256 len = ownedCtmRwa1[_ownerAddr].length;
 
@@ -800,6 +806,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     /**
      * @notice Get a list of CTMRWA1 addresses that has a tokenAdmin of _admin on this chain
      * @param _admin The tokenAdmin address that you want to check
+     * @return tokens The list of CTMRWA1 addresses that have a tokenAdmin of _admin on this chain
      */
     function getAllTokensByAdminAddress(address _admin) public view returns (address[] memory) {
         return (adminTokens[_admin]);
@@ -809,6 +816,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      * @notice Get a list of CTMRWA1 addresses that an address owns one or more tokenIds in
      * on this chain.
      * @param _owner The owner address that you want to check
+     * @return tokens The list of CTMRWA1 addresses that an address owns one or more tokenIds in
+     * on this chain.
      */
     function getAllTokensByOwnerAddress(address _owner) public view returns (address[] memory) {
         return (ownedCtmRwa1[_owner]);
@@ -818,6 +827,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
      * @notice Check if an address has any tokenIds in a CTMRWA1 on this chain.
      * @param _owner The address that you want to check ownership for.
      * @param _ctmRwa1Addr The CTMRWA1 address on this chain that you are checking
+     * @return success True if the address has any tokenIds in a CTMRWA1 on this chain, false otherwise.
      */
     function isOwnedToken(address _owner, address _ctmRwa1Addr) public view returns (bool) {
         if (ICTMRWA1(_ctmRwa1Addr).balanceOf(_owner) > 0) {
@@ -828,6 +838,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     }
 
     /// @dev Get the CTMRWA1 address and string version on this chain for an ID
+    /// @return tokenAddr The CTMRWA1 address on this chain for an ID
+    /// @return tokenAddrStr The string version of the CTMRWA1 address on this chain for an ID
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
@@ -839,6 +851,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     }
 
     /// @dev Get the corresponding CTMRWA1X address on another chain with chainId _toChainIdStr
+    /// @return fromAddressStr The address of the CTMRWA1X contract on this chain
+    /// @return toRwaXStr The address of the CTMRWA1X contract on the destination chain
     function _getRWAX(string memory _toChainIdStr) internal view returns (string memory, string memory) {
         if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1X_SameChain();
@@ -857,6 +871,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     /**
      * @dev Return the tokenAdmin address for a CTMRWA1 with address _tokenAddr and
      * check that the msg.sender is the tokenAdmin and revert if not so.
+     * @return currentAdmin The tokenAdmin address
+     * @return currentAdminStr The string version of the tokenAdmin address
      */
     function _checkTokenAdmin(address _tokenAddr) internal returns (address, string memory) {
         address currentAdmin = ICTMRWA1(_tokenAddr).tokenAdmin();
@@ -886,6 +902,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     }
 
     /// @dev Pay a fee, calculated by the feeType, the fee token and the chains in question
+    /// @return success True if the fee was paid, false otherwise.
     function _payFee(FeeType _feeType, string memory _feeTokenStr, string[] memory _toChainIdsStr, bool _includeLocal)
         internal
         returns (bool)
@@ -910,6 +927,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     /**
      * @dev Handle failures in a cross-chain call. The logic is managed in a separate contract
      * CTMRWA1XFallback. See there for details.
+     * @return ok True if the fallback was successful, false otherwise.
      */
     function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)
         internal
