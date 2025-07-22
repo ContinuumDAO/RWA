@@ -135,6 +135,22 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     }
 
     /**
+     * @notice Change the tokenAdmin address
+     * NOTE This function can only be called by CTMRWA1X, or the existing tokenAdmin
+     */
+    function setTokenAdmin(address _tokenAdmin, bool _force) public onlyTokenAdmin(ctmRwaToken) returns (bool) {
+        /// @dev if the CTMRWA1 is being locked and there are Offerings, DO NOT change tokenAdmin
+        /// for this Investment contract. The tokenAdmin can manually set to address(0) with the 
+        /// override _force == true
+        if (_tokenAdmin == address(0) && offerings.length != 0 && !_force) {
+            return false;
+        }
+
+        tokenAdmin = _tokenAdmin;
+        return (true);
+    }
+
+    /**
      * @notice Pause a specific offering (only tokenAdmin)
      * @param _indx The index of the Offering to pause
      */
@@ -433,7 +449,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
                 revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Early);
             }
 
-            ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
+            // ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
 
             ICTMRWA1X(ctmRwa1X).transferWholeTokenX(
                 address(this).toHexString(), msg.sender.toHexString(), cIdStr, tokenId, ID, _feeToken.toHexString()
@@ -448,47 +464,53 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         }
     }
 
-    /**
-     * @notice Claim dividends for a tokenId held in a Holding in escrow.
-     * @param _myIndx The zero based index of a Holding for which to claim dividends
-     */
-    function claimDividendInEscrow(uint256 _myIndx) public nonReentrant returns (uint256) {
-        if (_myIndx >= holdingsByAddress[msg.sender].length) {
-            revert CTMRWA1InvestWithTimeLock_OutOfBounds();
-        }
+    // /**
+    //  * @notice Claim dividends for a tokenId held in a Holding in escrow.
+    //  * @param _myIndx The zero based index of a Holding for which to claim dividends
+    //  */
+    // function claimDividendInEscrow(uint256 _myIndx) public nonReentrant returns (uint256) {
+    //     if (_myIndx >= holdingsByAddress[msg.sender].length) {
+    //         revert CTMRWA1InvestWithTimeLock_OutOfBounds();
+    //     }
 
-        /// @dev caller can only access tokenIds in their holdingsByAddress mapping
-        Holding memory thisHolding = holdingsByAddress[msg.sender][_myIndx];
+    //     /// @dev caller can only access tokenIds in their holdingsByAddress mapping
+    //     Holding memory thisHolding = holdingsByAddress[msg.sender][_myIndx];
 
-        uint256 tokenId = thisHolding.tokenId;
-        address owner = ICTMRWA1(ctmRwaToken).ownerOf(tokenId);
+    //     uint256 tokenId = thisHolding.tokenId;
+    //     address owner = ICTMRWA1(ctmRwaToken).ownerOf(tokenId);
 
-        uint256 unclaimed = ICTMRWA1Dividend(ctmRwaDividend).dividendByTokenId(tokenId);
+    //     uint256 unclaimed = ICTMRWA1Dividend(ctmRwaDividend).dividendByTokenId(tokenId);
 
-        if (owner == address(this)) {
-            if (unclaimed == 0) {
-                return 0;
-            }
+    //     if (owner == address(this)) {
+    //         if (unclaimed == 0) {
+    //             return 0;
+    //         }
 
-            if (ICTMRWA1Dividend(ctmRwaDividend).unclaimedDividend(address(this)) > 0) {
-                ICTMRWA1Dividend(ctmRwaDividend).claimDividend();
-            }
+    //         if (ICTMRWA1Dividend(ctmRwaDividend).unclaimedDividend(address(this)) > 0) {
+    //             ICTMRWA1Dividend(ctmRwaDividend).claimDividend();
+    //         }
 
-            address dividendToken = ICTMRWA1Dividend(ctmRwaDividend).dividendToken();
+    //         address dividendToken = ICTMRWA1Dividend(ctmRwaDividend).dividendToken();
 
-            if (IERC20(dividendToken).balanceOf(address(this)) < unclaimed) {
-                revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Dividend);
-            }
-            ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
-            IERC20(dividendToken).transfer(msg.sender, unclaimed);
+    //         if (IERC20(dividendToken).balanceOf(address(this)) < unclaimed) {
+    //             revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Dividend);
+    //         }
+    //         ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
+    //         IERC20(dividendToken).transfer(msg.sender, unclaimed);
 
-            emit ClaimDividendInEscrow(ID, msg.sender, unclaimed);
+    //         emit ClaimDividendInEscrow(ID, msg.sender, unclaimed);
 
-            return unclaimed;
-        } else {
-            // revert("CTMInvest: tokenId already withdrawn");
-            revert CTMRWA1InvestWithTimeLock_AlreadyWithdrawn(tokenId);
-        }
+    //         return unclaimed;
+    //     } else {
+    //         // revert("CTMInvest: tokenId already withdrawn");
+    //         revert CTMRWA1InvestWithTimeLock_AlreadyWithdrawn(tokenId);
+    //     }
+    // }
+
+    function getTokenIdsInEscrow() external returns(uint256[] memory, address[] memory) {
+        uint256[] memory tokensInEscrow;
+        address[] memory ownersInEscrow;
+        return (tokensInEscrow, ownersInEscrow);
     }
 
     /**
@@ -549,7 +571,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     /// @dev Check that msg.sender is the tokenAdmin of a CTMRWA1 address
     function _checkTokenAdmin(address _ctmRwaToken) internal {
         tokenAdmin = ICTMRWA1(_ctmRwaToken).tokenAdmin();
-        if (msg.sender != tokenAdmin) {
+        if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
             revert CTMRWA1InvestWithTimeLock_Unauthorized(Address.Sender);
         }
     }

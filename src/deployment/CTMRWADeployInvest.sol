@@ -7,7 +7,8 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
-import { Address, CTMRWAUtils } from "../CTMRWAUtils.sol";
+import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
+import { Address } from "../utils/CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)

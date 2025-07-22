@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA } from "./ICTMRWA.sol";
-import { Address, Uint } from "../CTMRWAUtils.sol";
+import { Address, Uint } from "../utils/CTMRWAUtils.sol";
 
 /**
  * @title CTMRWA1 Semi-Fungible Token Standard

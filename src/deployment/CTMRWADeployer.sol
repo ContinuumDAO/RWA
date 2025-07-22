@@ -13,7 +13,8 @@ import { ICTMRWA1DividendFactory } from "../dividend/ICTMRWA1DividendFactory.sol
 import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1StorageManager } from "../storage/ICTMRWA1StorageManager.sol";
-import { Address, RWA } from "../CTMRWAUtils.sol";
+import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
+import { Address, RWA } from "../utils/CTMRWAUtils.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)

@@ -431,21 +431,21 @@ contract TestInvest is Helpers {
         assertEq(unlockedTokenId, investedTokenId, "Token should be unlocked successfully");
     }
 
-    function test_reentrancy_claimDividendInEscrow() public {
-        // First, make a legitimate investment
-        vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
-        vm.stopPrank();
+    // function test_reentrancy_claimDividendInEscrow() public {
+    //     // First, make a legitimate investment
+    //     vm.startPrank(user1);
+    //     usdc.approve(address(investContract), amount);
+    //     investContract.investInOffering(0, amount, currency);
+    //     vm.stopPrank();
         
-        // Attempt to claim dividend (should be protected against reentrancy)
-        vm.startPrank(user1);
-        uint256 claimed = investContract.claimDividendInEscrow(0);
-        vm.stopPrank();
+    //     // Attempt to claim dividend (should be protected against reentrancy)
+    //     vm.startPrank(user1);
+    //     uint256 claimed = investContract.claimDividendInEscrow(0);
+    //     vm.stopPrank();
         
-        // Verify the claim was successful (even if amount is 0)
-        assertEq(claimed, 0, "Dividend claim should be successful");
-    }
+    //     // Verify the claim was successful (even if amount is 0)
+    //     assertEq(claimed, 0, "Dividend claim should be successful");
+    // }
 
     function test_reentrancy_multipleFunctions() public {
         // Test that multiple reentrancy attempts are blocked
@@ -579,27 +579,27 @@ contract TestInvest is Helpers {
         // console.log("Gas used for unlock:", gasUsed);
     }
 
-    function test_gas_claimDividendInEscrow() public {
-        // First make an investment
-        vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
-        vm.stopPrank();
+    // function test_gas_claimDividendInEscrow() public {
+    //     // First make an investment
+    //     vm.startPrank(user1);
+    //     usdc.approve(address(investContract), amount);
+    //     investContract.investInOffering(0, amount, currency);
+    //     vm.stopPrank();
 
-        uint256 gasBefore = gasleft();
+    //     uint256 gasBefore = gasleft();
         
-        vm.startPrank(user1);
-        investContract.claimDividendInEscrow(0);
-        vm.stopPrank();
+    //     vm.startPrank(user1);
+    //     investContract.claimDividendInEscrow(0);
+    //     vm.stopPrank();
         
-        uint256 gasUsed = gasBefore - gasleft();
+    //     uint256 gasUsed = gasBefore - gasleft();
         
-        // Adjusted gas usage bounds for dividend claim
-        assertLt(gasUsed, 30_000, "Dividend claim gas usage should be reasonable");
-        assertGt(gasUsed, 10_000, "Dividend claim should use significant gas");
+    //     // Adjusted gas usage bounds for dividend claim
+    //     assertLt(gasUsed, 30_000, "Dividend claim gas usage should be reasonable");
+    //     assertGt(gasUsed, 10_000, "Dividend claim should use significant gas");
         
-        // console.log("Gas used for dividend claim:", gasUsed);
-    }
+    //     // console.log("Gas used for dividend claim:", gasUsed);
+    // }
 
     function test_gas_multipleInvestments() public {
         uint256 totalGasUsed = 0;

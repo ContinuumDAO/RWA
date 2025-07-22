@@ -18,6 +18,7 @@ import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1Storage, URICategory, URIType } from "../storage/ICTMRWA1Storage.sol";
+import { ICTMRWA1InvestWithTimeLock } from "../deployment/CTMRWA1InvestWithTimeLock.sol";
 import { Address, CTMRWAUtils, List, Uint } from "../CTMRWAUtils.sol";
 
 /**
@@ -406,6 +407,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
         ICTMRWA1Storage(ctmRwa1StorageAddr).setTokenAdmin(_newAdmin);
 
         (, address ctmRwa1SentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
+
+        (bool ok, address ctmRwaInvestAddr) = ICTMRWAMap(ctmRwa1Map).getInvestContract(_ID, RWA_TYPE, VERSION);
+        if (ok) ICTMRWA1InvestWithTimeLock(ctmRwaInvestAddr).setTokenAdmin(_newAdmin, false);
 
         ICTMRWA1Sentry(ctmRwa1SentryAddr).setTokenAdmin(_newAdmin);
 

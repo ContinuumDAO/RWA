@@ -5,7 +5,7 @@ pragma solidity 0.8.27;
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { Address, ICTMRWA1, SlotData, Uint } from "./ICTMRWA1.sol";
+import { Address, ICTMRWA1, SlotData, Uint } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Receiver } from "./ICTMRWA1Receiver.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { ICTMRWADeployer } from "../deployment/ICTMRWADeployer.sol";
@@ -1201,17 +1201,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _slot The slot being examined
      */
     function totalSupplyInSlot(uint256 _slot) external view returns (uint256) {
-        uint256 nTokens = this.tokenSupplyInSlot(_slot);
-
-        uint256 total;
-        uint256 tokenId;
-
-        for (uint256 i = 0; i < nTokens; i++) {
-            tokenId = tokenInSlotByIndex(_slot, i);
-            total += balanceOf(tokenId);
-        }
-
-        return (total);
+        return _supplyInSlot[_slot];
     }
 
     /**

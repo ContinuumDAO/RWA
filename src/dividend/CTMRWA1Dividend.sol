@@ -6,6 +6,7 @@ import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/Saf
 import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { ICTMRWA1InvestWithTimeLock } from "../deployment/ICTMRWA1InvestWithTimeLock.sol";
 import { Address, Uint } from "../CTMRWAUtils.sol";
 
 /**
@@ -155,46 +156,58 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
     }
 
     /**
-     * @notice This function calculates how much dividend the tokenAdmin needs to transfer
+     * @notice This function calculates how much dividend is needed to transfer
      * to this contract to pay all holders of tokenIds in the RWA. It takes payment in
      * the current dividend token. Afterwards, the funds will then be available to claim.
-     * NOTE This is a tokenAdmin only function.
-     * NOTE This is not a cross-chain function. The fundDividend must be called by tokenAdnin
+     * NOTE This is not a cross-chain function. The fundDividend must be called
      * on ALL chains in the RWA separately. This is to prevent a malicious actor seeing the funding
      * on one chain and then acquiring the tokens on another chain in the RWA before a cross-chain
      * transaction had happened (a few minutes). The function fundDividend should be called with
      * MultiCall on all chains simultaneously by the frontend to prevent such an exploit.
      */
-    function fundDividend() public onlyTokenAdmin returns (uint256) {
-        uint256 dividendPayable = getTotalDividend();
+    function fundDividend() public returns (uint256) {
 
-        // NOTE: ?
-        // uint8 decimals = ICTMRWA1(tokenAddr).valueDecimals();
+        uint256 tokenId;
+        address holder;
+        uint256 dividend;
+        uint256 dividendPayable;
+        uint256[] memory tokenIdsInEscrow;
+        address[] memory holdersInEscrow;
+
+        (bool investContractExists, address ctmRwaInvest) = ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
+        if (investContractExists) {
+            (tokenIdsInEscrow, holdersInEscrow) 
+            = ICTMRWA1InvestWithTimeLock(ctmRwaInvest).getTokenIdsInEscrow();
+        }
+
+        uint256 indx;
+
+        for (uint256 i = 0; i < ICTMRWA1(tokenAddr).totalSupply(); i++) {
+            tokenId = ICTMRWA1(tokenAddr).tokenByIndex(i);
+            holder = ICTMRWA1(tokenAddr).ownerOf(tokenId);
+            if (investContractExists && holder == ctmRwaInvest) {
+                indx = _tokenIdInList(tokenId);
+                if (indx > 0) {
+                    holder = holdersInEscrow[indx];
+                }
+            }
+            // if the tokenId was in an escrow Holding, the holder is reassigned to the 
+            // beneficial owner, but NOT if the tokenId is in an Offering
+            if (holder != ctmRwaInvest) {
+                dividend = _getDividendByToken(tokenId);
+                unclaimedDividend[holder] += dividend;
+                dividendByTokenId[tokenId] += dividend;
+                dividendPayable += dividend;
+            }
+        }
 
         if (!IERC20(dividendToken).transferFrom(msg.sender, address(this), dividendPayable)) {
             revert CTMRWA1Dividend_FailedTransaction();
         }
 
-        uint256 tokenId;
-        address holder;
-        uint256 dividend;
-        uint256 totalDividend;
-
-        for (uint256 i = 0; i < ICTMRWA1(tokenAddr).totalSupply(); i++) {
-            tokenId = ICTMRWA1(tokenAddr).tokenByIndex(i);
-            holder = ICTMRWA1(tokenAddr).ownerOf(tokenId);
-            dividend = _getDividendByToken(tokenId);
-            unclaimedDividend[holder] += dividend;
-            dividendByTokenId[tokenId] += dividend;
-            totalDividend += dividend;
-        }
-
-        if (dividendPayable != totalDividend) {
-            revert CTMRWA1Dividend_InvalidDividend(Uint.Payable);
-        }
         emit FundDividend(dividendPayable, dividendToken, msg.sender);
 
-        return (totalDividend);
+        return (dividendPayable);
     }
 
     /**
@@ -214,23 +227,27 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
         return true;
     }
 
-    /// @dev This function allows the owner of a tokenId to reset the outstanding
-    /// @dev unclaimed dividend balance to zero. It is intended to assist
-    /// @dev escrow or staking contracts to account for and allow dividend payments
-    /// @dev to the beneficial holders of a tokenId, whilst it is technically owned by
-    /// @dev the staking contract
-    function resetDividendByToken(uint256 _tokenId) external {
-        address owner = ICTMRWA1(tokenAddr).ownerOf(_tokenId);
-        if (msg.sender != owner) {
-            revert CTMRWA1Dividend_Unauthorized(Address.Sender);
-        }
+    // /// @dev This function allows the owner of a tokenId to reset the outstanding
+    // /// @dev unclaimed dividend balance to zero. It is intended to assist
+    // /// @dev escrow or staking contracts to account for and allow dividend payments
+    // /// @dev to the beneficial holders of a tokenId, whilst it is technically owned by
+    // /// @dev the staking contract
+    // function resetDividendByToken(uint256 _tokenId) external {
+    //     address owner = ICTMRWA1(tokenAddr).ownerOf(_tokenId);
+    //     if (msg.sender != owner) {
+    //         revert CTMRWA1Dividend_Unauthorized(Address.Sender);
+    //     }
 
-        dividendByTokenId[_tokenId] = 0;
-    }
+    //     dividendByTokenId[_tokenId] = 0;
+    // }
 
     /// @dev This function returns how much dividend is payable for an individual tokenId
     function _getDividendByToken(uint256 _tokenId) internal view returns (uint256) {
         uint256 slot = ICTMRWA1(tokenAddr).slotOf(_tokenId);
         return (ICTMRWA1(tokenAddr).getDividendRateBySlot(slot) * ICTMRWA1(tokenAddr).balanceOf(_tokenId));
+    }
+
+    function _tokenIdInList(uint256 _tokenIdToFind) internal returns(uint256) {
+        return 0;
     }
 }

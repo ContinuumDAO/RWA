@@ -66,13 +66,16 @@ interface ICTMRWA1InvestWithTimeLock {
 
     function ID() external returns(uint256);
 
+    function setTokenAdmin(address _tokenAdmin, bool _force) external returns (bool);
+
     function investInOffering(uint256 indx, uint256 investment, address feeToken) external returns (uint256);
 
     function withdrawInvested(uint256 indx) external returns (uint256);
 
     function unlockTokenId(uint256 myIndx, address feeToken) external returns (uint256);
 
-    function claimDividendInEscrow(uint256 myIndx) external returns (uint256);
+    // function claimDividendInEscrow(uint256 myIndx) external returns (uint256);
+    function getTokenIdsInEscrow() external returns(uint256[] memory, address[] memory);
 
     function offeringCount() external view returns (uint256);
     function listOfferings() external view returns (Offering[] memory);
