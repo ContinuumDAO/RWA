@@ -13,6 +13,7 @@ import { ICTMRWA1Receiver } from "./ICTMRWA1Receiver.sol";
 import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -27,6 +28,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  */
 contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     using Strings for *;
+    using Checkpoints for Checkpoints.Trace208;
 
     /// @notice Each CTMRWA1 corresponds to a single RWA. It is deployed on each chain
 
@@ -50,7 +52,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
 
     /// @dev ctmRwaMap is the single contract which maps the multi-chain ID to the component address of each part of the
     /// CTMRWA1
-    address ctmRwaMap;
+    address public ctmRwaMap;
 
     /// @dev ctmRwa1X is the single contract on each chain responsible for deploying, minting, and transferring the
     /// CTMRWA1 and its components
@@ -78,7 +80,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     uint256[] slotNumbers;
     /// @dev slotNames is an array holding the names of each slot in this CTMRWA1
     string[] slotNames;
-    uint256[] emptyUint256;
 
     /// @param TokenData is the struct defining tokens in the CTMRWA1
     struct TokenData {
@@ -104,11 +105,14 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @dev slot => index
     mapping(uint256 => uint256) public _allSlotsIndex;
 
-    /// @dev owner => slot => balance
-    mapping(address => mapping(uint256 => uint256)) private _balance;
+    /// @dev owner => slot => balance checkpoints
+    mapping (address => mapping (uint256 => Checkpoints.Trace208)) internal _balance;
 
     /// @dev slot => total supply in this slot
-    mapping(uint256 => uint256) private _supplyInSlot;
+    mapping (uint256 => Checkpoints.Trace208) internal _supplyInSlot;
+
+    /// @dev slot => dividend rate
+    mapping (uint256 => Checkpoints.Trace208) internal _dividendRate;
 
     string private _name;
     string private _symbol;
@@ -397,7 +401,19 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             revert CTMRWA1_InvalidSlot(_slot);
         }
 
-        return _balance[_owner][_slot];
+        return _balance[_owner][_slot].latest();
+    }
+
+    function balanceOfAt(address _owner, uint256 _slot, uint256 _timestamp) public view returns (uint256) {
+        if (_owner == address(0)) {
+            revert CTMRWA1_IsZeroAddress(Address.Owner);
+        }
+
+        if (!slotExists(_slot)) {
+            revert CTMRWA1_InvalidSlot(_slot);
+        }
+
+        return _balance[_owner][_slot].upperLookupRecent(uint48(_timestamp));
     }
 
     /**
@@ -479,7 +495,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         if (!slotExists(_slot)) {
             revert CTMRWA1_InvalidSlot(_slot);
         }
-        _allSlots[_allSlotsIndex[_slot]].dividendRate = _dividend;
+        _dividendRate[_allSlotsIndex[_slot]].push(uint48(block.timestamp), uint208(_dividend));
         return (true);
     }
 
@@ -488,11 +504,18 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _slot The slot number in this CTMRWA1
      * @return The dividend rate for the slot
      */
+    function getDividendRateBySlotAt(uint256 _slot, uint48 _timestamp) external view returns (uint256) {
+        if (!slotExists(_slot)) {
+            revert CTMRWA1_InvalidSlot(_slot);
+        }
+        return uint256(_dividendRate[_allSlotsIndex[_slot]].upperLookupRecent(_timestamp));
+    }
+
     function getDividendRateBySlot(uint256 _slot) external view returns (uint256) {
         if (!slotExists(_slot)) {
             revert CTMRWA1_InvalidSlot(_slot);
         }
-        return (_allSlots[_allSlotsIndex[_slot]].dividendRate);
+        return uint256(_dividendRate[_allSlotsIndex[_slot]].latest());
     }
 
     /**
@@ -502,7 +525,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _slot The slot number for which to create an ERC20
      * @param _erc20Name The name of this ERC20. It is automatically pre-pended with the slot number
      * @param _feeToken The fee token to pay for this service with. Must be configured in FeeManager
-     * @return The address of the deployed ERC20 contract
      */
     function deployErc20(uint256 _slot, string memory _erc20Name, address _feeToken) public onlyTokenAdmin {
         if (!slotExists(_slot)) {
@@ -572,7 +594,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _fromTokenId The tokenId that the value id being transferred from
      * @param _to The wallet address that the value is being transferred to
      * @param _value The fungible value that is being transferred
-     * @return The new tokenId that was created
+     * @return newTokenId The new tokenId that was created
      */
     function transferFrom(uint256 _fromTokenId, address _to, uint256 _value)
         public
@@ -617,7 +639,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _from The wallet address from which the tokenId is being fransferred from
      * @param _to The wallet adddress to which the tokenId is being transferred to
      * @param _tokenId The tokenId being transferred
-     * @return The owner of the destination tokenId
      */
     function transferFrom(address _from, address _to, uint256 _tokenId) public onlyRwa1X whenNotPaused {
         if (!isApprovedOrOwner(msg.sender, _tokenId)) {
@@ -697,7 +718,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _operator The wallet that is being given approval to spend _value
      * @param _tokenId The tokenId from which approval to spend _value is being given
      * @param _value The fungible value being given approval to spend
-     * @return success True if the allowance was spent, false otherwise
      */
     function spendAllowance(address _operator, uint256 _tokenId, uint256 _value) public virtual {
         if (_value == 0) {
@@ -729,7 +749,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @notice The owner of a tokenId approves an another address to spend any 'value' from it
      * @param _to The address being granted approval to spend from tokenId
      * @param _tokenId The tokenId from which spending is allowed by _to
-     * @return success True if the approval was successful, false otherwise
      */
     function approve(address _to, uint256 _tokenId) public virtual {
         address owner = ownerOf(_tokenId);
@@ -814,8 +833,10 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _beforeValueTransfer(address(0), _to, 0, _tokenId, _slot, _slotName, _value);
         __mintToken(_to, _tokenId, _slot);
         __mintValue(_tokenId, _value);
-        _balance[_to][_slot] += _value;
-        _supplyInSlot[_slot] += _value;
+        uint208 newBalance = _balance[_to][_slot].latest() + uint208(_value);
+        _balance[_to][_slot].push(uint48(block.timestamp), newBalance);
+        uint208 newSupplyInSlot = _supplyInSlot[_slot].latest() + uint208(_value);
+        _supplyInSlot[_slot].push(uint48(block.timestamp), newSupplyInSlot);
         _afterValueTransfer(address(0), _to, 0, _tokenId, _slot, _slotName, _value);
     }
 
@@ -846,8 +867,10 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         string memory thisSlotName = CTMRWA1.slotNameOf(_tokenId);
         _beforeValueTransfer(address(0), owner, 0, _tokenId, slot, thisSlotName, _value);
         __mintValue(_tokenId, _value);
-        _balance[owner][slot] += _value;
-        _supplyInSlot[slot] += _value;
+        uint208 newBalance = _balance[owner][slot].latest() + uint208(_value);
+        _balance[owner][slot].push(uint48(block.timestamp), newBalance);
+        uint208 newSupplyInSlot = _supplyInSlot[slot].latest() + uint208(_value);
+        _supplyInSlot[slot].push(uint48(block.timestamp), newSupplyInSlot);
         _afterValueTransfer(address(0), owner, 0, _tokenId, slot, thisSlotName, _value);
     }
 
@@ -904,8 +927,10 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _removeTokenFromOwnerEnumeration(owner, _tokenId);
         _removeTokenFromAllTokensEnumeration(_tokenId);
 
-        _balance[owner][slot] -= bal;
-        _supplyInSlot[slot] -= bal;
+        uint208 newBalance = _balance[owner][slot].latest() - uint208(bal);
+        _balance[owner][slot].push(uint48(block.timestamp), newBalance);
+        uint208 newSupplyInSlot = _supplyInSlot[slot].latest() - uint208(bal);
+        _supplyInSlot[slot].push(uint48(block.timestamp), newSupplyInSlot);
 
         emit TransferValue(_tokenId, 0, bal);
         emit SlotChanged(_tokenId, slot, 0);
@@ -931,8 +956,11 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _beforeValueTransfer(owner, address(0), _tokenId, 0, slot, thisSlotName, _value);
 
         _allTokens[_allTokensIndex[_tokenId]].balance -= _value;
-        _balance[owner][slot] -= _value;
-        _supplyInSlot[slot] -= _value;
+
+        uint208 newBalance = _balance[owner][slot].latest() - uint208(_value);
+        _balance[owner][slot].push(uint48(block.timestamp), newBalance);
+        uint208 newSupplyInSlot = _supplyInSlot[slot].latest() - uint208(_value);
+        _supplyInSlot[slot].push(uint48(block.timestamp), newSupplyInSlot);
 
         emit TransferValue(_tokenId, 0, _value);
 
@@ -1104,10 +1132,12 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         );
 
         fromTokenData.balance -= _value;
-        _balance[fromTokenData.owner][slot] -= _value;
+        uint208 newBalanceFrom = _balance[fromTokenData.owner][slot].latest() - uint208(_value);
+        _balance[fromTokenData.owner][slot].push(uint48(block.timestamp), newBalanceFrom);
 
         toTokenData.balance += _value;
-        _balance[toTokenData.owner][slot] += _value;
+        uint208 newBalanceTo = _balance[toTokenData.owner][slot].latest() + uint208(_value);
+        _balance[toTokenData.owner][slot].push(uint48(block.timestamp), newBalanceTo);
 
         emit TransferValue(_fromTokenId, _toTokenId, _value);
 
@@ -1193,9 +1223,12 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _clearApprovedValues(_tokenId);
 
         _removeTokenFromOwnerEnumeration(_from, _tokenId);
-        _balance[_from][slot] -= value;
+        uint208 newBalanceFrom = _balance[_from][slot].latest() - uint208(value);
+        _balance[_from][slot].push(uint48(block.timestamp), newBalanceFrom);
+
         _addTokenToOwnerEnumeration(_to, _tokenId);
-        _balance[_to][slot] += value;
+        uint208 newBalanceTo = _balance[_to][slot].latest() + uint208(value);
+        _balance[_to][slot].push(uint48(block.timestamp), newBalanceTo);
 
         emit Transfer(_from, _to, _tokenId);
 
@@ -1270,7 +1303,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         }
 
         for (uint256 i = 0; i < _slotNumbers.length; i++) {
-            _allSlots.push(SlotData(_slotNumbers[i], _slotNames[i], 0, emptyUint256));
+            _allSlots.push(SlotData(_slotNumbers[i], _slotNames[i], new uint256[](0)));
         }
 
         slotNumbers = _slotNumbers;
@@ -1328,7 +1361,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @return The total fungible balance in the slot
      */
     function totalSupplyInSlot(uint256 _slot) external view returns (uint256) {
-        return _supplyInSlot[_slot];
+        return uint256(_supplyInSlot[_slot].latest());
     }
 
     /**
@@ -1365,7 +1398,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _slotName The name of the slot
     function _createSlot(uint256 _slot, string memory _slotName) internal {
         SlotData memory slotData =
-            SlotData({ slot: _slot, slotName: _slotName, dividendRate: 0, slotTokens: new uint256[](0) });
+            SlotData({ slot: _slot, slotName: _slotName, slotTokens: new uint256[](0) });
         _addSlotToAllSlotsEnumeration(slotData);
         slotNumbers.push(_slot);
         slotNames.push(_slotName);
@@ -1384,13 +1417,13 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _value The value being transferred
      */
     function _beforeValueTransfer(
-        address, /*_from*/
+        address _from,
         address _to,
-        uint256, /*_fromTokenId*/
-        uint256, /*_toTokenId*/
+        uint256 _fromTokenId,
+        uint256 _toTokenId,
         uint256 _slot,
-        string memory, /*_slotName*/
-        uint256 /*_value*/
+        string memory _slotName,
+        uint256 _value
     ) internal virtual {
         if (!slotExists(_slot)) {
             revert CTMRWA1_InvalidSlot(_slot);
@@ -1404,11 +1437,11 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         }
 
         // currently unused
-        // _from;
-        // _fromTokenId;
-        // _toTokenId;
-        // _slotName;
-        // _value;
+        _from;
+        _fromTokenId;
+        _toTokenId;
+        _slotName;
+        _value;
     }
 
     /**

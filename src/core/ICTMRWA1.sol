@@ -18,7 +18,6 @@ struct TokenContract {
 struct SlotData {
     uint256 slot;
     string slotName;
-    uint256 dividendRate; // per unit of this slot
     uint256[] slotTokens;
 }
 
