@@ -48,6 +48,12 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
     /// @dev version is the single integer version of this RWA type
     uint256 public immutable VERSION;
 
+    /** @notice The times at which each slot has had dividend funding added.
+     * If a user had a balance in any tokenId in this slot at that time, they can claim for this index.
+     * The mapping is slot => index => time
+    */
+    mapping (uint256 => mapping(uint256 => uint256)) public dividendFundedAt;
+
     event NewDividendToken(address newToken, address currentAdmin);
     event ChangeDividendRate(uint256 slot, uint256 newDividend, address currentAdmin);
     event FundDividend(uint256 dividendPayable, address dividendToken, address currentAdmin);
@@ -89,7 +95,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
     /**
      * @notice Change the ERC20 dividend token used to pay holders
      * @param _dividendToken The address of the ERC20 token used to fund/pay for dividends
-     * NOTE This can only be called if their are no outstanding unclaimed dividends.
+     * NOTE This can only be called if there are no outstanding unclaimed dividends.
      * NOTE this function can only be called by the tokenAdmin (Issuer).
      */
     function setDividendToken(address _dividendToken) external onlyTokenAdmin returns (bool) {
@@ -157,49 +163,61 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
     }
 
     /**
-     * @notice This function calculates how much dividend is needed to transfer
-     * to this contract to pay all holders of tokenIds in the RWA. It takes payment in
-     * the current dividend token. Afterwards, the funds will then be available to claim.
-     * NOTE This is not a cross-chain function. The fundDividend must be called
-     * on ALL chains in the RWA separately. This is to prevent a malicious actor seeing the funding
-     * on one chain and then acquiring the tokens on another chain in the RWA before a cross-chain
-     * transaction had happened (a few minutes). The function fundDividend should be called with
-     * MultiCall on all chains simultaneously by the frontend to prevent such an exploit.
+     * @notice Add a new checkpoint for claiming dividends for an Asset Class (slot).
+     * The function then calculates how much dividend is needed to transfer to this contract to pay the dividends
+     * and then transfers the funds to this contract ready for claiming by all holders of tokenIds in 
+     * the RWA token. It takes payment in the current dividend token.
+     * @param _slot The Asset Class (slot) to add dividends for
+     * @param _fundingTime The time to use to calculate the dividend
+     * NOTE The actual funding time is calculated to be at midnight prior to _fundingTime.
+     * The actual funding time must be a time after the previous time (dividendFundedAt).
+     * NOTE Anyone can fund the dividend, but the dividendRate can only be set by the tokenAdmin.
+     * NOTE This is not a cross-chain function. It must be called on each chain in the RWA. Use Multicall
+     * with the same _fundingTime to prevent arbitrage.
      */
-    function fundDividend() public returns (uint256) {
+    function fundDividend(
+        uint256 _slot,
+        uint256 _fundingTime
+    ) public returns (uint256) {
+        
         uint256 tokenId;
         address holder;
         uint256 dividend;
         uint256 dividendPayable;
         uint256[] memory tokenIdsInEscrow;
         address[] memory holdersInEscrow;
+        uint256[] memory issuerTokenIdsInEscrow;
 
         (bool investContractExists, address ctmRwaInvest) =
             ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
+        
         if (investContractExists) {
+            // tokenIdsInEscrow are owned by ctmRwaInvest, but their beneficial owners are holdersInEscrow
             (tokenIdsInEscrow, holdersInEscrow) = ICTMRWA1InvestWithTimeLock(ctmRwaInvest).getTokenIdsInEscrow();
+            // issuerTokenIdsInEscrow are tokenIds in Offerings. No need to fund dividends for these
+            issuerTokenIdsInEscrow = ICTMRWA1InvestWithTimeLock(ctmRwaInvest).getIssuerTokenIdsInEscrow();
         }
 
         uint256 indx;
 
-        for (uint256 i = 0; i < ICTMRWA1(tokenAddr).totalSupply(); i++) {
-            tokenId = ICTMRWA1(tokenAddr).tokenByIndex(i);
-            holder = ICTMRWA1(tokenAddr).ownerOf(tokenId);
-            if (investContractExists && holder == ctmRwaInvest) {
-                indx = _tokenIdInList(tokenId);
-                if (indx > 0) {
-                    holder = holdersInEscrow[indx];
-                }
-            }
-            // if the tokenId was in an escrow Holding, the holder is reassigned to the
-            // beneficial owner, but NOT if the tokenId is in an Offering
-            if (holder != ctmRwaInvest) {
-                dividend = _getDividendByToken(tokenId);
-                unclaimedDividend[holder] += dividend;
-                dividendByTokenId[tokenId] += dividend;
-                dividendPayable += dividend;
-            }
-        }
+        // for (uint256 i = 0; i < ICTMRWA1(tokenAddr).totalSupply(); i++) {
+        //     tokenId = ICTMRWA1(tokenAddr).tokenByIndex(i);
+        //     holder = ICTMRWA1(tokenAddr).ownerOf(tokenId);
+        //     if (investContractExists && holder == ctmRwaInvest) {
+        //         indx = _tokenIdInList(tokenId);
+        //         if (indx > 0) {
+        //             holder = holdersInEscrow[indx];
+        //         }
+        //     }
+        //     // if the tokenId was in an escrow Holding, the holder is reassigned to the
+        //     // beneficial owner, but NOT if the tokenId is in an Offering
+        //     if (holder != ctmRwaInvest) {
+        //         dividend = _getDividendByToken(tokenId);
+        //         unclaimedDividend[holder] += dividend;
+        //         dividendByTokenId[tokenId] += dividend;
+        //         dividendPayable += dividend;
+        //     }
+        // }
 
         if (!IERC20(dividendToken).transferFrom(msg.sender, address(this), dividendPayable)) {
             revert CTMRWA1Dividend_FailedTransaction();
