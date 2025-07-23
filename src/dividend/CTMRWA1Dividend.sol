@@ -7,6 +7,8 @@ import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1InvestWithTimeLock } from "../deployment/ICTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { Address, Uint } from "../utils/CTMRWAUtils.sol";
+// import {CTMRWACheckpoints} from "../utils/CTMRWACheckpoints.sol";
+import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -23,6 +25,8 @@ import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/Saf
  */
 contract CTMRWA1Dividend is ICTMRWA1Dividend {
     using SafeERC20 for IERC20;
+    // using CTMRWACheckpoints for CTMRWACheckpoints.TraceRateSlot;
+    using Checkpoints for Checkpoints.Trace208;
 
     /// @dev The ERC20 token contract address used to distribute dividends
     address public dividendToken;
@@ -48,11 +52,14 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
     /// @dev version is the single integer version of this RWA type
     uint256 public immutable VERSION;
 
+    // slot => {snapshot, rate * slotBal}
+    mapping (uint256 => Checkpoints.Trace208) internal _dividendSnapshots;
+
     /** @notice The times at which each slot has had dividend funding added.
      * If a user had a balance in any tokenId in this slot at that time, they can claim for this index.
      * The mapping is slot => index => time
     */
-    mapping (uint256 => mapping(uint256 => uint256)) public dividendFundedAt;
+    // mapping (uint256 => mapping(uint256 => uint256)) public dividendFundedAt;
 
     event NewDividendToken(address newToken, address currentAdmin);
     event ChangeDividendRate(uint256 slot, uint256 newDividend, address currentAdmin);
@@ -179,24 +186,23 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
         uint256 _slot,
         uint256 _fundingTime
     ) public returns (uint256) {
-        
-        uint256 tokenId;
-        address holder;
-        uint256 dividend;
-        uint256 dividendPayable;
-        uint256[] memory tokenIdsInEscrow;
-        address[] memory holdersInEscrow;
-        uint256[] memory issuerTokenIdsInEscrow;
+        // uint256 tokenId;
+        // address holder;
+        // uint256 dividend;
+        // uint256 dividendPayable;
+        // uint256[] memory tokenIdsInEscrow;
+        // address[] memory holdersInEscrow;
+        // uint256[] memory issuerTokenIdsInEscrow;
 
-        (bool investContractExists, address ctmRwaInvest) =
-            ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
-        
-        if (investContractExists) {
-            // tokenIdsInEscrow are owned by ctmRwaInvest, but their beneficial owners are holdersInEscrow
-            (tokenIdsInEscrow, holdersInEscrow) = ICTMRWA1InvestWithTimeLock(ctmRwaInvest).getTokenIdsInEscrow();
-            // issuerTokenIdsInEscrow are tokenIds in Offerings. No need to fund dividends for these
-            issuerTokenIdsInEscrow = ICTMRWA1InvestWithTimeLock(ctmRwaInvest).getIssuerTokenIdsInEscrow();
-        }
+        // (bool investContractExists, address ctmRwaInvest) =
+        //     ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
+
+        // if (investContractExists) {
+        //     // tokenIdsInEscrow are owned by ctmRwaInvest, but their beneficial owners are holdersInEscrow
+        //     (tokenIdsInEscrow, holdersInEscrow) = ICTMRWA1InvestWithTimeLock(ctmRwaInvest).getTokenIdsInEscrow();
+        //     // issuerTokenIdsInEscrow are tokenIds in Offerings. No need to fund dividends for these
+        //     issuerTokenIdsInEscrow = ICTMRWA1InvestWithTimeLock(ctmRwaInvest).getIssuerTokenIdsInEscrow();
+        // }
 
         uint256 indx;
 
