@@ -6,7 +6,7 @@ import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
 import { Address } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1TokenFactory {
-    error CTMRWA1TokenFactory_Unauthorized(Address);
+    error CTMRWA1TokenFactory_OnlyAuthorized(Address, Address);
 
     function deploy(bytes memory deployData) external returns (address);
 }

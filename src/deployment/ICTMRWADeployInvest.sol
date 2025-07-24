@@ -6,7 +6,7 @@ import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
 import { Address } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWADeployInvest {
-    error CTMRWADeployInvest_Unauthorized(Address);
+    error CTMRWADeployInvest_OnlyAuthorized(Address, Address);
 
     function commissionRate() external view returns (uint256);
 

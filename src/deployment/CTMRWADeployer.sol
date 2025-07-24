@@ -68,7 +68,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
 
     modifier onlyRwaX() {
         if (msg.sender != rwaX) {
-            revert CTMRWADeployer_Unauthorized(Address.Sender);
+            revert CTMRWADeployer_OnlyAuthorized(Address.Sender, Address.RWAX);
         }
         _;
     }

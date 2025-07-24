@@ -30,7 +30,7 @@ struct Holding {
 }
 
 interface ICTMRWA1InvestWithTimeLock {
-    error CTMRWA1InvestWithTimeLock_Unauthorized(Address);
+    error CTMRWA1InvestWithTimeLock_OnlyAuthorized(Address, Address);
     error CTMRWA1InvestWithTimeLock_InvalidContract(Address);
     error CTMRWA1InvestWithTimeLock_OutOfBounds();
     error CTMRWA1InvestWithTimeLock_NonExistentToken(uint256);

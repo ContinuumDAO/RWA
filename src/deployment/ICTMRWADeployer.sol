@@ -6,7 +6,7 @@ import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
 import { Address, RWA } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWADeployer {
-    error CTMRWADeployer_Unauthorized(Address);
+    error CTMRWADeployer_OnlyAuthorized(Address, Address);
     error CTMRWADeployer_InvalidContract(Address);
     error CTMRWADeployer_IncompatibleRWA(RWA);
     error CTMRWADeployer_IsZeroAddress(Address);

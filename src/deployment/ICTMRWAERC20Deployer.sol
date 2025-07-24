@@ -8,7 +8,7 @@ import { Address } from "../utils/CTMRWAUtils.sol";
 interface ICTMRWAERC20Deployer {
     error CTMRWAERC20Deployer_IsZeroAddress(Address);
     error CTMRWAERC20Deployer_InvalidContract(Address);
-    error CTMRWAERC20Deployer_Unauthorized(Address);
+    error CTMRWAERC20Deployer_OnlyAuthorized(Address, Address);
 
     function deployERC20(
         uint256 ID,

@@ -575,7 +575,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     function _checkTokenAdmin(address _ctmRwaToken) internal {
         tokenAdmin = ICTMRWA1(_ctmRwaToken).tokenAdmin();
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1InvestWithTimeLock_Unauthorized(Address.Sender);
+            revert CTMRWA1InvestWithTimeLock_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
         }
     }
 

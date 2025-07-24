@@ -82,7 +82,7 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
             revert CTMRWAERC20Deployer_InvalidContract(Address.Token);
         }
         if (msg.sender != ctmRwaToken) {
-            revert CTMRWAERC20Deployer_Unauthorized(Address.Sender);
+            revert CTMRWAERC20Deployer_OnlyAuthorized(Address.Sender, Address.Token);
         }
 
         _payFee(FeeType.ERC20, _feeToken);

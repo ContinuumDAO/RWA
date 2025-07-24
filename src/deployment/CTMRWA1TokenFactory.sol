@@ -24,7 +24,7 @@ contract CTMRWA1TokenFactory is ICTMRWA1TokenFactory {
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWA1TokenFactory_Unauthorized(Address.Sender);
+            revert CTMRWA1TokenFactory_OnlyAuthorized(Address.Sender, Address.Deployer);
         }
         _;
     }

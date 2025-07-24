@@ -39,7 +39,7 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWADeployInvest_Unauthorized(Address.Sender);
+            revert CTMRWADeployInvest_OnlyAuthorized(Address.Sender, Address.Deployer);
         }
         _;
     }
