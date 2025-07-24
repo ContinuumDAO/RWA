@@ -482,7 +482,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
      * @return tokensInEscrow The tokenIds in escrow
      * @return ownersInEscrow The owners of the tokenIds in escrow
      */
-    function getTokenIdsInEscrow() external returns (uint256[] memory, address[] memory) {
+    function getTokenIdsInEscrow() external view returns (uint256[] memory, address[] memory) {
         return (tokensInEscrow, ownersInEscrow);
     }
 

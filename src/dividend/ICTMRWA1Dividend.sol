@@ -7,7 +7,7 @@ import { Address, Uint } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1Dividend is ICTMRWA {
 
-    error CTMRWA1Dividend_Unauthorized(Address);
+    error CTMRWA1Dividend_OnlyAuthorized(Address, Address);
     error CTMRWA1Dividend_InvalidDividend(Uint);
     error CTMRWA1Dividend_FailedTransaction();
     error CTMRWA1Dividend_FundingTimeLow();

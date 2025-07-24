@@ -22,7 +22,7 @@ contract CTMRWA1DividendFactory is ICTMRWA1DividendFactory {
 
     modifier onlyDeployer() {
         if (msg.sender != deployer) {
-            revert CTMRWA1DividendFactory_Unauthorized(Address.Sender);
+            revert CTMRWA1DividendFactory_OnlyAuthorized(Address.Sender, Address.Deployer);
         }
         _;
     }

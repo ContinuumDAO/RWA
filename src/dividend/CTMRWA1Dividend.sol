@@ -73,7 +73,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
 
     modifier onlyTokenAdmin() {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1Dividend_Unauthorized(Address.Sender);
+            revert CTMRWA1Dividend_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
         }
         _;
     }
