@@ -10,14 +10,14 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
-import { Address, ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
 import { ICTMRWA1Identity } from "../../src/identity/ICTMRWA1Identity.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
-import { List, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { List, Uint, Address } from "../../src/utils/CTMRWAUtils.sol";
 
 // Minimal mock for CTMRWA1Identity
 contract MockCTMRWA1Identity is ICTMRWA1Identity {
@@ -66,7 +66,7 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot set sentry options
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
         );
         sentryManager.setSentryOptions(
             ID,
@@ -124,7 +124,7 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot add whitelist
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
         );
         sentryManager.addWhitelist(
             ID, _stringToArray(user1.toHexString()), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
@@ -157,7 +157,7 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot add country list
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
         );
         sentryManager.addCountrylist(ID, _stringToArray("US"), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
@@ -188,7 +188,7 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot go public
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_Unauthorized.selector, Address.Sender)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
         );
         sentryManager.goPublic(ID, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
@@ -761,7 +761,7 @@ contract TestSentryManager is Helpers {
         // New admin cannot remove themselves from whitelist
         vm.stopPrank();
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_Unauthorized.selector, Address.Admin));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_Unauthorized.selector, Address.Wallet, Address.TokenAdmin));
         sentryManager.addWhitelist(
             ID, _stringToArray(newAdminStr), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr
         );

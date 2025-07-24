@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.27;
 
+import { console } from "forge-std/console.sol";
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { CTMRWA1TokenFactory } from "../../src/deployment/CTMRWA1TokenFactory.sol";
 import { ICTMRWA1TokenFactory } from "../../src/deployment/ICTMRWA1TokenFactory.sol";
 import { Helpers } from "../helpers/Helpers.sol";
-import { Test } from "forge-std/Test.sol";
-import { console } from "forge-std/console.sol";
+import {Address} from "../../src/utils/CTMRWAUtils.sol";
 
 contract MockDeployer {
 // Used to test onlyDeployer modifier
 }
 
-contract CTMRWA1TokenFactoryTest is Test, Helpers {
+contract CTMRWA1TokenFactoryTest is Helpers {
     CTMRWA1TokenFactory public factory;
     address public ctmRwaMap;
     address public ctmRwaDeployer;
@@ -59,7 +59,7 @@ contract CTMRWA1TokenFactoryTest is Test, Helpers {
         assertTrue(deployed != address(0), "Deployment should succeed");
         // Try as notDeployer
         vm.prank(notDeployer);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_Unauthorized.selector, 0));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, Address.Sender, Address.Deployer));
         factory.deploy(deployData);
     }
 
@@ -131,7 +131,7 @@ contract CTMRWA1TokenFactoryTest is Test, Helpers {
         bytes memory deployData =
             getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(notDeployer);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_Unauthorized.selector, 0));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, Address.Sender, Address.Deployer));
         factory.deploy(deployData);
     }
 

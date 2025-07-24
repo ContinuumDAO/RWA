@@ -114,7 +114,7 @@ contract TestCTMRWADeployer is Helpers {
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "TestToken6", "TTK6", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
         deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
     }
 

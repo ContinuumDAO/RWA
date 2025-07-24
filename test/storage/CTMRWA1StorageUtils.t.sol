@@ -104,7 +104,7 @@ contract CTMRWA1StorageUtilsTest is Helpers {
         // Should fail for non-storageManager
         vm.prank(address(0xBEEF));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1StorageUtils.CTMRWA1StorageUtils_Unauthorized.selector, Address.Sender)
+            abi.encodeWithSelector(ICTMRWA1StorageUtils.CTMRWA1StorageUtils_OnlyAuthorized.selector, Address.Sender, Address.StorageManager)
         );
         storageUtils.smC3Fallback(selector, data, reason);
     }

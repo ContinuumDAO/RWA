@@ -232,12 +232,12 @@ contract TestCTMRWA1 is Helpers {
     function test_onlyRwa1XAccess() public {
         // Test that only rwa1X can call restricted functions
         vm.startPrank(user1);
-        // Try to mint without being rwa1X
+        // Try to change admin without being rwa1X
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
-        token.mintFromX(user1, testSlot, "Test Slot", 100);
+        token.changeAdmin(address(0xBEEF));
         // Try to transfer from without being rwa1X
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
-        token.transferFrom(testTokenId1, user2, 100);
+        token.createSlotX(12, "Test Slot");
         vm.stopPrank();
     }
 

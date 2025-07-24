@@ -33,7 +33,7 @@ contract CTMRWA1StorageTest is Helpers {
         stor.addURILocal(ID, "1", URICategory.ISSUER, URIType.CONTRACT, "Title", 0, block.timestamp, keccak256("data"));
         // Should fail for non-storageManager
         vm.prank(address(0xBEEF));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Storage.CTMRWA1Storage_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Storage.CTMRWA1Storage_OnlyAuthorized.selector, Address.Sender, Address.StorageManager));
         stor.addURILocal(
             ID, "2", URICategory.ISSUER, URIType.CONTRACT, "Title2", 0, block.timestamp, keccak256("data2")
         );
@@ -115,7 +115,7 @@ contract CTMRWA1StorageTest is Helpers {
         assertEq(stor.nonce(), newNonce);
         // Should fail for non-admin
         vm.prank(address(0xBEEF));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Storage.CTMRWA1Storage_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Storage.CTMRWA1Storage_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
         stor.increaseNonce(newNonce + 1);
     }
 
@@ -126,7 +126,7 @@ contract CTMRWA1StorageTest is Helpers {
         assertEq(stor.nonce(), 42);
         // Should fail for non-storageManager
         vm.prank(address(0xBEEF));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Storage.CTMRWA1Storage_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Storage.CTMRWA1Storage_OnlyAuthorized.selector, Address.Sender, Address.StorageManager));
         stor.setNonce(43);
     }
 

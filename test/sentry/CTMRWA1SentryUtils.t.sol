@@ -29,7 +29,7 @@ contract CTMRWA1SentryUtilsTest is Helpers {
         // Should fail for non-sentryManager
         vm.prank(address(0xBEEF));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryUtils.CTMRWA1SentryUtils_Unauthorized.selector, Address.Sender)
+            abi.encodeWithSelector(ICTMRWA1SentryUtils.CTMRWA1SentryUtils_OnlyAuthorized.selector, Address.Sender, Address.SentryManager)
         );
         sentryUtils.sentryC3Fallback(selector, data, reason);
     }

@@ -315,7 +315,7 @@ contract TestERC20Deployer is Helpers {
 
         // user2 is NOT whitelisted, user1 tries to transfer to user2, should revert with CTMRWA1_OnlyAuthorized
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, 2, 29));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.To, Address.Allowable));
         ICTMRWAERC20(newErc20).transfer(user2, 100);
         vm.stopPrank();
 

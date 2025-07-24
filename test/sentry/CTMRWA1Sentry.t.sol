@@ -76,7 +76,7 @@ contract TestCTMRWA1Sentry is Helpers {
         address newAdmin = tokenAdmin2;
         // Only tokenAdmin or ctmRwa1X can call
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_Unauthorized.selector, Address.Sender));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
         sentry.setTokenAdmin(newAdmin);
         // ctmRwa1X can call
         vm.prank(address(rwa1X));
