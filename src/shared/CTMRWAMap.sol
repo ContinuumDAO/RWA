@@ -94,14 +94,14 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWAMap_Unauthorized(Address.Sender);
+            revert CTMRWAMap_OnlyAuthorized(Address.Sender, Address.Deployer);
         }
         _;
     }
 
     modifier onlyRwa1X() {
         if (msg.sender != ctmRwa1X) {
-            revert CTMRWAMap_Unauthorized(Address.Sender);
+            revert CTMRWAMap_OnlyAuthorized(Address.Sender, Address.RWAX);
         }
         _;
     }
