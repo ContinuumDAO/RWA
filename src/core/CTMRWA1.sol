@@ -103,16 +103,13 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     SlotData[] public _allSlots;
 
     /// @dev slot => index
-    mapping(uint256 => uint256) public _allSlotsIndex;
+    mapping(uint256 => uint256) public allSlotsIndex;
 
     /// @dev owner => slot => balance checkpoints
     mapping (address => mapping (uint256 => Checkpoints.Trace208)) internal _balance;
 
     /// @dev slot => total supply in this slot
     mapping (uint256 => Checkpoints.Trace208) internal _supplyInSlot;
-
-    /// @dev slot => dividend rate
-    mapping (uint256 => Checkpoints.Trace208) internal _dividendRate;
 
     string private _name;
     string private _symbol;
@@ -218,13 +215,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     modifier onlyMinter() {
         if (!ICTMRWA1X(ctmRwa1X).isMinter(msg.sender) && !_erc20s[msg.sender]) {
             revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.Minter);
-        }
-        _;
-    }
-
-    modifier onlyDividend() {
-        if (msg.sender != dividendAddr) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.Dividend);
         }
         _;
     }
@@ -483,39 +473,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             slotName(slot),
             tokenAdmin
         );
-    }
-
-    /**
-     * @dev Lower level function, called from CTMRWA1Dividend to change the dividend rate for a slot
-     * @param _slot The slot number in this CTMRWA1
-     * @param _dividend The dividend rate per unit of this slot that can be claimed by holders
-     * @return success True if the dividend rate was changed, false otherwise
-     */
-    function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyDividend returns (bool) {
-        if (!slotExists(_slot)) {
-            revert CTMRWA1_InvalidSlot(_slot);
-        }
-        _dividendRate[_allSlotsIndex[_slot]].push(uint48(block.timestamp), uint208(_dividend));
-        return (true);
-    }
-
-    /**
-     * @notice Returns the dividend rate for a slot in this CTMRWA1
-     * @param _slot The slot number in this CTMRWA1
-     * @return The dividend rate for the slot
-     */
-    function getDividendRateBySlotAt(uint256 _slot, uint48 _timestamp) external view returns (uint256) {
-        if (!slotExists(_slot)) {
-            revert CTMRWA1_InvalidSlot(_slot);
-        }
-        return uint256(_dividendRate[_allSlotsIndex[_slot]].upperLookupRecent(_timestamp));
-    }
-
-    function getDividendRateBySlot(uint256 _slot) external view returns (uint256) {
-        if (!slotExists(_slot)) {
-            revert CTMRWA1_InvalidSlot(_slot);
-        }
-        return uint256(_dividendRate[_allSlotsIndex[_slot]].latest());
     }
 
     /**
@@ -1319,7 +1276,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         if (!slotExists(_slot)) {
             revert CTMRWA1_InvalidSlot(_slot);
         }
-        return (_allSlots[_allSlotsIndex[_slot]].slotName);
+        return (_allSlots[allSlotsIndex[_slot]].slotName);
     }
 
     /**
@@ -1340,7 +1297,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @return True if the slot exists, false otherwise
      */
     function slotExists(uint256 _slot) public view virtual returns (bool) {
-        return _allSlots.length != 0 && _allSlots[_allSlotsIndex[_slot]].slot == _slot;
+        return _allSlots.length != 0 && _allSlots[allSlotsIndex[_slot]].slot == _slot;
     }
 
     /**
@@ -1352,7 +1309,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         if (!slotExists(_slot)) {
             return 0;
         }
-        return _allSlots[_allSlotsIndex[_slot]].slotTokens.length;
+        return _allSlots[allSlotsIndex[_slot]].slotTokens.length;
     }
 
     /**
@@ -1378,7 +1335,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         if (_index >= this.tokenSupplyInSlot(_slot)) {
             revert CTMRWA1_OutOfBounds();
         }
-        return _allSlots[_allSlotsIndex[_slot]].slotTokens[_index];
+        return _allSlots[allSlotsIndex[_slot]].slotTokens[_index];
     }
 
     /// @dev Check if a tokenId exists in a slot
@@ -1386,7 +1343,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _tokenId The tokenId being examined
     /// @return True if the tokenId exists in the slot, false otherwise
     function _tokenExistsInSlot(uint256 _slot, uint256 _tokenId) private view returns (bool) {
-        SlotData storage slotData = _allSlots[_allSlotsIndex[_slot]];
+        SlotData storage slotData = _allSlots[allSlotsIndex[_slot]];
         return slotData.slotTokens.length > 0 && slotData.slotTokens[_slotTokensIndex[_slot][_tokenId]] == _tokenId;
     }
 
@@ -1483,7 +1440,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @dev Low level function to add a slot struct to the slot array
     /// @param _slotData The slot data to add to the slot array
     function _addSlotToAllSlotsEnumeration(SlotData memory _slotData) private {
-        _allSlotsIndex[_slotData.slot] = _allSlots.length;
+        allSlotsIndex[_slotData.slot] = _allSlots.length;
         _allSlots.push(_slotData);
     }
 
@@ -1491,7 +1448,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _slot The slot number to add the tokenId to
     /// @param _tokenId The tokenId to add to the slot
     function _addTokenToSlotEnumeration(uint256 _slot, uint256 _tokenId) private {
-        SlotData storage slotData = _allSlots[_allSlotsIndex[_slot]];
+        SlotData storage slotData = _allSlots[allSlotsIndex[_slot]];
         _slotTokensIndex[_slot][_tokenId] = slotData.slotTokens.length;
         slotData.slotTokens.push(_tokenId);
     }
@@ -1500,7 +1457,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _slot The slot number to remove the tokenId from
     /// @param _tokenId The tokenId to remove from the slot
     function _removeTokenFromSlotEnumeration(uint256 _slot, uint256 _tokenId) private {
-        SlotData storage slotData = _allSlots[_allSlotsIndex[_slot]];
+        SlotData storage slotData = _allSlots[allSlotsIndex[_slot]];
         uint256 lastTokenIndex = slotData.slotTokens.length - 1;
         uint256 lastTokenId = slotData.slotTokens[lastTokenIndex];
         uint256 tokenIndex = _slotTokensIndex[_slot][_tokenId];

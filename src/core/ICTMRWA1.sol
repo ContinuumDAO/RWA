@@ -149,9 +149,7 @@ interface ICTMRWA1 is ICTMRWA {
 
     function dividendAddr() external view returns (address);
     function storageAddr() external view returns (address);
-    function getDividendRateBySlot(uint256 _slot) external view returns (uint256);
-    function getDividendRateBySlotAt(uint256 slot, uint48 timestamp) external view returns (uint256);
-    function changeDividendRate(uint256 slot, uint256 dividend) external returns (bool);
+    function allSlotsIndex(uint256 slot) external view returns (uint256);
 
     function createOriginalTokenId() external returns (uint256);
 

@@ -7,8 +7,8 @@ import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1InvestWithTimeLock } from "../deployment/ICTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { Address, Uint } from "../utils/CTMRWAUtils.sol";
-import { Checkpoints } from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
+import { Checkpoints } from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
@@ -62,6 +62,9 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
 
     /// @notice Tracks the last claimed index for each holder and slot
     mapping(uint256 => mapping(address => uint256)) public lastClaimedIndex;
+
+    /// @dev slot => dividend rate
+    mapping (uint256 => Checkpoints.Trace208) internal _dividendRate;
 
     event NewDividendToken(address newToken, address currentAdmin);
     event ChangeDividendRate(uint256 slot, uint256 newDividend, address currentAdmin);
@@ -121,14 +124,41 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
      * NOTE This is a tokenAdmin only function.
      * NOTE This is NOT a cross-chain transaction. This function must be called on each chain
      * separately.
+     * @dev Lower level function, called from CTMRWA1Dividend to change the dividend rate for a slot
+     * @param _slot The slot number in this CTMRWA1
+     * @param _dividend The dividend rate per unit of this slot that can be claimed by holders
+     * @return success True if the dividend rate was changed, false otherwise
      */
     function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyTokenAdmin returns (bool) {
-        ICTMRWA1(tokenAddr).changeDividendRate(_slot, _dividend);
-        // TODO Move the CTMRWA1 function changeDividendRate to here. Snapshot the new rate.
+        if (!ICTMRWA1(tokenAddr).slotExists(_slot)) {
+            revert CTMRWA1Dividend_InvalidSlot(_slot);
+        }
+        uint256 slotIndex = ICTMRWA1(tokenAddr).allSlotsIndex(_slot);
+        _dividendRate[slotIndex].push(uint48(block.timestamp), uint208(_dividend));
         emit ChangeDividendRate(_slot, _dividend, tokenAdmin);
         return (true);
     }
 
+    /**
+     * @notice Returns the dividend rate for a slot in this CTMRWA1
+     * @param _slot The slot number in this CTMRWA1
+     * @return The dividend rate for the slot
+     */
+    function getDividendRateBySlotAt(uint256 _slot, uint48 _timestamp) public view returns (uint256) {
+        if (!ICTMRWA1(tokenAddr).slotExists(_slot)) {
+            revert CTMRWA1Dividend_InvalidSlot(_slot);
+        }
+        uint256 slotIndex = ICTMRWA1(tokenAddr).allSlotsIndex(_slot);
+        return uint256(_dividendRate[slotIndex].upperLookupRecent(_timestamp));
+    }
+
+    function getDividendRateBySlot(uint256 _slot) public view returns (uint256) {
+        if (!ICTMRWA1(tokenAddr).slotExists(_slot)) {
+            revert CTMRWA1Dividend_InvalidSlot(_slot);
+        }
+        uint256 slotIndex = ICTMRWA1(tokenAddr).allSlotsIndex(_slot);
+        return uint256(_dividendRate[slotIndex].latest());
+    }
 
     /**
      * @notice Get the dividend to be paid out for an Asset Class (slot) to a holder since the last claim
@@ -144,7 +174,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
             DividendFunding storage funding = dividendFundings[i];
             if (funding.slot == _slot) {
                 uint256 bal = ICTMRWA1(tokenAddr).balanceOfAt(_holder, _slot, funding.fundingTime);
-                uint256 dividendRate = ICTMRWA1(tokenAddr).getDividendRateBySlotAt(_slot, funding.fundingTime);
+                uint256 dividendRate = getDividendRateBySlotAt(_slot, funding.fundingTime);
                 sum += dividendRate * bal;
             }
         }
@@ -206,7 +236,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
             revert CTMRWA1Dividend_FundingTimeFuture();
         }
 
-        uint256 dividendRate = ICTMRWA1(tokenAddr).getDividendRateBySlotAt(_slot, midnight);
+        uint256 dividendRate = getDividendRateBySlotAt(_slot, midnight);
         if (dividendRate == 0) {
             revert CTMRWA1Dividend_InvalidDividend(Uint.Balance);
         }
