@@ -27,4 +27,6 @@ interface ICTMRWA1Dividend is ICTMRWA {
     function getDividendPayable(address holder) external view returns (uint256);
     function claimDividend() external returns (uint256);
     function dividendFundings(uint256 index) external view returns (uint256 slot, uint48 fundingTime);
+    /// @notice Returns the last claimed index for a given slot and holder
+    function lastClaimedIndex(uint256 slot, address holder) external view returns (uint256);
 }
