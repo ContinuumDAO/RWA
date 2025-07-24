@@ -71,7 +71,8 @@ enum Address {
     RWAX,
     ERC20Deployer,
     Allowable,
-    ApprovedOrOwner
+    ApprovedOrOwner,
+    Wallet
 }
 
 enum List {

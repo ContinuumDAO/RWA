@@ -82,7 +82,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWA1SentryManager_Unauthorized(Address.Sender);
+            revert CTMRWA1SentryManager_OnlyAuthorized(Address.Sender, Address.Deployer);
         }
         _;
     }
@@ -651,7 +651,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         string memory currentAdminStr = currentAdmin.toHexString()._toLower();
 
         if (msg.sender != currentAdmin && msg.sender != identity) {
-            revert CTMRWA1SentryManager_Unauthorized(Address.Sender);
+            revert CTMRWA1SentryManager_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
         }
 
         return (currentAdmin, currentAdminStr);

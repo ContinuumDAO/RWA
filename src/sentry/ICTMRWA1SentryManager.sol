@@ -6,7 +6,7 @@ import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { Address, List, Uint } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1SentryManager is ICTMRWA {
-    error CTMRWA1SentryManager_Unauthorized(Address);
+    error CTMRWA1SentryManager_OnlyAuthorized(Address, Address);
     error CTMRWA1SentryManager_IsZeroAddress(Address);
     error CTMRWA1SentryManager_InvalidContract(Address);
 

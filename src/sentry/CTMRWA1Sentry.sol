@@ -47,14 +47,14 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
     modifier onlyTokenAdmin() {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1Sentry_Unauthorized(Address.Sender);
+            revert CTMRWA1Sentry_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
         }
         _;
     }
 
     modifier onlySentryManager() {
         if (msg.sender != sentryManagerAddr) {
-            revert CTMRWA1Sentry_Unauthorized(Address.Sender);
+            revert CTMRWA1Sentry_OnlyAuthorized(Address.Sender, Address.SentryManager);
         }
         _;
     }
@@ -226,9 +226,7 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
             if (walletStr.equal(adminStr) && !_choices[i]) {
                 // revert("CTMRWA1Sentry: Cannot remove tokenAdmin from the whitelist");
-                if (walletStr.equal(adminStr) && !_choices[i]) {
-                    revert CTMRWA1Sentry_Unauthorized(Address.Admin);
-                }
+                revert CTMRWA1Sentry_Unauthorized(Address.Wallet, Address.TokenAdmin);
             } else if (indx != 0 && indx == ctmWhitelist.length - 1 && !_choices[i]) {
                 // last entry to be removed
                 whitelistIndx[walletStr] = 0;

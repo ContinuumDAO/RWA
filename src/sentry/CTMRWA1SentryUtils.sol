@@ -33,7 +33,7 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
 
     modifier onlySentryManager() {
         if (msg.sender != sentryManager) {
-            revert CTMRWA1SentryUtils_Unauthorized(Address.Sender);
+            revert CTMRWA1SentryUtils_OnlyAuthorized(Address.Sender, Address.SentryManager);
         }
         _;
     }
