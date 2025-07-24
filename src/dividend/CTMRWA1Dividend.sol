@@ -218,7 +218,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
             ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
 
     
-        uint256 totalSupplyInSlot = ICTMRWA1(tokenAddr).getDividendRateBySlotAt(_slot, midnight);
+        uint256 totalSupplyInSlot = ICTMRWA1(tokenAddr).totalSupplyInSlotAt(_slot, midnight);
 
         if (investContractExists) {
             supplyInInvestContract = ICTMRWA1(tokenAddr).balanceOfAt(ctmRwaInvest, _slot, midnight);
