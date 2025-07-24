@@ -14,7 +14,7 @@ enum RequestId {
 }
 
 interface ICTMRWA1Identity is ICTMRWA {
-    error CTMRWA1Identity_Unauthorized(Address);
+    error CTMRWA1Identity_OnlyAuthorized(Address, Address);
     error CTMRWA1Identity_IsZeroAddress(Address);
     error CTMRWA1Identity_InvalidContract(Address);
     error CTMRWA1Identity_KYCDisabled();

@@ -62,7 +62,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
 
     modifier onlySentryManager() {
         if (msg.sender != sentryManager) {
-            revert CTMRWA1Identity_Unauthorized(Address.Sender);
+            revert CTMRWA1Identity_OnlyAuthorized(Address.Sender, Address.SentryManager);
         }
         _;
     }
