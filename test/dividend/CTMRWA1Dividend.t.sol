@@ -183,54 +183,59 @@ contract TestDividend is Helpers {
 
     function test_changeDividendRate_snapshots() public {
         vm.startPrank(tokenAdmin);
-       
+
         uint256 slot = 1;
         // Set initial rate
-        skip(24 days);
+        uint256 t0 = 1;
+
+        uint256 t1 = t0 + 24 days;
+        vm.warp(t1);
         ICTMRWA1Dividend(dividendContract).changeDividendRate(slot, 100);
-        uint256 t1 = block.timestamp;
-        console.log("t1:", t1);
-        skip(3 days);
+
+        uint256 t2 = t1 + 3 days;
+        vm.warp(t2);
         ICTMRWA1Dividend(dividendContract).changeDividendRate(slot, 200);
-        uint256 t2 = block.timestamp;
-        console.log("t2:", t2);
-        skip(4 days);
+
+        uint256 t3 = t2 + 4 days;
+        vm.warp(t3);
         ICTMRWA1Dividend(dividendContract).changeDividendRate(slot, 300);
-        uint256 t3 = block.timestamp;
-        console.log("t3:", t3);
-        skip(2 days);
+
+        uint256 t4 = t3 + 2 days;
+        vm.warp(t4);
         ICTMRWA1Dividend(dividendContract).changeDividendRate(slot, 400);
-        uint256 t4 = block.timestamp;
-        console.log("t4:", t4);
+
+        uint256 t5 = t4 + 5 days;
+        vm.warp(t5);
+
         vm.stopPrank();
 
         // Check at various times
         // At the very start: should be 0
-        console.log("start (1):", 1);
-        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, 1), 0, "rate at start should be 0");
+        assertEq(t0, 1, "t0 has magically changed");
+        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t0)), 0, "rate at start should be 0");
+
         // Just before t1: should be 0
-        console.log("t1 - 1:", t1 - 1);
-        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t1 - 1)), 0, "rate before first change should be 0");
+        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t1 - 1)), 0, "rate just before first change should be 0");
+
         // At t1: should be 100
-        console.log("t1:", t1);
         assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t1)), 100, "rate at t1 should be 100");
+
         // Between t1 and t2: should be 100
-        console.log("t1 + 1 days:", t1 + 1 days);
         assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t1 + 1 days)), 100, "rate between t1 and t2 should be 100");
+
         // At t2: should be 200
-        console.log("t2:", t2);
         assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t2)), 200, "rate at t2 should be 200");
+
         // Between t2 and t3: should be 200
-        console.log("t2 + 1 days:", t2 + 1 days);
         assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t2 + 1 days)), 200, "rate between t2 and t3 should be 200");
+
         // At t3: should be 300
-        console.log("t3:", t3);
         assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t3)), 300, "rate at t3 should be 300");
+
         // At t4: should be 400
-        console.log("t4:", t4);
         assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t4)), 400, "rate at t4 should be 400");
+
         // After t4: should be 400
-        console.log("t4 + 1 days:", t4 + 1 days);
         assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t4 + 1 days)), 400, "rate after t4 should be 400");
     }
 }
