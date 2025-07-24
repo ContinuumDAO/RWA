@@ -7,7 +7,7 @@ import { Address, Uint } from "../utils/CTMRWAUtils.sol";
 import { URICategory, URIType } from "./ICTMRWA1Storage.sol";
 
 interface ICTMRWA1StorageManager is ICTMRWA {
-    error CTMRWA1StorageManager_Unauthorized(Address);
+    error CTMRWA1StorageManager_OnlyAuthorized(Address, Address);
     error CTMRWA1StorageManager_InvalidContract(Address);
     error CTMRWA1StorageManager_NoStorage();
     error CTMRWA1StorageManager_ObjectAlreadyExists();

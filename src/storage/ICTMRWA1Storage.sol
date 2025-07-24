@@ -42,7 +42,7 @@ struct URIData {
 }
 
 interface ICTMRWA1Storage is ICTMRWA {
-    error CTMRWA1Storage_Unauthorized(Address);
+    error CTMRWA1Storage_OnlyAuthorized(Address, Address);
     error CTMRWA1Storage_InvalidID(uint256 expected, uint256 actual);
     error CTMRWA1Storage_HashExists(bytes32);
     error CTMRWA1Storage_InvalidSlot(uint256);

@@ -97,14 +97,14 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
 
     modifier onlyTokenAdmin() {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1Storage_Unauthorized(Address.Sender);
+            revert CTMRWA1Storage_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
         }
         _;
     }
 
     modifier onlyStorageManager() {
         if (msg.sender != storageManagerAddr && msg.sender != storageUtilsAddr) {
-            revert CTMRWA1Storage_Unauthorized(Address.Sender);
+            revert CTMRWA1Storage_OnlyAuthorized(Address.Sender, Address.StorageManager);
         }
         _;
     }

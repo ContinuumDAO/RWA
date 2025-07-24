@@ -55,6 +55,7 @@ enum Address {
     Storage,
     Sentry,
     SentryManager,
+    StorageManager,
     RWAERC20,
     Override,
     Admin,

@@ -65,7 +65,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWA1StorageManager_Unauthorized(Address.Sender);
+            revert CTMRWA1StorageManager_OnlyAuthorized(Address.Sender, Address.Deployer);
         }
         _;
     }
@@ -402,7 +402,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
         string memory currentAdminStr = currentAdmin.toHexString()._toLower();
 
         if (msg.sender != currentAdmin) {
-            revert CTMRWA1StorageManager_Unauthorized(Address.Sender);
+            revert CTMRWA1StorageManager_OnlyAuthorized(Address.Sender, Address.Admin);
         }
 
         return (currentAdmin, currentAdminStr);

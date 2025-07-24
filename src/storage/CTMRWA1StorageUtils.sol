@@ -36,7 +36,7 @@ contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
 
     modifier onlyStorageManager() {
         if (msg.sender != storageManager) {
-            revert CTMRWA1StorageUtils_Unauthorized(Address.Sender);
+            revert CTMRWA1StorageUtils_OnlyAuthorized(Address.Sender, Address.StorageManager);
         }
         _;
     }
