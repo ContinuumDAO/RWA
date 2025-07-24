@@ -7,10 +7,10 @@ import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWA1InvestWithTimeLock } from "../deployment/ICTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { Address, Uint } from "../utils/CTMRWAUtils.sol";
-// import {CTMRWACheckpoints} from "../utils/CTMRWACheckpoints.sol";
-import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
+import { Checkpoints } from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -23,10 +23,11 @@ import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/Saf
  * This contract is deployed by CTMRWADeployer on each chain once for every CTMRWA1 contract.
  * Its ID matches the ID in CTMRWA1. There are no cross-chain functions in this contract.
  */
-contract CTMRWA1Dividend is ICTMRWA1Dividend {
+contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
     using SafeERC20 for IERC20;
-    // using CTMRWACheckpoints for CTMRWACheckpoints.TraceRateSlot;
     using Checkpoints for Checkpoints.Trace208;
+
+    uint48 public constant ONE_DAY = 1 days;
 
     /// @dev The ERC20 token contract address used to distribute dividends
     address public dividendToken;
@@ -52,14 +53,15 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
     /// @dev version is the single integer version of this RWA type
     uint256 public immutable VERSION;
 
-    // slot => {snapshot, rate * slotBal}
-    mapping (uint256 => Checkpoints.Trace208) internal _dividendSnapshots;
+    /// @notice Tracks the dividend fundings for each slot
+    struct DividendFunding {
+        uint256 slot;
+        uint48 fundingTime;
+    }
+    DividendFunding[] public dividendFundings;
 
-    /** @notice The times at which each slot has had dividend funding added.
-     * If a user had a balance in any tokenId in this slot at that time, they can claim for this index.
-     * The mapping is slot => index => time
-    */
-    // mapping (uint256 => mapping(uint256 => uint256)) public dividendFundedAt;
+    /// @notice Tracks the last claimed index for each holder and slot
+    mapping(uint256 => mapping(address => uint256)) public lastClaimedIndex;
 
     event NewDividendToken(address newToken, address currentAdmin);
     event ChangeDividendRate(uint256 slot, uint256 newDividend, address currentAdmin);
@@ -83,12 +85,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
         VERSION = _version;
     }
 
-    /// @dev wallet of holder of a tokenId(s) in CTMRWA1 => unclaimed dividend
-    mapping(address => uint256) public unclaimedDividend;
-
-    /// @dev unclaimed dividend for a tokenId. This is used by escrow, or staking contracts
-    /// @dev to allow claiming of dividends by the owner, whilst the tokenId is locked
-    mapping(uint256 => uint256) public dividendByTokenId;
 
     /**
      * @notice Change the tokenAdmin address
@@ -128,42 +124,46 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
      */
     function changeDividendRate(uint256 _slot, uint256 _dividend) external onlyTokenAdmin returns (bool) {
         ICTMRWA1(tokenAddr).changeDividendRate(_slot, _dividend);
-
+        // TODO Move the CTMRWA1 function changeDividendRate to here. Snapshot the new rate.
         emit ChangeDividendRate(_slot, _dividend, tokenAdmin);
         return (true);
     }
 
-    /**
-     * @notice Get the dividend rate an Asset Class (slot) in the RWA
-     * @param _slot The Asset Class (slot).
-     */
-    function getDividendRateBySlot(uint256 _slot) public view returns (uint256) {
-        return (ICTMRWA1(tokenAddr).getDividendRateBySlot(_slot));
-    }
 
     /**
-     * @notice Get the total dividend to be paid out for an Asset Class (slot) to all holders
+     * @notice Get the dividend to be paid out for an Asset Class (slot) to a holder since the last claim
      * @param _slot The Asset Class (slot)
+     * @param _holder The holder of the tokenId
+     * @return The dividend to be paid out
      */
-    function getTotalDividendBySlot(uint256 _slot) public view returns (uint256) {
-        uint256 totalSupply = ICTMRWA1(tokenAddr).totalSupplyInSlot(_slot);
-
-        uint256 slotRate = getDividendRateBySlot(_slot);
-
-        return (totalSupply * slotRate);
+    function getDividendPayableBySlot(uint256 _slot, address _holder) public view returns (uint256) {
+        uint256 start = lastClaimedIndex[_slot][_holder];
+        uint256 sum = 0;
+        uint256 n = dividendFundings.length;
+        for (uint256 i = start; i < n; i++) {
+            DividendFunding storage funding = dividendFundings[i];
+            if (funding.slot == _slot) {
+                uint256 bal = ICTMRWA1(tokenAddr).balanceOfAt(_holder, _slot, funding.fundingTime);
+                uint256 dividendRate = ICTMRWA1(tokenAddr).getDividendRateBySlotAt(_slot, funding.fundingTime);
+                sum += dividendRate * bal;
+            }
+        }
+        return sum;
     }
 
     /**
      * @notice Get the total dividend payable for all Asset Classes (slots) in the RWA
+     * @param _holder The holder of the tokenId
+     * @return dividendPayable The total dividend payable
      */
-    function getTotalDividend() public view returns (uint256) {
+    function getDividendPayable(address _holder) public view returns (uint256) {
         uint256 nSlots = ICTMRWA1(tokenAddr).slotCount();
         uint256 dividendPayable;
         uint256 slot;
 
         for (uint256 i = 0; i < nSlots; i++) {
             slot = ICTMRWA1(tokenAddr).slotByIndex(i);
-            dividendPayable += getTotalDividendBySlot(slot);
+            dividendPayable += getDividendPayableBySlot(slot, _holder);
         }
 
         return (dividendPayable);
@@ -178,100 +178,105 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend {
      * @param _fundingTime The time to use to calculate the dividend
      * NOTE The actual funding time is calculated to be at midnight prior to _fundingTime.
      * The actual funding time must be a time after the previous time (dividendFundedAt).
-     * NOTE Anyone can fund the dividend, but the dividendRate can only be set by the tokenAdmin.
      * NOTE This is not a cross-chain function. It must be called on each chain in the RWA. Use Multicall
      * with the same _fundingTime to prevent arbitrage.
      */
     function fundDividend(
         uint256 _slot,
         uint256 _fundingTime
-    ) public returns (uint256) {
-        // uint256 tokenId;
-        // address holder;
-        // uint256 dividend;
-        // uint256 dividendPayable;
-        // uint256[] memory tokenIdsInEscrow;
-        // address[] memory holdersInEscrow;
-        // uint256[] memory issuerTokenIdsInEscrow;
+    ) public onlyTokenAdmin nonReentrant returns (uint256) {
+        if (dividendToken == address(0)) {
+            revert CTMRWA1Dividend_FundTokenNotSet();
+        }
+        uint48 midnight = _midnightBefore(_fundingTime);
+        // Ensure _fundingTime is greater than the last time it was called for this slot and less than block.timestamp
+        uint256 n = dividendFundings.length;
+        if (n > 0) {
+            DividendFunding storage last = dividendFundings[n - 1];
+            if (last.slot == _slot) {
+                if (!(midnight > last.fundingTime)) {
+                    revert CTMRWA1Dividend_FundingTimeLow();
+                }
+                if (midnight < last.fundingTime + 30 days) {
+                    revert CTMRWA1Dividend_FundingTooFrequent();
+                }
+            }
+        }
+        if (!(_fundingTime < block.timestamp)) {
+            revert CTMRWA1Dividend_FundingTimeFuture();
+        }
 
-        // (bool investContractExists, address ctmRwaInvest) =
-        //     ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
+        uint256 dividendRate = ICTMRWA1(tokenAddr).getDividendRateBySlotAt(_slot, midnight);
+        if (dividendRate == 0) {
+            revert CTMRWA1Dividend_InvalidDividend(Uint.Balance);
+        }
 
-        // if (investContractExists) {
-        //     // tokenIdsInEscrow are owned by ctmRwaInvest, but their beneficial owners are holdersInEscrow
-        //     (tokenIdsInEscrow, holdersInEscrow) = ICTMRWA1InvestWithTimeLock(ctmRwaInvest).getTokenIdsInEscrow();
-        //     // issuerTokenIdsInEscrow are tokenIds in Offerings. No need to fund dividends for these
-        //     issuerTokenIdsInEscrow = ICTMRWA1InvestWithTimeLock(ctmRwaInvest).getIssuerTokenIdsInEscrow();
-        // }
+        uint256 supplyInSlot;
+        uint256 supplyInInvestContract;
+       
+        (bool investContractExists, address ctmRwaInvest) =
+            ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
 
-        uint256 indx;
+    
+        uint256 totalSupplyInSlot = ICTMRWA1(tokenAddr).getDividendRateBySlotAt(_slot, midnight);
 
-        // for (uint256 i = 0; i < ICTMRWA1(tokenAddr).totalSupply(); i++) {
-        //     tokenId = ICTMRWA1(tokenAddr).tokenByIndex(i);
-        //     holder = ICTMRWA1(tokenAddr).ownerOf(tokenId);
-        //     if (investContractExists && holder == ctmRwaInvest) {
-        //         indx = _tokenIdInList(tokenId);
-        //         if (indx > 0) {
-        //             holder = holdersInEscrow[indx];
-        //         }
-        //     }
-        //     // if the tokenId was in an escrow Holding, the holder is reassigned to the
-        //     // beneficial owner, but NOT if the tokenId is in an Offering
-        //     if (holder != ctmRwaInvest) {
-        //         dividend = _getDividendByToken(tokenId);
-        //         unclaimedDividend[holder] += dividend;
-        //         dividendByTokenId[tokenId] += dividend;
-        //         dividendPayable += dividend;
-        //     }
-        // }
+        if (investContractExists) {
+            supplyInInvestContract = ICTMRWA1(tokenAddr).balanceOfAt(ctmRwaInvest, _slot, midnight);
+        }
+
+        // If ctmRwaInvest did not exist at time midnight, then supplyInInvestContract == 0
+        supplyInSlot = totalSupplyInSlot - supplyInInvestContract;
+
+        uint256 dividendPayable = supplyInSlot * dividendRate;
 
         if (!IERC20(dividendToken).transferFrom(msg.sender, address(this), dividendPayable)) {
             revert CTMRWA1Dividend_FailedTransaction();
         }
 
-        emit FundDividend(dividendPayable, dividendToken, msg.sender);
+        dividendFundings.push(DividendFunding({slot: _slot, fundingTime: midnight}));
+
+        emit FundDividend(dividendPayable, dividendToken, tokenAdmin);
 
         return (dividendPayable);
     }
 
     /**
-     * @notice This allows a holder of tokenIds to claim all of their unclaimed dividends
-     * NOTE The holder can see the token address using the dividendToken() function
+     * @notice This allows a holder to claim all of their unclaimed dividends
+     * @return dividend The amount of dividend claimed
+     * NOTE The holder can see the dividendtoken address using the dividendToken() function
      */
-    function claimDividend() public returns (bool) {
-        uint256 dividend = unclaimedDividend[msg.sender];
+    function claimDividend() public nonReentrant returns (uint256) {
+
+        uint256 dividend = getDividendPayable(msg.sender);
+
+        // Update lastClaimedIndex for all slots
+        uint256 nSlots = ICTMRWA1(tokenAddr).slotCount();
+        for (uint256 i = 0; i < nSlots; i++) {
+            uint256 slot = ICTMRWA1(tokenAddr).slotByIndex(i);
+            lastClaimedIndex[slot][msg.sender] = dividendFundings.length;
+        }
+
+        if (dividend == 0) {
+            return (0);
+        }
+
         if (IERC20(dividendToken).balanceOf(address(this)) < dividend) {
             revert CTMRWA1Dividend_InvalidDividend(Uint.Balance);
         }
 
-        unclaimedDividend[msg.sender] = 0;
         IERC20(dividendToken).transfer(msg.sender, dividend);
 
         emit ClaimDividend(msg.sender, dividend, dividendToken);
-        return true;
+        return (dividend);
     }
 
-    // /// @dev This function allows the owner of a tokenId to reset the outstanding
-    // /// @dev unclaimed dividend balance to zero. It is intended to assist
-    // /// @dev escrow or staking contracts to account for and allow dividend payments
-    // /// @dev to the beneficial holders of a tokenId, whilst it is technically owned by
-    // /// @dev the staking contract
-    // function resetDividendByToken(uint256 _tokenId) external {
-    //     address owner = ICTMRWA1(tokenAddr).ownerOf(_tokenId);
-    //     if (msg.sender != owner) {
-    //         revert CTMRWA1Dividend_Unauthorized(Address.Sender);
-    //     }
-
-    //     dividendByTokenId[_tokenId] = 0;
-    // }
-
-    /// @dev This function returns how much dividend is payable for an individual tokenId
-    function _getDividendByToken(uint256 _tokenId) internal view returns (uint256) {
-        uint256 slot = ICTMRWA1(tokenAddr).slotOf(_tokenId);
-        return (ICTMRWA1(tokenAddr).getDividendRateBySlot(slot) * ICTMRWA1(tokenAddr).balanceOf(_tokenId));
+   
+    function _addDividendSnapshot(uint256 slot) internal {
+   
     }
 
-    function _tokenIdInList(uint256 _tokenIdToFind) internal returns (uint256) {
-        return 0;
+    /// @dev Returns the timestamp of midnight (00:00:00 UTC) before the input timestamp
+    function _midnightBefore(uint256 _timestamp) internal pure returns (uint48) {
+        return uint48((_timestamp / 1 days) * 1 days);
     }
 }

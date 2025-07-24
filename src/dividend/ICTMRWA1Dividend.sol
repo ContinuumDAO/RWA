@@ -6,23 +6,24 @@ import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { Address, Uint } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1Dividend is ICTMRWA {
+
     error CTMRWA1Dividend_Unauthorized(Address);
     error CTMRWA1Dividend_InvalidDividend(Uint);
     error CTMRWA1Dividend_FailedTransaction();
+    error CTMRWA1Dividend_FundingTimeLow();
+    error CTMRWA1Dividend_FundingTimeFuture();
+    error CTMRWA1Dividend_FundingTooFrequent();
+    error CTMRWA1Dividend_FundTokenNotSet();
 
     function ID() external view returns (uint256);
     function tokenAdmin() external view returns (address);
     function setTokenAdmin(address _tokenAdmin) external returns (bool);
     function setDividendToken(address dividendToken) external returns (bool);
     function dividendToken() external returns (address);
-    function unclaimedDividend(address holder) external returns (uint256);
     function changeDividendRate(uint256 slot, uint256 dividend) external returns (bool);
-    function getDividendRateBySlot(uint256 slot) external view returns (uint256);
-    function getTotalDividendBySlot(uint256 slot) external view returns (uint256);
-    function getTotalDividend() external view returns (uint256);
-    function fundDividend() external returns (uint256);
-    function dividendByTokenId(uint256 tokenId) external returns (uint256);
-    // function resetDividendByToken(uint256 tokenId) external;
-
-    function claimDividend() external returns (bool);
+    function fundDividend(uint256 slot, uint256 fundingTime) external returns (uint256);
+    function getDividendPayableBySlot(uint256 slot, address holder) external view returns (uint256);
+    function getDividendPayable(address holder) external view returns (uint256);
+    function claimDividend() external returns (uint256);
+    function dividendFundings(uint256 index) external view returns (uint256 slot, uint48 fundingTime);
 }

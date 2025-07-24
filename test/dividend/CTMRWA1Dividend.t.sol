@@ -6,61 +6,65 @@ import { Test } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
 contract TestDividend is Helpers {
     using Strings for *;
 
-    function test_dividends() public {
-        // vm.startPrank(admin); // this CTMRWA1 has an admin of admin
-        // (, address ctmRwaAddr) = CTMRWA1Deploy();
-        // (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = deployAFewTokensLocal(ctmRwaAddr);
+    address public dividendContract;
 
-        // address ctmDividend = ICTMRWA1(ctmRwaAddr).dividendAddr();
+    function setUp() public override {
+        super.setUp();
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        (, dividendContract) = ICTMRWAMap(map).getDividendContract(ID, RWA_TYPE, VERSION);
+        // _createSomeSlots(ID, address(usdc), address(rwa1X)); // Removed to avoid SlotExists revert
+        (uint256 tokenId1, uint256 tokenId2, uint256 tokenId3) = _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
+        vm.stopPrank();
+    }
 
-        // ICTMRWA1Dividend(ctmDividend).setDividendToken(address(usdc));
-        // address token = ICTMRWA1Dividend(ctmDividend).dividendToken();
-        // assertEq(token, address(usdc));
+    function test_tokenAdmin_can_fundDividend() public {
+        vm.startPrank(tokenAdmin);
+        ICTMRWA1Dividend(dividendContract).setDividendToken(address(usdc));
+        ICTMRWA1Dividend(dividendContract).changeDividendRate(1, 100);
+        ICTMRWA1Dividend(dividendContract).changeDividendRate(3, 150);
+        ICTMRWA1Dividend(dividendContract).changeDividendRate(5, 80);
+        // Approve the dividend contract to spend USDC
+        IERC20(usdc).approve(dividendContract, type(uint256).max);
+        
+        skip(100 days);
+        uint256 slot = 1;
+        uint256 fundingTime1 = block.timestamp - 1 days;
+        uint256 funded1 = ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime1);
 
-        // uint256 divRate = ICTMRWA1Dividend(ctmDividend).getDividendRateBySlot(3);
-        // assertEq(divRate, 0);
+        skip(100 days);
+        slot = 3;
+        uint256 fundingTime2 = block.timestamp - 1 days;
+        uint256 funded2 = ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime2);
 
-        // uint256 divRate3 = 2500;
-        // ICTMRWA1Dividend(ctmDividend).changeDividendRate(3, divRate3);
-        // divRate = ICTMRWA1Dividend(ctmDividend).getDividendRateBySlot(3);
-        // assertEq(divRate, divRate3);
+        skip(100 days);
+        slot = 5;
+        uint256 fundingTime3 = block.timestamp - 1 days;
+        uint256 funded3 = ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime3);
+        vm.stopPrank();
 
-        // uint256 divRate1 = 8000;
-        // ICTMRWA1Dividend(ctmDividend).changeDividendRate(1, divRate1);
-
-        // uint256 balSlot1 = ICTMRWA1(ctmRwaAddr).totalSupplyInSlot(1);
-
-        // uint256 dividend = ICTMRWA1Dividend(ctmDividend).getTotalDividendBySlot(1);
-        // assertEq(dividend, balSlot1 * divRate1);
-
-        // uint256 balSlot3 = ICTMRWA1(ctmRwaAddr).totalSupplyInSlot(3);
-
-        // uint256 balSlot5 = ICTMRWA1(ctmRwaAddr).totalSupplyInSlot(5);
-
-        // uint256 divRate5 = ICTMRWA1Dividend(ctmDividend).getDividendRateBySlot(5);
-
-        // uint256 dividendTotal = ICTMRWA1Dividend(ctmDividend).getTotalDividend();
-        // assertEq(dividendTotal, balSlot1 * divRate1 + balSlot3 * divRate3 + balSlot5 * divRate5);
-
-        // usdc.approve(ctmDividend, dividendTotal);
-        // uint256 unclaimed = ICTMRWA1Dividend(ctmDividend).fundDividend();
-        // vm.stopPrank();
-        // assertEq(unclaimed, dividendTotal);
-
-        // vm.stopPrank(); // end of prank admin
-
-        // vm.startPrank(user1);
-        // bool ok = ICTMRWA1Dividend(ctmDividend).claimDividend();
-        // vm.stopPrank();
-        // assertEq(ok, true);
-        // uint256 balAfter = usdc.balanceOf(user1);
-
-        // vm.stopPrank();
+        // Check that dividendFundings array is correct using the interface getter
+        (uint256 slot0, uint48 time0) = ICTMRWA1Dividend(dividendContract).dividendFundings(0);
+        (uint256 slot1, uint48 time1) = ICTMRWA1Dividend(dividendContract).dividendFundings(1);
+        (uint256 slot2, uint48 time2) = ICTMRWA1Dividend(dividendContract).dividendFundings(2);
+        assertEq(slot0, 1);
+        assertEq(slot1, 3);
+        assertEq(slot2, 5);
+        assertEq(time0, uint48((fundingTime1 / 1 days) * 1 days));
+        assertEq(time1, uint48((fundingTime2 / 1 days) * 1 days));
+        assertEq(time2, uint48((fundingTime3 / 1 days) * 1 days));
+        // Tally expected total and check against actual
+        uint256 expectedTotal = funded1 + funded2 + funded3;
+        uint256 actualTotal = IERC20(usdc).balanceOf(dividendContract);
+        assertEq(actualTotal, expectedTotal);
     }
 }

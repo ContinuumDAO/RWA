@@ -695,10 +695,9 @@ contract XChainTests is Script {
         uint256 divRate = 2;
         ICTMRWA1Dividend(divAddr).changeDividendRate(_slot, divRate);
 
-        /*uint256 dividendTotal = */
-        ICTMRWA1Dividend(divAddr).getTotalDividend();
+        ICTMRWA1Dividend(divAddr).fundDividend(_slot, block.timestamp);
 
-        uint256 unclaimed = ICTMRWA1Dividend(divAddr).fundDividend();
+        uint256 unclaimed = ICTMRWA1Dividend(divAddr).getDividendPayable(admin);
 
         vm.stopBroadcast();
 

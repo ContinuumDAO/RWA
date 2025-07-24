@@ -106,6 +106,7 @@ interface ICTMRWA1 is ICTMRWA {
     function balanceOf(uint256 _tokenId) external view returns (uint256);
     function balanceOf(address owner) external view returns (uint256);
     function balanceOf(address owner, uint256 slot) external view returns (uint256);
+    function balanceOfAt(address owner, uint256 slot, uint256 timestamp) external view returns (uint256);
 
     function baseURI() external view returns (string memory);
     function getErc20(uint256 _slot) external view returns (address);
@@ -114,6 +115,7 @@ interface ICTMRWA1 is ICTMRWA {
     function totalSupply() external view returns (uint256);
     function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);
     function tokenSupplyInSlot(uint256 slot) external view returns (uint256);
+    function totalSupplyInSlotAt(uint256 slot, uint256 timestamp) external view returns (uint256);
     function tokenByIndex(uint256 index_) external view returns (uint256);
     function exists(uint256 tokenId) external view returns (bool);
 
@@ -148,6 +150,7 @@ interface ICTMRWA1 is ICTMRWA {
     function dividendAddr() external view returns (address);
     function storageAddr() external view returns (address);
     function getDividendRateBySlot(uint256 _slot) external view returns (uint256);
+    function getDividendRateBySlotAt(uint256 slot, uint48 timestamp) external view returns (uint256);
     function changeDividendRate(uint256 slot, uint256 dividend) external returns (bool);
 
     function createOriginalTokenId() external returns (uint256);

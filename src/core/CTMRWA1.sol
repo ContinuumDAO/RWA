@@ -1364,6 +1364,10 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         return uint256(_supplyInSlot[_slot].latest());
     }
 
+    function totalSupplyInSlotAt(uint256 _slot, uint256 _timestamp) external view returns (uint256) {
+        return uint256(_supplyInSlot[_slot].upperLookupRecent(uint48(_timestamp)));
+    }
+
     /**
      * @notice Returns the tokenId in a slot by an index number
      * @param _slot The slot being examined
