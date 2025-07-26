@@ -453,12 +453,12 @@ contract TestDividend is Helpers {
 
     function test_gas_usage_claimDividend_multiple_slots() public {
         vm.startPrank(tokenAdmin);
-        _fundAndAssertDividends();
+        uint256 currentTime = _fundAndAssertDividends();
         vm.stopPrank();
 
         // Add more funding rounds to test with more data
         vm.startPrank(tokenAdmin);
-        skip(100 days);
+        vm.warp(currentTime + 100 days);
         ICTMRWA1Dividend(dividendContract).fundDividend(1, 399 days);
         ICTMRWA1Dividend(dividendContract).fundDividend(3, 399 days);
         ICTMRWA1Dividend(dividendContract).fundDividend(5, 399 days);
