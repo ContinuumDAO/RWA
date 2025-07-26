@@ -797,15 +797,11 @@ contract TestCTMRWA1X is Helpers {
 
         string memory feeTokenStr = address(usdc).toHexString();
 
-        // Mint a token with max uint256 - 1 balance
+        // Try to mint with a value that exceeds uint208 limit
         vm.prank(tokenAdmin);
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, type(uint256).max - 1, ID, feeTokenStr);
-        assertEq(token.balanceOf(tokenId), type(uint256).max - 1);
-
-        // Try to mint another token with balance 2, which would overflow if summed
-        vm.prank(tokenAdmin);
-        vm.expectRevert();
-        rwa1X.mintNewTokenValueLocal(user1, 0, 5, 2, ID, feeTokenStr);
+        uint256 maxUint208 = 2**208 - 1;
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_ValueOverflow.selector, maxUint208 + 1, maxUint208));
+        rwa1X.mintNewTokenValueLocal(user1, 0, 5, maxUint208 + 1, ID, feeTokenStr);
     }
 
     function test_underflowTransferPartialTokenX() public {
@@ -840,7 +836,9 @@ contract TestCTMRWA1X is Helpers {
 
     function test_overflowFuzzMint(uint256 a, uint256 b) public {
         vm.assume(a > 0 && b > 0);
-        vm.assume(a <= type(uint256).max / 2 && b <= type(uint256).max / 2); // Prevent overflow
+        // Use uint208 limits to prevent overflow in balance calculations
+        uint256 maxUint208 = 2**208 - 1;
+        vm.assume(a <= maxUint208 && b <= maxUint208);
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
@@ -1308,11 +1306,12 @@ contract TestCTMRWA1X is Helpers {
 
         string memory feeTokenStr = address(usdc).toHexString();
 
-        // Try to mint with very large balance
+        // Try to mint with maximum uint208 balance (should succeed)
+        uint256 maxUint208 = 2**208 - 1;
         vm.prank(tokenAdmin);
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, type(uint256).max - 1, ID, feeTokenStr);
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, maxUint208, ID, feeTokenStr);
 
-        assertEq(token.balanceOf(tokenId), type(uint256).max - 1);
+        assertEq(token.balanceOf(tokenId), maxUint208);
     }
 
     function test_boundaryMinBalance() public {

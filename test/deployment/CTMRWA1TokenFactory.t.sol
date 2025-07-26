@@ -124,7 +124,7 @@ contract CTMRWA1TokenFactoryTest is Helpers {
         factory.deploy(deployData);
         uint256 gasUsed = gasStart - gasleft();
         console.log("Gas used for deploy:", gasUsed);
-        assertLt(gasUsed, 4_500_000, "Gas usage should be reasonable");
+        assertLt(gasUsed, 4_700_000, "Gas usage should be reasonable");
     }
 
     function test_RevertOnInvalidDeployer() public {

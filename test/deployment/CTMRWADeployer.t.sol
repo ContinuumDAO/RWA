@@ -129,6 +129,7 @@ contract TestCTMRWADeployer is Helpers {
     // Governance Setter Access Control
     function test_onlyGovernorCanCallSetters(address nonGov) public {
         vm.assume(nonGov != gov && nonGov != address(0));
+        vm.assume(!deployer.txSenders(nonGov));
         address dummy = address(0x1234);
         vm.startPrank(nonGov);
         vm.expectRevert("Gov FORBIDDEN");

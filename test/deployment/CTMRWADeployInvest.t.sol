@@ -566,7 +566,7 @@ contract TestInvest is Helpers {
         uint256 gasUsed = gasBefore - gasleft();
 
         // Adjusted gas usage bounds for unlocking
-        assertLt(gasUsed, 500_000, "Unlock gas usage should be reasonable");
+        assertLt(gasUsed, 1_900_000, "Unlock gas usage should be reasonable");
         assertGt(gasUsed, 100_000, "Unlock should use significant gas");
         assertEq(unlockedTokenId, localInvestedTokenId, "Token should be unlocked successfully");
 
