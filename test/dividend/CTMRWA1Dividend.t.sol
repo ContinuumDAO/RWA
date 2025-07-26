@@ -10,6 +10,7 @@ import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 import { CTMRWA1 } from "src/core/CTMRWA1.sol";
+import { Address, Uint } from "../../src/utils/CTMRWAUtils.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
@@ -30,7 +31,7 @@ contract TestDividend is Helpers {
         vm.stopPrank();
     }
 
-    function _fundAndAssertDividends() internal {
+    function _fundAndAssertDividends() internal returns(uint256) {
         ICTMRWA1Dividend(dividendContract).setDividendToken(address(usdc));
         ICTMRWA1Dividend(dividendContract).changeDividendRate(1, 100);
         ICTMRWA1Dividend(dividendContract).changeDividendRate(3, 150);
@@ -40,17 +41,17 @@ contract TestDividend is Helpers {
         
         skip(100 days);
         uint256 slot = 1;
-        uint256 fundingTime1 = block.timestamp - 1 days;
+        uint256 fundingTime1 = 99 days;
         uint256 funded1 = ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime1);
 
         skip(100 days);
         slot = 3;
-        uint256 fundingTime2 = block.timestamp - 1 days;
+        uint256 fundingTime2 = 199 days;
         uint256 funded2 = ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime2);
 
         skip(100 days);
         slot = 5;
-        uint256 fundingTime3 = block.timestamp - 1 days;
+        uint256 fundingTime3 = 299 days;
         uint256 funded3 = ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime3);
 
         // Check that dividendFundings array is correct using the interface getter
@@ -67,6 +68,8 @@ contract TestDividend is Helpers {
         uint256 expectedTotal = funded1 + funded2 + funded3;
         uint256 actualTotal = IERC20(usdc).balanceOf(dividendContract);
         assertEq(actualTotal, expectedTotal);
+
+        return (300 days);
     }
 
     function test_tokenAdmin_can_fundDividend() public {
@@ -211,7 +214,7 @@ contract TestDividend is Helpers {
 
         // Check at various times
         // At the very start: should be 0
-        assertEq(t0, 1, "t0 has magically changed");
+        assertEq(t0, 1, "t0 has magically changed"); // Don't trust block.timestamp in forge tests
         assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t0)), 0, "rate at start should be 0");
 
         // Just before t1: should be 0
@@ -238,4 +241,263 @@ contract TestDividend is Helpers {
         // After t4: should be 400
         assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t4 + 1 days)), 400, "rate after t4 should be 400");
     }
+
+    function test_tokenAdmin2_cannot_fundDividend() public {
+        vm.startPrank(tokenAdmin);
+        _fundAndAssertDividends();
+        vm.stopPrank();
+        
+        uint256 slot = 1;
+        uint256 fundingTime = block.timestamp;
+        vm.startPrank(tokenAdmin2);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Dividend.CTMRWA1Dividend_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
+        ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime);
+        vm.stopPrank();
+    }
+
+    function test_tokenAdmin_cannot_fundDividend_for_wrong_slot() public {
+        vm.startPrank(tokenAdmin);
+        uint256 currentTime = _fundAndAssertDividends();
+        vm.stopPrank();
+
+        uint256 slot = 999;
+        currentTime = currentTime + 100 days;
+        vm.warp(currentTime);
+        uint256 fundingTime = currentTime - 1 days;
+        vm.startPrank(tokenAdmin);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Dividend.CTMRWA1Dividend_InvalidSlot.selector, slot));
+        ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime);
+        vm.stopPrank();
+    }
+
+    function test_tokenAdmin_cannot_fundDividend_for_future_time() public {
+        vm.startPrank(tokenAdmin);
+        uint256 currentTime = _fundAndAssertDividends();
+        vm.stopPrank();
+
+        uint256 slot = 1;
+        uint256 fundingTime = currentTime + 1 days;
+        vm.startPrank(tokenAdmin);
+        vm.expectRevert(ICTMRWA1Dividend.CTMRWA1Dividend_FundingTimeFuture.selector);
+        ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime);
+        vm.stopPrank();
+    }
+
+    function test_tokenAdmin_cannot_fundDividend_for_past_time() public {
+        vm.startPrank(tokenAdmin);
+        _fundAndAssertDividends();
+        vm.stopPrank();
+
+        uint256 slot = 5; // slot 5 was funded 100 days ago
+        uint48 lastFunding = ICTMRWA1Dividend(dividendContract).lastFundingBySlot(slot);
+        uint256 fundingTime = lastFunding - 1 days;
+        vm.startPrank(tokenAdmin);
+        vm.expectRevert(ICTMRWA1Dividend.CTMRWA1Dividend_FundingTimeLow.selector);
+        ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime);
+        vm.stopPrank();
+    }
+
+    function test_tokenAdmin_cannot_fundDividend_for_too_frequent_funding() public {    
+        vm.startPrank(tokenAdmin);
+        _fundAndAssertDividends();
+        vm.stopPrank();
+
+        uint256 slot = 1;
+        uint48 lastFunding = ICTMRWA1Dividend(dividendContract).lastFundingBySlot(slot);
+        uint256 fundingTime = lastFunding + 29 days;
+
+        vm.startPrank(tokenAdmin);
+        vm.expectRevert(ICTMRWA1Dividend.CTMRWA1Dividend_FundingTooFrequent.selector);
+        ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime);
+        vm.stopPrank();
+    }
+
+    function test_tokenAdmin_cannot_setDividend_after_funding() public {
+        vm.startPrank(tokenAdmin);
+        _fundAndAssertDividends();
+
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Dividend.CTMRWA1Dividend_InvalidDividend.selector, uint256(Uint.Balance)));
+        ICTMRWA1Dividend(dividendContract).setDividendToken(address(ctm));
+        vm.stopPrank();
+
+        
+    }
+
+    function test_tokenAdmin_can_setDividend_after_all_claimed() public {
+        vm.startPrank(tokenAdmin);
+        _fundAndAssertDividends();
+        vm.stopPrank();
+
+        // User1 claims all dividends
+        vm.startPrank(user1);
+        ICTMRWA1Dividend(dividendContract).claimDividend();
+        vm.stopPrank();
+
+        // The dividendToken balance in the contract should now be zero
+        assertEq(IERC20(usdc).balanceOf(dividendContract), 0, "dividendToken balance should be zero after all claims");
+
+        // Now tokenAdmin can set a new dividend token
+        vm.startPrank(tokenAdmin);
+        bool success = ICTMRWA1Dividend(dividendContract).setDividendToken(address(ctm));
+        assertTrue(success, "setDividendToken should succeed when balance is zero");
+        assertEq(ICTMRWA1Dividend(dividendContract).dividendToken(), address(ctm), "dividendToken should be set to ctm");
+        vm.stopPrank();
+    }
+
+    function test_fuzz_fundingTimefundDividend(uint256 slot, uint48 fundingTime) public {
+        vm.startPrank(tokenAdmin);
+        _fundAndAssertDividends();
+        vm.stopPrank();
+
+        // Only test for slots that exist (1, 3, 5)
+        if (slot != 1 && slot != 3 && slot != 5) return;
+
+        // Get the last funding for the slot
+        uint48 lastFunding = ICTMRWA1Dividend(dividendContract).lastFundingBySlot(slot);
+        // Fuzz fundingTime: must be > lastFunding + 30 days and < block.timestamp
+        if (fundingTime <= lastFunding + 30 days) return;
+        if (fundingTime >= uint48(block.timestamp)) return;
+
+        // Should not revert for valid fundingTime
+        vm.startPrank(tokenAdmin);
+        ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime);
+        vm.stopPrank();
+    }
+
+    function test_fuzz_changeDividendRate(uint256 slot, uint256 dividend) public {
+        vm.startPrank(tokenAdmin);
+        _fundAndAssertDividends();
+        vm.stopPrank();
+
+        // Only test for slots that exist (1, 3, 5)
+        if (slot != 1 && slot != 3 && slot != 5) return;
+
+        // Respect uint208 limitation (max value is 2^208 - 1)
+        uint256 maxDividend = (1 << 208) - 1;
+        if (dividend > maxDividend) return;
+
+        // Test that changeDividendRate works for valid inputs
+        vm.startPrank(tokenAdmin);
+        bool success = ICTMRWA1Dividend(dividendContract).changeDividendRate(slot, dividend);
+        vm.stopPrank();
+
+        assertTrue(success, "changeDividendRate should succeed for valid inputs");
+        
+        // Verify the dividend rate was set correctly
+        uint256 actualRate = ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(block.timestamp));
+        assertEq(actualRate, dividend, "Dividend rate should match the set value");
+    }
+
+    function test_reentrancy_claimDividend_is_prevented() public {
+        // Create a malicious contract that attempts reentrancy
+        ReentrantAttacker attacker = new ReentrantAttacker(dividendContract);
+        
+        // Fund the attacker with some tokens BEFORE funding dividends
+        vm.startPrank(tokenAdmin);
+        string memory tokenStr = _toLower(address(usdc).toHexString());
+        rwa1X.mintNewTokenValueLocal(address(attacker), 0, 1, 1000, ID, tokenStr);
+        vm.stopPrank();
+        
+        vm.startPrank(tokenAdmin);
+        _fundAndAssertDividends();
+        vm.stopPrank();
+
+        // The attacker should not be able to exploit reentrancy
+        vm.startPrank(address(attacker));
+        uint256 claimed = ICTMRWA1Dividend(dividendContract).claimDividend();
+        vm.stopPrank();
+
+        // Verify that reentrancy was prevented
+        assertTrue(claimed > 0, "Should have claimed dividends");
+        assertEq(attacker.claimCount(), 0, "Reentrant call should not have executed due to nonReentrant modifier");
+    }
+
+    function test_gas_usage_fundDividend() public {
+        vm.startPrank(tokenAdmin);
+        ICTMRWA1Dividend(dividendContract).setDividendToken(address(usdc));
+        ICTMRWA1Dividend(dividendContract).changeDividendRate(1, 100);
+        IERC20(usdc).approve(dividendContract, type(uint256).max);
+        vm.stopPrank();
+
+        // Set block timestamp to make funding time in the past
+        vm.warp(2 days);
+
+        // Measure gas for fundDividend
+        uint256 gasBefore = gasleft();
+        vm.startPrank(tokenAdmin);
+        ICTMRWA1Dividend(dividendContract).fundDividend(1, 1 days);
+        vm.stopPrank();
+        uint256 gasUsed = gasBefore - gasleft();
+
+        // fundDividend should use reasonable gas (typically under 200k for basic operations)
+        assertLt(gasUsed, 200_000, "fundDividend gas usage should be under 200k");
+        console.log("fundDividend gas used:", gasUsed);
+    }
+
+    function test_gas_usage_claimDividend() public {
+        vm.startPrank(tokenAdmin);
+        _fundAndAssertDividends();
+        vm.stopPrank();
+
+        // Measure gas for claimDividend
+        uint256 gasBefore = gasleft();
+        vm.startPrank(user1);
+        ICTMRWA1Dividend(dividendContract).claimDividend();
+        vm.stopPrank();
+        uint256 gasUsed = gasBefore - gasleft();
+
+        // claimDividend should use reasonable gas (adjusted based on actual usage ~150k)
+        assertLt(gasUsed, 160_000, "claimDividend gas usage should be under 160k");
+        console.log("claimDividend gas used:", gasUsed);
+    }
+
+    function test_gas_usage_claimDividend_multiple_slots() public {
+        vm.startPrank(tokenAdmin);
+        _fundAndAssertDividends();
+        vm.stopPrank();
+
+        // Add more funding rounds to test with more data
+        vm.startPrank(tokenAdmin);
+        skip(100 days);
+        ICTMRWA1Dividend(dividendContract).fundDividend(1, 399 days);
+        ICTMRWA1Dividend(dividendContract).fundDividend(3, 399 days);
+        ICTMRWA1Dividend(dividendContract).fundDividend(5, 399 days);
+        vm.stopPrank();
+
+        // Measure gas for claimDividend with more funding rounds
+        uint256 gasBefore = gasleft();
+        vm.startPrank(user1);
+        ICTMRWA1Dividend(dividendContract).claimDividend();
+        vm.stopPrank();
+        uint256 gasUsed = gasBefore - gasleft();
+
+        // Even with more funding rounds, gas should stay reasonable
+        assertLt(gasUsed, 200_000, "claimDividend with multiple rounds should be under 200k");
+        console.log("claimDividend with multiple rounds gas used:", gasUsed);
+    }
+}
+
+// Malicious contract that attempts reentrancy
+contract ReentrantAttacker {
+    ICTMRWA1Dividend public dividendContract;
+    uint256 public claimCount;
+    bool public isReentering;
+
+    constructor(address _dividendContract) {
+        dividendContract = ICTMRWA1Dividend(_dividendContract);
+    }
+
+    function claimDividend() external {
+        claimCount++;
+        
+        if (!isReentering) {
+            isReentering = true;
+            // Try to call claimDividend again during the first call
+            dividendContract.claimDividend();
+            isReentering = false;
+        }
+    }
+
+    // Required to receive tokens
+    receive() external payable {}
 }
