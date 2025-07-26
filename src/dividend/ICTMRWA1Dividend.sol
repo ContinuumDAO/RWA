@@ -15,6 +15,7 @@ interface ICTMRWA1Dividend is ICTMRWA {
     error CTMRWA1Dividend_FundingTooFrequent();
     error CTMRWA1Dividend_FundTokenNotSet();
     error CTMRWA1Dividend_InvalidSlot(uint256);
+    error CTMRWA1Dividend_EnforcedPause();
 
     function ID() external view returns (uint256);
     function tokenAdmin() external view returns (address);
@@ -32,4 +33,6 @@ interface ICTMRWA1Dividend is ICTMRWA {
     function getDividendRateBySlotAt(uint256 _slot, uint48 _timestamp) external view returns (uint256);
     /// @notice Returns the last funding timestamp for a given slot
     function lastFundingBySlot(uint256 slot) external view returns (uint48);
+    function pause() external;
+    function unpause() external;
 }

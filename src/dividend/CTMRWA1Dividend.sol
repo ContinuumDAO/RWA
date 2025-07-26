@@ -11,6 +11,7 @@ import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
 import { Checkpoints } from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -23,7 +24,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.s
  * This contract is deployed by CTMRWADeployer on each chain once for every CTMRWA1 contract.
  * Its ID matches the ID in CTMRWA1. There are no cross-chain functions in this contract.
  */
-contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
+contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
     using Checkpoints for Checkpoints.Trace208;
 
@@ -75,6 +76,11 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
             revert CTMRWA1Dividend_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
         }
+        _;
+    }
+
+    modifier whenDividendNotPaused() {
+        if (paused()) revert CTMRWA1Dividend_EnforcedPause();
         _;
     }
 
@@ -250,6 +256,9 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
         supplyInSlot = totalSupplyInSlot - supplyInInvestContract;
 
         uint256 dividendPayable = supplyInSlot * getDividendRateBySlot(_slot);
+        if (dividendPayable == 0) {
+            return (0);
+        }
 
         if (!IERC20(dividendToken).transferFrom(msg.sender, address(this), dividendPayable)) {
             revert CTMRWA1Dividend_FailedTransaction();
@@ -267,7 +276,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
      * @return dividend The amount of dividend claimed
      * NOTE The holder can see the dividendtoken address using the dividendToken() function
      */
-    function claimDividend() public nonReentrant returns (uint256) {
+    function claimDividend() public nonReentrant whenDividendNotPaused returns (uint256) {
 
         uint256 dividend = getDividendPayable(msg.sender);
 
@@ -307,6 +316,20 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
    
     function _addDividendSnapshot(uint256 slot) internal {
    
+    }
+
+    /**
+     * @notice Pause the contract. Only callable by tokenAdmin.
+     */
+    function pause() external onlyTokenAdmin {
+        _pause();
+    }
+
+    /**
+     * @notice Unpause the contract. Only callable by tokenAdmin.
+     */
+    function unpause() external onlyTokenAdmin {
+        _unpause();
     }
 
     /// @dev Returns the timestamp of midnight (00:00:00 UTC) before the input timestamp
