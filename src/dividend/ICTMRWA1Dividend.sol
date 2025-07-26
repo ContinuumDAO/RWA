@@ -30,4 +30,6 @@ interface ICTMRWA1Dividend is ICTMRWA {
     /// @notice Returns the last claimed index for a given slot and holder
     function lastClaimedIndex(uint256 slot, address holder) external view returns (uint256);
     function getDividendRateBySlotAt(uint256 _slot, uint48 _timestamp) external view returns (uint256);
+    /// @notice Returns the last funding timestamp for a given slot
+    function lastFundingBySlot(uint256 slot) external view returns (uint48);
 }

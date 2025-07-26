@@ -220,25 +220,17 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
         }
         uint48 midnight = _midnightBefore(_fundingTime);
         // Ensure _fundingTime is greater than the last time it was called for this slot and less than block.timestamp
-        uint256 n = dividendFundings.length;
-        if (n > 0) {
-            DividendFunding storage last = dividendFundings[n - 1];
-            if (last.slot == _slot) {
-                if (!(midnight > last.fundingTime)) {
-                    revert CTMRWA1Dividend_FundingTimeLow();
-                }
-                if (midnight < last.fundingTime + 30 days) {
-                    revert CTMRWA1Dividend_FundingTooFrequent();
-                }
+        uint48 lastFunding = lastFundingBySlot(_slot);
+        if (lastFunding != 0) {
+            if (!(midnight > lastFunding)) {
+                revert CTMRWA1Dividend_FundingTimeLow();
+            }
+            if (midnight < lastFunding + 30 days) {
+                revert CTMRWA1Dividend_FundingTooFrequent();
             }
         }
         if (!(_fundingTime < block.timestamp)) {
             revert CTMRWA1Dividend_FundingTimeFuture();
-        }
-
-        uint256 dividendRate = getDividendRateBySlotAt(_slot, midnight);
-        if (dividendRate == 0) {
-            revert CTMRWA1Dividend_InvalidDividend(Uint.Balance);
         }
 
         uint256 supplyInSlot;
@@ -257,7 +249,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
         // If ctmRwaInvest did not exist at time midnight, then supplyInInvestContract == 0
         supplyInSlot = totalSupplyInSlot - supplyInInvestContract;
 
-        uint256 dividendPayable = supplyInSlot * dividendRate;
+        uint256 dividendPayable = supplyInSlot * getDividendRateBySlot(_slot);
 
         if (!IERC20(dividendToken).transferFrom(msg.sender, address(this), dividendPayable)) {
             revert CTMRWA1Dividend_FailedTransaction();
@@ -298,6 +290,18 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard {
 
         emit ClaimDividend(msg.sender, dividend, dividendToken);
         return (dividend);
+    }
+
+    /// @notice Returns the last funding timestamp for a given slot
+    /// @param _slot The slot to get the last funding timestamp for
+    function lastFundingBySlot(uint256 _slot) public view returns (uint48) {
+        uint256 n = dividendFundings.length;
+        for (uint256 i = n; i > 0; i--) {
+            if (dividendFundings[i - 1].slot == _slot) {
+                return dividendFundings[i - 1].fundingTime;
+            }
+        }
+        return 0;
     }
 
    
