@@ -19,6 +19,7 @@ struct Offering {
     uint256 startTime;
     uint256 endTime;
     uint256 lockDuration;
+    address rewardToken;
     Holding[] holdings;
 }
 
@@ -27,6 +28,7 @@ struct Holding {
     address investor;
     uint256 tokenId;
     uint256 escrowTime;
+    uint256 rewardAmount;
 }
 
 interface ICTMRWA1InvestWithTimeLock {
@@ -41,6 +43,11 @@ interface ICTMRWA1InvestWithTimeLock {
     error CTMRWA1InvestWithTimeLock_InvalidAmount(Uint);
     error CTMRWA1InvestWithTimeLock_NotWhiteListed(address);
     error CTMRWA1InvestWithTimeLock_AlreadyWithdrawn(uint256);
+    error CTMRWA1InvestWithTimeLock_InvalidOfferingIndex();
+    error CTMRWA1InvestWithTimeLock_InvalidHoldingIndex();
+    error CTMRWA1InvestWithTimeLock_NoRewardToken();
+    error CTMRWA1InvestWithTimeLock_NoRewardsToClaim();
+    error CTMRWA1InvestWithTimeLock_HoldingNotFound();
 
     function commissionRate() external view returns (uint256);
 
@@ -50,18 +57,19 @@ interface ICTMRWA1InvestWithTimeLock {
     function isOfferingPaused(uint256 _indx) external view returns (bool);
 
     function createOffering(
-        uint256 tokenId,
-        uint256 price,
-        address currency,
-        uint256 minInvestment,
-        uint256 maxInvestment,
-        string memory regulatorCountry,
-        string memory regulatorAcronym,
-        string memory offeringType,
-        uint256 startTime,
-        uint256 endTime,
-        uint256 lockDuration,
-        address feeToken
+        uint256 _tokenId,
+        uint256 _price,
+        address _currency,
+        uint256 _minInvestment,
+        uint256 _maxInvestment,
+        string memory _regulatorCountry,
+        string memory _regulatorAcronym,
+        string memory _offeringType,
+        uint256 _startTime,
+        uint256 _endTime,
+        uint256 _lockDuration,
+        address _rewardToken,
+        address _feeToken
     ) external;
 
     function ID() external returns (uint256);
@@ -85,4 +93,8 @@ interface ICTMRWA1InvestWithTimeLock {
     function listEscrowHoldings(address holder) external view returns (Holding[] memory);
 
     function listEscrowHolding(address holder, uint256 myIndx) external view returns (Holding memory);
+
+    function getRewardInfo(address holder, uint256 offerIndex, uint256 holdingIndex) external view returns (address rewardToken, uint256 rewardAmount);
+    function claimReward(uint256 offerIndex, uint256 holdingIndex) external;
+    function fundRewardTokenForOffering(uint256 _offeringIndex, uint256 _fundAmount, uint256 _rewardMultiplier, uint256 _rateDivisor) external;
 }

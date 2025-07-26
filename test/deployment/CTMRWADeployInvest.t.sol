@@ -64,6 +64,28 @@ contract ReentrantAttacker {
     }
 }
 
+// Helper malicious contract for reentrancy test
+contract MaliciousRewardClaimer {
+    ICTMRWA1InvestWithTimeLock public investContract;
+    IERC20 public rewardToken;
+    bool public attackInProgress;
+    constructor(address _investContract, address _rewardToken) {
+        investContract = ICTMRWA1InvestWithTimeLock(_investContract);
+        rewardToken = IERC20(_rewardToken);
+    }
+    function attack(uint256 offerIndex, uint256 holdingIndex) external {
+        attackInProgress = true;
+        investContract.claimReward(offerIndex, holdingIndex);
+        attackInProgress = false;
+    }
+    // Fallback to try reentrancy
+    receive() external payable {
+        if (attackInProgress) {
+            investContract.claimReward(0, 0);
+        }
+    }
+}
+
 contract TestInvest is Helpers {
     using Strings for address;
 
@@ -146,10 +168,12 @@ contract TestInvest is Helpers {
             startTime,
             endTime,
             lockDuration,
+            currency, // _rewardToken (use currency for now)
             currency
         );
         // console.log("setUp: offering created successfully");
         vm.stopPrank();
+
 
         // console.log("setUp: completed successfully");
     }
@@ -494,6 +518,7 @@ contract TestInvest is Helpers {
             startTime,
             endTime,
             lockDuration,
+            currency, // _rewardToken (use currency for now)
             currency
         );
         vm.stopPrank();
@@ -723,6 +748,263 @@ contract TestInvest is Helpers {
             expectedValue = amount / (price * scale);
         }
         assertEq(tokenBalance, expectedValue, "Unlocked tokenId balance should match the expected value");
+    }
+
+    function test_invalidOfferingIndex_reverts() public {
+        uint256 invalidIndex = 999;
+        // pauseOffering
+        vm.startPrank(tokenAdmin);
+        vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidOfferingIndex.selector);
+        investContract.pauseOffering(invalidIndex);
+        vm.stopPrank();
+
+        // unpauseOffering
+        vm.startPrank(tokenAdmin);
+        vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidOfferingIndex.selector);
+        investContract.unpauseOffering(invalidIndex);
+        vm.stopPrank();
+
+        // isOfferingPaused
+        vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidOfferingIndex.selector);
+        investContract.isOfferingPaused(invalidIndex);
+
+        // investInOffering
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidOfferingIndex.selector);
+        investContract.investInOffering(invalidIndex, amount, currency);
+        vm.stopPrank();
+
+        // withdrawInvested
+        vm.startPrank(tokenAdmin);
+        vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidOfferingIndex.selector);
+        investContract.withdrawInvested(invalidIndex);
+        vm.stopPrank();
+
+        // listOffering
+        vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidOfferingIndex.selector);
+        investContract.listOffering(invalidIndex);
+
+        // getRewardInfo
+        vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidOfferingIndex.selector);
+        investContract.getRewardInfo(user1, invalidIndex, 0);
+
+        // claimReward
+        vm.startPrank(user1);
+        vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidOfferingIndex.selector);
+        investContract.claimReward(invalidIndex, 0);
+        vm.stopPrank();
+    }
+
+    function test_fundRewardTokenForOffering_and_claimReward() public {
+        // Arrange: user1 invests
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        investContract.investInOffering(0, amount, currency);
+        vm.stopPrank();
+
+        // Get the actual holding's tokenId and balance
+        Holding memory holding = investContract.listEscrowHolding(user1, 0);
+        uint256 actualBalance = token.balanceOf(holding.tokenId);
+
+        // TokenAdmin funds rewards
+        uint256 rewardMultiplier = 1e18; // 1:1 reward
+        uint256 rateDivisor = 1e18;
+        uint256 expectedReward = actualBalance * rewardMultiplier / rateDivisor;
+        deal(address(usdc), tokenAdmin, expectedReward);
+        vm.startPrank(tokenAdmin);
+        usdc.approve(address(investContract), expectedReward);
+        investContract.fundRewardTokenForOffering(0, expectedReward, rewardMultiplier, rateDivisor);
+        vm.stopPrank();
+
+        // User1 claims reward
+        uint256 user1BalanceBefore = usdc.balanceOf(user1);
+        vm.startPrank(user1);
+        investContract.claimReward(0, 0);
+        vm.stopPrank();
+        uint256 user1BalanceAfter = usdc.balanceOf(user1);
+        assertEq(user1BalanceAfter - user1BalanceBefore, expectedReward, "User1 should receive correct reward");
+
+        // Reward amount should now be zero
+        (, uint256 rewardAmount) = investContract.getRewardInfo(user1, 0, 0);
+        assertEq(rewardAmount, 0, "Reward amount should be zero after claim");
+    }
+
+    function test_fundRewardTokenForOffering_accessControl() public {
+        // Arrange: user1 invests
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        investContract.investInOffering(0, amount, currency);
+        vm.stopPrank();
+
+        // Non-admin tries to fund rewards
+        uint256 rewardMultiplier = 2;
+        uint256 fundAmount = amount * rewardMultiplier;
+        deal(address(usdc), user1, fundAmount);
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), fundAmount);
+        vm.expectRevert();
+        investContract.fundRewardTokenForOffering(0, fundAmount, rewardMultiplier, 1e18);
+        vm.stopPrank();
+    }
+
+    function test_claimReward_accessControl() public {
+        // Arrange: user1 invests, tokenAdmin funds rewards
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        investContract.investInOffering(0, amount, currency);
+        vm.stopPrank();
+        uint256 rewardMultiplier = 2;
+        uint256 fundAmount = amount * rewardMultiplier;
+        deal(address(usdc), tokenAdmin, fundAmount);
+        vm.startPrank(tokenAdmin);
+        usdc.approve(address(investContract), fundAmount);
+        investContract.fundRewardTokenForOffering(0, fundAmount, rewardMultiplier, 1e18);
+        vm.stopPrank();
+
+        // Another user tries to claim user1's reward
+        address attacker = address(0xBEEF);
+        vm.startPrank(attacker);
+        vm.expectRevert();
+        investContract.claimReward(0, 0);
+        vm.stopPrank();
+    }
+
+    function test_claimReward_noReward() public {
+        // Arrange: user1 invests but no rewards funded
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        investContract.investInOffering(0, amount, currency);
+        vm.stopPrank();
+
+        // User1 tries to claim reward
+        vm.startPrank(user1);
+        vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_NoRewardsToClaim.selector);
+        investContract.claimReward(0, 0);
+        vm.stopPrank();
+    }
+
+    function test_fuzz_fund_and_claim_rewards(uint96 fuzzAmount, uint96 fuzzMultiplier) public {
+        // Arrange: ensure fuzzed values are within contract limits
+        uint256 maxInvestLocal = investContract.listOffering(0).maxInvestment;
+        uint256 minInvestLocal = investContract.listOffering(0).minInvestment;
+        uint256 currencyDecimals = IERC20Extended(currency).decimals();
+        uint256 maxFuzzAmount = 1_000_000_000 * 10 ** currencyDecimals;
+        vm.assume(fuzzAmount >= minInvestLocal);
+        vm.assume(fuzzAmount <= maxInvestLocal);
+        vm.assume(fuzzAmount <= maxFuzzAmount);
+        vm.assume(fuzzMultiplier > 0 && fuzzMultiplier < 1e6); // Limit multiplier to prevent overflow
+
+        // User invests
+        vm.startPrank(user1);
+        IERC20(currency).approve(address(investContract), fuzzAmount);
+        investContract.investInOffering(0, fuzzAmount, currency);
+        vm.stopPrank();
+
+        // Get the actual holding's tokenId and balance
+        Holding memory holding = investContract.listEscrowHolding(user1, 0);
+        uint256 actualBalance = token.balanceOf(holding.tokenId);
+
+        // TokenAdmin funds rewards
+        uint256 rateDivisor = 1e6; // Use a smaller divisor to ensure rewards are calculated
+        uint256 expectedReward = (actualBalance * fuzzMultiplier) / rateDivisor;
+        
+        // Ensure the reward doesn't exceed the available balance
+        uint256 availableBalance = IERC20(currency).balanceOf(tokenAdmin);
+        vm.assume(expectedReward <= availableBalance);
+
+        vm.startPrank(tokenAdmin);
+        IERC20(currency).approve(address(investContract), expectedReward);
+        investContract.fundRewardTokenForOffering(0, expectedReward, fuzzMultiplier, rateDivisor);
+        vm.stopPrank();
+
+        // User claims reward
+        uint256 preBalance = IERC20(currency).balanceOf(user1);
+        vm.startPrank(user1);
+        investContract.claimReward(0, 0);
+        vm.stopPrank();
+        uint256 postBalance = IERC20(currency).balanceOf(user1);
+        assertEq(postBalance - preBalance, expectedReward, "Reward claimed should match expected");
+    }
+
+    function test_reentrancy_claimReward() public {
+        // Arrange: user1 invests, tokenAdmin funds rewards
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        investContract.investInOffering(0, amount, currency);
+        vm.stopPrank();
+        uint256 rewardMultiplier = 2;
+        uint256 fundAmount = amount * rewardMultiplier;
+        deal(address(usdc), tokenAdmin, fundAmount);
+        vm.startPrank(tokenAdmin);
+        usdc.approve(address(investContract), fundAmount);
+        investContract.fundRewardTokenForOffering(0, fundAmount, rewardMultiplier, 1e18);
+        vm.stopPrank();
+
+        // Deploy a malicious contract to try reentrancy
+        MaliciousRewardClaimer attacker = new MaliciousRewardClaimer(address(investContract), address(usdc));
+        // Transfer reward tokens to attacker for approval
+        deal(address(usdc), address(attacker), 1);
+        // Try to claim reward via attacker
+        vm.startPrank(address(attacker));
+        vm.expectRevert(); // Should revert due to nonReentrant
+        attacker.attack(0, 0);
+        vm.stopPrank();
+    }
+
+    function test_fundRewardTokenForOffering_skipExpiredEscrow() public {
+        // Arrange: user1 invests
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        investContract.investInOffering(0, amount, currency);
+        vm.stopPrank();
+
+        // Get the holding to check escrow time
+        Holding memory holding = investContract.listEscrowHolding(user1, 0);
+        
+        // Fast forward past the escrow lock time
+        vm.warp(holding.escrowTime + 1);
+
+        // TokenAdmin tries to fund rewards
+        uint256 rewardMultiplier = 2;
+        uint256 fundAmount = amount * rewardMultiplier;
+        deal(address(usdc), tokenAdmin, fundAmount);
+        vm.startPrank(tokenAdmin);
+        usdc.approve(address(investContract), fundAmount);
+        investContract.fundRewardTokenForOffering(0, fundAmount, rewardMultiplier, 1e18);
+        vm.stopPrank();
+
+        // Check that user1 received no rewards (escrow time has passed)
+        (address rewardToken, uint256 rewardAmount) = investContract.getRewardInfo(user1, 0, 0);
+        assertEq(rewardAmount, 0, "Holder should not receive rewards after escrow time has passed");
+    }
+
+    function test_fundRewardTokenForOffering_rewardActiveEscrow() public {
+        // Arrange: user1 invests
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        investContract.investInOffering(0, amount, currency);
+        vm.stopPrank();
+
+        // Get the holding to check escrow time
+        Holding memory holding = investContract.listEscrowHolding(user1, 0);
+        
+        // Ensure we're still within the escrow lock time
+        vm.warp(holding.escrowTime - 1);
+
+        // TokenAdmin funds rewards
+        uint256 rewardMultiplier = 2;
+        uint256 rateDivisor = 1e6; // Use a smaller divisor to ensure rewards are calculated
+        uint256 fundAmount = amount * rewardMultiplier;
+        deal(address(usdc), tokenAdmin, fundAmount);
+        vm.startPrank(tokenAdmin);
+        usdc.approve(address(investContract), fundAmount);
+        investContract.fundRewardTokenForOffering(0, fundAmount, rewardMultiplier, rateDivisor);
+        vm.stopPrank();
+
+        // Check that user1 received rewards (escrow time has not passed)
+        (address rewardToken, uint256 rewardAmount) = investContract.getRewardInfo(user1, 0, 0);
+        assertGt(rewardAmount, 0, "Holder should receive rewards when escrow time has not passed");
     }
 }
 

@@ -616,7 +616,7 @@ contract TestDividend is Helpers {
 
     function test_boundary_exactly_30_days_after_last_funding() public {
         vm.startPrank(tokenAdmin);
-        uint256 currentTime = _fundAndAssertDividends();
+        _fundAndAssertDividends();
         vm.stopPrank();
 
         // Try to fund exactly 30 days after the last funding (should succeed based on contract behavior)
@@ -632,7 +632,7 @@ contract TestDividend is Helpers {
 
     function test_boundary_one_second_after_30_days() public {
         vm.startPrank(tokenAdmin);
-        uint256 currentTime = _fundAndAssertDividends();
+        _fundAndAssertDividends();
         vm.stopPrank();
 
         // Try to fund one second after 30 days (should succeed)
