@@ -787,6 +787,12 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             revert CTMRWA1_IDExists(_tokenId);
         }
 
+        // Check for value overflow when casting to uint208
+        uint256 maxUint208 = 2**208 - 1;
+        if (_value > maxUint208) {
+            revert CTMRWA1_ValueOverflow(_value, maxUint208);
+        }
+
         _beforeValueTransfer(address(0), _to, 0, _tokenId, _slot, _slotName, _value);
         __mintToken(_to, _tokenId, _slot);
         __mintValue(_tokenId, _value);
@@ -819,6 +825,12 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _value The value to mint
      */
     function _mintValue(uint256 _tokenId, uint256 _value) private {
+        // Check for value overflow when casting to uint208
+        uint256 maxUint208 = 2**208 - 1;
+        if (_value > maxUint208) {
+            revert CTMRWA1_ValueOverflow(_value, maxUint208);
+        }
+
         address owner = CTMRWA1.ownerOf(_tokenId);
         uint256 slot = CTMRWA1.slotOf(_tokenId);
         string memory thisSlotName = CTMRWA1.slotNameOf(_tokenId);
