@@ -779,4 +779,63 @@ contract TestCTMRWA1 is Helpers {
         token.transferFrom(testTokenId1, testTokenId2, 100);
         vm.stopPrank();
     }
+
+    function test_balanceCheckpoint208() public {
+        // Use a local timestamp tally and vm.warp
+        uint48 nowTs = 1000000;
+        vm.warp(nowTs);
+
+        // Mint a token for user1 in slot 1 (setUp already minted 1000 for user1 and 1000 for user2)
+        vm.startPrank(tokenAdmin);
+        string memory tokenStr = address(usdc).toHexString();
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, tokenStr);
+        vm.stopPrank();
+
+        uint48 t1 = nowTs;
+        // After setUp: user1 has 1000, user2 has 1000. After this mint: user1 has 2000, user2 has 1000.
+        assertEq(token.balanceOf(tokenId), 1000);
+        assertEq(token.balanceOf(user1, 1), 2000);
+
+        // Advance time and mint again
+        nowTs += 10;
+        vm.warp(nowTs);
+        vm.startPrank(tokenAdmin);
+        rwa1X.mintNewTokenValueLocal(user1, 0, 1, 500, ID, tokenStr);
+        vm.stopPrank();
+        uint48 t2 = nowTs;
+        assertEq(token.balanceOf(user1, 1), 2500);
+
+        // Check historical balance at t1 (should be 2000)
+        assertEq(token.balanceOfAt(user1, 1, t1), 2000);
+        // Check historical balance at t2 (should be 2500)
+        assertEq(token.balanceOfAt(user1, 1, t2), 2500);
+    }
+
+    function test_supplyInSlotCheckpoint208() public {
+        uint48 nowTs = 2000000;
+        vm.warp(nowTs);
+
+        // Mint a token for user1 in slot 1 (setUp already minted 1000 for user1 and 1000 for user2)
+        vm.startPrank(tokenAdmin);
+        string memory tokenStr = address(usdc).toHexString();
+        rwa1X.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, tokenStr);
+        vm.stopPrank();
+        uint48 t1 = nowTs;
+        // After setUp: slot 1 has 2000. After this mint: slot 1 has 3000.
+        assertEq(token.totalSupplyInSlot(1), 3000);
+
+        // Advance time and mint again
+        nowTs += 10;
+        vm.warp(nowTs);
+        vm.startPrank(tokenAdmin);
+        rwa1X.mintNewTokenValueLocal(user2, 0, 1, 500, ID, tokenStr);
+        vm.stopPrank();
+        uint48 t2 = nowTs;
+        assertEq(token.totalSupplyInSlot(1), 3500);
+
+        // Check historical supply at t1 (should be 3000)
+        assertEq(token.totalSupplyInSlotAt(1, t1), 3000);
+        // Check historical supply at t2 (should be 3500)
+        assertEq(token.totalSupplyInSlotAt(1, t2), 3500);
+    }
 }
