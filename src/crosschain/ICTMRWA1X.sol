@@ -52,6 +52,8 @@ interface ICTMRWA1X is ICTMRWA {
     function isMinter(address) external returns (bool);
     function changeMinterStatus(address minter, bool set) external;
 
+    function cIdStr() external view returns (string memory);
+
     function changeTokenAdmin(
         string memory newAdminStr,
         string[] memory toChainIdsStr,

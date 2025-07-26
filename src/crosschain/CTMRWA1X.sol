@@ -59,7 +59,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUp
     address public fallbackAddr;
 
     /// @dev string representation of the chainID
-    string cIdStr;
+    string public cIdStr;
 
     /// @dev Addresses of routers, including ContinuumDAO, permitted to bridge tokens cross-chain
     mapping(address => bool) public isMinter;
