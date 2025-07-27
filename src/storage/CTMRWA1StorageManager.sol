@@ -49,10 +49,10 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgr
     uint256 public constant VERSION = 1;
 
     /// @dev The address of the CTMRWAGateway contract
-    address gateway;
+    address public gateway;
 
     /// @dev The address of the FeeManager contract
-    address feeManager;
+    address public feeManager;
 
     /// @dev string representation of the chainID
     string cIdStr;

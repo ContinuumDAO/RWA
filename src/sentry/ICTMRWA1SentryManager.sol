@@ -20,13 +20,19 @@ interface ICTMRWA1SentryManager is ICTMRWA {
 
     error CTMRWA1SentryManager_InvalidList(List);
 
+    function gateway() external view returns (address);
+    function feeManager() external view returns (address);
+    function ctmRwaDeployer() external view returns (address);
+    function ctmRwaMap() external view returns (address);
+    function utilsAddr() external view returns (address);
+    function identity() external view returns (address);
+
     function setGateway(address gateway) external;
     function setFeeManager(address feeManager) external;
     function setCtmRwaDeployer(address deployer) external;
     function setCtmRwaMap(address map) external;
     function setSentryUtils(address utilsAddr) external;
     function setIdentity(address id, address zkMeVerifierAddr) external;
-    function utilsAddr() external returns (address);
 
     function getLastReason() external view returns (string memory);
 

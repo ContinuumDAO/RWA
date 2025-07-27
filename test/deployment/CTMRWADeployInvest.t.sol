@@ -705,6 +705,57 @@ contract TestInvest is Helpers {
         );
     }
 
+    function test_withdrawInvested_with_commission() public {
+        // Arrange: Set commission rate to 100 (1%) via governance
+        vm.startPrank(gov);
+        deployer.setInvestCommissionRate(100); // 1% commission
+        vm.stopPrank();
+
+        // Verify commission rate is set correctly
+        assertEq(ctmRwaDeployInvest.commissionRate(), 100, "Commission rate should be set to 100 (1%)");
+
+        // Make an investment to have funds to withdraw
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), amount);
+        investContract.investInOffering(0, amount, currency);
+        vm.stopPrank();
+
+        // Get initial balances
+        uint256 feeManagerBalanceBefore = usdc.balanceOf(address(feeManager));
+        uint256 tokenAdminBalanceBefore = usdc.balanceOf(tokenAdmin);
+        uint256 investContractBalanceBefore = usdc.balanceOf(address(investContract));
+
+        // Calculate expected commission (1% of amount)
+        uint256 expectedCommission = amount * 100 / 10000; // 1% = 100/10000
+        uint256 expectedWithdrawal = amount - expectedCommission;
+
+        // Act: Withdraw invested funds as tokenAdmin
+        vm.startPrank(tokenAdmin);
+        uint256 withdrawnAmount = investContract.withdrawInvested(0);
+        vm.stopPrank();
+
+        // Assert: Commission is paid to FeeManager and tokenAdmin receives the rest
+        assertEq(withdrawnAmount, expectedWithdrawal, "Withdrawn amount should be investment minus commission");
+        assertEq(
+            usdc.balanceOf(address(feeManager)),
+            feeManagerBalanceBefore + expectedCommission,
+            "FeeManager should receive the commission"
+        );
+        assertEq(
+            usdc.balanceOf(tokenAdmin),
+            tokenAdminBalanceBefore + expectedWithdrawal,
+            "TokenAdmin should receive investment minus commission"
+        );
+        assertEq(
+            usdc.balanceOf(address(investContract)),
+            investContractBalanceBefore - amount,
+            "Invest contract should have investment amount deducted"
+        );
+
+        // Verify the offering investment is reset to 0
+        assertEq(investContract.listOffering(0).investment, 0, "Offering investment should be reset to 0");
+    }
+
     function test_userCannotWithdrawBeforeLockDuration() public {
         // Arrange: User invests in offering
         vm.startPrank(user1);

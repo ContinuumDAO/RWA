@@ -39,7 +39,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     address public ctmRwaDeployer;
 
     /// @dev The address of the CTMRWAMap contract
-    address public ctmRwa1Map;
+    address public ctmRwaMap;
 
     /// @dev The address of the CTMRWA1SentryUtils contract (adjunct to this contract)
     address public utilsAddr;
@@ -51,13 +51,13 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     uint256 public constant VERSION = 1;
 
     /// @dev The address of the CTMRWAGateway contract
-    address gateway;
+    address public gateway;
 
     /// @dev The address of the FeeManager contract
-    address feeManager;
+    address public feeManager;
 
     /// The address of the CTMRWA1Identity contract
-    address identity;
+    address public identity;
 
     /// @dev A string respresentation of this chainID
     string cIdStr;
@@ -134,7 +134,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
      * @param _map address of the new CTMRWAMap contract
      */
     function setCtmRwaMap(address _map) external onlyGov {
-        ctmRwa1Map = _map;
+        ctmRwaMap = _map;
     }
 
     /**
@@ -228,7 +228,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
         _checkTokenAdmin(ctmRwa1Addr);
 
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwaMap).getSentryContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
             revert CTMRWA1SentryManager_InvalidContract(Address.Sentry);
         }
@@ -599,7 +599,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     /// @return tokenAddr The address of the CTMRWA1 contract
     /// @return tokenAddrStr The string version of the CTMRWA1 contract address
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
             revert CTMRWA1SentryManager_InvalidContract(Address.Token);
         }
@@ -613,7 +613,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDapp, UUPSUpgrad
     /// @return sentryAddr The address of the CTMRWA1Sentry contract
     /// @return sentryAddrStr The string version of the CTMRWA1Sentry contract address
     function _getSentryAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwaMap).getSentryContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
             revert CTMRWA1SentryManager_InvalidContract(Address.Sentry);
         }

@@ -18,6 +18,8 @@ interface ICTMRWA1StorageManager is ICTMRWA {
     function ctmRwaDeployer() external returns (address);
     function ctmRwa1Map() external returns (address);
     function utilsAddr() external returns (address);
+    function gateway() external returns (address);
+    function feeManager() external returns (address);
 
     function setGateway(address gateway) external;
     function setFeeManager(address feeManager) external;
