@@ -114,6 +114,11 @@ contract TestInvest is Helpers {
 
         feeTokenStr = address(usdc).toHexString();
 
+        // Set commission rate to 100 (1%) before deploying investment contract
+        vm.startPrank(gov);
+        deployer.setInvestCommissionRate(100);
+        vm.stopPrank();
+        
         address investAddr = deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
         vm.stopPrank();
 
@@ -565,7 +570,7 @@ contract TestInvest is Helpers {
         uint256 gasUsed = gasBefore - gasleft();
 
         // Adjusted gas usage bounds for withdrawal
-        assertLt(gasUsed, 50_000, "Withdrawal gas usage should be reasonable");
+        assertLt(gasUsed, 60_000, "Withdrawal gas usage should be reasonable");
         assertGt(gasUsed, 10_000, "Withdrawal should use significant gas");
         assertGt(withdrawn, 0, "Withdrawal should be successful");
 
@@ -614,7 +619,7 @@ contract TestInvest is Helpers {
         }
 
         // Adjusted gas usage bounds for multiple investments
-        assertLt(totalGasUsed, 3_200_000, "Multiple investments gas usage should be reasonable");
+        assertLt(totalGasUsed, 3_300_000, "Multiple investments gas usage should be reasonable");
         assertGt(totalGasUsed, 300_000, "Multiple investments should use significant gas");
 
         // console.log("Total gas used for 3 investments:", totalGasUsed);
@@ -706,11 +711,7 @@ contract TestInvest is Helpers {
     }
 
     function test_withdrawInvested_with_commission() public {
-        // Arrange: Set commission rate to 100 (1%) via governance
-        vm.startPrank(gov);
-        deployer.setInvestCommissionRate(100); // 1% commission
-        vm.stopPrank();
-
+        // Commission rate is already set to 100 (1%) in setUp()
         // Verify commission rate is set correctly
         assertEq(ctmRwaDeployInvest.commissionRate(), 100, "Commission rate should be set to 100 (1%)");
 

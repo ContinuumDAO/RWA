@@ -439,11 +439,12 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
         if (investment > 0) {
             address currency = offerings[_indx].currency;
-            if (commission > 0) {
-                IERC20(currency).transferFrom(feeManager, msg.sender, commission);
-            }
             uint256 funds = investment - commission;
             offerings[_indx].investment = 0;
+            
+            if (commission > 0) {
+                IERC20(currency).transfer(feeManager, commission);
+            }
             IERC20(currency).transfer(msg.sender, funds);
 
             emit WithdrawFunds(ID, _indx, funds);
