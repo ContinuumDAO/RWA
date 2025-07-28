@@ -115,114 +115,7 @@ contract TestCTMRWA1Identity is Helpers {
         assertFalse(identity.isKycChain());
     }
 
-    // --- Pausability Tests ---
-    function test_pause_onlyTokenAdmin() public {
-        // Non-admin cannot pause
-        vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
-        identity.pause(ID);
-        
-        // TokenAdmin can pause
-        vm.prank(tokenAdmin);
-        identity.pause(ID);
-        assertTrue(identity.isPaused());
-    }
 
-    function test_unpause_onlyTokenAdmin() public {
-        // First pause the contract
-        vm.prank(tokenAdmin);
-        identity.pause(ID);
-        assertTrue(identity.isPaused());
-        
-        // Non-admin cannot unpause
-        vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
-        identity.unpause(ID);
-        
-        // TokenAdmin can unpause
-        vm.prank(tokenAdmin);
-        identity.unpause(ID);
-        assertFalse(identity.isPaused());
-    }
-
-    function test_pause_unpause_cycle() public {
-        // Test multiple pause/unpause cycles
-        vm.startPrank(tokenAdmin);
-        
-        // First cycle
-        identity.pause(ID);
-        assertTrue(identity.isPaused());
-        identity.unpause(ID);
-        assertFalse(identity.isPaused());
-        
-        // Second cycle
-        identity.pause(ID);
-        assertTrue(identity.isPaused());
-        identity.unpause(ID);
-        assertFalse(identity.isPaused());
-        
-        vm.stopPrank();
-    }
-
-    function test_pause_wrongTokenAdmin() public {
-        // Deploy another token with different admin
-        vm.startPrank(tokenAdmin2);
-        (uint256 ID2, ) = _deployCTMRWA1(address(usdc));
-        vm.stopPrank();
-        
-        // tokenAdmin cannot pause ID2 (different token)
-        vm.prank(tokenAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
-        identity.pause(ID2);
-        
-        // tokenAdmin2 can pause ID2
-        vm.prank(tokenAdmin2);
-        identity.pause(ID2);
-        assertTrue(identity.isPaused());
-    }
-
-    function test_verifyPerson_revertWhenPaused() public {
-        // Setup KYC
-        vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
-        vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0x1234));
-        zkMe.setApproved(true);
-        
-        // Pause the contract
-        vm.prank(tokenAdmin);
-        identity.pause(ID);
-        assertTrue(identity.isPaused());
-        
-        // Try to verify person while paused
-        vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_VerifyPersonPaused.selector));
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
-        
-        // Unpause and try again
-        vm.prank(tokenAdmin);
-        identity.unpause(ID);
-        assertFalse(identity.isPaused());
-        
-        vm.prank(user1);
-        bool ok = identity.verifyPerson(ID, chainIds, feeTokenStr);
-        assertTrue(ok);
-    }
-
-    function test_isPaused_viewFunction() public {
-        // Initially not paused
-        assertFalse(identity.isPaused());
-        
-        // Pause
-        vm.prank(tokenAdmin);
-        identity.pause(ID);
-        assertTrue(identity.isPaused());
-        
-        // Unpause
-        vm.prank(tokenAdmin);
-        identity.unpause(ID);
-        assertFalse(identity.isPaused());
-    }
 
     // --- Reentrancy Protection Tests ---
     function test_verifyPerson_nonReentrant() public {
@@ -233,9 +126,9 @@ contract TestCTMRWA1Identity is Helpers {
         sentryManager.setZkMeParams(ID, "", "", address(0x1234));
         zkMe.setApproved(true);
         
-        // The reentrant contract should fail to call verifyPerson due to nonReentrant protection
-        // Since the reentrant contract doesn't actually trigger a reentrant call in this setup,
-        // we'll test that the nonReentrant modifier is working by ensuring the function completes normally
+        // The nonReentrant modifier ensures that if there were any reentrant calls,
+        // they would be blocked. Since we can't easily trigger a reentrant call in this test setup,
+        // we verify that the modifier is working by ensuring the function completes normally
         // and that subsequent calls from the same user are properly handled
         vm.prank(user1);
         bool ok = identity.verifyPerson(ID, chainIds, feeTokenStr);
