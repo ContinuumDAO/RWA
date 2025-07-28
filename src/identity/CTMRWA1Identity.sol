@@ -13,6 +13,8 @@ import { IZkMeVerify } from "./IZkMeVerify.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -27,7 +29,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * This means that if an Issuer wants to use KYC using zkMe, they must first add one of these chains to their
  * RWA token AND ONLY THEN call setSentryOptions to enable the _kyc flag. IT HAS TO BE DONE IN THIS ORDER.
  */
-contract CTMRWA1Identity is ICTMRWA1Identity {
+contract CTMRWA1Identity is ICTMRWA1Identity, Pausable, ReentrancyGuard {
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
@@ -67,6 +69,18 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         _;
     }
 
+    modifier onlyTokenAdmin(uint256 _ID) {
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
+        if (!ok) {
+            revert CTMRWA1Identity_InvalidContract(Address.Sentry);
+        }
+        address tokenAdmin = ICTMRWA1Sentry(sentryAddr).tokenAdmin();
+        if (msg.sender != tokenAdmin) {
+            revert CTMRWA1Identity_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+        }
+        _;
+    }
+
     event LogFallback(bytes4 selector, bytes data, bytes reason);
     event UserVerified(address indexed user);
 
@@ -95,6 +109,30 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
     }
 
     /**
+     * @notice Pause the contract. Only callable by tokenAdmin.
+     * @param _ID The ID of the RWA token
+     */
+    function pause(uint256 _ID) external onlyTokenAdmin(_ID) {
+        _pause();
+    }
+
+    /**
+     * @notice Unpause the contract. Only callable by tokenAdmin.
+     * @param _ID The ID of the RWA token
+     */
+    function unpause(uint256 _ID) external onlyTokenAdmin(_ID) {
+        _unpause();
+    }
+
+    /**
+     * @notice Check if the contract is paused.
+     * @return True if the contract is paused, false otherwise.
+     */
+    function isPaused() external view returns (bool) {
+        return paused();
+    }
+
+    /**
      * @notice Once a user has performed KYC with the provider, this function lets them
      * submit their credentials to the Verifier by calling the hasApproved function. If they pass,
      * then their wallet address is added tot he RWA token Whitelist via a call to CTMRWASentryManager
@@ -107,6 +145,8 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
     function verifyPerson(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr)
         public
         onlyIdChain
+        whenNotPaused
+        nonReentrant
         returns (bool)
     {
         if (zkMeVerifierAddress == address(0)) {
@@ -143,6 +183,15 @@ contract CTMRWA1Identity is ICTMRWA1Identity {
         );
 
         return (true);
+    }
+
+    /**
+     * @dev Override the _requireNotPaused function to use custom error
+     */
+    function _requireNotPaused() internal view virtual override {
+        if (paused()) {
+            revert CTMRWA1Identity_VerifyPersonPaused();
+        }
     }
 
     /**

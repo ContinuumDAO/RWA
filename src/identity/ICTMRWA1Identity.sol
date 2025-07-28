@@ -20,8 +20,13 @@ interface ICTMRWA1Identity is ICTMRWA {
     error CTMRWA1Identity_KYCDisabled();
     error CTMRWA1Identity_AlreadyWhitelisted(address);
     error CTMRWA1Identity_InvalidKYC(address);
+    error CTMRWA1Identity_VerifyPersonPaused();
 
     function setZkMeVerifierAddress(address verifierAddress) external;
+
+    function pause(uint256 ID) external;
+    function unpause(uint256 ID) external;
+    function isPaused() external view returns (bool);
 
     function verifyPerson(uint256 ID, string[] memory chainIdsStr, string memory feeTokenStr) external returns (bool);
 
