@@ -23,7 +23,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * It can be deployed once on each chain that the RWA token is deployed to.
  * The Issuer can create Offerings with start and end dates, min and max amounts to invest
  * and with a lock up escrow period.
- * The investors can still claim Dividends whilst their investments are locked up.
+ * The investors can still claim rewards, sent to them by the Issuer, whilst their investments are locked up.
  * Once the lockup period is over, the investors can withdraw their tokenIds
  *
  * Issuers can create multiple simultaneous Offerings.
@@ -211,7 +211,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
      * @param _startTime The time after which offers will be accepted
      * @param _endTime The end time, after which offers will no longer be allowed
      * @param _lockDuration The time for which the investors tokenId will be held in escrow for.
-     * After this time they may unlock their tokenId into their own wallet. They may claim dividends
+     * After this time they may unlock their tokenId into their own wallet. They may claim rewards
      * during the escrow period.
      * @param _rewardToken The address of the ERC20 token used for rewards. address(0) means no rewards.
      * @param _feeToken The address of the ERC20 token used to pay fees to AssetX. See getFeeTokenList in
@@ -635,7 +635,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     }
 
     /**
-     * @notice Returns the rewardToken contract address for an offering and the rewardAmount for a specific holding of a holder.
+     * @notice Returns the rewardToken contract address for an offering and the rewardAmount for a specific Holding of a holder.
      * @param holder The address of the holder.
      * @param offerIndex The index of the offering.
      * @param holdingIndex The index of the holding for the holder.
