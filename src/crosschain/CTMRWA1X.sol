@@ -15,7 +15,7 @@ import { Address, CTMRWAUtils, List, Uint } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1X } from "./ICTMRWA1X.sol";
 import { ICTMRWA1XFallback } from "./ICTMRWA1XFallback.sol";
 import { ICTMRWAGateway } from "./ICTMRWAGateway.sol";
-import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
+import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -32,7 +32,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
-contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDapp, UUPSUpgradeable {
+contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDappUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;

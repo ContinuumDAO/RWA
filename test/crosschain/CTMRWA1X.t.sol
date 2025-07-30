@@ -20,7 +20,6 @@ import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 
-import { C3CallerStructLib } from "../../lib/c3caller/src/C3CallerStructLib.sol";
 import { Uint } from "../../src/utils/CTMRWAUtils.sol";
 
 error EnforcedPause();

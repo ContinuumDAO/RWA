@@ -3,8 +3,10 @@
 pragma solidity 0.8.27;
 
 import { Test } from "forge-std/Test.sol";
-
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
+import { IC3GovClient } from "@c3caller/gov/IC3GovClient.sol";
+import { C3ErrorParam } from "@c3caller/utils/C3CallerUtils.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 import { CTMRWA1SentryManager } from "../../src/sentry/CTMRWA1SentryManager.sol";
@@ -223,18 +225,18 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         MockCTMRWA1SentryManagerV2 newImpl = new MockCTMRWA1SentryManagerV2();
         // Try to upgrade without being gov
         vm.startPrank(user1);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov));
         (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
-        assertTrue(success, "upgradeToAndCall failed");
+        assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
 
     function test_upgrade_proxy_with_zero_address_reverts() public {
         // Try to upgrade to zero address
         vm.startPrank(gov);
-        vm.expectRevert();
+        vm.expectRevert("ERC1967: new implementation is not a contract");
         (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
-        assertTrue(success, "upgradeToAndCall failed");
+        assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
 
@@ -242,9 +244,9 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         // Try to upgrade to a contract that doesn't implement the interface
         address invalidImpl = address(new CTMRWAMap());
         vm.startPrank(gov);
-        vm.expectRevert();
+        vm.expectRevert("ERC1967: new implementation is not a contract");
         (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", invalidImpl, abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
-        assertTrue(success, "upgradeToAndCall failed");
+        assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
 
@@ -316,7 +318,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         // Second upgrade
         MockCTMRWA1SentryManagerV2 impl3 = new MockCTMRWA1SentryManagerV2();
         // not sending as gov to test that upgradeToAndCall reverts
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov));
         (success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (3))));
         // Second upgrade should fail
         assertEq(MockCTMRWA1SentryManagerV2(address(sentryManager)).newVersion(), 2, "Second upgrade should fail");

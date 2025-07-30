@@ -629,7 +629,7 @@ contract TestCTMRWA1 is Helpers {
         token.mintValueX(testTokenId1, testSlot, type(uint256).max - 1000);
 
         // Try to mint more (should fail due to overflow)
-        vm.expectRevert();
+        vm.expectRevert("panic: arithmetic underflow or overflow (0x11)");
         token.mintValueX(testTokenId1, testSlot, 1000);
 
         vm.stopPrank();

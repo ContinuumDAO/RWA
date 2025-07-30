@@ -3,9 +3,13 @@
 pragma solidity 0.8.27;
 
 import { Test } from "forge-std/Test.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
+import { IC3GovClient } from "@c3caller/gov/IC3GovClient.sol";
+import {IC3GovernDapp} from "@c3caller/gov/IC3GovernDapp.sol";
+import { C3ErrorParam } from "@c3caller/utils/C3CallerUtils.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 import { FeeManager } from "../../src/managers/FeeManager.sol";
@@ -207,18 +211,18 @@ contract TestFeeManagerUpgrades is Helpers {
         MockFeeManagerV2 newImpl = new MockFeeManagerV2();
         // Try to upgrade without being gov
         vm.startPrank(user1);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov));
         (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
-        assertTrue(success, "upgradeToAndCall failed");
+        assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
 
     function test_upgrade_proxy_with_zero_address_reverts() public {
         // Try to upgrade to zero address
         vm.startPrank(gov);
-        vm.expectRevert();
+        vm.expectRevert("ERC1967: new implementation is not a contract");
         (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
-        assertTrue(success, "upgradeToAndCall failed");
+        assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
 
@@ -226,9 +230,9 @@ contract TestFeeManagerUpgrades is Helpers {
         // Try to upgrade to a contract that doesn't implement the interface
         address invalidImpl = address(new CTMRWAMap());
         vm.startPrank(gov);
-        vm.expectRevert();
+        vm.expectRevert("ERC1967: new implementation is not a contract");
         (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", invalidImpl, abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
-        assertTrue(success, "upgradeToAndCall failed");
+        assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
 
@@ -326,12 +330,12 @@ contract TestFeeManagerUpgrades is Helpers {
         // Test that C3GovernDapp functionality is preserved
         // The contract should still have governance controls
         vm.startPrank(user1);
-        vm.expectRevert();
-        (success, ) = address(feeManager).call(abi.encodeWithSignature("addFeeToken(string)", address(0x123).toHexString()));
-        assertTrue(success, "addFeeToken failed");
+        vm.expectRevert(abi.encodeWithSelector(IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        success = feeManager.addFeeToken(address(0x123).toHexString());
+        assertFalse(success, "addFeeToken did not fail");
         vm.stopPrank();
         vm.startPrank(gov);
-        (success, ) = address(feeManager).call(abi.encodeWithSignature("addFeeToken(string)", address(0x123).toHexString()));
+        success = feeManager.addFeeToken(address(0x123).toHexString());
         assertTrue(success, "addFeeToken failed");
         assertTrue(feeManager.feeTokenIndexMap(address(0x123)) > 0, "Governance should still work");
         vm.stopPrank();

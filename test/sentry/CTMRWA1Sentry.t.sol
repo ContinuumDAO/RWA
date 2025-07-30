@@ -98,7 +98,7 @@ contract TestCTMRWA1Sentry is Helpers {
     function test_setZkMeParams_access() public {
         // Only sentryManager can call
         vm.prank(user1);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_OnlyAuthorized.selector, Address.Sender, Address.SentryManager));
         sentry.setZkMeParams("app", "prog", user2);
         vm.prank(address(sentryManager));
         sentry.setZkMeParams("app", "prog", user2);

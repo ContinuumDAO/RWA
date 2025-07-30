@@ -5,7 +5,7 @@ pragma solidity 0.8.27;
 import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { Address, CTMRWAUtils, RWA } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWAAttachment, ICTMRWAMap } from "./ICTMRWAMap.sol";
-import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
+import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -28,7 +28,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  *
  * The 'attach' functions are called by CTMRWADeployer when the contracts are deployed.
  */
-contract CTMRWAMap is ICTMRWAMap, C3GovernDapp, UUPSUpgradeable {
+contract CTMRWAMap is ICTMRWAMap, C3GovernDappUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using CTMRWAUtils for string;
 

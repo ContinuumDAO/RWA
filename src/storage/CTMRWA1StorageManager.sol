@@ -11,7 +11,7 @@ import { Address, CTMRWAUtils, Uint } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
 import { ICTMRWA1StorageUtils } from "./ICTMRWA1StorageUtils.sol";
-import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
+import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -28,7 +28,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
-contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDapp, UUPSUpgradeable {
+contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDappUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for *;

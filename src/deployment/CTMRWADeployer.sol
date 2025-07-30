@@ -12,7 +12,7 @@ import { Address, RWA } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 import { ICTMRWADeployer } from "./ICTMRWADeployer.sol";
-import { C3GovernDapp } from "@c3caller/gov/C3GovernDapp.sol";
+import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -31,7 +31,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
-contract CTMRWADeployer is ICTMRWADeployer, C3GovernDapp, UUPSUpgradeable {
+contract CTMRWADeployer is ICTMRWADeployer, C3GovernDappUpgradeable, UUPSUpgradeable {
     using Strings for *;
 
     /// @dev The address of the CTMRWAGateway contract

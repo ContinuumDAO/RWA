@@ -6,8 +6,8 @@ import { Utils } from "./Utils.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { C3Caller } from "@c3caller/C3Caller.sol";
-import { C3UUIDKeeper } from "@c3caller/uuid/C3UUIDKeeper.sol";
+import { C3CallerUpgradeable } from "@c3caller/upgradeable/C3CallerUpgradeable.sol";
+import { C3UUIDKeeperUpgradeable } from "@c3caller/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
 
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 
@@ -37,8 +37,8 @@ import { CTMRWA1StorageUtils } from "../../src/storage/CTMRWA1StorageUtils.sol";
 contract Deployer is Utils {
     using Strings for *;
 
-    C3UUIDKeeper c3UUIDKeeper;
-    C3Caller c3caller;
+    C3UUIDKeeperUpgradeable c3UUIDKeeper;
+    C3CallerUpgradeable c3caller;
 
     FeeManager feeManager;
     string[] tokensStr;
@@ -70,11 +70,11 @@ contract Deployer is Utils {
     uint256 ID;
     CTMRWA1 token;
 
-    function _deployC3Caller(address gov) internal {
-        address c3UUIDKeeperImpl = address(new C3UUIDKeeper());
-        c3UUIDKeeper = C3UUIDKeeper(_deployProxy(c3UUIDKeeperImpl, abi.encodeCall(C3UUIDKeeper.initialize, (gov))));
-        address c3callerImpl = address(new C3Caller());
-        c3caller = C3Caller(_deployProxy(c3callerImpl, abi.encodeCall(C3Caller.initialize, (address(c3UUIDKeeper)))));
+    function _deployC3Caller() internal {
+        address c3UUIDKeeperImpl = address(new C3UUIDKeeperUpgradeable());
+        c3UUIDKeeper = C3UUIDKeeperUpgradeable(_deployProxy(c3UUIDKeeperImpl, abi.encodeCall(C3UUIDKeeperUpgradeable.initialize, ())));
+        address c3callerImpl = address(new C3CallerUpgradeable());
+        c3caller = C3CallerUpgradeable(_deployProxy(c3callerImpl, abi.encodeCall(C3CallerUpgradeable.initialize, (address(c3UUIDKeeper)))));
     }
 
     function _deployFeeManager(address gov, address admin, address ctm, address usdc) internal {

@@ -10,7 +10,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { IC3Caller } from "@c3caller/IC3Caller.sol";
 
-import { ITheiaERC20 } from "@c3caller/theia/ITheiaERC20.sol";
+// import { ITheiaERC20 } from "@c3caller/theia/ITheiaERC20.sol";
 import { IC3UUIDKeeper } from "@c3caller/uuid/IC3UUIDKeeper.sol";
 
 import { ICTMRWA1, SlotData } from "../src/core/ICTMRWA1.sol";
@@ -34,6 +34,10 @@ import { ICTMRWA1StorageManager } from "../src/storage/ICTMRWA1StorageManager.so
 
 interface IDKeeper {
     function isUUIDExist(bytes32) external returns (bool);
+}
+
+interface ITheiaERC20 {
+    function decimals() external view returns (uint8);
 }
 
 contract XChainTests is Script {
