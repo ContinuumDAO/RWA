@@ -1027,7 +1027,7 @@ contract TestInvest is Helpers {
         vm.stopPrank();
 
         // Check that user1 received no rewards (escrow time has passed)
-        (address rewardToken, uint256 rewardAmount) = investContract.getRewardInfo(user1, 0, 0);
+        (, uint256 rewardAmount) = investContract.getRewardInfo(user1, 0, 0);
         assertEq(rewardAmount, 0, "Holder should not receive rewards after escrow time has passed");
     }
 
@@ -1055,7 +1055,7 @@ contract TestInvest is Helpers {
         vm.stopPrank();
 
         // Check that user1 received rewards (escrow time has not passed)
-        (address rewardToken, uint256 rewardAmount) = investContract.getRewardInfo(user1, 0, 0);
+        (, uint256 rewardAmount) = investContract.getRewardInfo(user1, 0, 0);
         assertGt(rewardAmount, 0, "Holder should receive rewards when escrow time has not passed");
     }
 }

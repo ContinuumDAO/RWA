@@ -28,18 +28,6 @@ contract MockCTMRWA1Identity is ICTMRWA1Identity {
     }
     // ICTMRWA1Identity stubs
 
-    function pause(uint256) external pure override {
-        // Mock implementation - does nothing
-    }
-
-    function unpause(uint256) external pure override {
-        // Mock implementation - does nothing
-    }
-
-    function isPaused() external pure override returns (bool) {
-        return false;
-    }
-
     function isKycChain() external pure override returns (bool) {
         return true;
     }
