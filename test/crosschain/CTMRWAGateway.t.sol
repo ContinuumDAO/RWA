@@ -7,11 +7,11 @@ import { console } from "forge-std/console.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import {IC3GovernDapp} from "@c3caller/gov/IC3GovernDapp.sol";
-import {C3ErrorParam} from "@c3caller/utils/C3CallerUtils.sol";
+import { IC3GovernDapp } from "@c3caller/gov/IC3GovernDapp.sol";
+import { C3ErrorParam } from "@c3caller/utils/C3CallerUtils.sol";
 
 import { ICTMRWAGateway } from "../../src/crosschain/ICTMRWAGateway.sol";
-import { CTMRWAUtils, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam, CTMRWAUtils } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 contract TestGateway is Helpers {
@@ -40,7 +40,11 @@ contract TestGateway is Helpers {
         assertTrue(stringsEqual(gatewayStr, _toLower("ethereumGateway")));
 
         // Check that addChainContract is onlyGov
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         gateway.addChainContract(_stringToArray("2"), _stringToArray("Dummy"));
 
         vm.startPrank(gov);
@@ -111,7 +115,11 @@ contract TestGateway is Helpers {
         vm.stopPrank();
 
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         gateway.attachRWAX(RWA_TYPE, VERSION, _stringToArray("2"), _stringToArray("Dummy"));
         vm.stopPrank();
     }
@@ -153,7 +161,11 @@ contract TestGateway is Helpers {
         vm.stopPrank();
 
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         gateway.attachStorageManager(RWA_TYPE, VERSION, _stringToArray("2"), _stringToArray("Dummy"));
         vm.stopPrank();
     }
@@ -195,7 +207,11 @@ contract TestGateway is Helpers {
         vm.stopPrank();
 
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         gateway.attachSentryManager(RWA_TYPE, VERSION, _stringToArray("2"), _stringToArray("Dummy"));
         vm.stopPrank();
     }

@@ -3,10 +3,10 @@
 pragma solidity 0.8.27;
 
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWADeployInvest {
-    error CTMRWADeployInvest_OnlyAuthorized(Address, Address);
+    error CTMRWADeployInvest_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
 
     function commissionRate() external view returns (uint256);
 

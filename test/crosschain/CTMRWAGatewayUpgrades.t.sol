@@ -2,16 +2,16 @@
 
 pragma solidity 0.8.27;
 
-import { Test } from "forge-std/Test.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { Test } from "forge-std/Test.sol";
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import { Helpers } from "../helpers/Helpers.sol";
 import { CTMRWAGateway } from "../../src/crosschain/CTMRWAGateway.sol";
 import { ICTMRWAGateway } from "../../src/crosschain/ICTMRWAGateway.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
+import { Helpers } from "../helpers/Helpers.sol";
 
 // Mock implementation for testing upgrades
 contract MockCTMRWAGatewayV2 is CTMRWAGateway {
@@ -61,7 +61,13 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)",
+                address(mockImpl),
+                abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -80,7 +86,9 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
 
         // Upgrade the proxy without initialization
         vm.startPrank(gov);
-        (bool success,) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), bytes("")));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), bytes(""))
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -107,7 +115,13 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)",
+                address(mockImpl),
+                abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -140,7 +154,13 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)",
+                address(mockImpl),
+                abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -178,7 +198,13 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)",
+                address(mockImpl),
+                abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -197,7 +223,13 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         // Try to upgrade without being gov
         vm.startPrank(user1);
         vm.expectRevert();
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)",
+                address(newImpl),
+                abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
     }
@@ -206,7 +238,7 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         // Try to upgrade to zero address
         vm.startPrank(gov);
         vm.expectRevert();
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
+        (bool success,) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
     }
@@ -216,7 +248,11 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         address invalidImpl = address(new CTMRWAMap());
         vm.startPrank(gov);
         vm.expectRevert();
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", invalidImpl, abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", invalidImpl, abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
     }
@@ -226,7 +262,13 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWAGatewayV2 newImpl = new MockCTMRWAGatewayV2();
         vm.startPrank(gov);
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)",
+                address(newImpl),
+                abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that governance functions still work
@@ -247,7 +289,11 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         address oldImpl = abi.decode(dataOldImpl, (address));
         vm.startPrank(gov);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl1), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (1))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(impl1), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (1))
+            )
+        );
         assertTrue(success);
         vm.stopPrank();
         // check that version is still one
@@ -262,7 +308,11 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         // First upgrade
         MockCTMRWAGatewayV2 impl2 = new MockCTMRWAGatewayV2();
         vm.startPrank(gov);
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl2), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (2))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(impl2), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (2))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify first upgrade
@@ -270,7 +320,11 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         // Second upgrade
         MockCTMRWAGatewayV2 impl3 = new MockCTMRWAGatewayV2();
         vm.startPrank(gov);
-        (success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (3))));
+        (success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (3))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify second upgrade
@@ -283,7 +337,13 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWAGatewayV2 newImpl = new MockCTMRWAGatewayV2();
         vm.startPrank(gov);
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)",
+                address(newImpl),
+                abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that reentrancy guard is still active
@@ -296,14 +356,21 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWAGatewayV2 newImpl = new MockCTMRWAGatewayV2();
         vm.startPrank(gov);
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)",
+                address(newImpl),
+                abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that UUPS functionality is preserved
         // The contract should still be upgradeable
         MockCTMRWAGatewayV2 impl3 = new MockCTMRWAGatewayV2();
         vm.startPrank(gov);
-        (success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), bytes("")));
+        (success,) =
+            address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), bytes("")));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         assertTrue(true, "UUPS functionality should be preserved");
@@ -313,7 +380,13 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWAGatewayV2 newImpl = new MockCTMRWAGatewayV2();
         vm.startPrank(gov);
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)",
+                address(newImpl),
+                abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that C3GovernDapp functionality is preserved
@@ -324,11 +397,15 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         string[] memory contractAddrs = new string[](1);
         chainIds[0] = "3";
         contractAddrs[0] = address(0x789).toHexString();
-        (success, ) = address(gateway).call(abi.encodeWithSignature("addChainContract(string[],string[])", chainIds, contractAddrs));
+        (success,) = address(gateway).call(
+            abi.encodeWithSignature("addChainContract(string[],string[])", chainIds, contractAddrs)
+        );
         assertTrue(success, "addChainContract failed");
         vm.stopPrank();
         vm.startPrank(gov);
-        (success, ) = address(gateway).call(abi.encodeWithSignature("addChainContract(string[],string[])", chainIds, contractAddrs));
+        (success,) = address(gateway).call(
+            abi.encodeWithSignature("addChainContract(string[],string[])", chainIds, contractAddrs)
+        );
         assertTrue(success, "addChainContract failed");
         assertGt(gateway.getChainCount(), 0, "Governance should still work");
         vm.stopPrank();
@@ -340,7 +417,13 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWAGatewayV2 newImpl = new MockCTMRWAGatewayV2();
         vm.startPrank(gov);
-        (bool success, ) = address(gateway).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))));
+        (bool success,) = address(gateway).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)",
+                address(newImpl),
+                abi.encodeCall(MockCTMRWAGatewayV2.initializeV2, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify chain ID string is preserved

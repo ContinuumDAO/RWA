@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { CTMRWA1Sentry } from "./CTMRWA1Sentry.sol";
 import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryUtils } from "./ICTMRWA1SentryUtils.sol";
@@ -33,7 +33,7 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
 
     modifier onlySentryManager() {
         if (msg.sender != sentryManager) {
-            revert CTMRWA1SentryUtils_OnlyAuthorized(Address.Sender, Address.SentryManager);
+            revert CTMRWA1SentryUtils_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.SentryManager);
         }
         _;
     }
@@ -95,7 +95,7 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1SentryUtils_InvalidContract(Address.Token);
+            revert CTMRWA1SentryUtils_InvalidContract(CTMRWAErrorParam.Token);
         }
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 

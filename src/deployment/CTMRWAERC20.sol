@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWAERC20 } from "./ICTMRWAERC20.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -77,7 +77,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
 
         (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, _rwaType, _version);
         if (!ok) {
-            revert CTMRWAERC20_InvalidContract(Address.Token);
+            revert CTMRWAERC20_InvalidContract(CTMRWAErrorParam.Token);
         }
 
         if (!ICTMRWA1(ctmRwaToken).slotExists(slot)) {
@@ -194,7 +194,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
     /// @dev Low level function to approve spending
     function _approve(address _owner, address _spender, uint256 _value, bool _emitEvent) internal override {
         if (_spender == address(0)) {
-            revert CTMRWAERC20_IsZeroAddress(Address.Spender);
+            revert CTMRWAERC20_IsZeroAddress(CTMRWAErrorParam.Spender);
         }
         super._approve(_owner, _spender, _value, _emitEvent);
     }

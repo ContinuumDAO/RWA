@@ -4,17 +4,19 @@ pragma solidity 0.8.27;
 
 import { Test } from "forge-std/Test.sol";
 
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import { Helpers } from "../helpers/Helpers.sol";
 import { CTMRWA1X } from "../../src/crosschain/CTMRWA1X.sol";
-import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
+
 import { CTMRWA1XFallback } from "../../src/crosschain/CTMRWA1XFallback.sol";
 import { CTMRWAGateway } from "../../src/crosschain/CTMRWAGateway.sol";
+import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
+
+import { CTMRWADeployer } from "../../src/deployment/CTMRWADeployer.sol";
 import { FeeManager } from "../../src/managers/FeeManager.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { CTMRWADeployer } from "../../src/deployment/CTMRWADeployer.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
+import { Helpers } from "../helpers/Helpers.sol";
 
 // Mock implementation for testing upgrades
 contract MockCTMRWA1XV2 is CTMRWA1X {
@@ -67,7 +69,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -88,7 +94,9 @@ contract CTMRWA1XUpgradesTest is Helpers {
 
         // Upgrade the proxy without initialization
         vm.startPrank(gov);
-        (bool success,) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), bytes("")));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), bytes(""))
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -113,7 +121,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -148,7 +160,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -186,7 +202,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -206,7 +226,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // string memory initialCIdStr = rwa1X.cIdStr(); // cIdStr is not public
         // Upgrade the proxy
         vm.prank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         // Verify constants are preserved
         assertEq(rwa1X.RWA_TYPE(), initialRwaType, "RWA_TYPE should be preserved");
@@ -220,7 +244,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         assertTrue(initialFallback != address(0), "Should have fallback address");
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify fallback address is preserved
@@ -234,7 +262,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1XV2 newImpl = new MockCTMRWA1XV2();
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify addresses are preserved
@@ -248,7 +280,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Try to upgrade without being gov
         vm.startPrank(user1);
         vm.expectRevert();
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
     }
@@ -257,7 +293,7 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Try to upgrade to zero address
         vm.startPrank(gov);
         vm.expectRevert();
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
+        (bool success,) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
     }
@@ -267,7 +303,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         address invalidImpl = address(new FeeManager());
         vm.startPrank(gov);
         vm.expectRevert();
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", invalidImpl, abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", invalidImpl, abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
     }
@@ -277,7 +317,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1XV2 newImpl = new MockCTMRWA1XV2();
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that governance functions still work
@@ -296,7 +340,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         address oldImpl = abi.decode(dataOldImpl, (address));
         vm.startPrank(gov);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl1), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (1))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(impl1), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (1))
+            )
+        );
         assertTrue(success);
         vm.stopPrank();
         // check that version is still one
@@ -311,7 +359,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // First upgrade
         MockCTMRWA1XV2 impl2 = new MockCTMRWA1XV2();
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl2), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (2))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(impl2), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (2))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify first upgrade
@@ -319,7 +371,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Second upgrade
         MockCTMRWA1XV2 impl3 = new MockCTMRWA1XV2();
         vm.startPrank(gov);
-        (success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (3))));
+        (success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (3))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify second upgrade
@@ -333,7 +389,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1XV2 newImpl = new MockCTMRWA1XV2();
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that reentrancy guard is still active
@@ -346,14 +406,19 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1XV2 newImpl = new MockCTMRWA1XV2();
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that UUPS functionality is preserved
         // The contract should still be upgradeable
         MockCTMRWA1XV2 impl3 = new MockCTMRWA1XV2();
         vm.startPrank(gov);
-        (success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), bytes("")));
+        (success,) =
+            address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), bytes("")));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         assertTrue(true, "UUPS functionality should be preserved");
@@ -363,18 +428,22 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1XV2 newImpl = new MockCTMRWA1XV2();
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that C3GovernDapp functionality is preserved
         // The contract should still have governance controls
         vm.startPrank(user1);
         vm.expectRevert();
-        (success, ) = address(rwa1X).call(abi.encodeWithSignature("changeMinterStatus(address,bool)", user2, true));
+        (success,) = address(rwa1X).call(abi.encodeWithSignature("changeMinterStatus(address,bool)", user2, true));
         assertTrue(success, "changeMinterStatus failed");
         vm.stopPrank();
         vm.startPrank(gov);
-        (success, ) = address(rwa1X).call(abi.encodeWithSignature("changeMinterStatus(address,bool)", user2, true));
+        (success,) = address(rwa1X).call(abi.encodeWithSignature("changeMinterStatus(address,bool)", user2, true));
         assertTrue(success, "changeMinterStatus failed");
         assertTrue(rwa1X.isMinter(user2), "Governance should still work");
         vm.stopPrank();
@@ -386,7 +455,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1XV2 newImpl = new MockCTMRWA1XV2();
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify chain ID string is preserved
@@ -399,7 +472,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1XV2 newImpl = new MockCTMRWA1XV2();
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify self minter status is preserved
@@ -413,7 +490,11 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1XV2 newImpl = new MockCTMRWA1XV2();
         vm.startPrank(gov);
-        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        (bool success,) = address(rwa1X).call(
+            abi.encodeWithSignature(
+                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))
+            )
+        );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify fallback minter status is preserved

@@ -72,9 +72,13 @@ contract Deployer is Utils {
 
     function _deployC3Caller() internal {
         address c3UUIDKeeperImpl = address(new C3UUIDKeeperUpgradeable());
-        c3UUIDKeeper = C3UUIDKeeperUpgradeable(_deployProxy(c3UUIDKeeperImpl, abi.encodeCall(C3UUIDKeeperUpgradeable.initialize, ())));
+        c3UUIDKeeper = C3UUIDKeeperUpgradeable(
+            _deployProxy(c3UUIDKeeperImpl, abi.encodeCall(C3UUIDKeeperUpgradeable.initialize, ()))
+        );
         address c3callerImpl = address(new C3CallerUpgradeable());
-        c3caller = C3CallerUpgradeable(_deployProxy(c3callerImpl, abi.encodeCall(C3CallerUpgradeable.initialize, (address(c3UUIDKeeper)))));
+        c3caller = C3CallerUpgradeable(
+            _deployProxy(c3callerImpl, abi.encodeCall(C3CallerUpgradeable.initialize, (address(c3UUIDKeeper))))
+        );
     }
 
     function _deployFeeManager(address gov, address admin, address ctm, address usdc) internal {

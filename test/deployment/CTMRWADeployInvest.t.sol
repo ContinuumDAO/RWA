@@ -12,7 +12,7 @@ import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 
-import { Time, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
@@ -69,16 +69,19 @@ contract MaliciousRewardClaimer {
     ICTMRWA1InvestWithTimeLock public investContract;
     IERC20 public rewardToken;
     bool public attackInProgress;
+
     constructor(address _investContract, address _rewardToken) {
         investContract = ICTMRWA1InvestWithTimeLock(_investContract);
         rewardToken = IERC20(_rewardToken);
     }
+
     function attack(uint256 offerIndex, uint256 holdingIndex) external {
         attackInProgress = true;
         investContract.claimReward(offerIndex, holdingIndex);
         attackInProgress = false;
     }
     // Fallback to try reentrancy
+
     receive() external payable {
         if (attackInProgress) {
             investContract.claimReward(0, 0);
@@ -118,7 +121,7 @@ contract TestInvest is Helpers {
         vm.startPrank(gov);
         deployer.setInvestCommissionRate(100);
         vm.stopPrank();
-        
+
         address investAddr = deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
         vm.stopPrank();
 
@@ -179,7 +182,6 @@ contract TestInvest is Helpers {
         // console.log("setUp: offering created successfully");
         vm.stopPrank();
 
-
         // console.log("setUp: completed successfully");
     }
 
@@ -225,7 +227,8 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), minInvest - 1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.InvestmentLow)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector,
+                uint8(CTMRWAErrorParam.InvestmentLow)
             )
         );
         investContract.investInOffering(0, minInvest - 1, currency);
@@ -237,7 +240,8 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), maxInvest + 1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.InvestmentHigh)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector,
+                uint8(CTMRWAErrorParam.InvestmentHigh)
             )
         );
         investContract.investInOffering(0, maxInvest + 1, currency);
@@ -363,7 +367,8 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), 0);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.Value)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector,
+                uint8(CTMRWAErrorParam.Value)
             )
         );
         investContract.investInOffering(0, 0, currency);
@@ -394,7 +399,8 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), excessiveAmount);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.Balance)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector,
+                uint8(CTMRWAErrorParam.Balance)
             )
         );
         investContract.investInOffering(0, excessiveAmount, currency);
@@ -477,7 +483,6 @@ contract TestInvest is Helpers {
         // Verify the unlock was successful
         assertEq(unlockedTokenId, investedTokenId, "Token should be unlocked successfully");
     }
-
 
     function test_reentrancy_multipleFunctions() public {
         // Test that multiple reentrancy attempts are blocked
@@ -603,7 +608,6 @@ contract TestInvest is Helpers {
         // console.log("Gas used for unlock:", gasUsed);
     }
 
-
     function test_gas_multipleInvestments() public {
         uint256 totalGasUsed = 0;
 
@@ -727,7 +731,7 @@ contract TestInvest is Helpers {
         uint256 investContractBalanceBefore = usdc.balanceOf(address(investContract));
 
         // Calculate expected commission (1% of amount)
-        uint256 expectedCommission = amount * 100 / 10000; // 1% = 100/10000
+        uint256 expectedCommission = amount * 100 / 10_000; // 1% = 100/10000
         uint256 expectedWithdrawal = amount - expectedCommission;
 
         // Act: Withdraw invested funds as tokenAdmin
@@ -771,7 +775,8 @@ contract TestInvest is Helpers {
         vm.startPrank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidTimestamp.selector, uint8(Time.Early)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidTimestamp.selector,
+                uint8(CTMRWAErrorParam.Early)
             )
         );
         investContract.unlockTokenId(holdingIndex, address(usdc));
@@ -960,7 +965,7 @@ contract TestInvest is Helpers {
         // TokenAdmin funds rewards
         uint256 rateDivisor = 1e6; // Use a smaller divisor to ensure rewards are calculated
         uint256 expectedReward = (actualBalance * fuzzMultiplier) / rateDivisor;
-        
+
         // Ensure the reward doesn't exceed the available balance
         uint256 availableBalance = IERC20(currency).balanceOf(tokenAdmin);
         vm.assume(expectedReward <= availableBalance);
@@ -1013,7 +1018,7 @@ contract TestInvest is Helpers {
 
         // Get the holding to check escrow time
         Holding memory holding = investContract.listEscrowHolding(user1, 0);
-        
+
         // Fast forward past the escrow lock time
         vm.warp(holding.escrowTime + 1);
 
@@ -1040,7 +1045,7 @@ contract TestInvest is Helpers {
 
         // Get the holding to check escrow time
         Holding memory holding = investContract.listEscrowHolding(user1, 0);
-        
+
         // Ensure we're still within the escrow lock time
         vm.warp(holding.escrowTime - 1);
 

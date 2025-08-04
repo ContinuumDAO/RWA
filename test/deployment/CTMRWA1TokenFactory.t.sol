@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.27;
 
-import { console } from "forge-std/console.sol";
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { CTMRWA1TokenFactory } from "../../src/deployment/CTMRWA1TokenFactory.sol";
 import { ICTMRWA1TokenFactory } from "../../src/deployment/ICTMRWA1TokenFactory.sol";
+
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
-import {Address} from "../../src/utils/CTMRWAUtils.sol";
+import { console } from "forge-std/console.sol";
 
 contract MockDeployer {
 // Used to test onlyDeployer modifier
@@ -59,7 +60,13 @@ contract CTMRWA1TokenFactoryTest is Helpers {
         assertTrue(deployed != address(0), "Deployment should succeed");
         // Try as notDeployer
         vm.prank(notDeployer);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, Address.Sender, Address.Deployer));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector,
+                CTMRWAErrorParam.Sender,
+                CTMRWAErrorParam.Deployer
+            )
+        );
         factory.deploy(deployData);
     }
 
@@ -131,7 +138,13 @@ contract CTMRWA1TokenFactoryTest is Helpers {
         bytes memory deployData =
             getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(notDeployer);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, Address.Sender, Address.Deployer));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector,
+                CTMRWAErrorParam.Sender,
+                CTMRWAErrorParam.Deployer
+            )
+        );
         factory.deploy(deployData);
     }
 

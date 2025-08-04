@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -39,7 +39,7 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWADeployInvest_OnlyAuthorized(Address.Sender, Address.Deployer);
+            revert CTMRWADeployInvest_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
         }
         _;
     }

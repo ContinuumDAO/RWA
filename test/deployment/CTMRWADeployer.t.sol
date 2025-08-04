@@ -4,8 +4,8 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 
-import {IC3GovernDapp} from "@c3caller/gov/IC3GovernDapp.sol";
-import {C3ErrorParam} from "@c3caller/utils/C3CallerUtils.sol";
+import { IC3GovernDapp } from "@c3caller/gov/IC3GovernDapp.sol";
+import { C3ErrorParam } from "@c3caller/utils/C3CallerUtils.sol";
 
 import { ICTMRWADeployInvest } from "../../src/deployment/ICTMRWADeployInvest.sol";
 import { ICTMRWADeployer } from "../../src/deployment/ICTMRWADeployer.sol";
@@ -14,12 +14,10 @@ import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.so
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
 
-import { Address, RWA, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { console } from "forge-std/console.sol";
-
-error CTMRWA1X_InvalidLength(Uint);
 
 contract TestCTMRWADeployer is Helpers {
     using Strings for *;
@@ -117,14 +115,20 @@ contract TestCTMRWADeployer is Helpers {
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "TestToken6", "TTK6", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWADeployer.CTMRWADeployer_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX
+            )
+        );
         deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
     }
 
     function test_revertIfZeroAddress() public {
         vm.startPrank(gov); // Run as governor
         // Try to set a zero address for a critical dependency
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Gateway));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.Gateway)
+        );
         deployer.setGateway(address(0));
         vm.stopPrank();
     }
@@ -135,17 +139,41 @@ contract TestCTMRWADeployer is Helpers {
         vm.assume(!deployer.txSenders(nonGov));
         address dummy = address(0x1234);
         vm.startPrank(nonGov);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setGateway(dummy);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setFeeManager(dummy);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setRwaX(dummy);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setMap(dummy);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setErc20DeployerAddress(dummy);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setDeployInvest(dummy);
         vm.stopPrank();
     }
@@ -159,7 +187,9 @@ contract TestCTMRWADeployer is Helpers {
         );
         deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
         deployer.deployNewInvestment(testID, RWA_TYPE, VERSION, address(usdc));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_InvalidContract.selector, Address.Invest));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_InvalidContract.selector, CTMRWAErrorParam.Invest)
+        );
         deployer.deployNewInvestment(testID, RWA_TYPE, VERSION, address(usdc));
         vm.stopPrank();
     }
@@ -202,22 +232,30 @@ contract TestCTMRWADeployer is Helpers {
     // Setter Zero Address Revert (all setters)
     function test_revertIfZeroAddressSetters() public {
         vm.startPrank(gov);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Gateway));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.Gateway)
+        );
         deployer.setGateway(address(0));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.FeeManager)
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.FeeManager)
         );
         deployer.setFeeManager(address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.RWAX));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.RWAX)
+        );
         deployer.setRwaX(address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Map));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.Map)
+        );
         deployer.setMap(address(0));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.ERC20Deployer)
+            abi.encodeWithSelector(
+                ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.ERC20Deployer
+            )
         );
         deployer.setErc20DeployerAddress(address(0));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.DeployInvest)
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.DeployInvest)
         );
         deployer.setDeployInvest(address(0));
         vm.stopPrank();

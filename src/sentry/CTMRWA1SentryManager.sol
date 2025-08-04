@@ -9,7 +9,7 @@ import { ICTMRWAGateway } from "../crosschain/ICTMRWAGateway.sol";
 import { ICTMRWA1Identity } from "../identity/ICTMRWA1Identity.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils, List, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "./ICTMRWA1SentryManager.sol";
 import { ICTMRWA1SentryUtils } from "./ICTMRWA1SentryUtils.sol";
@@ -82,7 +82,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWA1SentryManager_OnlyAuthorized(Address.Sender, Address.Deployer);
+            revert CTMRWA1SentryManager_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
         }
         _;
     }
@@ -150,7 +150,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
      */
     function setIdentity(address _id, address _zkMeVerifierAddr) external onlyGov {
         if (_id == address(0)) {
-            revert CTMRWA1SentryManager_IsZeroAddress(Address.Identity);
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Identity);
         }
         identity = _id;
         ICTMRWA1Identity(_id).setZkMeVerifierAddress(_zkMeVerifierAddr);
@@ -230,7 +230,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
 
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwaMap).getSentryContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1SentryManager_InvalidContract(Address.Sentry);
+            revert CTMRWA1SentryManager_InvalidContract(CTMRWAErrorParam.Sentry);
         }
 
         bool sentryOptionsSet = ICTMRWA1Sentry(sentryAddr).sentryOptionsSet();
@@ -240,7 +240,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
 
         if (!_kyc) {
             if (!_whitelist) {
-                revert CTMRWA1SentryManager_InvalidList(List.WL_KYC_Disabled);
+                revert CTMRWA1SentryManager_InvalidList(CTMRWAErrorParam.WL_KYC_Disabled);
             }
 
             if (_kyb || _over18 || _accredited || _countryWL || _countryBL) {
@@ -248,7 +248,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
             }
         } else {
             if (_countryWL && _countryBL) {
-                revert CTMRWA1SentryManager_InvalidList(List.WL_BL_Defined);
+                revert CTMRWA1SentryManager_InvalidList(CTMRWAErrorParam.WL_BL_Defined);
             }
         }
 
@@ -293,7 +293,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
      */
     function setZkMeParams(uint256 _ID, string memory _appId, string memory _programNo, address _cooperator) public {
         if (identity == address(0)) {
-            revert CTMRWA1SentryManager_IsZeroAddress(Address.Identity);
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Identity);
         }
 
         (address ctmRwa1Addr,) = _getTokenAddr(_ID);
@@ -410,7 +410,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
         string memory _feeTokenStr
     ) public {
         if (_choices.length != _wallets.length) {
-            revert CTMRWA1SentryManager_LengthMismatch(Uint.Input);
+            revert CTMRWA1SentryManager_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
         (address sentryAddr,) = _getSentryAddr(_ID);
@@ -420,7 +420,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
 
         bool whitelistSwitch = ICTMRWA1Sentry(sentryAddr).whitelistSwitch();
         if (!whitelistSwitch) {
-            revert CTMRWA1SentryManager_InvalidList(List.WL_Disabled);
+            revert CTMRWA1SentryManager_InvalidList(CTMRWAErrorParam.WL_Disabled);
         }
 
         uint256 len = _wallets.length;
@@ -491,7 +491,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
         string memory _feeTokenStr
     ) public {
         if (_choices.length != _countries.length) {
-            revert CTMRWA1SentryManager_LengthMismatch(Uint.Input);
+            revert CTMRWA1SentryManager_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
         (address sentryAddr,) = _getSentryAddr(_ID);
@@ -502,7 +502,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
         bool countryWLSwitch = ICTMRWA1Sentry(sentryAddr).countryWLSwitch();
         bool countryBLSwitch = ICTMRWA1Sentry(sentryAddr).countryBLSwitch();
         if (!countryWLSwitch && !countryBLSwitch) {
-            revert CTMRWA1SentryManager_InvalidList(List.WL_BL_Undefined);
+            revert CTMRWA1SentryManager_InvalidList(CTMRWAErrorParam.WL_BL_Undefined);
         }
 
         uint256 len = _countries.length;
@@ -513,7 +513,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
 
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
             if (bytes(_countries[i]).length != 2) {
-                revert CTMRWA1SentryManager_InvalidLength(Uint.CountryCode);
+                revert CTMRWA1SentryManager_InvalidLength(CTMRWAErrorParam.CountryCode);
             }
 
             string memory chainIdStr = _chainIdsStr[i]._toLower();
@@ -601,7 +601,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1SentryManager_InvalidContract(Address.Token);
+            revert CTMRWA1SentryManager_InvalidContract(CTMRWAErrorParam.Token);
         }
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
@@ -615,7 +615,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
     function _getSentryAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwaMap).getSentryContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1SentryManager_InvalidContract(Address.Sentry);
+            revert CTMRWA1SentryManager_InvalidContract(CTMRWAErrorParam.Sentry);
         }
         string memory sentryAddrStr = sentryAddr.toHexString()._toLower();
 
@@ -636,7 +636,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
         (bool ok, string memory toSentryStr) =
             ICTMRWAGateway(gateway).getAttachedSentryManager(RWA_TYPE, VERSION, _toChainIdStr);
         if (!ok) {
-            revert CTMRWA1SentryManager_InvalidContract(Address.SentryManager);
+            revert CTMRWA1SentryManager_InvalidContract(CTMRWAErrorParam.SentryManager);
         }
 
         return (fromAddressStr, toSentryStr);
@@ -651,7 +651,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
         string memory currentAdminStr = currentAdmin.toHexString()._toLower();
 
         if (msg.sender != currentAdmin && msg.sender != identity) {
-            revert CTMRWA1SentryManager_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+            revert CTMRWA1SentryManager_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
         }
 
         return (currentAdmin, currentAdminStr);

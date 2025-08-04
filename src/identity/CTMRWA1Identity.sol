@@ -7,13 +7,14 @@ import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Identity } from "./ICTMRWA1Identity.sol";
 import { IZkMeVerify } from "./IZkMeVerify.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -56,14 +57,14 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
 
     modifier onlyIdChain() {
         if (zkMeVerifierAddress == address(0)) {
-            revert CTMRWA1Identity_IsZeroAddress(Address.ZKMe);
+            revert CTMRWA1Identity_IsZeroAddress(CTMRWAErrorParam.ZKMe);
         }
         _;
     }
 
     modifier onlySentryManager() {
         if (msg.sender != sentryManager) {
-            revert CTMRWA1Identity_OnlyAuthorized(Address.Sender, Address.SentryManager);
+            revert CTMRWA1Identity_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.SentryManager);
         }
         _;
     }
@@ -71,11 +72,11 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
     modifier onlyTokenAdmin(uint256 _ID) {
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1Identity_InvalidContract(Address.Sentry);
+            revert CTMRWA1Identity_InvalidContract(CTMRWAErrorParam.Sentry);
         }
         address tokenAdmin = ICTMRWA1Sentry(sentryAddr).tokenAdmin();
         if (msg.sender != tokenAdmin) {
-            revert CTMRWA1Identity_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+            revert CTMRWA1Identity_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
         }
         _;
     }
@@ -124,12 +125,12 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
         returns (bool)
     {
         if (zkMeVerifierAddress == address(0)) {
-            revert CTMRWA1Identity_IsZeroAddress(Address.ZKMe);
+            revert CTMRWA1Identity_IsZeroAddress(CTMRWAErrorParam.ZKMe);
         }
 
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1Identity_InvalidContract(Address.Sentry);
+            revert CTMRWA1Identity_InvalidContract(CTMRWAErrorParam.Sentry);
         }
 
         if (!ICTMRWA1Sentry(sentryAddr).kycSwitch()) {
@@ -142,7 +143,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
 
         (,, address cooperator) = ICTMRWA1Sentry(sentryAddr).getZkMeParams();
         if (cooperator == address(0)) {
-            revert CTMRWA1Identity_IsZeroAddress(Address.Cooperator);
+            revert CTMRWA1Identity_IsZeroAddress(CTMRWAErrorParam.Cooperator);
         }
         bool isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, msg.sender);
 
@@ -178,7 +179,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
     function isVerifiedPerson(uint256 _ID, address _wallet) public view onlyIdChain returns (bool) {
         (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1Identity_InvalidContract(Address.Sentry);
+            revert CTMRWA1Identity_InvalidContract(CTMRWAErrorParam.Sentry);
         }
         if (!ICTMRWA1Sentry(sentryAddr).kycSwitch()) {
             revert CTMRWA1Identity_KYCDisabled();
@@ -186,7 +187,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
 
         (,, address cooperator) = ICTMRWA1Sentry(sentryAddr).getZkMeParams();
         if (cooperator == address(0)) {
-            revert CTMRWA1Identity_IsZeroAddress(Address.Cooperator);
+            revert CTMRWA1Identity_IsZeroAddress(CTMRWAErrorParam.Cooperator);
         }
 
         bool isValid = IZkMeVerify(zkMeVerifierAddress).hasApproved(cooperator, _wallet);

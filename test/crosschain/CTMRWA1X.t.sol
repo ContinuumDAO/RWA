@@ -10,7 +10,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
-import { Address, ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 
 import { CTMRWA1X } from "../../src/crosschain/CTMRWA1X.sol";
 import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
@@ -20,7 +20,7 @@ import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 
-import { Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 error EnforcedPause();
 
@@ -145,7 +145,7 @@ contract TestCTMRWA1X is Helpers {
 
         // ID2 will be the same as ID because the block.timestamp is the same
         // as well as all the other params in the abi.encode used to generate ID
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidContract.selector, Address.Token));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidContract.selector, CTMRWAErrorParam.Token));
         _deployCTMRWA1(address(usdc));
         vm.stopPrank();
 
@@ -341,7 +341,9 @@ contract TestCTMRWA1X is Helpers {
         string memory feeTokenStr = feeTokenList[0].toHexString();
 
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, Address.Sender, Address.ApprovedOrOwner)
+            abi.encodeWithSelector(
+                ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.ApprovedOrOwner
+            )
         );
         rwa1X.transferPartialTokenX(tokenId, user1.toHexString(), cIdStr, 5, ID, feeTokenStr);
         vm.stopPrank();
@@ -384,7 +386,9 @@ contract TestCTMRWA1X is Helpers {
         vm.startPrank(user2);
         // Check that user2 cannot transfer tokenId to user1 (since it is tokenAdmin's)
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, Address.Sender, Address.ApprovedOrOwner)
+            abi.encodeWithSelector(
+                ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.ApprovedOrOwner
+            )
         );
         rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
         vm.stopPrank();
@@ -798,7 +802,7 @@ contract TestCTMRWA1X is Helpers {
 
         // Try to mint with a value that exceeds uint208 limit
         vm.prank(tokenAdmin);
-        uint256 maxUint208 = 2**208 - 1;
+        uint256 maxUint208 = 2 ** 208 - 1;
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_ValueOverflow.selector, maxUint208 + 1, maxUint208));
         rwa1X.mintNewTokenValueLocal(user1, 0, 5, maxUint208 + 1, ID, feeTokenStr);
     }
@@ -836,7 +840,7 @@ contract TestCTMRWA1X is Helpers {
     function test_overflowFuzzMint(uint256 a, uint256 b) public {
         vm.assume(a > 0 && b > 0);
         // Use uint208 limits to prevent overflow in balance calculations
-        uint256 maxUint208 = 2**208 - 1;
+        uint256 maxUint208 = 2 ** 208 - 1;
         vm.assume(a <= maxUint208 && b <= maxUint208);
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
@@ -1306,7 +1310,7 @@ contract TestCTMRWA1X is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
 
         // Try to mint with maximum uint208 balance (should succeed)
-        uint256 maxUint208 = 2**208 - 1;
+        uint256 maxUint208 = 2 ** 208 - 1;
         vm.prank(tokenAdmin);
         uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, maxUint208, ID, feeTokenStr);
 
@@ -1399,13 +1403,13 @@ contract TestCTMRWA1X is Helpers {
     function test_revert_InvalidAddress_Minter() public {
         // Only gov can call changeMinterStatus, so use gov
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidAddress.selector, Address.Minter));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidAddress.selector, CTMRWAErrorParam.Minter));
         rwa1X.changeMinterStatus(address(rwa1X), true);
     }
 
     function test_revert_InvalidAddress_Fallback() public {
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidAddress.selector, Address.Fallback));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_InvalidAddress.selector, CTMRWAErrorParam.Fallback));
         rwa1X.setFallback(address(rwa1X));
     }
 
@@ -1416,13 +1420,13 @@ contract TestCTMRWA1X is Helpers {
         vm.prank(gov);
         CTMRWA1X(newRwa1X).initialize(address(0x1), address(0x2), gov, address(0x3), address(0x4), 1);
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_IsZeroAddress.selector, Address.Deployer));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_IsZeroAddress.selector, CTMRWAErrorParam.Deployer));
         CTMRWA1X(newRwa1X).setCtmRwaMap(address(0x1234));
     }
 
     function test_revert_IsZeroAddress_Fallback() public {
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_IsZeroAddress.selector, Address.Fallback));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_IsZeroAddress.selector, CTMRWAErrorParam.Fallback));
         rwa1X.setFallback(address(0));
     }
 
@@ -1443,7 +1447,9 @@ contract TestCTMRWA1X is Helpers {
         vm.stopPrank();
         vm.startPrank(tokenAdmin2);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, Address.Sender, Address.Admin)
+            abi.encodeWithSelector(
+                ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Admin
+            )
         );
         rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), ID, address(usdc).toHexString());
         vm.stopPrank();

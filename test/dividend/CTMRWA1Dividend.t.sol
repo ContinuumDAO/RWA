@@ -5,12 +5,15 @@ pragma solidity 0.8.27;
 import { Test } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
+
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+
 import { CTMRWA1 } from "src/core/CTMRWA1.sol";
-import { Address, Uint } from "../../src/utils/CTMRWAUtils.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
@@ -27,22 +30,23 @@ contract TestDividend is Helpers {
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
         (, dividendContract) = ICTMRWAMap(map).getDividendContract(ID, RWA_TYPE, VERSION);
-        (tokenId1, tokenId2, tokenId3) = _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
+        (tokenId1, tokenId2, tokenId3) =
+            _deployAFewTokensLocal(address(token), address(usdc), address(map), address(rwa1X), user1);
         vm.stopPrank();
     }
 
-    function _fundAndAssertDividends() internal returns(uint256) {
+    function _fundAndAssertDividends() internal returns (uint256) {
         ICTMRWA1Dividend(dividendContract).setDividendToken(address(usdc));
         ICTMRWA1Dividend(dividendContract).changeDividendRate(1, 100);
         ICTMRWA1Dividend(dividendContract).changeDividendRate(3, 150);
         ICTMRWA1Dividend(dividendContract).changeDividendRate(5, 80);
         // Approve the dividend contract to spend USDC
         IERC20(usdc).approve(dividendContract, type(uint256).max);
-        
+
         // Track time manually instead of using block.timestamp
         uint256 currentTime = 1_000_000_000; // Start with a large timestamp
         vm.warp(currentTime);
-        
+
         skip(100 days);
         currentTime += 100 days;
         uint256 slot = 1;
@@ -149,14 +153,7 @@ contract TestDividend is Helpers {
 
         // Prank as user1 and call transferPartialTokenX on rwa1X BEFORE the new fundDividend
         vm.startPrank(user1);
-        rwa1X.transferPartialTokenX(
-            tokenId3,
-            user2.toHexString(),
-            cIdStr,
-            halfValue,
-            ID,
-            address(usdc).toHexString()
-        );
+        rwa1X.transferPartialTokenX(tokenId3, user2.toHexString(), cIdStr, halfValue, ID, address(usdc).toHexString());
         vm.stopPrank();
 
         // skip 5 days after the transfer, before the new fundDividend
@@ -224,42 +221,82 @@ contract TestDividend is Helpers {
         // Check at various times
         // At the very start: should be 0
         assertEq(t0, 1, "t0 has magically changed"); // Don't trust block.timestamp in forge tests
-        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t0)), 0, "rate at start should be 0");
+        assertEq(
+            ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t0)), 0, "rate at start should be 0"
+        );
 
         // Just before t1: should be 0
-        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t1 - 1)), 0, "rate just before first change should be 0");
+        assertEq(
+            ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t1 - 1)),
+            0,
+            "rate just before first change should be 0"
+        );
 
         // At t1: should be 100
-        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t1)), 100, "rate at t1 should be 100");
+        assertEq(
+            ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t1)),
+            100,
+            "rate at t1 should be 100"
+        );
 
         // Between t1 and t2: should be 100
-        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t1 + 1 days)), 100, "rate between t1 and t2 should be 100");
+        assertEq(
+            ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t1 + 1 days)),
+            100,
+            "rate between t1 and t2 should be 100"
+        );
 
         // At t2: should be 200
-        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t2)), 200, "rate at t2 should be 200");
+        assertEq(
+            ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t2)),
+            200,
+            "rate at t2 should be 200"
+        );
 
         // Between t2 and t3: should be 200
-        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t2 + 1 days)), 200, "rate between t2 and t3 should be 200");
+        assertEq(
+            ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t2 + 1 days)),
+            200,
+            "rate between t2 and t3 should be 200"
+        );
 
         // At t3: should be 300
-        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t3)), 300, "rate at t3 should be 300");
+        assertEq(
+            ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t3)),
+            300,
+            "rate at t3 should be 300"
+        );
 
         // At t4: should be 400
-        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t4)), 400, "rate at t4 should be 400");
+        assertEq(
+            ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t4)),
+            400,
+            "rate at t4 should be 400"
+        );
 
         // After t4: should be 400
-        assertEq(ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t4 + 1 days)), 400, "rate after t4 should be 400");
+        assertEq(
+            ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(t4 + 1 days)),
+            400,
+            "rate after t4 should be 400"
+        );
     }
 
     function test_tokenAdmin2_cannot_fundDividend() public {
         vm.startPrank(tokenAdmin);
         uint256 currentTime = _fundAndAssertDividends();
         vm.stopPrank();
-        
+
         uint256 slot = 1;
         uint256 fundingTime = currentTime;
         vm.startPrank(tokenAdmin2);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Dividend.CTMRWA1Dividend_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1Dividend.CTMRWA1Dividend_OnlyAuthorized.selector,
+                CTMRWAErrorParam.Sender,
+                CTMRWAErrorParam.TokenAdmin
+            )
+        );
         ICTMRWA1Dividend(dividendContract).fundDividend(slot, fundingTime);
         vm.stopPrank();
     }
@@ -306,7 +343,7 @@ contract TestDividend is Helpers {
         vm.stopPrank();
     }
 
-    function test_tokenAdmin_cannot_fundDividend_for_too_frequent_funding() public {    
+    function test_tokenAdmin_cannot_fundDividend_for_too_frequent_funding() public {
         vm.startPrank(tokenAdmin);
         _fundAndAssertDividends();
         vm.stopPrank();
@@ -325,11 +362,13 @@ contract TestDividend is Helpers {
         vm.startPrank(tokenAdmin);
         _fundAndAssertDividends();
 
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Dividend.CTMRWA1Dividend_InvalidDividend.selector, uint256(Uint.Balance)));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1Dividend.CTMRWA1Dividend_InvalidDividend.selector, uint256(CTMRWAErrorParam.Balance)
+            )
+        );
         ICTMRWA1Dividend(dividendContract).setDividendToken(address(ctm));
         vm.stopPrank();
-
-        
     }
 
     function test_tokenAdmin_can_setDividend_after_all_claimed() public {
@@ -359,13 +398,19 @@ contract TestDividend is Helpers {
         vm.stopPrank();
 
         // Only test for slots that exist (1, 3, 5)
-        if (slot != 1 && slot != 3 && slot != 5) return;
+        if (slot != 1 && slot != 3 && slot != 5) {
+            return;
+        }
 
         // Get the last funding for the slot
         uint48 lastFunding = ICTMRWA1Dividend(dividendContract).lastFundingBySlot(slot);
         // Fuzz fundingTime: must be > lastFunding + 30 days and < currentTime
-        if (fundingTime <= lastFunding + 30 days) return;
-        if (fundingTime >= uint48(currentTime)) return;
+        if (fundingTime <= lastFunding + 30 days) {
+            return;
+        }
+        if (fundingTime >= uint48(currentTime)) {
+            return;
+        }
 
         // Should not revert for valid fundingTime
         vm.startPrank(tokenAdmin);
@@ -379,11 +424,15 @@ contract TestDividend is Helpers {
         vm.stopPrank();
 
         // Only test for slots that exist (1, 3, 5)
-        if (slot != 1 && slot != 3 && slot != 5) return;
+        if (slot != 1 && slot != 3 && slot != 5) {
+            return;
+        }
 
         // Respect uint208 limitation (max value is 2^208 - 1)
         uint256 maxDividend = (1 << 208) - 1;
-        if (dividend > maxDividend) return;
+        if (dividend > maxDividend) {
+            return;
+        }
 
         // Test that changeDividendRate works for valid inputs
         vm.startPrank(tokenAdmin);
@@ -391,7 +440,7 @@ contract TestDividend is Helpers {
         vm.stopPrank();
 
         assertTrue(success, "changeDividendRate should succeed for valid inputs");
-        
+
         // Verify the dividend rate was set correctly
         uint256 actualRate = ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(slot, uint48(currentTime));
         assertEq(actualRate, dividend, "Dividend rate should match the set value");
@@ -400,13 +449,13 @@ contract TestDividend is Helpers {
     function test_reentrancy_claimDividend_is_prevented() public {
         // Create a malicious contract that attempts reentrancy
         ReentrantAttacker attacker = new ReentrantAttacker(dividendContract);
-        
+
         // Fund the attacker with some tokens BEFORE funding dividends
         vm.startPrank(tokenAdmin);
         string memory tokenStr = _toLower(address(usdc).toHexString());
         rwa1X.mintNewTokenValueLocal(address(attacker), 0, 1, 1000, ID, tokenStr);
         vm.stopPrank();
-        
+
         vm.startPrank(tokenAdmin);
         _fundAndAssertDividends();
         vm.stopPrank();
@@ -536,12 +585,12 @@ contract TestDividend is Helpers {
     function test_boundary_maximum_dividend_rate() public {
         vm.startPrank(tokenAdmin);
         ICTMRWA1Dividend(dividendContract).setDividendToken(address(usdc));
-        
+
         // Test maximum uint208 value (2^208 - 1)
         uint256 maxDividend = (1 << 208) - 1;
         bool success = ICTMRWA1Dividend(dividendContract).changeDividendRate(1, maxDividend);
         assertTrue(success, "Should accept maximum dividend rate");
-        
+
         uint256 actualRate = ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(1, uint48(1_000_000_000));
         assertEq(actualRate, maxDividend, "Maximum dividend rate should be set correctly");
         vm.stopPrank();
@@ -550,11 +599,11 @@ contract TestDividend is Helpers {
     function test_boundary_zero_dividend_rate() public {
         vm.startPrank(tokenAdmin);
         ICTMRWA1Dividend(dividendContract).setDividendToken(address(usdc));
-        
+
         // Test zero dividend rate
         bool success = ICTMRWA1Dividend(dividendContract).changeDividendRate(1, 0);
         assertTrue(success, "Should accept zero dividend rate");
-        
+
         uint256 actualRate = ICTMRWA1Dividend(dividendContract).getDividendRateBySlotAt(1, uint48(1_000_000_000));
         assertEq(actualRate, 0, "Zero dividend rate should be set correctly");
         vm.stopPrank();
@@ -570,11 +619,11 @@ contract TestDividend is Helpers {
         // Set time to exactly midnight (divisible by 1 day) in the past
         uint256 midnightTime = 1_000_000_000; // This should be midnight
         vm.warp(midnightTime + 1 days); // Set current time to future
-        
+
         vm.startPrank(tokenAdmin);
         uint256 funded = ICTMRWA1Dividend(dividendContract).fundDividend(1, midnightTime);
         vm.stopPrank();
-        
+
         assertGt(funded, 0, "Funding at exactly midnight should succeed");
     }
 
@@ -588,11 +637,11 @@ contract TestDividend is Helpers {
         // Set time to one second before midnight in the past
         uint256 beforeMidnight = 1_000_000_000 - 1;
         vm.warp(beforeMidnight + 1 days); // Set current time to future
-        
+
         vm.startPrank(tokenAdmin);
         uint256 funded = ICTMRWA1Dividend(dividendContract).fundDividend(1, beforeMidnight);
         vm.stopPrank();
-        
+
         assertGt(funded, 0, "Funding one second before midnight should succeed");
     }
 
@@ -606,11 +655,11 @@ contract TestDividend is Helpers {
         // Set time to one second after midnight in the past
         uint256 afterMidnight = 1_000_000_000 + 1;
         vm.warp(afterMidnight + 1 days); // Set current time to future
-        
+
         vm.startPrank(tokenAdmin);
         uint256 funded = ICTMRWA1Dividend(dividendContract).fundDividend(1, afterMidnight);
         vm.stopPrank();
-        
+
         assertGt(funded, 0, "Funding one second after midnight should succeed");
     }
 
@@ -622,11 +671,11 @@ contract TestDividend is Helpers {
         // Try to fund exactly 30 days after the last funding (should succeed based on contract behavior)
         uint48 lastFunding = ICTMRWA1Dividend(dividendContract).lastFundingBySlot(1);
         uint256 exactly30Days = lastFunding + 30 days;
-        
+
         vm.startPrank(tokenAdmin);
         uint256 funded = ICTMRWA1Dividend(dividendContract).fundDividend(1, exactly30Days);
         vm.stopPrank();
-        
+
         assertGt(funded, 0, "Funding exactly 30 days after last funding should succeed");
     }
 
@@ -638,11 +687,11 @@ contract TestDividend is Helpers {
         // Try to fund one second after 30 days (should succeed)
         uint48 lastFunding = ICTMRWA1Dividend(dividendContract).lastFundingBySlot(1);
         uint256 oneSecondAfter30Days = lastFunding + 30 days + 1;
-        
+
         vm.startPrank(tokenAdmin);
         uint256 funded = ICTMRWA1Dividend(dividendContract).fundDividend(1, oneSecondAfter30Days);
         vm.stopPrank();
-        
+
         assertGt(funded, 0, "Funding one second after 30 days should succeed");
     }
 
@@ -657,7 +706,7 @@ contract TestDividend is Helpers {
         vm.startPrank(user2);
         uint256 claimed = ICTMRWA1Dividend(dividendContract).claimDividend();
         vm.stopPrank();
-        
+
         assertEq(claimed, 0, "User with no tokens should claim zero dividends");
     }
 
@@ -672,7 +721,7 @@ contract TestDividend is Helpers {
         vm.startPrank(tokenAdmin);
         uint256 funded = ICTMRWA1Dividend(dividendContract).fundDividend(1, 0);
         vm.stopPrank();
-        
+
         assertEq(funded, 0, "Funding with time 0 should return 0 when no tokens exist at that time");
     }
 
@@ -686,11 +735,11 @@ contract TestDividend is Helpers {
         // Try funding with maximum uint48 time in the past
         uint256 maxTime = (1 << 48) - 1;
         vm.warp(maxTime + 1 days); // Set current time to future
-        
+
         vm.startPrank(tokenAdmin);
         uint256 funded = ICTMRWA1Dividend(dividendContract).fundDividend(1, maxTime);
         vm.stopPrank();
-        
+
         // The contract actually finds tokens at this time, so it returns a non-zero amount
         assertGt(funded, 0, "Funding with maximum time should succeed when tokens exist at that time");
     }
@@ -708,7 +757,7 @@ contract ReentrantAttacker {
 
     function claimDividend() external {
         claimCount++;
-        
+
         if (!isReentering) {
             isReentering = true;
             // Try to call claimDividend again during the first call
@@ -718,5 +767,5 @@ contract ReentrantAttacker {
     }
 
     // Required to receive tokens
-    receive() external payable {}
+    receive() external payable { }
 }

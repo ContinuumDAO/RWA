@@ -2,13 +2,13 @@
 
 pragma solidity 0.8.27;
 
-import { Address } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface ICTMRWAERC20 is IERC20 {
-    error CTMRWAERC20_InvalidContract(Address);
+    error CTMRWAERC20_InvalidContract(CTMRWAErrorParam);
     error CTMRWAERC20_NonExistentSlot(uint256);
-    error CTMRWAERC20_IsZeroAddress(Address);
+    error CTMRWAERC20_IsZeroAddress(CTMRWAErrorParam);
     error CTMRWAERC20_MaxTokens();
 
     function ID() external view returns (uint256);

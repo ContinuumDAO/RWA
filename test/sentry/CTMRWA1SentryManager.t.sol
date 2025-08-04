@@ -17,7 +17,7 @@ import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
-import { List, Uint, Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 // Minimal mock for CTMRWA1Identity
 contract MockCTMRWA1Identity is ICTMRWA1Identity {
@@ -66,7 +66,11 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot set sentry options
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
+            abi.encodeWithSelector(
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector,
+                CTMRWAErrorParam.Sender,
+                CTMRWAErrorParam.TokenAdmin
+            )
         );
         sentryManager.setSentryOptions(
             ID,
@@ -124,7 +128,11 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot add whitelist
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
+            abi.encodeWithSelector(
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector,
+                CTMRWAErrorParam.Sender,
+                CTMRWAErrorParam.TokenAdmin
+            )
         );
         sentryManager.addWhitelist(
             ID, _stringToArray(user1.toHexString()), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
@@ -157,7 +165,11 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot add country list
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
+            abi.encodeWithSelector(
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector,
+                CTMRWAErrorParam.Sender,
+                CTMRWAErrorParam.TokenAdmin
+            )
         );
         sentryManager.addCountrylist(ID, _stringToArray("US"), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
@@ -188,7 +200,11 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot go public
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
+            abi.encodeWithSelector(
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector,
+                CTMRWAErrorParam.Sender,
+                CTMRWAErrorParam.TokenAdmin
+            )
         );
         sentryManager.goPublic(ID, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
@@ -365,7 +381,9 @@ contract TestSentryManager is Helpers {
         bool[] memory choices = new bool[](2); // Different length
 
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_LengthMismatch.selector, Uint.Input)
+            abi.encodeWithSelector(
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_LengthMismatch.selector, CTMRWAErrorParam.Input
+            )
         );
         sentryManager.addWhitelist(ID, addresses, choices, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
@@ -380,7 +398,9 @@ contract TestSentryManager is Helpers {
 
         // Don't enable whitelist
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_Disabled)
+            abi.encodeWithSelector(
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, CTMRWAErrorParam.WL_Disabled
+            )
         );
         sentryManager.addWhitelist(
             ID, _stringToArray(user1.toHexString()), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
@@ -398,7 +418,7 @@ contract TestSentryManager is Helpers {
         // Don't enable country lists
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_BL_Undefined
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, CTMRWAErrorParam.WL_BL_Undefined
             )
         );
         sentryManager.addCountrylist(ID, _stringToArray("US"), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr);
@@ -416,7 +436,7 @@ contract TestSentryManager is Helpers {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_KYC_Disabled
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, CTMRWAErrorParam.WL_KYC_Disabled
             )
         );
         sentryManager.setSentryOptions(
@@ -557,7 +577,9 @@ contract TestSentryManager is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
 
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_BL_Defined)
+            abi.encodeWithSelector(
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, CTMRWAErrorParam.WL_BL_Defined
+            )
         );
         sentryManager.setSentryOptions(
             ID,
@@ -761,7 +783,11 @@ contract TestSentryManager is Helpers {
         // New admin cannot remove themselves from whitelist
         vm.stopPrank();
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_Unauthorized.selector, Address.Wallet, Address.TokenAdmin));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1Sentry.CTMRWA1Sentry_Unauthorized.selector, CTMRWAErrorParam.Wallet, CTMRWAErrorParam.TokenAdmin
+            )
+        );
         sentryManager.addWhitelist(
             ID, _stringToArray(newAdminStr), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr
         );
@@ -960,7 +986,9 @@ contract TestSentryManager is Helpers {
         string[] memory invalidCountries = new string[](1);
         invalidCountries[0] = "USA"; // 3 letters
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidLength.selector, Uint.CountryCode)
+            abi.encodeWithSelector(
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidLength.selector, CTMRWAErrorParam.CountryCode
+            )
         );
         sentryManager.addCountrylist(ID, invalidCountries, choices, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();

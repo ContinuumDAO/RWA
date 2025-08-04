@@ -6,12 +6,14 @@ import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 
 import { ICTMRWA1InvestWithTimeLock } from "../deployment/ICTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
-import { Checkpoints } from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
+
 import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Checkpoints } from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -59,13 +61,14 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         uint256 slot;
         uint48 fundingTime;
     }
+
     DividendFunding[] public dividendFundings;
 
     /// @notice Tracks the last claimed index for each holder and slot
     mapping(uint256 => mapping(address => uint256)) public lastClaimedIndex;
 
     /// @dev slot => dividend rate
-    mapping (uint256 => Checkpoints.Trace208) internal _dividendRate;
+    mapping(uint256 => Checkpoints.Trace208) internal _dividendRate;
 
     event NewDividendToken(address newToken, address currentAdmin);
     event ChangeDividendRate(uint256 slot, uint256 newDividend, address currentAdmin);
@@ -74,13 +77,15 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
 
     modifier onlyTokenAdmin() {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1Dividend_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+            revert CTMRWA1Dividend_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
         }
         _;
     }
 
     modifier whenDividendNotPaused() {
-        if (paused()) revert CTMRWA1Dividend_EnforcedPause();
+        if (paused()) {
+            revert CTMRWA1Dividend_EnforcedPause();
+        }
         _;
     }
 
@@ -93,7 +98,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         RWA_TYPE = _rwaType;
         VERSION = _version;
     }
-
 
     /**
      * @notice Change the tokenAdmin address
@@ -113,7 +117,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
     function setDividendToken(address _dividendToken) external onlyTokenAdmin returns (bool) {
         if (dividendToken != address(0)) {
             if (IERC20(dividendToken).balanceOf(address(this)) != 0) {
-                revert CTMRWA1Dividend_InvalidDividend(Uint.Balance);
+                revert CTMRWA1Dividend_InvalidDividend(CTMRWAErrorParam.Balance);
             }
         }
 
@@ -208,7 +212,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
     /**
      * @notice Add a new checkpoint for claiming dividends for an Asset Class (slot).
      * The function then calculates how much dividend is needed to transfer to this contract to pay the dividends
-     * and then transfers the funds to this contract ready for claiming by all holders of tokenIds in 
+     * and then transfers the funds to this contract ready for claiming by all holders of tokenIds in
      * the RWA token. It takes payment in the current dividend token.
      * @param _slot The Asset Class (slot) to add dividends for
      * @param _fundingTime The time to use to calculate the dividend
@@ -217,10 +221,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
      * NOTE This is not a cross-chain function. It must be called on each chain in the RWA. Use Multicall
      * with the same _fundingTime to prevent arbitrage.
      */
-    function fundDividend(
-        uint256 _slot,
-        uint256 _fundingTime
-    ) public onlyTokenAdmin nonReentrant returns (uint256) {
+    function fundDividend(uint256 _slot, uint256 _fundingTime) public onlyTokenAdmin nonReentrant returns (uint256) {
         if (dividendToken == address(0)) {
             revert CTMRWA1Dividend_FundTokenNotSet();
         }
@@ -241,11 +242,10 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
 
         uint256 supplyInSlot;
         uint256 supplyInInvestContract;
-       
+
         (bool investContractExists, address ctmRwaInvest) =
             ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
 
-    
         uint256 totalSupplyInSlot = ICTMRWA1(tokenAddr).totalSupplyInSlotAt(_slot, midnight);
 
         if (investContractExists) {
@@ -264,7 +264,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
             revert CTMRWA1Dividend_FailedTransaction();
         }
 
-        dividendFundings.push(DividendFunding({slot: _slot, fundingTime: midnight}));
+        dividendFundings.push(DividendFunding({ slot: _slot, fundingTime: midnight }));
 
         emit FundDividend(dividendPayable, dividendToken, tokenAdmin);
 
@@ -277,7 +277,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
      * NOTE The holder can see the dividendtoken address using the dividendToken() function
      */
     function claimDividend() public nonReentrant whenDividendNotPaused returns (uint256) {
-
         uint256 dividend = getDividendPayable(msg.sender);
 
         // Update lastClaimedIndex for all slots
@@ -292,7 +291,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         }
 
         if (IERC20(dividendToken).balanceOf(address(this)) < dividend) {
-            revert CTMRWA1Dividend_InvalidDividend(Uint.Balance);
+            revert CTMRWA1Dividend_InvalidDividend(CTMRWAErrorParam.Balance);
         }
 
         IERC20(dividendToken).transfer(msg.sender, dividend);
@@ -313,10 +312,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         return 0;
     }
 
-   
-    function _addDividendSnapshot(uint256 slot) internal {
-   
-    }
+    function _addDividendSnapshot(uint256 slot) internal { }
 
     /**
      * @notice Pause the contract. Only callable by tokenAdmin.

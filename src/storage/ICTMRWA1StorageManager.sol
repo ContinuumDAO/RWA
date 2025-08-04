@@ -3,15 +3,15 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { Address, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { URICategory, URIType } from "./ICTMRWA1Storage.sol";
 
 interface ICTMRWA1StorageManager is ICTMRWA {
-    error CTMRWA1StorageManager_OnlyAuthorized(Address, Address);
-    error CTMRWA1StorageManager_InvalidContract(Address);
+    error CTMRWA1StorageManager_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
+    error CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam);
     error CTMRWA1StorageManager_NoStorage();
     error CTMRWA1StorageManager_ObjectAlreadyExists();
-    error CTMRWA1StorageManager_InvalidLength(Uint);
+    error CTMRWA1StorageManager_InvalidLength(CTMRWAErrorParam);
     error CTMRWA1StorageManager_SameChain();
     error CTMRWA1StorageManager_StartNonce();
 

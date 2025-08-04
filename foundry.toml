@@ -1,17 +1,14 @@
 [profile.default]
+src = "flattened"
 out = "out"
 libs = ["lib"]
 optimizer = true
-#optimizer = false
 optimizer_runs = 100
 via_ir = true
-ffi = true
-#ast = true
-#build_info = true
-#extra_output = ["storageLayout"]
 gas_limit = 10_000_000_000 
-#fs_permissions = [{ access = "read", path = "out" }]
 solc = "0.8.27"
+evm_version = "cancun"
+fs_permissions = [{ access = "read-write", path = "./production.json"}]
 
 remappings = [
     "forge-std/=lib/forge-std/src/",

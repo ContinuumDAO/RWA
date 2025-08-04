@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { Address, Time, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 
 struct Offering {
     uint256 tokenId;
@@ -32,15 +32,15 @@ struct Holding {
 }
 
 interface ICTMRWA1InvestWithTimeLock {
-    error CTMRWA1InvestWithTimeLock_OnlyAuthorized(Address, Address);
-    error CTMRWA1InvestWithTimeLock_InvalidContract(Address);
+    error CTMRWA1InvestWithTimeLock_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
+    error CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam);
     error CTMRWA1InvestWithTimeLock_OutOfBounds();
     error CTMRWA1InvestWithTimeLock_NonExistentToken(uint256);
     error CTMRWA1InvestWithTimeLock_MaxOfferings();
-    error CTMRWA1InvestWithTimeLock_InvalidLength(Uint);
+    error CTMRWA1InvestWithTimeLock_InvalidLength(CTMRWAErrorParam);
     error CTMRWA1InvestWithTimeLock_Paused();
-    error CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time);
-    error CTMRWA1InvestWithTimeLock_InvalidAmount(Uint);
+    error CTMRWA1InvestWithTimeLock_InvalidTimestamp(CTMRWAErrorParam);
+    error CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam);
     error CTMRWA1InvestWithTimeLock_NotWhiteListed(address);
     error CTMRWA1InvestWithTimeLock_AlreadyWithdrawn(uint256);
     error CTMRWA1InvestWithTimeLock_InvalidOfferingIndex();
@@ -94,7 +94,15 @@ interface ICTMRWA1InvestWithTimeLock {
 
     function listEscrowHolding(address holder, uint256 myIndx) external view returns (Holding memory);
 
-    function getRewardInfo(address holder, uint256 offerIndex, uint256 holdingIndex) external view returns (address rewardToken, uint256 rewardAmount);
+    function getRewardInfo(address holder, uint256 offerIndex, uint256 holdingIndex)
+        external
+        view
+        returns (address rewardToken, uint256 rewardAmount);
     function claimReward(uint256 offerIndex, uint256 holdingIndex) external;
-    function fundRewardTokenForOffering(uint256 _offeringIndex, uint256 _fundAmount, uint256 _rewardMultiplier, uint256 _rateDivisor) external;
+    function fundRewardTokenForOffering(
+        uint256 _offeringIndex,
+        uint256 _fundAmount,
+        uint256 _rewardMultiplier,
+        uint256 _rateDivisor
+    ) external;
 }

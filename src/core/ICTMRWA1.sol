@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { Address, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA } from "./ICTMRWA.sol";
 
 /**
@@ -58,17 +58,17 @@ interface ICTMRWA1 is ICTMRWA {
     event SlotChanged(uint256 indexed tokenId, uint256 indexed oldSlot, uint256 indexed newSlot);
 
     /// @dev Auth errors
-    error CTMRWA1_Unauthorized(Address addr, Address unauth); // `addr` cannot be `unauth`
-    error CTMRWA1_OnlyAuthorized(Address addr, Address auth); // `addr` must be `auth`
+    error CTMRWA1_Unauthorized(CTMRWAErrorParam addr, CTMRWAErrorParam unauth); // `addr` cannot be `unauth`
+    error CTMRWA1_OnlyAuthorized(CTMRWAErrorParam addr, CTMRWAErrorParam auth); // `addr` must be `auth`
 
     /// @dev Address errors
-    error CTMRWA1_IsZeroAddress(Address);
-    error CTMRWA1_NotZeroAddress(Address);
+    error CTMRWA1_IsZeroAddress(CTMRWAErrorParam);
+    error CTMRWA1_NotZeroAddress(CTMRWAErrorParam);
 
     /// @dev Uint errors
-    error CTMRWA1_IsZeroUint(Uint);
-    error CTMRWA1_NonZeroUint(Uint);
-    error CTMRWA1_LengthMismatch(Uint);
+    error CTMRWA1_IsZeroUint(CTMRWAErrorParam);
+    error CTMRWA1_NonZeroUint(CTMRWAErrorParam);
+    error CTMRWA1_LengthMismatch(CTMRWAErrorParam);
     error CTMRWA1_ValueOverflow(uint256 value, uint256 maxValue);
     error CTMRWA1_InsufficientBalance();
     error CTMRWA1_InsufficientAllowance();

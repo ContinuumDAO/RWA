@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity 0.8.27;
 
-import { CTMRWAUtils, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "./IFeeManager.sol";
 import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -25,7 +25,13 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
  * Governance can withdraw fees from this contract to a treasury address.
  * This contract is deployed once on each chain.
  */
-contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgradeable, UUPSUpgradeable, PausableUpgradeable {
+contract FeeManager is
+    IFeeManager,
+    ReentrancyGuardUpgradeable,
+    C3GovernDappUpgradeable,
+    UUPSUpgradeable,
+    PausableUpgradeable
+{
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
@@ -84,7 +90,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
      */
     function addFeeToken(string memory _feeTokenStr) external onlyGov whenNotPaused nonReentrant returns (bool) {
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(Uint.Address);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
         uint256 index = feeTokenList.length;
@@ -101,7 +107,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
      */
     function delFeeToken(string memory _feeTokenStr) external onlyGov whenNotPaused nonReentrant returns (bool) {
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(Uint.Address);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
         if (feeTokenIndexMap[feeToken] == 0) {
@@ -137,7 +143,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
      */
     function getFeeTokenIndexMap(string memory _feeTokenStr) external view returns (uint256) {
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(Uint.Address);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
         }
         address feeToken = _feeTokenStr._toLower()._stringToAddress();
         return (feeTokenIndexMap[feeToken]);
@@ -159,11 +165,11 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
         returns (bool)
     {
         if (bytes(dstChainIDStr).length == 0) {
-            revert FeeManager_InvalidLength(Uint.ChainID);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.ChainID);
         }
 
         if (feeTokensStr.length != baseFee.length) {
-            revert FeeManager_InvalidLength(Uint.Input);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Input);
         }
 
         dstChainIDStr = dstChainIDStr._toLower();
@@ -171,7 +177,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
         address[] memory localFeetokens = new address[](feeTokensStr.length);
         for (uint256 i = 0; i < feeTokensStr.length; i++) {
             if (bytes(feeTokensStr[i]).length != 42) {
-                revert FeeManager_InvalidLength(Uint.Address);
+                revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
             }
             localFeetokens[i] = feeTokensStr[i]._toLower()._stringToAddress();
         }
@@ -198,11 +204,11 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
     {
         uint256 idx = uint256(_feeType);
         if (idx >= feeMultiplier.length) {
-            revert FeeManager_InvalidLength(Uint.Input);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Input);
         }
 
         if (_multiplier > MAX_SAFE_MULTIPLIER) {
-            revert FeeManager_InvalidLength(Uint.Multiplier);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Multiplier);
         }
         feeMultiplier[idx] = _multiplier;
         emit SetFeeMultiplier(_feeType, _multiplier);
@@ -215,7 +221,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
     function getFeeMultiplier(FeeType _feeType) public view returns (uint256) {
         uint256 idx = uint256(_feeType);
         if (idx >= feeMultiplier.length) {
-            revert FeeManager_InvalidLength(Uint.Input);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Input);
         }
         return feeMultiplier[idx];
     }
@@ -251,7 +257,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
         uint256 baseFee;
         for (uint256 i = 0; i < _toChainIDsStr.length; i++) {
             if (bytes(_toChainIDsStr[i]).length == 0) {
-                revert FeeManager_InvalidLength(Uint.ChainID);
+                revert FeeManager_InvalidLength(CTMRWAErrorParam.ChainID);
             }
             baseFee += getToChainBaseFee(_toChainIDsStr[i], _feeTokenStr);
         }
@@ -273,7 +279,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
      */
     function payFee(uint256 _fee, string memory _feeTokenStr) external nonReentrant whenNotPaused returns (uint256) {
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(Uint.Address);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
         if (!IERC20(feeToken).transferFrom(msg.sender, address(this), _fee)) {
@@ -297,11 +303,11 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
         returns (bool)
     {
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(Uint.Address);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
         if (bytes(_treasuryStr).length != 42) {
-            revert FeeManager_InvalidLength(Uint.Address);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
         }
         address treasury = _treasuryStr._stringToAddress();
 
@@ -324,11 +330,11 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
      */
     function getToChainBaseFee(string memory _toChainIDStr, string memory _feeTokenStr) public view returns (uint256) {
         if (bytes(_toChainIDStr).length == 0) {
-            revert FeeManager_InvalidLength(Uint.ChainID);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.ChainID);
         }
 
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(Uint.Address);
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
         }
 
         address feeToken = _feeTokenStr._stringToAddress();
