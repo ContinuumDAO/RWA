@@ -454,6 +454,8 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         }
     }
 
+    function rewardHolders()
+
     /**
      * @notice A holder of an investment can withdraw their tokenId from escrow into their possesion.
      * @param _myIndx The zero based index of the Holding to unlock. An investor can have multipe Holdings
@@ -498,7 +500,11 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
      * @return tokensInEscrow The tokenIds in escrow
      * @return ownersInEscrow The owners of the tokenIds in escrow
      */
+<<<<<<< Updated upstream
     function getTokenIdsInEscrow() external view returns (uint256[] memory, address[] memory) {
+=======
+    function getTokenIdsInEscrow() public returns (uint256[] memory, address[] memory) {
+>>>>>>> Stashed changes
         return (tokensInEscrow, ownersInEscrow);
     }
 
