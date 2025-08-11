@@ -117,7 +117,6 @@ chainDirs.forEach(chainId => {
         })
 
         list[chainId].feeToken = process.env[`FEE_TOKEN_${chainId}`] || "0x0000000000000000000000000000000000000000"
-        
     } catch (error) {
         console.error(`Error processing chain ID ${chainId}:`, error.message)
     }

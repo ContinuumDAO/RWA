@@ -103,7 +103,7 @@ SONEIUM_MINATO_RPC_URL=https://rpc.minato.soneium.org/
 ## Make Scripts Executable
 
 ```bash
-chmod +x helpers/[0-9,"b"]*
+chmod +x helpers/[0-9]*
 chmod +x helpers/deploy/*
 chmod +x helpers/configure/*
 ```
@@ -121,15 +121,14 @@ This is required for single-file verification on chains that do not support Ethe
 Use the compilation script to compile the flattened source code and scripts.
 
 ```bash
-./helpers/1-build-flattened.sh
-./helpers/2-build-script.sh
+./helpers/1-clean.sh
+./helpers/2-build-flattened.sh
+./helpers/5-build-script.sh
 ```
 
 ## Deploy Contracts
 
 Run each of the following scripts to deploy. This will first execute a simulation, then allow you elect to deploy all contracts to the given network (broadcast) and verify the contracts on Etherscan if possible.
-
-Gas unit requirement for this script is 56812077. At gas price ~= 0.2 gwei (Arbitrum Sepolia), this would require 0.011362415 ETH.
 
 ```bash
 ./helpers/deploy/arbitrum-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
@@ -170,7 +169,7 @@ node js-helpers/generate-environment.js
 This will expose the generated contract addresses to the execution environment.
 
 ```bash
-source helpers/3-export-env.sh
+source helpers/6-export-env.sh
 ```
 
 ## Configure Contracts
