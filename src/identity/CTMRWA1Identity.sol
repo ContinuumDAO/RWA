@@ -23,9 +23,9 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * @notice This contract is to allow a user to register their KYC credentials and if they
  * satisfy the requirements of the KYC Schema, then their address is Whitelisted in the RWA token
  * on all chains. It allows truly decentralized & anonymous cross-chain credential verifications.
- * NOTE This contract currently is only configured to work with zkMe (https://zk.me), but will be extended
+ * NOTE: This contract currently is only configured to work with zkMe (https://zk.me), but will be extended
  * in the future to include other zkProof identity systems.
- * NOTE This contract is only deployed on some chains, corrsponding to where the zkMe verifier contract is.
+ * NOTE: This contract is only deployed on some chains, corrsponding to where the zkMe verifier contract is.
  * This means that if an Issuer wants to use KYC using zkMe, they must first add one of these chains to their
  * RWA token AND ONLY THEN call setSentryOptions to enable the _kyc flag. IT HAS TO BE DONE IN THIS ORDER.
  */
