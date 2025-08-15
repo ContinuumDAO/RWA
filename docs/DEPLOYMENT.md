@@ -177,8 +177,8 @@ Run the JS helpers found in `js-helpers/` to generate (i) a .env.deployed file f
 
 ```bash
 node js-helpers/0-generate-environment.js
-node js-helpers/1-list-contract-addresses.js
-node js-helpers/2-list-identity-addresses.js
+node js-helpers/1-save-contract-addresses.js
+node js-helpers/2-save-identity-addresses.js
 ```
 
 ## Source the Deployed Contract Environment File
