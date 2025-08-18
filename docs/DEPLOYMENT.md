@@ -133,18 +133,12 @@ Use the compilation script to compile the flattened source code and scripts.
 
 ### Core Contracts (every network)
 
-Run each of the following scripts to deploy. This will first execute a simulation, then allow you elect to deploy all contracts to the given network (broadcast) and verify the contracts on Etherscan if possible.
+Run each of the following scripts to deploy. This will first execute a
+simulation, then allow you elect to deploy all contracts to the given network
+(broadcast) and verify the contracts on Etherscan if possible.
 
 ```bash
-./helpers/deploy/arbitrum-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/avalanche-fuji.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/base-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/bsc-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/holesky.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/opbnb-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/scroll-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/soneium-minato-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/deploy/all.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
 ```
 
 All contracts are now deployed and initialized; their addresses are accessible in `broadcast/DeployAssetX.s.sol/<chain-id>/run-latest.json`.
@@ -196,15 +190,7 @@ source helpers/6-export-env.sh
 Run each of the following scripts to configure initial values on all networks. This will first execute a simulation, then allow you elect to configure all contracts to the given network (broadcast), to link all other deployed contracts.
 
 ```bash
-./helpers/configure/arbitrum-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/avalanche-fuji.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/base-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/bsc-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/holesky.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/opbnb-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/scroll-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/soneium-minato-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/configure/all.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
 ```
 
 ## Complete

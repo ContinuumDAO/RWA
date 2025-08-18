@@ -95,15 +95,11 @@ contract ConfigureAssetX is Script {
 
     function buildContractSetup() public {
         for (uint256 j = 0; j < deployedContracts.length; j++) {
-            if (Strings.equal(deployedContracts[j].chainIdStr, chainIdStr)) {
-                continue;
-            } else {
-                chainIdsStr.push(deployedContracts[j].chainIdStr); // already is string
-                gatewaysStr.push(vm.toString(deployedContracts[j].gateway));
-                rwaXsStr.push(vm.toString(deployedContracts[j].rwa1X));
-                storageManagersStr.push(vm.toString(deployedContracts[j].storageManager));
-                sentryManagersStr.push(vm.toString(deployedContracts[j].sentryManager));
-            }
+            chainIdsStr.push(deployedContracts[j].chainIdStr); // already is string
+            gatewaysStr.push(vm.toString(deployedContracts[j].gateway));
+            rwaXsStr.push(vm.toString(deployedContracts[j].rwa1X));
+            storageManagersStr.push(vm.toString(deployedContracts[j].storageManager));
+            sentryManagersStr.push(vm.toString(deployedContracts[j].sentryManager));
         }
     }
 
