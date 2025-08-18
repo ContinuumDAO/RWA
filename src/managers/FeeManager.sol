@@ -3,7 +3,7 @@ pragma solidity 0.8.27;
 
 import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "./IFeeManager.sol";
-import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
+import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
@@ -28,7 +28,7 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 contract FeeManager is
     IFeeManager,
     ReentrancyGuardUpgradeable,
-    C3GovernDappUpgradeable,
+    C3GovernDAppUpgradeable,
     UUPSUpgradeable,
     PausableUpgradeable
 {
@@ -67,7 +67,7 @@ contract FeeManager is
     {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
-        __C3GovernDapp_init(govAddr, c3callerProxyAddr, txSender, dappID2);
+        __C3GovernDApp_init(govAddr, c3callerProxyAddr, txSender, dappID2);
         __Pausable_init();
     }
 

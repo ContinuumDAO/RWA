@@ -13,7 +13,7 @@ import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "./ICTMRWA1SentryManager.sol";
 import { ICTMRWA1SentryUtils } from "./ICTMRWA1SentryUtils.sol";
-import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
+import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -30,7 +30,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1Sentry contract
  * deployments and functions.
  */
-contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable, UUPSUpgradeable {
+contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
@@ -96,7 +96,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
         address _gateway,
         address _feeManager
     ) external initializer {
-        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
         ctmRwaDeployer = _ctmRwaDeployer;
         gateway = _gateway;
         feeManager = _feeManager;
@@ -657,7 +657,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDappUpgradeable,
         return (currentAdmin, currentAdminStr);
     }
 
-    /// @dev The fallback function for this GovernDapp in the event of a cross-chain call failure
+    /// @dev The fallback function for this GovernDApp in the event of a cross-chain call failure
     /// @param _selector The selector of the function that failed
     /// @param _data The data of the function that failed
     /// @param _reason The reason for the failure

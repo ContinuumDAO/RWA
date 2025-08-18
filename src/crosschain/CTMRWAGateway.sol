@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { ChainContract, ICTMRWAGateway } from "./ICTMRWAGateway.sol";
-import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
+import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -15,11 +15,11 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * @notice This contract is the gateway between any blockchain that can have an RWA deployed
  * to it. It stores the contract addresses of CTMRWAGateway contracts on other chians, as well
  * as the contract addresses of CTMRWA1X, CTMRWA1StorageManager and CTMRWA1SentryMananager
- * contracts. This enables c3calls to be made between all the c3Caller dApps that make up AssetX
+ * contracts. This enables c3calls to be made between all the c3Caller DApps that make up AssetX
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
-contract CTMRWAGateway is ICTMRWAGateway, C3GovernDappUpgradeable, UUPSUpgradeable {
+contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using CTMRWAUtils for string;
 
@@ -47,7 +47,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDappUpgradeable, UUPSUpgradeab
         external
         initializer
     {
-        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
         cIdStr = cID().toString();
         _addChainContract(cID(), address(this));
     }

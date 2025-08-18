@@ -11,7 +11,7 @@ import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
 import { ICTMRWA1StorageUtils } from "./ICTMRWA1StorageUtils.sol";
-import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
+import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -28,7 +28,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
-contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDappUpgradeable, UUPSUpgradeable {
+contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for *;
@@ -79,7 +79,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDappUpgradeabl
         address _gateway,
         address _feeManager
     ) external initializer {
-        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
         ctmRwaDeployer = _ctmRwaDeployer;
         gateway = _gateway;
         feeManager = _feeManager;

@@ -8,7 +8,7 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { IC3GovClient } from "@c3caller/gov/IC3GovClient.sol";
-import { IC3GovernDapp } from "@c3caller/gov/IC3GovernDapp.sol";
+import { IC3GovernDApp } from "@c3caller/gov/IC3GovernDApp.sol";
 import { C3ErrorParam } from "@c3caller/utils/C3CallerUtils.sol";
 
 import { FeeManager } from "../../src/managers/FeeManager.sol";
@@ -404,12 +404,12 @@ contract TestFeeManagerUpgrades is Helpers {
         );
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
-        // Test that C3GovernDapp functionality is preserved
+        // Test that C3GovernDApp functionality is preserved
         // The contract should still have governance controls
         vm.startPrank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDapp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
             )
         );
         success = feeManager.addFeeToken(address(0x123).toHexString());

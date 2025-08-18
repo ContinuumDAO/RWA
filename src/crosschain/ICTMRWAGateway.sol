@@ -3,14 +3,14 @@
 pragma solidity 0.8.27;
 
 import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { IC3GovernDapp } from "@c3caller/gov/IC3GovernDapp.sol";
+import { IC3GovernDApp } from "@c3caller/gov/IC3GovernDApp.sol";
 
 struct ChainContract {
     string chainIdStr;
     string contractStr;
 }
 
-interface ICTMRWAGateway is IC3GovernDapp {
+interface ICTMRWAGateway is IC3GovernDApp {
     error CTMRWAGateway_LengthMismatch(CTMRWAErrorParam);
     error CTMRWAGateway_InvalidLength(CTMRWAErrorParam);
 
