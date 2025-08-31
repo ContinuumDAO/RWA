@@ -40,7 +40,7 @@ contract CTMRWA1DividendFactory is ICTMRWA1DividendFactory {
         onlyDeployer
         returns (address)
     {
-        CTMRWA1Dividend ctmRwa1Dividend =
+        CTMRWA1Dividend ctmRwa1Dividend = 
             new CTMRWA1Dividend{ salt: bytes32(_ID) }(_ID, _tokenAddr, _rwaType, _version, _map);
 
         return (address(ctmRwa1Dividend));

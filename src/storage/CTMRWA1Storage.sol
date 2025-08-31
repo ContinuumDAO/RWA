@@ -2,13 +2,13 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1Storage } from "./ICTMRWA1Storage.sol";
-import { URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
-import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {ICTMRWA1, ITokenContract} from "../core/ICTMRWA1.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {CTMRWAErrorParam, CTMRWAUtils} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA1Storage} from "./ICTMRWA1Storage.sol";
+import {URICategory, URIData, URIType} from "./ICTMRWA1Storage.sol";
+import {ICTMRWA1StorageManager} from "./ICTMRWA1StorageManager.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -93,18 +93,31 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
     URIData[] public uriData;
 
     /// @dev A new object has been added to the stored data in this contract
-    event NewURI(URICategory uriCategory, URIType uriType, uint256 slot, bytes32 uriDataHash);
+    event NewURI(
+        URICategory uriCategory,
+        URIType uriType,
+        uint256 slot,
+        bytes32 uriDataHash
+    );
 
     modifier onlyTokenAdmin() {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1Storage_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
+            revert CTMRWA1Storage_OnlyAuthorized(
+                CTMRWAErrorParam.Sender,
+                CTMRWAErrorParam.TokenAdmin
+            );
         }
         _;
     }
 
     modifier onlyStorageManager() {
-        if (msg.sender != storageManagerAddr && msg.sender != storageUtilsAddr) {
-            revert CTMRWA1Storage_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.StorageManager);
+        if (
+            msg.sender != storageManagerAddr && msg.sender != storageUtilsAddr
+        ) {
+            revert CTMRWA1Storage_OnlyAuthorized(
+                CTMRWAErrorParam.Sender,
+                CTMRWAErrorParam.StorageManager
+            );
         }
         _;
     }
@@ -129,7 +142,8 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         ctmRwa1X = ICTMRWA1(tokenAddr).ctmRwa1X();
 
         storageManagerAddr = _storageManagerAddr;
-        storageUtilsAddr = ICTMRWA1StorageManager(storageManagerAddr).utilsAddr();
+        storageUtilsAddr = ICTMRWA1StorageManager(storageManagerAddr)
+            .utilsAddr();
 
         baseURI = ICTMRWA1(tokenAddr).baseURI();
     }
@@ -138,7 +152,9 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      * @notice Change the tokenAdmin address
      * NOTE This function can only be called by CTMRWA1X, or the existing tokenAdmin
      */
-    function setTokenAdmin(address _tokenAdmin) external onlyTokenAdmin returns (bool) {
+    function setTokenAdmin(
+        address _tokenAdmin
+    ) external onlyTokenAdmin returns (bool) {
         tokenAdmin = _tokenAdmin;
         return (true);
     }
@@ -175,7 +191,11 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         }
 
         if (_uriType == URIType.SLOT) {
-            (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+            (bool ok, ) = ICTMRWAMap(ctmRwa1Map).getTokenContract(
+                _ID,
+                RWA_TYPE,
+                VERSION
+            );
             if (!ok) {
                 revert CTMRWA1Storage_InvalidContract(CTMRWAErrorParam.Token);
             }
@@ -184,13 +204,27 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
             }
         }
 
-        if (_uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER) {
-            if (this.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) == 0) {
+        if (
+            _uriType != URIType.CONTRACT || _uriCategory != URICategory.ISSUER
+        ) {
+            if (
+                this.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT) == 0
+            ) {
                 revert CTMRWA1Storage_IssuerNotFirst();
             }
         }
 
-        uriData.push(URIData(_uriCategory, _uriType, _title, _slot, _objectName, _uriDataHash, _timestamp));
+        uriData.push(
+            URIData(
+                _uriCategory,
+                _uriType,
+                _title,
+                _slot,
+                _objectName,
+                _uriDataHash,
+                _timestamp
+            )
+        );
         uriDataIndex[_objectName] = nonce;
 
         nonce++;
@@ -236,7 +270,10 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      * address able to forceTransfer any holders tokenIds to another wallet.
      */
     function createSecurity(address _regulatorWallet) public onlyTokenAdmin {
-        uint256 securityURICount = this.getURIHashCount(URICategory.LICENSE, URIType.CONTRACT);
+        uint256 securityURICount = this.getURIHashCount(
+            URICategory.LICENSE,
+            URIType.CONTRACT
+        );
         if (securityURICount == 0) {
             revert CTMRWA1Storage_NoSecurityDescription();
         }
@@ -294,7 +331,15 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
             timestamp[i] = uriData[i].timeStamp;
         }
 
-        return (uriCategory, uriType, title, slot, objectName, uriHash, timestamp);
+        return (
+            uriCategory,
+            uriType,
+            title,
+            slot,
+            objectName,
+            uriHash,
+            timestamp
+        );
     }
 
     /**
@@ -303,15 +348,18 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      * @param _uriTyp The URIType (either URIType.CONTRACT, or URIType.SLOT)
      * @param _index the index of the data sought
      */
-    function getURIHashByIndex(URICategory _uriCat, URIType _uriTyp, uint256 _index)
-        public
-        view
-        returns (bytes32, string memory)
-    {
+    function getURIHashByIndex(
+        URICategory _uriCat,
+        URIType _uriTyp,
+        uint256 _index
+    ) public view returns (bytes32, string memory) {
         uint256 currentIndx;
 
         for (uint256 i = 0; i < uriData.length; i++) {
-            if (uriData[i].uriType == _uriTyp && uriData[i].uriCategory == _uriCat) {
+            if (
+                uriData[i].uriType == _uriTyp &&
+                uriData[i].uriCategory == _uriCat
+            ) {
                 if (_index == currentIndx) {
                     return (uriData[i].uriHash, uriData[i].objectName);
                 } else {
@@ -328,10 +376,16 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      * @param _uriCat The URICategory (see ICTMRWA1Storage for the list of enums)
      * @param _uriTyp The URIType (either URIType.CONTRACT, or URIType.SLOT)
      */
-    function getURIHashCount(URICategory _uriCat, URIType _uriTyp) external view returns (uint256) {
+    function getURIHashCount(
+        URICategory _uriCat,
+        URIType _uriTyp
+    ) external view returns (uint256) {
         uint256 count;
         for (uint256 i = 0; i < uriData.length; i++) {
-            if (uriData[i].uriType == _uriTyp && uriData[i].uriCategory == _uriCat) {
+            if (
+                uriData[i].uriType == _uriTyp &&
+                uriData[i].uriCategory == _uriCat
+            ) {
                 count++;
             }
         }
@@ -372,7 +426,9 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      * exists in decentralized storage such as BNB Greenfield. The AssetX Explorer checks both
      * and matches the stored hash of the checksum against the calculated value from the data
      */
-    function existObjectName(string memory _objectName) public view returns (bool) {
+    function existObjectName(
+        string memory _objectName
+    ) public view returns (bool) {
         if (uriDataIndex[_objectName] == 0) {
             return (false);
         } else {
@@ -384,7 +440,9 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      * @notice Return the full Storage struct corresponding to a given Object name
      * NOTE This function returns an EMPTY record if the Object name was not found
      */
-    function getURIByObjectName(string memory _objectName) public view returns (URIData memory) {
+    function getURIByObjectName(
+        string memory _objectName
+    ) public view returns (URIData memory) {
         uint256 indx = uriDataIndex[_objectName];
 
         if (indx == 0) {

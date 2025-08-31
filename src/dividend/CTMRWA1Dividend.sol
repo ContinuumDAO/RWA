@@ -230,7 +230,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         uint48 lastFunding = lastFundingBySlot(_slot);
         if (lastFunding != 0) {
             if (!(midnight > lastFunding)) {
-                revert CTMRWA1Dividend_FundingTimeLow();
+                revert CTMRWA1Dividend_FundingTimeLow(); 
             }
             if (midnight < lastFunding + 30 days) {
                 revert CTMRWA1Dividend_FundingTooFrequent();

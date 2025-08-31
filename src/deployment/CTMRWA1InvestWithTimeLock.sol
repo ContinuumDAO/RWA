@@ -423,7 +423,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     /**
      * @notice Allow an Issuer (tokenAdmin) to withdraw funds that have been invested in an Offering
      * @param _indx The zero based index of the Offering for which to withdraw funds from.
-     * NOTE The tokenAdmin can withdraw funds whenevr there are finds to withdraw. No need to wait until
+     * NOTE The tokenAdmin can withdraw funds whenever there are funds to withdraw. No need to wait until
      * after the Offering is over.
      * @return funds The amount of funds withdrawn.
      */
@@ -455,6 +455,10 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
             return 0;
         }
     }
+
+    // TODO Add a onlyTokenAdmin function to allow withdrawing an expired tokenId in the case when
+    // the sale has ended , but not all the tokenId value was sold
+
 
     /**
      * @notice A holder of an investment can withdraw their tokenId from escrow into their possesion.

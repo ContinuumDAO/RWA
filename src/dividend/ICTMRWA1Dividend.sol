@@ -13,7 +13,7 @@ interface ICTMRWA1Dividend is ICTMRWA {
     error CTMRWA1Dividend_FundingTimeFuture();
     error CTMRWA1Dividend_FundingTooFrequent();
     error CTMRWA1Dividend_FundTokenNotSet();
-    error CTMRWA1Dividend_InvalidSlot(uint256);
+    error CTMRWA1Dividend_InvalidSlot(uint256); 
     error CTMRWA1Dividend_EnforcedPause();
 
     function ID() external view returns (uint256);

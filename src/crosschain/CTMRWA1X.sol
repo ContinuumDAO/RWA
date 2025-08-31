@@ -789,7 +789,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDappUpgradea
     // End of cross chain transfers
 
     /// @dev Update a list of CTMRWA1 addresses that _ownerAddr has one or more tokenIds in
-    /// @return success True if the address was updated, false otherwise.
+    /// @return success True if the address pre-existed in the array, false otherwise.
     function _updateOwnedCtmRwa1(address _ownerAddr, address _tokenAddr) internal returns (bool) {
         uint256 len = ownedCtmRwa1[_ownerAddr].length;
 
@@ -910,7 +910,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDappUpgradea
         uint256 feeWei = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, _feeType, _feeTokenStr);
 
         if (feeWei > 0) {
-            address feeToken = _feeTokenStr._stringToAddress();
+            address feeToken = _feeTokenStr._stringToAddress(); 
 
             IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
 
