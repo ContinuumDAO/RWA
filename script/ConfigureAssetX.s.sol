@@ -105,7 +105,7 @@ contract ConfigureAssetX is Script {
 
     function run() public {
         LoadDeployedContracts loadDeployedContracts = new LoadDeployedContracts();
-        deployedContracts = loadDeployedContracts.run();
+        deployedContracts = loadDeployedContracts.all();
 
         if (block.chainid == 31337) revert ("Use --chain-id flag!");
         chainIdStr = vm.toString(block.chainid);

@@ -4,6 +4,8 @@ pragma solidity 0.8.27;
 
 import { Script } from "forge-std/Script.sol";
 import { ICTMRWAGateway } from "../flattened/crosschain/CTMRWAGateway.sol";
+import { LoadDeployedContracts } from "./LoadDeployedContracts.s.sol";
+import { DeployedContracts } from "./Utils.s.sol";
 
 contract AddLocalContracts is Script {
     address gateway;
@@ -24,7 +26,12 @@ contract AddLocalContracts is Script {
     uint256 RWA_TYPE = 1;
     uint256 VERSION = 1;
 
+    DeployedContracts deployedContracts;
+
     function run() public {
+        LoadDeployedContracts loadDeployedContracts = new LoadDeployedContracts();
+        deployedContracts = loadDeployedContracts.local();
+
         string memory chainIdStr = vm.toString(block.chainid);
         string[] memory chainIdsStr = new string[](1);
         chainIdsStr[0] = chainIdStr;
