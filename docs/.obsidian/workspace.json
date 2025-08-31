@@ -1,24 +1,20 @@
 {
   "main": {
-    "id": "910119cb4199b220",
+    "id": "a6ae31f492fa460a",
     "type": "split",
     "children": [
       {
-        "id": "9c294366a88c5475",
+        "id": "63a9263deba49e9e",
         "type": "tabs",
         "children": [
           {
-            "id": "91e4947e1177ba89",
+            "id": "a794d40d0976d7a9",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "crosschain/CTMRWA1X_Contract_Description.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "CTMRWA1X_Contract_Description"
+              "title": "New tab"
             }
           }
         ]
@@ -27,15 +23,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "e7e98e3780decc03",
+    "id": "ee385a51205fff16",
     "type": "split",
     "children": [
       {
-        "id": "319509811e3b7a8c",
+        "id": "f79c3a353de2d773",
         "type": "tabs",
         "children": [
           {
-            "id": "7727786e5d215cfa",
+            "id": "92dd6a68fdeb8b7f",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -48,7 +44,7 @@
             }
           },
           {
-            "id": "23c8fdf0abd847f6",
+            "id": "48a69e300b4d1a5c",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -65,7 +61,7 @@
             }
           },
           {
-            "id": "fd5f0e73afc9b925",
+            "id": "4f191dfbc879d4f4",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -81,20 +77,19 @@
     "width": 300
   },
   "right": {
-    "id": "6977fe59a40cbf75",
+    "id": "c4c486e72cc93769",
     "type": "split",
     "children": [
       {
-        "id": "b42d1ca5b954a560",
+        "id": "9e9777524ed43cc7",
         "type": "tabs",
         "children": [
           {
-            "id": "134930226f61dcfc",
+            "id": "7122c0bafa441df5",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "file": "crosschain/CTMRWA1X_Contract_Description.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,25 +99,24 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for CTMRWA1X_Contract_Description"
+              "title": "Backlinks"
             }
           },
           {
-            "id": "912103aa3017bf5c",
+            "id": "84ddb2b417a2c125",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "crosschain/CTMRWA1X_Contract_Description.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from CTMRWA1X_Contract_Description"
+              "title": "Outgoing links"
             }
           },
           {
-            "id": "0c450e13f9722270",
+            "id": "dfe52b021ba49b25",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -137,18 +131,17 @@
             }
           },
           {
-            "id": "ff267234e15f1cc7",
+            "id": "f7c556ad92fef337",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
-                "file": "crosschain/CTMRWA1X_Contract_Description.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of CTMRWA1X_Contract_Description"
+              "title": "Outline"
             }
           }
         ]
@@ -168,8 +161,6 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "91e4947e1177ba89",
-  "lastOpenFiles": [
-    "core/CTMRWA1_Contract_Description.md"
-  ]
+  "active": "a794d40d0976d7a9",
+  "lastOpenFiles": []
 }

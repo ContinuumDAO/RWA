@@ -7,6 +7,9 @@ out/
 size_require.txt
 todo.txt
 
+# Auth
+.auth.c3caller
+
 # Dependencies
 node_modules/
 Greenfield/node_modules/
@@ -18,14 +21,15 @@ Greenfield/node_modules/
 
 # External Solidity files
 flattened/
-CTMRWA001/
 saved/
+CTMRWA001/
 
 # Docs
 ERC3525-standard/
 
 # Dotenv files
 .env
+.env.deployed
 Greenfield/.env
 
 
