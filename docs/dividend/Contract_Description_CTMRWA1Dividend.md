@@ -15,12 +15,15 @@ This contract is deployed by CTMRWADeployer once for every CTMRWA1 contract on e
 
 - **Dividend Management:** Manages dividend distribution to CTMRWA1 token holders
 - **Slot-based Dividends:** Supports different dividend rates per asset class (slot)
+- **Flexible Dividend Scaling:** Configurable dividend scaling per slot for precise dividend calculations
 - **Checkpoint System:** Uses funding checkpoints for historical balance tracking
 - **Pausable Operations:** Can pause dividend claiming during emergencies
 - **Reentrancy Protection:** Uses ReentrancyGuard for claim security
 - **Historical Rate Tracking:** Uses Checkpoints for dividend rate history
 - **Investment Contract Integration:** Excludes investment contract balances from dividends
 - **Midnight Alignment:** Aligns funding times to midnight for consistency
+- **Decimal Handling:** Proper handling of different token decimal configurations
+- **Overflow Protection:** Built-in protection against calculation overflows
 
 ## Public Variables
 
@@ -36,6 +39,10 @@ This contract is deployed by CTMRWADeployer once for every CTMRWA1 contract on e
 - **`RWA_TYPE`** (uint256, immutable): RWA type defining CTMRWA1
 - **`VERSION`** (uint256, immutable): Single integer version of this RWA type
 
+### Global Tracking
+- **`totalDividendPayable`** (uint256): Total amount of dividends that have been funded
+- **`totalDividendClaimed`** (uint256): Total amount of dividends that have been claimed
+
 ### Constants
 - **`ONE_DAY`** (uint48, constant): One day in seconds (1 days)
 
@@ -44,8 +51,9 @@ This contract is deployed by CTMRWADeployer once for every CTMRWA1 contract on e
 ### DividendFunding
 ```solidity
 struct DividendFunding {
-    uint256 slot;        // The slot number for this funding
-    uint48 fundingTime;  // The funding timestamp (aligned to midnight)
+    uint256 slot;           // The slot number for this funding
+    uint48 fundingTime;     // The funding timestamp (aligned to midnight)
+    uint256 fundingAmount;  // The amount of dividend tokens funded
 }
 ```
 
@@ -78,19 +86,32 @@ struct DividendFunding {
 
 #### `setDividendToken(address _dividendToken)`
 - **Access:** Only callable by tokenAdmin
-- **Purpose:** Change the ERC20 dividend token used to pay holders
+- **Purpose:** Set the ERC20 dividend token used to pay holders
 - **Parameters:** `_dividendToken` - Address of new ERC20 dividend token
-- **Validation:** Ensures no outstanding unclaimed dividends
+- **Validation:** Can only be called once (dividendToken must be address(0))
 - **Returns:** True if successful
 - **Events:** Emits NewDividendToken event
-- **Use Case:** Allows tokenAdmin to change dividend token (e.g., from USDC to USDT)
+- **Use Case:** Allows tokenAdmin to set the initial dividend token
 
-#### `changeDividendRate(uint256 _slot, uint256 _dividend)`
+#### `setDividendScaleBySlot(uint256 _slot, uint256 _dividendScale)`
+- **Access:** Only callable by tokenAdmin
+- **Purpose:** Set the dividend scale for a specific slot
+- **Parameters:**
+  - `_slot`: Asset Class (slot) number
+  - `_dividendScale`: Dividend scale for the slot (default is 18)
+- **Validation:** 
+  - Can only be called once per slot
+  - Cannot be called after dividend rate has been set for that slot
+  - Scale must be greater than 0
+- **Returns:** True if successful
+- **Use Case:** Allows precise control over dividend calculations per slot
+
+#### `changeDividendRate(uint256 _slot, uint256 _dividendPerUnit)`
 - **Access:** Only callable by tokenAdmin
 - **Purpose:** Set a new dividend rate for an Asset Class (slot)
 - **Parameters:**
   - `_slot`: Asset Class (slot) number
-  - `_dividend`: New dividend rate per unit of this slot
+  - `_dividendPerUnit`: New dividend rate per unit of this slot
 - **Validation:** Ensures slot exists in CTMRWA1
 - **Logic:** Adds new checkpoint with current timestamp and dividend rate
 - **Returns:** True if successful
@@ -113,6 +134,21 @@ struct DividendFunding {
 - **Returns:** Current dividend rate for the slot
 - **Validation:** Ensures slot exists in CTMRWA1
 
+#### `getStoredDividendRateBySlotAt(uint256 _slot, uint48 _timestamp)`
+- **Purpose:** Returns the stored dividend rate for a slot at a specific timestamp
+- **Parameters:**
+  - `_slot`: Slot number in CTMRWA1
+  - `_timestamp`: Timestamp to query rate for
+- **Returns:** Stored dividend rate for the slot at the specified timestamp
+- **Use Case:** Internal calculations and external queries
+
+#### `getDecimalInfo()`
+- **Purpose:** Get decimal information for both CTMRWA1 and dividend token
+- **Returns:** 
+  - `ctmRwaDecimals`: Decimals of the CTMRWA1 token
+  - `dividendDecimals`: Decimals of the dividend token
+- **Use Case:** Understanding token decimal configurations for calculations
+
 #### `getDividendPayableBySlot(uint256 _slot, address _holder)`
 - **Purpose:** Get dividend payable for a specific slot to a holder since last claim
 - **Parameters:**
@@ -134,6 +170,17 @@ struct DividendFunding {
 
 ### Dividend Management Functions
 
+#### `getDividendToFund(uint256 _slot, uint256 _fundingTime)`
+- **Purpose:** Calculate the dividend amount needed to fund for a specific slot and time
+- **Parameters:**
+  - `_slot`: Asset Class (slot) to calculate funding for
+  - `_fundingTime`: Time to use for dividend calculation
+- **Returns:** Amount of dividend tokens needed to fund
+- **Logic:** 
+  - Calculates supply excluding investment contract and tokenAdmin
+  - Applies dividend rate and scaling
+  - Returns calculated dividend amount
+
 #### `fundDividend(uint256 _slot, uint256 _fundingTime)`
 - **Access:** Only callable by tokenAdmin
 - **Purpose:** Add new checkpoint and fund dividends for an Asset Class (slot)
@@ -143,8 +190,8 @@ struct DividendFunding {
 - **Logic:**
   - Aligns funding time to midnight
   - Validates funding time constraints
-  - Calculates total supply excluding investment contract
-  - Calculates dividend payable based on rate and supply
+  - Calculates total supply excluding investment contract and tokenAdmin
+  - Calculates dividend payable based on rate, supply, and scaling
   - Transfers funds from tokenAdmin to contract
   - Adds new funding checkpoint
 - **Validation:**
@@ -182,9 +229,11 @@ struct DividendFunding {
 ## Internal Functions
 
 ### Utility Functions
-- **`_addDividendSnapshot(uint256 slot)`**: Placeholder function for future dividend snapshot functionality
 - **`_midnightBefore(uint256 _timestamp)`**: Returns timestamp of midnight (00:00:00 UTC) before input timestamp
   - Used to align funding times to midnight for consistency
+- **`_calculateDividendAmount(uint256 _balance, uint256 _rate, uint256 _slot)`**: Calculates dividend amount with proper decimal handling
+  - Applies dividend scaling and prevents overflow
+  - Returns dividend amount in dividend token wei
 
 ## Access Control Modifiers
 
@@ -198,7 +247,7 @@ struct DividendFunding {
 
 ## Events
 
-- **`NewDividendToken(address newToken, address currentAdmin)`**: Emitted when dividend token is changed
+- **`NewDividendToken(address newToken, address currentAdmin)`**: Emitted when dividend token is set
 - **`ChangeDividendRate(uint256 slot, uint256 newDividend, address currentAdmin)`**: Emitted when dividend rate is changed
 - **`FundDividend(uint256 dividendPayable, address dividendToken, address currentAdmin)`**: Emitted when dividends are funded
 - **`ClaimDividend(address claimant, uint256 dividend, address dividendToken)`**: Emitted when dividends are claimed
@@ -211,8 +260,10 @@ struct DividendFunding {
 4. **Balance Validation:** Ensures sufficient balance before transfers
 5. **Time Validation:** Validates funding times and intervals
 6. **Slot Validation:** Ensures slots exist in CTMRWA1 before operations
-7. **Investment Contract Exclusion:** Excludes investment contract balances from dividends
+7. **Investment Contract Exclusion:** Excludes investment contract and tokenAdmin balances from dividends
 8. **Checkpoint System:** Uses historical checkpoints for accurate dividend calculation
+9. **Overflow Protection:** Built-in protection against calculation overflows
+10. **One-time Operations:** Critical functions can only be called once
 
 ## Integration Points
 
@@ -227,9 +278,12 @@ struct DividendFunding {
 The contract uses custom error types for efficient gas usage:
 
 - **`CTMRWA1Dividend_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin)`**: Thrown when unauthorized address tries to perform admin functions
+- **`CTMRWA1Dividend_InvalidDividend(CTMRWAErrorParam.Balance)`**: Thrown when insufficient balance for operations
+- **`CTMRWA1Dividend_InvalidDividendScale(uint256 scale)`**: Thrown when invalid dividend scale is provided
+- **`CTMRWA1Dividend_ScaleAlreadySetOrRateSet(uint256 slot)`**: Thrown when trying to set scale after it's already set or rate is set
+- **`CTMRWA1Dividend_CalculationOverflow(uint256 balance, uint256 rate)`**: Thrown when dividend calculation would overflow
 - **`CTMRWA1Dividend_EnforcedPause()`**: Thrown when trying to claim dividends while paused
 - **`CTMRWA1Dividend_InvalidSlot(uint256 slot)`**: Thrown when slot doesn't exist in CTMRWA1
-- **`CTMRWA1Dividend_InvalidDividend(CTMRWAErrorParam.Balance)`**: Thrown when insufficient balance for operations
 - **`CTMRWA1Dividend_FundTokenNotSet()`**: Thrown when trying to fund without setting dividend token
 - **`CTMRWA1Dividend_FundingTimeLow()`**: Thrown when funding time is not after last funding
 - **`CTMRWA1Dividend_FundingTooFrequent()`**: Thrown when funding is attempted too frequently
@@ -238,24 +292,35 @@ The contract uses custom error types for efficient gas usage:
 
 ## Dividend Process
 
-### 1. Dividend Rate Setting
+### 1. Dividend Token Setup
+- **Step:** TokenAdmin sets dividend token (one-time operation)
+- **Method:** Call setDividendToken with ERC20 token address
+- **Result:** Dividend token is established for the contract
+
+### 2. Dividend Scale Configuration
+- **Step:** TokenAdmin sets dividend scale for specific slots
+- **Method:** Call setDividendScaleBySlot with slot and scale
+- **Result:** Dividend scaling is configured for precise calculations
+- **Note:** Can only be called once per slot before rates are set
+
+### 3. Dividend Rate Setting
 - **Step:** TokenAdmin sets dividend rate for specific slot
 - **Method:** Call changeDividendRate with slot and rate
 - **Result:** New checkpoint added with current timestamp and rate
 
-### 2. Dividend Funding
+### 4. Dividend Funding
 - **Step:** TokenAdmin funds dividends for specific slot
 - **Method:** Call fundDividend with slot and funding time
 - **Logic:** Calculate supply, determine dividend amount, transfer funds
 - **Result:** New funding checkpoint added
 
-### 3. Dividend Calculation
+### 5. Dividend Calculation
 - **Step:** Calculate dividend payable for holder
 - **Method:** Use getDividendPayable or getDividendPayableBySlot
 - **Logic:** Sum dividends across funding checkpoints since last claim
 - **Result:** Total dividend amount payable
 
-### 4. Dividend Claiming
+### 6. Dividend Claiming
 - **Step:** Holder claims dividends
 - **Method:** Call claimDividend
 - **Logic:** Transfer dividend tokens to holder, update claim indices
@@ -268,10 +333,10 @@ The contract uses custom error types for efficient gas usage:
 - **Process:** Set dividend rates, fund dividends, holders claim
 - **Benefit:** Provides regular income to RWA token holders
 
-### Slot-based Dividends
-- **Scenario:** Different dividend rates for different asset classes
-- **Process:** Set different rates per slot, fund per slot
-- **Benefit:** Flexible dividend structure based on asset performance
+### Slot-based Dividends with Custom Scaling
+- **Scenario:** Different dividend rates and scaling for different asset classes
+- **Process:** Set different rates and scales per slot, fund per slot
+- **Benefit:** Flexible and precise dividend structure based on asset performance
 
 ### Historical Dividend Tracking
 - **Scenario:** Track dividend history for accounting and compliance
@@ -283,21 +348,30 @@ The contract uses custom error types for efficient gas usage:
 - **Process:** Use pause/unpause functions
 - **Benefit:** Emergency control over dividend operations
 
+### Precise Dividend Calculations
+- **Scenario:** Handle different token decimal configurations
+- **Process:** Use dividend scaling and decimal handling
+- **Benefit:** Accurate dividend calculations regardless of token decimals
+
 ## Best Practices
 
-1. **Regular Funding:** Fund dividends regularly to maintain consistent payouts
-2. **Rate Planning:** Plan dividend rates based on asset performance
-3. **Time Alignment:** Use consistent funding times (midnight alignment)
-4. **Balance Monitoring:** Monitor contract balance for sufficient dividend funds
-5. **Cross-chain Coordination:** Coordinate funding across all chains
+1. **Initial Setup:** Set dividend token and scales before setting rates
+2. **Regular Funding:** Fund dividends regularly to maintain consistent payouts
+3. **Rate Planning:** Plan dividend rates based on asset performance
+4. **Time Alignment:** Use consistent funding times (midnight alignment)
+5. **Balance Monitoring:** Monitor contract balance for sufficient dividend funds
+6. **Cross-chain Coordination:** Coordinate funding across all chains
+7. **Scale Configuration:** Set appropriate dividend scales for each slot
 
 ## Limitations
 
 - **Single Chain:** No cross-chain dividend functions
-- **Investment Exclusion:** Investment contract balances excluded from dividends
+- **Investment Exclusion:** Investment contract and tokenAdmin balances excluded from dividends
 - **Funding Frequency:** Minimum 30 days between fundings per slot
 - **Token Dependency:** Requires dividend token to be set before funding
 - **Historical Balance:** Requires CTMRWA1 to support historical balance queries
+- **One-time Operations:** Dividend token and scales can only be set once
+- **Scale Restrictions:** Cannot change dividend scale after rate is set
 
 ## Future Enhancements
 
@@ -308,6 +382,8 @@ Potential improvements to the dividend system:
 3. **Dividend Analytics:** Add dividend tracking and analytics features
 4. **Multi-token Support:** Support multiple dividend tokens simultaneously
 5. **Dividend Streaming:** Implement continuous dividend streaming
+6. **Dynamic Scaling:** Allow dynamic adjustment of dividend scales
+7. **Batch Operations:** Support batch dividend operations for efficiency
 
 ## Checkpoint System
 
@@ -318,7 +394,7 @@ Potential improvements to the dividend system:
 - **Benefits:** Gas-efficient historical data storage and retrieval
 
 ### Funding Checkpoints
-- **Structure:** DividendFunding array with slot and timestamp
+- **Structure:** DividendFunding array with slot, timestamp, and amount
 - **Purpose:** Track when dividends were funded for each slot
 - **Usage:** Calculate dividends based on historical balances
 - **Alignment:** Timestamps aligned to midnight for consistency
@@ -326,15 +402,32 @@ Potential improvements to the dividend system:
 ## Investment Contract Integration
 
 ### Balance Exclusion
-- **Purpose:** Exclude investment contract balances from dividend calculations
-- **Method:** Query investment contract balance and subtract from total supply
+- **Purpose:** Exclude investment contract and tokenAdmin balances from dividend calculations
+- **Method:** Query investment contract balance and tokenAdmin balance, subtract from total supply
 - **Benefit:** Ensures only active holders receive dividends
-- **Logic:** `supplyInSlot = totalSupplyInSlot - supplyInInvestContract`
+- **Logic:** `supplyInSlot = totalSupplyInSlot - supplyInInvestContract - tokenAdminBalance`
 
 ### Investment Contract Lookup
 - **Method:** Use CTMRWAMap to find investment contract address
 - **Validation:** Check if investment contract exists
 - **Fallback:** Handle cases where investment contract doesn't exist
+
+## Dividend Scaling System
+
+### Purpose
+- **Flexibility:** Allows different dividend scaling per slot
+- **Precision:** Enables precise dividend calculations
+- **Compatibility:** Handles different token decimal configurations
+
+### Configuration
+- **Default:** 18 decimals (standard for most tokens)
+- **Custom:** Can be set to any value greater than 0
+- **Restriction:** Can only be set once per slot before rates are set
+
+### Calculation
+- **Formula:** `dividendAmount = (balance * rate) / scale`
+- **Scale:** Uses configured scale or CTMRWA1 decimals as fallback
+- **Overflow Protection:** Built-in checks prevent calculation overflows
 
 ## Gas Optimization
 
@@ -347,6 +440,11 @@ Potential improvements to the dividend system:
 - **Midnight Alignment:** Reduces timestamp calculation complexity
 - **Checkpoint Efficiency:** Use efficient checkpoint storage
 - **Validation Optimization:** Optimize validation checks
+
+### Query Optimization
+- **Cached Lookups:** Use efficient checkpoint lookups
+- **Batch Operations:** Support batch dividend queries
+- **Index-based Access:** Use array indices for efficient access
 
 ## Security Considerations
 
@@ -365,14 +463,24 @@ Potential improvements to the dividend system:
 - **Frequency Limits:** Prevent excessive funding frequency
 - **Historical Integrity:** Maintain accurate historical data
 
+### Data Integrity
+- **One-time Operations:** Critical functions can only be called once
+- **Scale Validation:** Ensure dividend scales are valid
+- **Overflow Protection:** Prevent calculation overflows
+
 ## Dividend Token Management
 
 ### Token Selection
-- **Flexibility:** Can change dividend token (with restrictions)
-- **Validation:** Ensure no outstanding dividends before changing
-- **Integration:** Support any ERC20 token for dividends
+- **One-time Setup:** Can only be set once
+- **Flexibility:** Support any ERC20 token for dividends
+- **Validation:** Ensure token is properly configured
 
 ### Token Operations
 - **Funding:** Transfer tokens from tokenAdmin to contract
 - **Distribution:** Transfer tokens from contract to holders
 - **Balance Tracking:** Monitor contract balance for sufficient funds
+
+### Decimal Handling
+- **Automatic Detection:** Automatically detect token decimals
+- **Scale Integration:** Integrate with dividend scaling system
+- **Calculation Accuracy:** Ensure accurate dividend calculations
