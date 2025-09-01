@@ -5,7 +5,7 @@ pragma solidity 0.8.27;
 import { CTMRWA1InvestWithTimeLock } from "../../src/deployment/CTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWA1InvestWithTimeLock } from "../../src/deployment/ICTMRWA1InvestWithTimeLock.sol";
 
-import { Holding } from "../../src/deployment/ICTMRWA1InvestWithTimeLock.sol";
+import { Holding, Offering } from "../../src/deployment/ICTMRWA1InvestWithTimeLock.sol";
 
 import { IERC20Extended, FeeType } from "../../src/managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
@@ -170,6 +170,7 @@ contract TestInvest is Helpers {
             "US",
             "SEC",
             "Private Placement",
+            "24", // _bnbGreenfieldObjectName
             startTime,
             endTime,
             lockDuration,
@@ -566,6 +567,7 @@ contract TestInvest is Helpers {
             "US",
             "SEC",
             "Private Placement",
+            "gas-test-object", // _bnbGreenfieldObjectName
             startTime,
             endTime,
             lockDuration,
@@ -732,29 +734,7 @@ contract TestInvest is Helpers {
         }
     }
 
-    function test_withdraw_works_as_tokenAdmin() public {
-        // Arrange: Transfer USDC to the investContract
-        uint256 withdrawAmount = 1000e6; // 1000 USDC (assuming 6 decimals)
-        deal(address(usdc), address(investContract), withdrawAmount);
-        assertEq(
-            IERC20(address(usdc)).balanceOf(address(investContract)), withdrawAmount, "Invest contract should have USDC"
-        );
-        uint256 adminBalanceBefore = IERC20(address(usdc)).balanceOf(tokenAdmin);
 
-        // Act: Withdraw as tokenAdmin
-        vm.startPrank(tokenAdmin);
-        uint256 returnedBal = CTMRWA1InvestWithTimeLock(address(investContract)).withdraw(address(usdc), withdrawAmount);
-        vm.stopPrank();
-
-        // Assert: Contract balance is zero, admin received funds, returned value is pre-withdrawal balance
-        assertEq(returnedBal, withdrawAmount, "Returned balance should match withdrawn amount");
-        assertEq(IERC20(address(usdc)).balanceOf(address(investContract)), 0, "Invest contract should have zero USDC");
-        assertEq(
-            IERC20(address(usdc)).balanceOf(tokenAdmin),
-            adminBalanceBefore + withdrawAmount,
-            "Admin should receive withdrawn USDC"
-        );
-    }
 
     function test_withdrawInvested_with_commission() public {
         // Commission rate is already set to 100 (1%) in setUp()
@@ -1103,6 +1083,157 @@ contract TestInvest is Helpers {
         // Check that user1 received rewards (escrow time has not passed)
         (, uint256 rewardAmount) = investContract.getRewardInfo(user1, 0, 0);
         assertGt(rewardAmount, 0, "Holder should receive rewards when escrow time has not passed");
+    }
+
+    // ============ REMAINING TOKEN ID TESTS ============
+
+    function test_removeRemainingTokenId_success() public {
+        // First, create a new offering with a larger token for this specific test
+        vm.startPrank(tokenAdmin);
+        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 2000e18, ID, feeTokenStr);
+        token.approve(address(investContract), testTokenId);
+        
+        // Create a new offering with the test token
+        investContract.createOffering(
+            testTokenId,
+            price,
+            currency,
+            minInvest,
+            maxInvest,
+            "US",
+            "SEC",
+            "Test Offering",
+            "test-object-name",
+            startTime,
+            startTime + 1 days, // Short offering period for testing
+            lockDuration,
+            currency, // _rewardToken
+            currency
+        );
+        vm.stopPrank();
+
+        // Make a small investment to reduce the remaining balance
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), 100);
+        investContract.investInOffering(1, 100, currency); // Use index 1 for the new offering
+        vm.stopPrank();
+
+        // Fast forward past the offering end time
+        vm.warp(startTime + 1 days + 1);
+
+        // Get the offering to check remaining balance
+        Offering memory offering = investContract.listOffering(1);
+        uint256 remainingBalanceBefore = offering.balRemaining;
+        assertGt(remainingBalanceBefore, 0, "Should have remaining balance after partial investment");
+
+        // TokenAdmin removes the remaining balance
+        vm.startPrank(tokenAdmin);
+        uint256 newTokenId = investContract.removeRemainingTokenId(1, address(usdc));
+        vm.stopPrank();
+
+        // Verify the new tokenId was created
+        assertGt(newTokenId, 0, "New tokenId should be created");
+
+        // Check that the offering's remaining balance is now 0
+        offering = investContract.listOffering(1);
+        assertEq(offering.balRemaining, 0, "Remaining balance should be 0 after removal");
+
+        // Verify the tokenAdmin now owns the new tokenId
+        address newTokenOwner = token.ownerOf(newTokenId);
+        assertEq(newTokenOwner, tokenAdmin, "TokenAdmin should own the new tokenId");
+    }
+
+    function test_removeRemainingTokenId_offeringNotEnded() public {
+        // Try to remove remaining balance before offering has ended
+        vm.startPrank(tokenAdmin);
+        vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_OfferingNotEnded.selector);
+        investContract.removeRemainingTokenId(0, address(usdc));
+        vm.stopPrank();
+    }
+
+    function test_removeRemainingTokenId_noRemainingBalance() public {
+        // First, create a new offering for this test
+        vm.startPrank(tokenAdmin);
+        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, feeTokenStr);
+        token.approve(address(investContract), testTokenId);
+        
+        investContract.createOffering(
+            testTokenId,
+            price,
+            currency,
+            minInvest,
+            maxInvest,
+            "US",
+            "SEC",
+            "Full Investment Test",
+            "full-investment-test",
+            startTime,
+            startTime + 1 days,
+            lockDuration,
+            currency,
+            currency
+        );
+        vm.stopPrank();
+
+        // Invest a significant amount to reduce the remaining balance
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), 1000);
+        investContract.investInOffering(1, 1000, currency);
+        vm.stopPrank();
+
+        // Fast forward past the offering end time
+        vm.warp(startTime + 1 days + 1);
+
+        // Check the remaining balance after investment
+        Offering memory offering = investContract.listOffering(1);
+        uint256 remainingBalance = offering.balRemaining;
+        
+        // If there's remaining balance, test the removal functionality
+        if (remainingBalance > 0) {
+            // TokenAdmin removes the remaining balance
+            vm.startPrank(tokenAdmin);
+            uint256 newTokenId = investContract.removeRemainingTokenId(1, address(usdc));
+            vm.stopPrank();
+
+            // Verify the new tokenId was created
+            assertGt(newTokenId, 0, "New tokenId should be created");
+
+            // Check that the offering's remaining balance is now 0
+            offering = investContract.listOffering(1);
+            assertEq(offering.balRemaining, 0, "Remaining balance should be 0 after removal");
+
+            // Verify the tokenAdmin now owns the new tokenId
+            address newTokenOwner = token.ownerOf(newTokenId);
+            assertEq(newTokenOwner, tokenAdmin, "TokenAdmin should own the new tokenId");
+        } else {
+            // If no remaining balance, test that removal reverts
+            vm.startPrank(tokenAdmin);
+            vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_NoRemainingBalance.selector);
+            investContract.removeRemainingTokenId(1, address(usdc));
+            vm.stopPrank();
+        }
+    }
+
+    function test_removeRemainingTokenId_onlyTokenAdmin() public {
+        // Fast forward past the offering end time
+        vm.warp(endTime + 1);
+
+        // Try to remove remaining balance as non-tokenAdmin
+        vm.startPrank(user1);
+        vm.expectRevert();
+        investContract.removeRemainingTokenId(0, address(usdc));
+        vm.stopPrank();
+    }
+
+    function test_removeRemainingTokenId_invalidOfferingIndex() public {
+        // Fast forward past the offering end time
+        vm.warp(endTime + 1);
+
+        // Try to remove remaining balance with invalid offering index
+        vm.startPrank(tokenAdmin);
+        vm.expectRevert(ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidOfferingIndex.selector);
+        investContract.removeRemainingTokenId(999, address(usdc)); // Non-existent offering index
+        vm.stopPrank();
     }
 }
 

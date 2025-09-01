@@ -94,22 +94,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     /// @dev Mapping to track pause state for each offering index
     mapping(uint256 => bool) private _isOfferingPaused;
 
-    event CreateOffering(uint256 indexed ID, uint256 indx, uint256 slot, uint256 offer);
 
-    event OfferingPaused(uint256 indexed ID, uint256 indexed indx, address account);
-    event OfferingUnpaused(uint256 indexed ID, uint256 indexed indx, address account);
-
-    event InvestInOffering(uint256 indexed ID, uint256 indx, uint256 holdingIndx, uint256 investment);
-
-    event WithdrawFunds(uint256 indexed ID, uint256 indx, uint256 funds);
-
-    event UnlockInvestmentToken(uint256 indexed ID, address holder, uint256 holdingIndx);
-
-    event ClaimDividendInEscrow(uint256 indexed ID, address holder, uint256 unclaimed);
-
-    event FundedRewardToken(uint256 indexed offeringIndex, uint256 fundAmount, uint256 rewardMultiplier);
-
-    event RewardClaimed(address indexed holder, uint256 indexed offerIndex, uint256 indexed holdingIndex, uint256 amount);
 
     constructor(uint256 _ID, address _ctmRwaMap, uint256 _commissionRate, address _feeManager) {
         ID = _ID;
@@ -208,6 +193,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
      * @param _regulatorCountry The 2 letter Country Code of the Regulator
      * @param _regulatorAcronym The acronym of the Regulator
      * @param _offeringType The short AssetX description of the offering
+     * @param _bnbGreenfieldObjectName The name of the object describing the offering in the BNB Greenfield Storage
      * @param _startTime The time after which offers will be accepted
      * @param _endTime The end time, after which offers will no longer be allowed
      * @param _lockDuration The time for which the investors tokenId will be held in escrow for.
@@ -226,6 +212,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         string memory _regulatorCountry,
         string memory _regulatorAcronym,
         string memory _offeringType,
+        string memory _bnbGreenfieldObjectName,
         uint256 _startTime,
         uint256 _endTime,
         uint256 _lockDuration,
@@ -284,6 +271,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
                 _regulatorCountry,
                 _regulatorAcronym,
                 _offeringType,
+                _bnbGreenfieldObjectName,
                 _startTime,
                 _endTime,
                 _lockDuration,
@@ -396,27 +384,6 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         return newTokenId;
     }
 
-    /**
-     * @notice This function allows the tokenAdmin to withdraw any ERC20 token held by this contract.
-     * @param _contractAddr The address of the ERC20
-     * @param _amount The amount of the ERC20 to withdraw in wei
-     * NOTE This is an emergency only function. The normal route for a tokenAdmin to withdraw investments
-     * is to use the withdrawInvested function. The withdraw function will be removed at a later stage.
-     * @return bal The balance of the ERC20 token withdrawn.
-     */
-    function withdraw(address _contractAddr, uint256 _amount) public onlyTokenAdmin(ctmRwaToken) returns (uint256) {
-        uint256 bal = IERC20(_contractAddr).balanceOf(address(this));
-        if (bal == 0) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
-        }
-        if (_amount > bal) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
-        }
-
-        IERC20(_contractAddr).transfer(tokenAdmin, _amount);
-
-        return bal;
-    }
 
     /**
      * @notice Allow an Issuer (tokenAdmin) to withdraw funds that have been invested in an Offering
@@ -692,6 +659,60 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         // Transfer reward
         IERC20(rewardToken).transfer(msg.sender, rewardAmount);
         emit RewardClaimed(msg.sender, offerIndex, holdingIndex, rewardAmount);
+    }
+
+    /**
+     * @notice Allows the tokenAdmin to remove the remaining balance of a tokenId in an Offering after the end time.
+     * This function can only be called after the offering has ended and only if there is remaining balance.
+     * @param _indx The index of the Offering to remove remaining balance from.
+     * @param _feeToken The address of the ERC20 token used to pay fees to AssetX.
+     * @return newTokenId The new tokenId created for the tokenAdmin with the remaining balance.
+     */
+    function removeRemainingTokenId(uint256 _indx, address _feeToken) 
+        public 
+        onlyTokenAdmin(ctmRwaToken) 
+        nonReentrant 
+        returns (uint256) 
+    {
+        if (_indx >= offerings.length) {
+            revert CTMRWA1InvestWithTimeLock_InvalidOfferingIndex();
+        }
+
+        Offering storage offering = offerings[_indx];
+
+        // Check if the offering has ended
+        if (block.timestamp <= offering.endTime) {
+            revert CTMRWA1InvestWithTimeLock_OfferingNotEnded();
+        }
+
+        // Check if there is remaining balance to remove
+        if (offering.balRemaining == 0) {
+            revert CTMRWA1InvestWithTimeLock_NoRemainingBalance();
+        }
+
+        uint256 remainingBalance = offering.balRemaining;
+        uint256 tokenId = offering.tokenId;
+
+        // Pay the fee for removing remaining balance
+        _payFee(FeeType.OFFERING, _feeToken);
+
+        // Transfer the remaining balance back to the tokenAdmin
+        // We need to create a new tokenId for the tokenAdmin with the remaining balance
+        uint256 newTokenId = ICTMRWA1X(ctmRwa1X).transferPartialTokenX(
+            tokenId, 
+            tokenAdmin.toHexString(), 
+            cIdStr, 
+            remainingBalance, 
+            ID, 
+            _feeToken.toHexString()
+        );
+
+        // Set the remaining balance to 0
+        offering.balRemaining = 0;
+
+        emit RemoveRemainingBalance(ID, _indx, remainingBalance);
+
+        return newTokenId;
     }
 
     /// @dev Check that msg.sender is the tokenAdmin of a CTMRWA1 address
