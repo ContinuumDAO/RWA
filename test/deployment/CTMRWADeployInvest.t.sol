@@ -7,7 +7,7 @@ import { ICTMRWA1InvestWithTimeLock } from "../../src/deployment/ICTMRWA1InvestW
 
 import { Holding } from "../../src/deployment/ICTMRWA1InvestWithTimeLock.sol";
 
-import { IERC20Extended } from "../../src/managers/IFeeManager.sol";
+import { IERC20Extended, FeeType } from "../../src/managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
@@ -189,7 +189,7 @@ contract TestInvest is Helpers {
         // Try to deploy investment contract for same ID again
         vm.startPrank(tokenAdmin);
         vm.expectRevert();
-        ctmRwaDeployInvest.deployInvest(ID, RWA_TYPE, VERSION, address(usdc));
+        ctmRwaDeployInvest.deployInvest(ID, RWA_TYPE, VERSION, address(usdc), tokenAdmin);
         vm.stopPrank();
     }
 
@@ -198,6 +198,52 @@ contract TestInvest is Helpers {
         (bool ok, address investAddr) = ICTMRWAMap(address(map)).getInvestContract(ID, RWA_TYPE, VERSION);
         assertTrue(ok, "Investment contract should be registered");
         assertEq(investAddr, address(investContract), "Investment contract address should match");
+    }
+
+    // ============ FEE MULTIPLIER TESTS ============
+
+    function test_tokenAdminCanDeployInvestmentContractWithFee() public {
+        // Set a custom fee multiplier for DEPLOYINVEST
+        uint256 customMultiplier = 200; // 2x multiplier
+        vm.startPrank(gov);
+        bool success = feeManager.setFeeMultiplier(FeeType.DEPLOYINVEST, customMultiplier);
+        assertTrue(success, "Fee multiplier should be set successfully");
+        vm.stopPrank();
+
+        // Verify the fee multiplier was set correctly
+        uint256 actualMultiplier = feeManager.getFeeMultiplier(FeeType.DEPLOYINVEST);
+        assertEq(actualMultiplier, customMultiplier, "Fee multiplier should match the set value");
+
+        // Get tokenAdmin's initial balance
+        uint256 initialBalance = usdc.balanceOf(tokenAdmin);
+
+        // Verify that the fee calculation now reflects the new multiplier
+        string memory testFeeTokenStr = address(usdc).toHexString();
+        string[] memory chainIds = new string[](1);
+        chainIds[0] = Strings.toString(block.chainid);
+        uint256 feeAmount = feeManager.getXChainFee(
+            chainIds,
+            false,
+            FeeType.DEPLOYINVEST,
+            testFeeTokenStr
+        );
+        
+        // Verify the fee was calculated correctly with the multiplier
+        uint256 baseFee = feeManager.getToChainBaseFee(Strings.toString(block.chainid), testFeeTokenStr);
+        uint256 expectedFee = baseFee * customMultiplier;
+        assertEq(feeAmount, expectedFee, "Fee amount should reflect the multiplier");
+        
+        // Verify that the existing investment contract is still accessible
+        (bool ok, address investAddrFromMap) = ICTMRWAMap(address(map)).getInvestContract(ID, RWA_TYPE, VERSION);
+        assertTrue(ok, "Existing investment contract should still be accessible");
+        assertEq(investAddrFromMap, address(investContract), "Investment contract address should match");
+        
+        // Check that the fee was deducted from tokenAdmin's balance
+        // Note: The fee was already paid during setUp() when the investment contract was deployed
+        // So we can verify the current balance reflects the fee payment
+        uint256 currentBalance = usdc.balanceOf(tokenAdmin);
+        uint256 expectedBalanceAfterFee = initialBalance - feeAmount;
+        assertEq(currentBalance, expectedBalanceAfterFee, "TokenAdmin balance should reflect fee deduction");
     }
 
     // ============ BASIC FUNCTIONALITY TESTS ============

@@ -14,5 +14,5 @@ interface ICTMRWADeployInvest {
 
     function setDeployerMapFee(address deployer, address ctmRwaMap, address feeManager) external;
 
-    function deployInvest(uint256 ID, uint256 rwaType, uint256 version, address feeToken) external returns (address);
+    function deployInvest(uint256 ID, uint256 rwaType, uint256 version, address feeToken, address originalCaller) external returns (address);
 }

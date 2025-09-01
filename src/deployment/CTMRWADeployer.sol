@@ -16,6 +16,7 @@ import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappU
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
+
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
  * @author @Selqui ContinuumDAO
@@ -266,11 +267,14 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDappUpgradeable, UUPSUpgrade
             revert CTMRWADeployer_IsZeroAddress(Address.DeployInvest);
         }
 
-        address investAddress = ICTMRWADeployInvest(deployInvest).deployInvest(_ID, _rwaType, _version, _feeToken);
+        address investAddress = ICTMRWADeployInvest(deployInvest).deployInvest(_ID, _rwaType, _version, _feeToken, msg.sender);
         ICTMRWAMap(ctmRwaMap).setInvestmentContract(_ID, _rwaType, _version, investAddress);
 
         return investAddress;
     }
+
+
+
 
     function cID() internal view returns (uint256) {
         return block.chainid;
