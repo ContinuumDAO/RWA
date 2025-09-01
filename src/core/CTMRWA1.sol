@@ -476,7 +476,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     }
 
     /**
-     * @notice Allows a tokenAdmin to deploy an ERC20 that is an interface to ONE existing
+     * @notice Deploy an ERC20 token that represents the fungible balance of a specific
      * slot of this CTMRWA1. It allows interaction with lending/markeplace protocols.
      * This function can only be called ONCE per slot.
      * @param _slot The slot number for which to create an ERC20
@@ -497,7 +497,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         }
 
         address newErc20 = ICTMRWAERC20Deployer(erc20Deployer).deployERC20(
-            ID, RWA_TYPE, VERSION, _slot, _erc20Name, _symbol, _feeToken
+            ID, RWA_TYPE, VERSION, _slot, _erc20Name, _symbol, _feeToken, msg.sender
         );
 
         _erc20s[newErc20] = true;

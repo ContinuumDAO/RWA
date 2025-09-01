@@ -17,6 +17,7 @@ interface ICTMRWAERC20Deployer {
         uint256 slot,
         string memory name,
         string memory symbol,
-        address feeToken
+        address feeToken,
+        address originalCaller
     ) external returns (address);
 }
