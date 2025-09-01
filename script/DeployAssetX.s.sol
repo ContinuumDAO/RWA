@@ -29,7 +29,7 @@ import { CTMRWA1StorageUtils } from "../flattened/storage/CTMRWA1StorageUtils.so
 
 import { CTMRWAProxy } from "../flattened/utils/CTMRWAProxy.sol";
 
-import { ChainContracts } from "./Utils.s.sol";
+import { DeployedContracts } from "./Utils.s.sol";
 
 contract DeployAssetX is Script {
     address feeManager;
@@ -212,7 +212,7 @@ contract DeployAssetX is Script {
 
         console.log("AssetX deployed successfully");
 
-        ChainContracts memory chainContracts = ChainContracts(chainIdStr, feeManager, gateway, rwa1X, rwa1XFallback, map, deployer, deployInvest, erc20Deployer, tokenFactory, dividendFactory, storageManager, storageUtils, sentryManager, sentryUtils, feeToken);
+        DeployedContracts memory chainContracts = DeployedContracts(chainIdStr, feeManager, gateway, rwa1X, rwa1XFallback, map, deployer, deployInvest, erc20Deployer, tokenFactory, dividendFactory, storageManager, storageUtils, sentryManager, sentryUtils, feeToken);
 
         console.log(string.concat("Deployed AssetX contracts successfully to chain ID ", chainIdStr));
     }
