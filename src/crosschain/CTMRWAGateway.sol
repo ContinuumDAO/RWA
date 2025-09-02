@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { CTMRWAUtils, Uint } from "../utils/CTMRWAUtils.sol";
 import { ChainContract, ICTMRWAGateway } from "./ICTMRWAGateway.sol";
-import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
+import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -19,7 +19,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
-contract CTMRWAGateway is ICTMRWAGateway, C3GovernDappUpgradeable, UUPSUpgradeable {
+contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using CTMRWAUtils for string;
 
@@ -47,7 +47,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDappUpgradeable, UUPSUpgradeab
         external
         initializer
     {
-        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
         cIdStr = cID().toString();
         _addChainContract(cID(), address(this));
     }

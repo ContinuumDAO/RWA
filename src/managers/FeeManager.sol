@@ -3,7 +3,7 @@ pragma solidity 0.8.27;
 
 import { CTMRWAUtils, Uint } from "../utils/CTMRWAUtils.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "./IFeeManager.sol";
-import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
+import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
@@ -25,7 +25,7 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
  * Governance can withdraw fees from this contract to a treasury address.
  * This contract is deployed once on each chain.
  */
-contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgradeable, UUPSUpgradeable, PausableUpgradeable {
+contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDAppUpgradeable, UUPSUpgradeable, PausableUpgradeable {
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
@@ -61,7 +61,7 @@ contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDappUpgr
     {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
-        __C3GovernDapp_init(govAddr, c3callerProxyAddr, txSender, dappID2);
+        __C3GovernDApp_init(govAddr, c3callerProxyAddr, txSender, dappID2);
         __Pausable_init();
     }
 

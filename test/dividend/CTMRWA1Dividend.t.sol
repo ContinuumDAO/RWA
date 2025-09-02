@@ -80,9 +80,9 @@ contract TestDividend is Helpers {
         vm.warp(fundingTime + 1);
         
         // Fund dividends for all slots
-        ICTMRWA1Dividend(dividendContract).fundDividend(1, fundingTime);
-        ICTMRWA1Dividend(dividendContract).fundDividend(3, fundingTime);
-        ICTMRWA1Dividend(dividendContract).fundDividend(5, fundingTime);
+        ICTMRWA1Dividend(dividendContract).fundDividend(1, fundingTime, "dividend-funding-1");
+        ICTMRWA1Dividend(dividendContract).fundDividend(3, fundingTime, "dividend-funding-3");
+        ICTMRWA1Dividend(dividendContract).fundDividend(5, fundingTime, "dividend-funding-5");
         
         return fundingTime;
     }
@@ -116,7 +116,7 @@ contract TestDividend is Helpers {
         // Try to fund as non-admin
         vm.startPrank(user1);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Dividend.CTMRWA1Dividend_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
-        ICTMRWA1Dividend(dividendContract).fundDividend(1, 1 days);
+        ICTMRWA1Dividend(dividendContract).fundDividend(1, 1 days, "test-funding");
         vm.stopPrank();
     }
 
@@ -197,7 +197,7 @@ contract TestDividend is Helpers {
         // Warp to a time after the funding time to avoid CTMRWA1Dividend_FundingTimeFuture error
         vm.warp(fundingTime + 1);
         
-        ICTMRWA1Dividend(dividendContract).fundDividend(5, fundingTime);
+        ICTMRWA1Dividend(dividendContract).fundDividend(5, fundingTime, "dividend-funding-5");
         vm.stopPrank();
 
         // tokenAdmin2 claims dividends
@@ -280,7 +280,7 @@ contract TestDividend is Helpers {
         // Warp to a time after the funding time to avoid CTMRWA1Dividend_FundingTimeFuture error
         vm.warp(fundingTime + 1);
         
-        ICTMRWA1Dividend(dividendContract).fundDividend(5, fundingTime);
+        ICTMRWA1Dividend(dividendContract).fundDividend(5, fundingTime, "dividend-funding-5-custom-scale");
         vm.stopPrank();
 
         // tokenAdmin2 claims dividends
@@ -332,7 +332,7 @@ contract TestDividend is Helpers {
         IERC20(usdc).approve(dividendContract, type(uint256).max);
         
         vm.warp(fundingTime + 1);
-        ICTMRWA1Dividend(dividendContract).fundDividend(1, fundingTime);
+        ICTMRWA1Dividend(dividendContract).fundDividend(1, fundingTime, "dividend-funding-1-tracking");
         
         // Check tracking after funding
         uint256 afterFundingPayable = ICTMRWA1Dividend(dividendContract).totalDividendPayable();
@@ -361,7 +361,7 @@ contract TestDividend is Helpers {
         
         deal(address(usdc), tokenAdmin, dividendToFund2);
         vm.warp(fundingTime2 + 1);
-        ICTMRWA1Dividend(dividendContract).fundDividend(1, fundingTime2);
+        ICTMRWA1Dividend(dividendContract).fundDividend(1, fundingTime2, "dividend-funding-1-tracking-2");
         
         // Check tracking after second funding
         uint256 afterSecondFundingPayable = ICTMRWA1Dividend(dividendContract).totalDividendPayable();

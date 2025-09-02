@@ -64,6 +64,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         uint256 slot;
         uint48 fundingTime;
         uint256 fundingAmount;
+        string bnbGreenfieldObjectName;
     }
     DividendFunding[] public dividendFundings;
 
@@ -286,7 +287,8 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
      */
     function fundDividend(
         uint256 _slot,
-        uint256 _fundingTime
+        uint256 _fundingTime,
+        string memory _bnbGreenfieldObjectName
     ) public onlyTokenAdmin nonReentrant returns (uint256) {
         if (dividendToken == address(0)) {
             revert CTMRWA1Dividend_FundTokenNotSet();
@@ -316,7 +318,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
             revert CTMRWA1Dividend_FailedTransaction();
         }
 
-        dividendFundings.push(DividendFunding({slot: _slot, fundingTime: midnight, fundingAmount: dividendPayable}));
+        dividendFundings.push(DividendFunding({slot: _slot, fundingTime: midnight, fundingAmount: dividendPayable, bnbGreenfieldObjectName: _bnbGreenfieldObjectName}));
         totalDividendPayable += dividendPayable;
         emit FundDividend(dividendPayable, dividendToken, tokenAdmin);
 

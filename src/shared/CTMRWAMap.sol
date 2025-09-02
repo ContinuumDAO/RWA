@@ -5,7 +5,7 @@ pragma solidity 0.8.27;
 import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { Address, CTMRWAUtils, RWA } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWAAttachment, ICTMRWAMap } from "./ICTMRWAMap.sol";
-import { C3GovernDappUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDappUpgradeable.sol";
+import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -28,7 +28,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  *
  * The 'attach' functions are called by CTMRWADeployer when the contracts are deployed.
  */
-contract CTMRWAMap is ICTMRWAMap, C3GovernDappUpgradeable, UUPSUpgradeable {
+contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using CTMRWAUtils for string;
 
@@ -84,7 +84,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDappUpgradeable, UUPSUpgradeable {
         address _gateway,
         address _rwa1X
     ) external initializer {
-        __C3GovernDapp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
         gateway = _gateway;
         ctmRwa1X = _rwa1X;
         cIdStr = cID().toString();
