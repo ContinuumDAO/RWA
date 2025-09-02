@@ -70,7 +70,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
         slot = _slot;
         string memory slotStr = string.concat("slot ", Strings.toString(slot), "| ");
         ctmRwaName = string.concat(slotStr, _name);
-        ctmRwaSymbol = _symbol;
+        ctmRwaSymbol = string.concat(_symbol, Strings.toString(slot));
         ctmRwaMap = _ctmRwaMap;
 
         bool ok;
