@@ -721,6 +721,20 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     }
 
     /**
+     * @notice The owner of a tokenId revokes approval, no other address can spend any 'value' from it
+     * @param _tokenId The tokenId whose approval is being revoked
+     */
+    function revokeApproval(uint256 _tokenId) public virtual {
+        if (msg.sender != owner) {
+            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.Owner);
+        }
+
+        _allTokens[_allTokensIndex[_tokenId]].approved = address(0);
+
+        emit RevokeApproval(_tokenId);
+    }
+
+    /**
      * @notice Returns whether an operator address is approved to spend from a tokenId
      * @param _operator The address being checked to see if they are approved
      * @param _tokenId The tokenId which is being checked
@@ -1123,36 +1137,66 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @dev Burn 'value' from a pre-existing tokenId, callable by any 'Minter'
     /// @param _fromTokenId The tokenId to burn the value from
     /// @param _value The value to burn
-    function burnValueX(uint256 _fromTokenId, uint256 _value) external onlyMinter whenNotPaused returns (bool) {
-        if (!_exists(_fromTokenId)) {
-            revert CTMRWA1_IDNonExistent(_fromTokenId);
-        }
+    // function burnValueX(uint256 _fromTokenId, uint256 _value) external onlyMinter whenNotPaused returns (bool) {
+    //     if (!_exists(_fromTokenId)) {
+    //         revert CTMRWA1_IDNonExistent(_fromTokenId);
+    //     }
 
-        TokenData storage fromTokenData = _allTokens[_allTokensIndex[_fromTokenId]];
-        if (fromTokenData.balance < _value) {
-            revert CTMRWA1_InsufficientBalance();
-        }
+    //     TokenData storage fromTokenData = _allTokens[_allTokensIndex[_fromTokenId]];
+    //     if (fromTokenData.balance < _value) {
+    //         revert CTMRWA1_InsufficientBalance();
+    //     }
 
-        fromTokenData.balance -= _value;
-        return (true);
+    //     fromTokenData.balance -= _value;
+    //     return (true);
+    // }
+
+    function burnValueX(uint256 _fromTokenId, uint256 _value) external onlyMinter whenNotPaused {
+       _burnValue(_fromTokenId, _value);
     }
 
     /**
      * @dev Mint 'value' to an existing tokenId, providing the slot is the same and the address is
      *  whitelisted (if whitelisting is enabled). Function is callable by any Minter
      * @param _toTokenId The tokenId to mint the value to
-     * @param _slot The slot number to mint the value to
      * @param _value The value to mint
      */
-    function mintValueX(uint256 _toTokenId, uint256 _slot, uint256 _value)
+    // function mintValueX(uint256 _toTokenId, uint256 _slot, uint256 _value)
+    //     external
+    //     onlyMinter
+    //     whenNotPaused
+    //     returns (bool)
+    // {
+    //     if (!_exists(_toTokenId)) {
+    //         revert CTMRWA1_IDNonExistent(_toTokenId);
+    //     }
+    //     address owner = ownerOf(_toTokenId);
+    //     string memory toAddressStr = owner.toHexString();
+
+    //     if (sentryAddr != address(0)) {
+    //         if (!ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr)) {
+    //             revert CTMRWA1_WhiteListRejected(owner);
+    //         }
+    //     }
+
+    //     TokenData storage toTokenData = _allTokens[_allTokensIndex[_toTokenId]];
+    //     if (toTokenData.slot != _slot) {
+    //         revert CTMRWA1_InvalidSlot(_slot);
+    //     }
+
+    //     toTokenData.balance += _value;
+    //     return (true);
+    // }
+
+    function mintValueX(uint256 _toTokenId, uint256 _value)
         external
         onlyMinter
         whenNotPaused
-        returns (bool)
     {
         if (!_exists(_toTokenId)) {
             revert CTMRWA1_IDNonExistent(_toTokenId);
         }
+
         address owner = ownerOf(_toTokenId);
         string memory toAddressStr = owner.toHexString();
 
@@ -1162,13 +1206,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             }
         }
 
-        TokenData storage toTokenData = _allTokens[_allTokensIndex[_toTokenId]];
-        if (toTokenData.slot != _slot) {
-            revert CTMRWA1_InvalidSlot(_slot);
-        }
-
-        toTokenData.balance += _value;
-        return (true);
+        _mintValue(_toTokenId, _value);  
     }
 
     /// @dev Transfer ownership of a tokenId to another wallet

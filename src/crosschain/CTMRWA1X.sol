@@ -506,7 +506,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * @notice Mint new fungible value for an RWA with _ID to an Asset Class (slot).
      * @param _toAddress Address to mint new value for
      * @param _toTokenId The tokenId to add the new value to. If set to 0, create a new tokenId
-     * @param _slot The Asset Class (slot) for which to mint value.
+     * @param _slot The Asset Class (slot) for which to mint value if _toTokenId == 0, else must be zero.
      * @param _value The fungible value to create. This is in wei if CTMRWA1().valueDecimals() == 18
      * @param _ID The ID to create new value in
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
@@ -529,7 +529,11 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         _payFee(FeeType.MINT, _feeTokenStr, cIdStr._stringToArray(), false);
 
         if (_toTokenId > 0) {
-            ICTMRWA1(ctmRwa1Addr).mintValueX(_toTokenId, _slot, _value);
+            // ICTMRWA1(ctmRwa1Addr).mintValueX(_toTokenId, _slot, _value);
+            if (_slot != 0) {
+                revert CTMRWA1X_NonZeroSlot(_slot);
+            }
+            ICTMRWA1(ctmRwa1Addr).mintValueX(_toTokenId, _value);
             return (_toTokenId);
         } else {
             bool slotExists = ICTMRWA1(ctmRwa1Addr).slotExists(_slot);

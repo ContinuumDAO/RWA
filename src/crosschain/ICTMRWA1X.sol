@@ -39,6 +39,7 @@ interface ICTMRWA1X is ICTMRWA {
 
     // Input Validation
     error CTMRWA1X_SlotExists(uint256);
+    error CTMRWA1X_NonZeroSlot(uint256);
     error CTMRWA1X_NonExistentSlot(uint256);
     error CTMRWA1X_InvalidLength(Uint);
     error CTMRWA1X_InvalidCallLogic();

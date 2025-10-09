@@ -137,8 +137,10 @@ interface ICTMRWA1 is ICTMRWA {
 
     function burn(uint256 tokenId) external;
 
-    function burnValueX(uint256 fromTokenId, uint256 value) external returns (bool);
-    function mintValueX(uint256 toTokenId, uint256 slot, uint256 value) external returns (bool);
+    // function burnValueX(uint256 fromTokenId, uint256 value) external returns (bool);
+    function burnValueX(uint256 fromTokenId, uint256 value) external;
+    // function mintValueX(uint256 toTokenId, uint256 slot, uint256 value) external returns (bool);
+    function mintValueX(uint256 toTokenId, uint256 value) external;
     function mintFromX(address to, uint256 slot, string memory slotName, uint256 value)
         external
         returns (uint256 tokenId);
