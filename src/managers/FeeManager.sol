@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity 0.8.27;
 
-import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, Uint } from "../utils/CTMRWAUtils.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "./IFeeManager.sol";
 import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -90,7 +90,7 @@ contract FeeManager is
      */
     function addFeeToken(string memory _feeTokenStr) external onlyGov whenNotPaused nonReentrant returns (bool) {
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
+            revert FeeManager_InvalidLength(Uint.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
         uint256 index = feeTokenList.length;
@@ -107,7 +107,7 @@ contract FeeManager is
      */
     function delFeeToken(string memory _feeTokenStr) external onlyGov whenNotPaused nonReentrant returns (bool) {
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
+            revert FeeManager_InvalidLength(Uint.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
         if (feeTokenIndexMap[feeToken] == 0) {
@@ -143,7 +143,7 @@ contract FeeManager is
      */
     function getFeeTokenIndexMap(string memory _feeTokenStr) external view returns (uint256) {
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
+            revert FeeManager_InvalidLength(Uint.Address);
         }
         address feeToken = _feeTokenStr._toLower()._stringToAddress();
         return (feeTokenIndexMap[feeToken]);
@@ -165,11 +165,11 @@ contract FeeManager is
         returns (bool)
     {
         if (bytes(dstChainIDStr).length == 0) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.ChainID);
+            revert FeeManager_InvalidLength(Uint.ChainID);
         }
 
         if (feeTokensStr.length != baseFee.length) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.Input);
+            revert FeeManager_InvalidLength(Uint.Input);
         }
 
         dstChainIDStr = dstChainIDStr._toLower();
@@ -177,7 +177,7 @@ contract FeeManager is
         address[] memory localFeetokens = new address[](feeTokensStr.length);
         for (uint256 i = 0; i < feeTokensStr.length; i++) {
             if (bytes(feeTokensStr[i]).length != 42) {
-                revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
+                revert FeeManager_InvalidLength(Uint.Address);
             }
             localFeetokens[i] = feeTokensStr[i]._toLower()._stringToAddress();
         }
@@ -204,11 +204,11 @@ contract FeeManager is
     {
         uint256 idx = uint256(_feeType);
         if (idx >= feeMultiplier.length) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.Input);
+            revert FeeManager_InvalidLength(Uint.Input);
         }
 
         if (_multiplier > MAX_SAFE_MULTIPLIER) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.Multiplier);
+            revert FeeManager_InvalidLength(Uint.Multiplier);
         }
         feeMultiplier[idx] = _multiplier;
         emit SetFeeMultiplier(_feeType, _multiplier);
@@ -221,7 +221,7 @@ contract FeeManager is
     function getFeeMultiplier(FeeType _feeType) public view returns (uint256) {
         uint256 idx = uint256(_feeType);
         if (idx >= feeMultiplier.length) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.Input);
+            revert FeeManager_InvalidLength(Uint.Input);
         }
         return feeMultiplier[idx];
     }
@@ -257,7 +257,7 @@ contract FeeManager is
         uint256 baseFee;
         for (uint256 i = 0; i < _toChainIDsStr.length; i++) {
             if (bytes(_toChainIDsStr[i]).length == 0) {
-                revert FeeManager_InvalidLength(CTMRWAErrorParam.ChainID);
+                revert FeeManager_InvalidLength(Uint.ChainID);
             }
             baseFee += getToChainBaseFee(_toChainIDsStr[i], _feeTokenStr);
         }
@@ -279,7 +279,7 @@ contract FeeManager is
      */
     function payFee(uint256 _fee, string memory _feeTokenStr) external nonReentrant whenNotPaused returns (uint256) {
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
+            revert FeeManager_InvalidLength(Uint.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
         if (!IERC20(feeToken).transferFrom(msg.sender, address(this), _fee)) {
@@ -303,11 +303,11 @@ contract FeeManager is
         returns (bool)
     {
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
+            revert FeeManager_InvalidLength(Uint.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
         if (bytes(_treasuryStr).length != 42) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
+            revert FeeManager_InvalidLength(Uint.Address);
         }
         address treasury = _treasuryStr._stringToAddress();
 
@@ -330,11 +330,11 @@ contract FeeManager is
      */
     function getToChainBaseFee(string memory _toChainIDStr, string memory _feeTokenStr) public view returns (uint256) {
         if (bytes(_toChainIDStr).length == 0) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.ChainID);
+            revert FeeManager_InvalidLength(Uint.ChainID);
         }
 
         if (bytes(_feeTokenStr).length != 42) {
-            revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
+            revert FeeManager_InvalidLength(Uint.Address);
         }
 
         address feeToken = _feeTokenStr._stringToAddress();

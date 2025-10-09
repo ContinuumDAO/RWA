@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import { Address } from "../utils/CTMRWAUtils.sol";
 
 enum RequestId {
     PERSONHOOD,
@@ -14,9 +14,9 @@ enum RequestId {
 }
 
 interface ICTMRWA1Identity is ICTMRWA {
-    error CTMRWA1Identity_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
-    error CTMRWA1Identity_IsZeroAddress(CTMRWAErrorParam);
-    error CTMRWA1Identity_InvalidContract(CTMRWAErrorParam);
+    error CTMRWA1Identity_OnlyAuthorized(Address, Address);
+    error CTMRWA1Identity_IsZeroAddress(Address);
+    error CTMRWA1Identity_InvalidContract(Address);
     error CTMRWA1Identity_KYCDisabled();
     error CTMRWA1Identity_AlreadyWhitelisted(address);
     error CTMRWA1Identity_InvalidKYC(address);

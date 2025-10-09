@@ -8,7 +8,7 @@ import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { Address, CTMRWAUtils, Time, Uint } from "../utils/CTMRWAUtils.sol";
 import { Holding, ICTMRWA1InvestWithTimeLock, Offering } from "./ICTMRWA1InvestWithTimeLock.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -94,24 +94,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     /// @dev Mapping to track pause state for each offering index
     mapping(uint256 => bool) private _isOfferingPaused;
 
-    event CreateOffering(uint256 indexed ID, uint256 indx, uint256 slot, uint256 offer);
 
-    event OfferingPaused(uint256 indexed ID, uint256 indexed indx, address account);
-    event OfferingUnpaused(uint256 indexed ID, uint256 indexed indx, address account);
-
-    event InvestInOffering(uint256 indexed ID, uint256 indx, uint256 holdingIndx, uint256 investment);
-
-    event WithdrawFunds(uint256 indexed ID, uint256 indx, uint256 funds);
-
-    event UnlockInvestmentToken(uint256 indexed ID, address holder, uint256 holdingIndx);
-
-    event ClaimDividendInEscrow(uint256 indexed ID, address holder, uint256 unclaimed);
-
-    event FundedRewardToken(uint256 indexed offeringIndex, uint256 fundAmount, uint256 rewardMultiplier);
-
-    event RewardClaimed(
-        address indexed holder, uint256 indexed offerIndex, uint256 indexed holdingIndex, uint256 amount
-    );
 
     constructor(uint256 _ID, address _ctmRwaMap, uint256 _commissionRate, address _feeManager) {
         ID = _ID;
@@ -122,19 +105,19 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
         (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Token);
+            revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Token);
         }
 
         decimalsRwa = ICTMRWA1(ctmRwaToken).valueDecimals();
 
         (ok, ctmRwaDividend) = ICTMRWAMap(ctmRwaMap).getDividendContract(ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Dividend);
+            revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Dividend);
         }
 
         (ok, ctmRwaSentry) = ICTMRWAMap(ctmRwaMap).getSentryContract(ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Sentry);
+            revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Sentry);
         }
 
         ctmRwa1X = ICTMRWA1(ctmRwaToken).ctmRwa1X();
@@ -210,6 +193,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
      * @param _regulatorCountry The 2 letter Country Code of the Regulator
      * @param _regulatorAcronym The acronym of the Regulator
      * @param _offeringType The short AssetX description of the offering
+     * @param _bnbGreenfieldObjectName The name of the object describing the offering in the BNB Greenfield Storage
      * @param _startTime The time after which offers will be accepted
      * @param _endTime The end time, after which offers will no longer be allowed
      * @param _lockDuration The time for which the investors tokenId will be held in escrow for.
@@ -228,6 +212,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         string memory _regulatorCountry,
         string memory _regulatorAcronym,
         string memory _offeringType,
+        string memory _bnbGreenfieldObjectName,
         uint256 _startTime,
         uint256 _endTime,
         uint256 _lockDuration,
@@ -241,17 +226,17 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
             revert CTMRWA1InvestWithTimeLock_MaxOfferings();
         }
         if (bytes(_regulatorCountry).length > 2) {
-            revert CTMRWA1InvestWithTimeLock_InvalidLength(CTMRWAErrorParam.CountryCode);
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.CountryCode);
         }
         if (bytes(_offeringType).length > 128) {
-            revert CTMRWA1InvestWithTimeLock_InvalidLength(CTMRWAErrorParam.Offering);
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.Offering);
         }
 
         // Check that _rewardToken is a contract and implements totalSupply (ERC20), unless it is address(0)
         if (_rewardToken != address(0)) {
-            (bool success,) = _rewardToken.staticcall(abi.encodeWithSignature("totalSupply()"));
+            (bool success, ) = _rewardToken.staticcall(abi.encodeWithSignature("totalSupply()"));
             if (!success) {
-                revert CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Token);
+                revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Token);
             }
         }
 
@@ -259,10 +244,10 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         uint256 slot = ICTMRWA1(ctmRwaToken).slotOf(_tokenId);
 
         if (_minInvestment > offer * _price / 10 ** decimalsRwa) {
-            revert CTMRWA1InvestWithTimeLock_InvalidLength(CTMRWAErrorParam.MinInvestment);
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.MinInvestment);
         }
         if (_minInvestment > _maxInvestment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidLength(CTMRWAErrorParam.MinInvestment);
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.MinInvestment);
         }
 
         _payFee(FeeType.OFFERING, _feeToken);
@@ -286,6 +271,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
                 _regulatorCountry,
                 _regulatorAcronym,
                 _offeringType,
+                _bnbGreenfieldObjectName,
                 _startTime,
                 _endTime,
                 _lockDuration,
@@ -325,32 +311,32 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         }
 
         if (block.timestamp < offerings[_indx].startTime) {
-            revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(CTMRWAErrorParam.Early);
+            revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Early);
         }
 
         if (block.timestamp > offerings[_indx].endTime) {
-            revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(CTMRWAErrorParam.Late);
+            revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Late);
         }
 
         if (_investment == 0) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Value);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Value);
         }
 
         address currency = offerings[_indx].currency;
         if (IERC20(currency).balanceOf(msg.sender) < _investment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Balance);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
         }
 
         if (_investment < offerings[_indx].minInvestment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.InvestmentLow);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.InvestmentLow);
         }
 
         if (offerings[_indx].maxInvestment > 0 && _investment > offerings[_indx].maxInvestment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.InvestmentHigh);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.InvestmentHigh);
         }
 
         if (offerings[_indx].balRemaining < _investment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Balance);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
         }
 
         bool permitted = ICTMRWA1Sentry(ctmRwaSentry).isAllowableTransfer(msg.sender.toHexString());
@@ -398,27 +384,6 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         return newTokenId;
     }
 
-    /**
-     * @notice This function allows the tokenAdmin to withdraw any ERC20 token held by this contract.
-     * @param _contractAddr The address of the ERC20
-     * @param _amount The amount of the ERC20 to withdraw in wei
-     * NOTE This is an emergency only function. The normal route for a tokenAdmin to withdraw investments
-     * is to use the withdrawInvested function. The withdraw function will be removed at a later stage.
-     * @return bal The balance of the ERC20 token withdrawn.
-     */
-    function withdraw(address _contractAddr, uint256 _amount) public onlyTokenAdmin(ctmRwaToken) returns (uint256) {
-        uint256 bal = IERC20(_contractAddr).balanceOf(address(this));
-        if (bal == 0) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Balance);
-        }
-        if (_amount > bal) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Balance);
-        }
-
-        IERC20(_contractAddr).transfer(tokenAdmin, _amount);
-
-        return bal;
-    }
 
     /**
      * @notice Allow an Issuer (tokenAdmin) to withdraw funds that have been invested in an Offering
@@ -436,14 +401,14 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         uint256 commission = commissionRate * investment / 10_000;
 
         if (commission == 0 && commissionRate != 0) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Commission);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Commission);
         }
 
         if (investment > 0) {
             address currency = offerings[_indx].currency;
             uint256 funds = investment - commission;
             offerings[_indx].investment = 0;
-
+            
             if (commission > 0) {
                 IERC20(currency).transfer(feeManager, commission);
             }
@@ -476,7 +441,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
         if (owner == address(this)) {
             if (block.timestamp < thisHolding.escrowTime) {
-                revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(CTMRWAErrorParam.Early);
+                revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Early);
             }
 
             // ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
@@ -500,7 +465,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
      * @return tokensInEscrow The tokenIds in escrow
      * @return ownersInEscrow The owners of the tokenIds in escrow
      */
-    function getTokenIdsInEscrow() external view returns (uint256[] memory, address[] memory) {
+    function getTokenIdsInEscrow() public view returns (uint256[] memory, address[] memory) {
         return (tokensInEscrow, ownersInEscrow);
     }
 
@@ -526,6 +491,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
             }
         }
     }
+
 
     /**
      * @notice Get the total number of Offerings generated by the Issuer (tokenAdmin).
@@ -589,38 +555,36 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     }
 
     /**
-     * @notice Allows the tokenAdmin to fund the ERC20 rewardToken for an offering and distribute rewards to all current
-     * holders.
+     * @notice Allows the tokenAdmin to fund the ERC20 rewardToken for an offering and distribute rewards to all current holders.
      * @param _offeringIndex The index of the offering to fund.
      * @param _fundAmount The amount of rewardToken to transfer to the contract.
      * @param _rewardMultiplier The reward rate (reward tokens per 1 CTMRWA1, in smallest units).
      * @param _rateDivisor The scaling divisor to normalize decimals (e.g., 1e18 for 18 decimals).
      */
-    function fundRewardTokenForOffering(
-        uint256 _offeringIndex,
-        uint256 _fundAmount,
-        uint256 _rewardMultiplier,
-        uint256 _rateDivisor
-    ) external nonReentrant onlyTokenAdmin(ctmRwaToken) {
+    function fundRewardTokenForOffering(uint256 _offeringIndex, uint256 _fundAmount, uint256 _rewardMultiplier, uint256 _rateDivisor)
+        external
+        nonReentrant
+        onlyTokenAdmin(ctmRwaToken)
+    {
         if (_offeringIndex >= offerings.length) {
             revert CTMRWA1InvestWithTimeLock_InvalidOfferingIndex();
         }
         Offering storage offering = offerings[_offeringIndex];
         address rewardToken = offering.rewardToken;
         if (rewardToken == address(0)) {
-            revert CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Token);
+            revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Token);
         }
         // Transfer the reward tokens from the tokenAdmin to this contract
         IERC20(rewardToken).transferFrom(msg.sender, address(this), _fundAmount);
         // Distribute rewards to all current holders
         for (uint256 i = 0; i < offering.holdings.length; i++) {
             Holding storage holding = offering.holdings[i];
-
+            
             // Skip holders whose escrow lock time has passed
             if (block.timestamp >= holding.escrowTime) {
                 continue;
             }
-
+            
             uint256 balance = ICTMRWA1(ctmRwaToken).balanceOf(holding.tokenId);
             uint256 reward = (balance * _rewardMultiplier) / _rateDivisor;
             holding.rewardAmount += reward;
@@ -628,8 +592,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
             // Find the correct holding in holdingsByAddress
             Holding[] storage holderHoldings = holdingsByAddress[holding.investor];
             for (uint256 j = 0; j < holderHoldings.length; j++) {
-                if (holderHoldings[j].tokenId == holding.tokenId && holderHoldings[j].offerIndex == holding.offerIndex)
-                {
+                if (holderHoldings[j].tokenId == holding.tokenId && holderHoldings[j].offerIndex == holding.offerIndex) {
                     holderHoldings[j].rewardAmount += reward;
                     break;
                 }
@@ -639,19 +602,14 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     }
 
     /**
-     * @notice Returns the rewardToken contract address for an offering and the rewardAmount for a specific Holding of a
-     * holder.
+     * @notice Returns the rewardToken contract address for an offering and the rewardAmount for a specific Holding of a holder.
      * @param holder The address of the holder.
      * @param offerIndex The index of the offering.
      * @param holdingIndex The index of the holding for the holder.
      * @return rewardToken The reward token contract address for the offering.
      * @return rewardAmount The reward amount for the specified holding.
      */
-    function getRewardInfo(address holder, uint256 offerIndex, uint256 holdingIndex)
-        external
-        view
-        returns (address rewardToken, uint256 rewardAmount)
-    {
+    function getRewardInfo(address holder, uint256 offerIndex, uint256 holdingIndex) external view returns (address rewardToken, uint256 rewardAmount) {
         if (offerIndex >= offerings.length) {
             revert CTMRWA1InvestWithTimeLock_InvalidOfferingIndex();
         }
@@ -682,10 +640,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         Holding storage userHolding;
         uint256 foundIndex = type(uint256).max;
         for (uint256 i = 0; i < offering.holdings.length; i++) {
-            if (
-                offering.holdings[i].investor == msg.sender && offering.holdings[i].offerIndex == offerIndex
-                    && offering.holdings[i].tokenId == holdingsByAddress[msg.sender][holdingIndex].tokenId
-            ) {
+            if (offering.holdings[i].investor == msg.sender && offering.holdings[i].offerIndex == offerIndex && offering.holdings[i].tokenId == holdingsByAddress[msg.sender][holdingIndex].tokenId) {
                 userHolding = offering.holdings[i];
                 foundIndex = i;
                 break;
@@ -706,11 +661,65 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         emit RewardClaimed(msg.sender, offerIndex, holdingIndex, rewardAmount);
     }
 
+    /**
+     * @notice Allows the tokenAdmin to remove the remaining balance of a tokenId in an Offering after the end time.
+     * This function can only be called after the offering has ended and only if there is remaining balance.
+     * @param _indx The index of the Offering to remove remaining balance from.
+     * @param _feeToken The address of the ERC20 token used to pay fees to AssetX.
+     * @return newTokenId The new tokenId created for the tokenAdmin with the remaining balance.
+     */
+    function removeRemainingTokenId(uint256 _indx, address _feeToken) 
+        public 
+        onlyTokenAdmin(ctmRwaToken) 
+        nonReentrant 
+        returns (uint256) 
+    {
+        if (_indx >= offerings.length) {
+            revert CTMRWA1InvestWithTimeLock_InvalidOfferingIndex();
+        }
+
+        Offering storage offering = offerings[_indx];
+
+        // Check if the offering has ended
+        if (block.timestamp <= offering.endTime) {
+            revert CTMRWA1InvestWithTimeLock_OfferingNotEnded();
+        }
+
+        // Check if there is remaining balance to remove
+        if (offering.balRemaining == 0) {
+            revert CTMRWA1InvestWithTimeLock_NoRemainingBalance();
+        }
+
+        uint256 remainingBalance = offering.balRemaining;
+        uint256 tokenId = offering.tokenId;
+
+        // Pay the fee for removing remaining balance
+        _payFee(FeeType.OFFERING, _feeToken);
+
+        // Transfer the remaining balance back to the tokenAdmin
+        // We need to create a new tokenId for the tokenAdmin with the remaining balance
+        uint256 newTokenId = ICTMRWA1X(ctmRwa1X).transferPartialTokenX(
+            tokenId, 
+            tokenAdmin.toHexString(), 
+            cIdStr, 
+            remainingBalance, 
+            ID, 
+            _feeToken.toHexString()
+        );
+
+        // Set the remaining balance to 0
+        offering.balRemaining = 0;
+
+        emit RemoveRemainingBalance(ID, _indx, remainingBalance);
+
+        return newTokenId;
+    }
+
     /// @dev Check that msg.sender is the tokenAdmin of a CTMRWA1 address
     function _checkTokenAdmin(address _ctmRwaToken) internal {
         tokenAdmin = ICTMRWA1(_ctmRwaToken).tokenAdmin();
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1InvestWithTimeLock_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
+            revert CTMRWA1InvestWithTimeLock_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
         }
     }
 

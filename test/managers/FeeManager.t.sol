@@ -15,7 +15,7 @@ import { FeeType, IERC20Extended, IFeeManager } from "../../src/managers/IFeeMan
 
 import { MaliciousERC20 } from "../../src/mocks/MaliciousERC20.sol";
 import { TestERC20 } from "../../src/mocks/TestERC20.sol";
-import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
+import { Uint } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 import { Test } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
@@ -418,9 +418,7 @@ contract TestFeeManager is Helpers {
     function test_FeeMultiplierNoOverflow() public {
         // Set a very large multiplier (should revert)
         uint256 largeMultiplier = 1e55 + 1; // MAX_SAFE_MULTIPLIER + 1 (hardcoded, since not public)
-        vm.expectRevert(
-            abi.encodeWithSelector(IFeeManager.FeeManager_InvalidLength.selector, CTMRWAErrorParam.Multiplier)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_InvalidLength.selector, Uint.Multiplier));
         vm.prank(gov);
         feeManager.setFeeMultiplier(FeeType.TX, largeMultiplier);
         // Set a safe multiplier (should succeed)

@@ -21,6 +21,8 @@ This contract is deployed only once on each chain and manages all CTMRWAERC20 co
 - **Slot-specific Deployment:** Each ERC20 represents exactly one slot
 - **Cross-contract Validation:** Validates CTMRWA1 contract existence
 - **Reentrancy Protection:** Uses ReentrancyGuard for fee payment security
+- **Original Caller Tracking:** Tracks the original caller for fee payment
+- **Cross-chain Fee Support:** Supports cross-chain fee calculations
 
 ## Public Variables
 
@@ -50,7 +52,7 @@ This contract is deployed only once on each chain and manages all CTMRWAERC20 co
 
 ### Deployment Functions
 
-#### `deployERC20(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, string memory _name, string memory _symbol, address _feeToken)`
+#### `deployERC20(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, string memory _name, string memory _symbol, address _feeToken, address _originalCaller)`
 - **Access:** Only callable by valid CTMRWA1 contracts
 - **Purpose:** Deploy a new ERC20 contract linked to a CTMRWA1 for one specific slot
 - **Parameters:**
@@ -61,26 +63,29 @@ This contract is deployed only once on each chain and manages all CTMRWAERC20 co
   - `_name`: Name for the ERC20 (will be prefixed with "slot X | ")
   - `_symbol`: Symbol to use for the ERC20
   - `_feeToken`: Fee token address for payment
+  - `_originalCaller`: Address of the original caller who should pay the fee
 - **Logic:**
   - Validates CTMRWA1 contract exists in CTMRWAMap
   - Ensures caller is the valid CTMRWA1 contract
-  - Pays deployment fee using FeeManager
+  - Pays deployment fee using FeeManager with original caller
   - Generates salt from ID, RWA type, version, and slot
   - Deploys CTMRWAERC20 using CREATE2 with salt
   - Returns the deployed contract address
 - **Returns:** Address of the deployed CTMRWAERC20 contract
 - **Security:** Uses CREATE2 to ensure deterministic addresses
 - **Uniqueness:** Salt ensures only one ERC20 per slot per RWA per chain
+- **Fee Handling:** Fee is paid by the original caller, not the CTMRWA1 contract
 
 ## Internal Functions
 
 ### Fee Management
-- **`_payFee(FeeType _feeType, address _feeToken)`**: Pays fees for deployment operations
-  - Calculates fee amount using FeeManager
-  - Transfers fee tokens from deployer
+- **`_payFee(FeeType _feeType, address _feeToken, address _originalCaller)`**: Pays fees for deployment operations
+  - Calculates cross-chain fee amount using FeeManager
+  - Transfers fee tokens from original caller
   - Approves and pays fee to FeeManager
   - Uses nonReentrant modifier for security
   - Returns true if fee payment successful
+  - Handles zero fee scenarios gracefully
 
 ## Access Control Modifiers
 
@@ -89,6 +94,7 @@ The contract does not use custom access control modifiers, but implements access
 - **CTMRWA1 Validation:** Only valid CTMRWA1 contracts can deploy ERC20 tokens
 - **Contract Existence Check:** Validates CTMRWA1 contract exists in CTMRWAMap
 - **Caller Verification:** Ensures caller is the actual CTMRWA1 contract
+- **Original Caller Tracking:** Tracks fee payer separately from contract caller
 
 ## Events
 
@@ -104,6 +110,8 @@ The contract does not emit custom events, as it focuses solely on deployment ope
 6. **Reentrancy Protection:** Uses ReentrancyGuard for fee payment security
 7. **Zero Address Validation:** Prevents deployment with invalid addresses
 8. **Single Instance:** Ensures only one ERC20 per slot per RWA per chain
+9. **Original Caller Security:** Separates fee payer from contract caller
+10. **Cross-chain Fee Validation:** Validates fee tokens across chains
 
 ## Integration Points
 
@@ -126,7 +134,7 @@ The contract uses custom error types for efficient gas usage and clear error mes
 
 ### 1. Deployment Request
 - **Step:** CTMRWA1 contract calls deployERC20 function with slot parameters
-- **Requirements:** Valid RWA ID, type, version, slot, and fee token
+- **Requirements:** Valid RWA ID, type, version, slot, fee token, and original caller
 - **Result:** Deployment process initiated
 
 ### 2. Contract Validation
@@ -140,8 +148,8 @@ The contract uses custom error types for efficient gas usage and clear error mes
 - **Result:** Proceed if authorized, revert if unauthorized
 
 ### 4. Fee Payment
-- **Step:** Pays deployment fee using FeeManager
-- **Requirements:** Sufficient fee token balance and approval
+- **Step:** Pays deployment fee using FeeManager with original caller
+- **Requirements:** Sufficient fee token balance and approval from original caller
 - **Result:** Fee paid and deployment proceeds
 
 ### 5. Salt Generation
@@ -171,7 +179,6 @@ The contract uses custom error types for efficient gas usage and clear error mes
 - **Process:** Deploy ERC20 tokens for trading and liquidity
 - **Benefit:** Seamless integration with existing DeFi ecosystem
 
-
 ### Wallet Support
 - **Scenario:** Supporting standard ERC20 wallets
 - **Process:** Deploy ERC20 tokens for wallet compatibility
@@ -182,6 +189,11 @@ The contract uses custom error types for efficient gas usage and clear error mes
 - **Process:** Deploy ERC20 tokens for portfolio tools
 - **Benefit:** Familiar ERC20 interface for portfolio management
 
+### Cross-chain Operations
+- **Scenario:** Supporting cross-chain RWA operations
+- **Process:** Deploy ERC20 tokens with cross-chain fee support
+- **Benefit:** Consistent fee structure across chains
+
 ## Best Practices
 
 1. **Slot Planning:** Plan slot structure before ERC20 deployment
@@ -189,6 +201,8 @@ The contract uses custom error types for efficient gas usage and clear error mes
 3. **Address Tracking:** Track deployed ERC20 contract addresses
 4. **Cross-chain Coordination:** Coordinate deployments across all chains
 5. **Validation Testing:** Test contract validation before deployment
+6. **Original Caller Management:** Properly track fee payers
+7. **Fee Token Selection:** Choose appropriate fee tokens for each chain
 
 ## Limitations
 
@@ -197,6 +211,7 @@ The contract uses custom error types for efficient gas usage and clear error mes
 - **Fee Requirement:** All deployments require fee payment
 - **Chain Specific:** Each deployer operates on a single chain
 - **Slot Specific:** Each ERC20 represents only one slot
+- **Original Caller Required:** Must provide original caller for fee payment
 
 ## Future Enhancements
 
@@ -207,6 +222,9 @@ Potential improvements to the ERC20 deployment system:
 3. **Enhanced Fee Models:** Implement more sophisticated fee structures
 4. **Deployment Analytics:** Add deployment tracking and analytics
 5. **Multi-slot Support:** Extend to deploy ERC20s for multiple slots
+6. **Automated Fee Calculation:** Dynamic fee calculation based on network conditions
+7. **Deployment Verification:** On-chain deployment verification
+8. **Gas Optimization:** Enhanced gas optimization for deployments
 
 ## CREATE2 Deployment Details
 
@@ -236,6 +254,7 @@ Potential improvements to the ERC20 deployment system:
 - **Slot Interface Layer:** Provides ERC20 interface to CTMRWA1 slots
 - **DeFi Integration Layer:** Enables DeFi protocol integration
 - **Map Layer:** Tracks deployed ERC20 contract addresses
+- **Fee Management Layer:** Handles cross-chain fee payments
 
 ### Integration Flow
 1. **CTMRWA1** requests ERC20 deployment for specific slot
@@ -243,7 +262,13 @@ Potential improvements to the ERC20 deployment system:
 3. **CTMRWAMap** registers new ERC20 contract address
 4. **CTMRWAERC20** provides ERC20 interface to slot
 5. **DeFi Protocols** interact with standard ERC20 interface
-6. **FeeManager** handles fee collection
+6. **FeeManager** handles fee collection from original caller
+
+### Fee Handling Architecture
+- **Original Caller Tracking:** Separates fee payer from contract caller
+- **Cross-chain Fee Support:** Supports fees across different chains
+- **Fee Token Validation:** Validates fee tokens through FeeManager
+- **Zero Fee Handling:** Graceful handling of zero fee scenarios
 
 ## Gas Optimization
 
@@ -258,6 +283,7 @@ Potential improvements to the ERC20 deployment system:
 - **Fee Optimization:** Optimize fee payment mechanisms
 - **Gas Estimation:** Always estimate gas before deployment
 - **Network Selection:** Choose appropriate networks for deployment
+- **Efficient Fee Transfer:** Optimize fee transfer operations
 
 ## Security Considerations
 
@@ -276,6 +302,13 @@ Potential improvements to the ERC20 deployment system:
 - **Contract Verification:** Verify deployed contracts on block explorers
 - **Address Registration:** Ensure proper registration in CTMRWAMap
 - **Cross-chain Coordination:** Coordinate deployments across chains properly
+- **Fee Security:** Secure fee payment and validation
+
+### Fee Security
+- **Original Caller Validation:** Ensure original caller is legitimate
+- **Fee Token Security:** Validate fee token addresses
+- **Cross-chain Fee Security:** Secure cross-chain fee operations
+- **Reentrancy Protection:** Prevent fee payment reentrancy attacks
 
 ## Slot Management
 
@@ -295,12 +328,19 @@ Potential improvements to the ERC20 deployment system:
 
 ### Fee Structure
 - **Fee Type:** ERC20 deployment fee
-- **Fee Calculation:** Based on chain and fee token
+- **Fee Calculation:** Based on chain and fee token (cross-chain support)
 - **Fee Payment:** Required before deployment
 - **Fee Distribution:** Paid to FeeManager contract
+
+### Cross-chain Fee Support
+- **Chain-specific Fees:** Different fees for different chains
+- **Fee Token Flexibility:** Support for various fee tokens
+- **Original Caller Tracking:** Separate fee payer from contract caller
+- **Zero Fee Handling:** Graceful handling of zero fee scenarios
 
 ### Use Cases
 - **Platform Fees:** Cover platform operational costs
 - **Revenue Generation:** Generate revenue for ecosystem maintenance
 - **Incentive Alignment:** Align incentives between stakeholders
 - **Sustainability:** Ensure long-term platform sustainability
+- **Cross-chain Operations:** Support fees across different chains

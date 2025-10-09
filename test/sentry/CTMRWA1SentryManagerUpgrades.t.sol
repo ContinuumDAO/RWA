@@ -2,16 +2,17 @@
 
 pragma solidity 0.8.27;
 
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { Test } from "forge-std/Test.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import { IC3GovClient } from "@c3caller/gov/IC3GovClient.sol";
 import { C3ErrorParam } from "@c3caller/utils/C3CallerUtils.sol";
 
+import { Helpers } from "../helpers/Helpers.sol";
 import { CTMRWA1SentryManager } from "../../src/sentry/CTMRWA1SentryManager.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { Helpers } from "../helpers/Helpers.sol";
+import { Address } from "../../src/utils/CTMRWAUtils.sol";
 
 // Mock implementation for testing upgrades
 contract MockCTMRWA1SentryManagerV2 is CTMRWA1SentryManager {
@@ -66,13 +67,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -94,9 +89,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
 
         // Upgrade the proxy without initialization
         vm.startPrank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), bytes(""))
-        );
+        (bool success,) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), bytes("")));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -133,13 +126,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -177,13 +164,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -202,13 +183,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         uint256 initialVersion = sentryManager.VERSION();
         // Upgrade the proxy
         vm.prank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         // Verify constants are preserved
         assertEq(sentryManager.RWA_TYPE(), initialRwaType, "RWA_TYPE should be preserved");
@@ -221,13 +196,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         assertTrue(initialUtils != address(0), "Should have utils address");
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify utils address is preserved
@@ -242,13 +211,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1SentryManagerV2 newImpl = new MockCTMRWA1SentryManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(newImpl),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify addresses are preserved
@@ -262,18 +225,8 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         MockCTMRWA1SentryManagerV2 newImpl = new MockCTMRWA1SentryManagerV2();
         // Try to upgrade without being gov
         vm.startPrank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
-            )
-        );
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(newImpl),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov));
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
         assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
@@ -282,8 +235,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         // Try to upgrade to zero address
         vm.startPrank(gov);
         vm.expectRevert("ERC1967: new implementation is not a contract");
-        (bool success,) =
-            address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
         assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
@@ -293,13 +245,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         address invalidImpl = address(new CTMRWAMap());
         vm.startPrank(gov);
         vm.expectRevert("ERC1967: new implementation is not a contract");
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                invalidImpl,
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", invalidImpl, abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
         assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
@@ -309,13 +255,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1SentryManagerV2 newImpl = new MockCTMRWA1SentryManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(newImpl),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that governance functions still work
@@ -332,13 +272,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         address oldImpl = abi.decode(dataOldImpl, (address));
         vm.startPrank(gov);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(impl1),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (1))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl1), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (1))));
         assertTrue(success);
         vm.stopPrank();
         // check that version is still one
@@ -353,13 +287,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         // First upgrade
         MockCTMRWA1SentryManagerV2 impl2 = new MockCTMRWA1SentryManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(impl2),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (2))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl2), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (2))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify first upgrade
@@ -367,13 +295,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         // Second upgrade
         MockCTMRWA1SentryManagerV2 impl3 = new MockCTMRWA1SentryManagerV2();
         vm.startPrank(gov);
-        (success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(impl3),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (3))
-            )
-        );
+        (success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (3))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify second upgrade
@@ -388,13 +310,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         // First upgrade
         MockCTMRWA1SentryManagerV2 impl2 = new MockCTMRWA1SentryManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(impl2),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (2))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl2), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (2))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify first upgrade
@@ -402,18 +318,8 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         // Second upgrade
         MockCTMRWA1SentryManagerV2 impl3 = new MockCTMRWA1SentryManagerV2();
         // not sending as gov to test that upgradeToAndCall reverts
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
-            )
-        );
-        (success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(impl3),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (3))
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov));
+        (success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (3))));
         // Second upgrade should fail
         assertEq(MockCTMRWA1SentryManagerV2(address(sentryManager)).newVersion(), 2, "Second upgrade should fail");
     }
@@ -422,13 +328,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1SentryManagerV2 newImpl = new MockCTMRWA1SentryManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(newImpl),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that reentrancy guard is still active
@@ -441,22 +341,14 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1SentryManagerV2 newImpl = new MockCTMRWA1SentryManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(sentryManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(newImpl),
-                abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that UUPS functionality is preserved
         // The contract should still be upgradeable
         MockCTMRWA1SentryManagerV2 impl3 = new MockCTMRWA1SentryManagerV2();
         vm.startPrank(gov);
-        (success,) = address(sentryManager).call(
-            abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), bytes(""))
-        );
+        (success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), bytes("")));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         assertTrue(true, "UUPS functionality should be preserved");

@@ -8,7 +8,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
-import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
+import { RWA } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 contract TestCTMRWAMap is Helpers {
@@ -133,19 +133,19 @@ contract TestCTMRWAMap is Helpers {
         string memory tokenAddrStr = _toLower(address(token).toHexString());
 
         // getTokenContract with wrong RWA_TYPE
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWAMap.CTMRWAMap_IncompatibleRWA.selector, CTMRWAErrorParam.Type));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWAMap.CTMRWAMap_IncompatibleRWA.selector, RWA.Type));
         map.getTokenContract(ID, wrongType, VERSION);
 
         // getTokenContract with wrong VERSION
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWAMap.CTMRWAMap_IncompatibleRWA.selector, CTMRWAErrorParam.Version));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWAMap.CTMRWAMap_IncompatibleRWA.selector, RWA.Version));
         map.getTokenContract(ID, RWA_TYPE, wrongVersion);
 
         // getTokenId with wrong RWA_TYPE
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWAMap.CTMRWAMap_IncompatibleRWA.selector, CTMRWAErrorParam.Type));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWAMap.CTMRWAMap_IncompatibleRWA.selector, RWA.Type));
         map.getTokenId(tokenAddrStr, wrongType, VERSION);
 
         // getTokenId with wrong VERSION
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWAMap.CTMRWAMap_IncompatibleRWA.selector, CTMRWAErrorParam.Version));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWAMap.CTMRWAMap_IncompatibleRWA.selector, RWA.Version));
         map.getTokenId(tokenAddrStr, RWA_TYPE, wrongVersion);
     }
 }

@@ -4,18 +4,18 @@ pragma solidity 0.8.27;
 
 import { Test } from "forge-std/Test.sol";
 
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import { IC3GovClient } from "@c3caller/gov/IC3GovClient.sol";
 import { IC3GovernDApp } from "@c3caller/gov/IC3GovernDApp.sol";
 import { C3ErrorParam } from "@c3caller/utils/C3CallerUtils.sol";
 
-import { FeeManager } from "../../src/managers/FeeManager.sol";
-import { FeeType, IFeeManager } from "../../src/managers/IFeeManager.sol";
-import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
+import { FeeManager } from "../../src/managers/FeeManager.sol";
+import { IFeeManager, FeeType } from "../../src/managers/IFeeManager.sol";
+import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
+import { Address } from "../../src/utils/CTMRWAUtils.sol";
 
 // Mock implementation for testing upgrades
 contract MockFeeManagerV2 is FeeManager {
@@ -64,13 +64,7 @@ contract TestFeeManagerUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockFeeManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -90,9 +84,7 @@ contract TestFeeManagerUpgrades is Helpers {
 
         // Upgrade the proxy without initialization
         vm.startPrank(gov);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), bytes(""))
-        );
+        (bool success,) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), bytes("")));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -118,21 +110,13 @@ contract TestFeeManagerUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockFeeManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
         // Verify mappings are preserved
         assertTrue(feeManager.feeTokenIndexMap(address(0x123)) > 0, "Fee token should still be added after upgrade");
-        assertEq(
-            feeManager.feeMultiplier(uint8(FeeType.OFFERING)), 100, "Fee multiplier should still be set after upgrade"
-        );
+        assertEq(feeManager.feeMultiplier(uint8(FeeType.OFFERING)), 100, "Fee multiplier should still be set after upgrade");
     }
 
     function test_upgrade_proxy_preserves_admin_tokens_mapping() public {
@@ -160,13 +144,7 @@ contract TestFeeManagerUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockFeeManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -204,13 +182,7 @@ contract TestFeeManagerUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockFeeManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -228,13 +200,7 @@ contract TestFeeManagerUpgrades is Helpers {
         uint256 initialMaxSafeMultiplier = feeManager.MAX_SAFE_MULTIPLIER();
         // Upgrade the proxy
         vm.prank(gov);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockFeeManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         // Verify constants are preserved
         assertEq(feeManager.MAX_SAFE_MULTIPLIER(), initialMaxSafeMultiplier, "MAX_SAFE_MULTIPLIER should be preserved");
@@ -245,16 +211,8 @@ contract TestFeeManagerUpgrades is Helpers {
         MockFeeManagerV2 newImpl = new MockFeeManagerV2();
         // Try to upgrade without being gov
         vm.startPrank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
-            )
-        );
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IC3GovClient.C3GovClient_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov));
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
@@ -263,8 +221,7 @@ contract TestFeeManagerUpgrades is Helpers {
         // Try to upgrade to zero address
         vm.startPrank(gov);
         vm.expectRevert("ERC1967: new implementation is not a contract");
-        (bool success,) =
-            address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
         assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
@@ -274,11 +231,7 @@ contract TestFeeManagerUpgrades is Helpers {
         address invalidImpl = address(new CTMRWAMap());
         vm.startPrank(gov);
         vm.expectRevert("ERC1967: new implementation is not a contract");
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)", invalidImpl, abi.encodeCall(MockFeeManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", invalidImpl, abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertFalse(success, "upgradeToAndCall did not fail");
         vm.stopPrank();
     }
@@ -288,11 +241,7 @@ contract TestFeeManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockFeeManagerV2 newImpl = new MockFeeManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that governance functions still work
@@ -311,11 +260,7 @@ contract TestFeeManagerUpgrades is Helpers {
         address oldImpl = abi.decode(dataOldImpl, (address));
         vm.startPrank(gov);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)", address(impl1), abi.encodeCall(MockFeeManagerV2.initializeV2, (1))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl1), abi.encodeCall(MockFeeManagerV2.initializeV2, (1))));
         assertTrue(success);
         vm.stopPrank();
         // check that version is still one
@@ -330,11 +275,7 @@ contract TestFeeManagerUpgrades is Helpers {
         // First upgrade
         MockFeeManagerV2 impl2 = new MockFeeManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)", address(impl2), abi.encodeCall(MockFeeManagerV2.initializeV2, (2))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl2), abi.encodeCall(MockFeeManagerV2.initializeV2, (2))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify first upgrade
@@ -342,11 +283,7 @@ contract TestFeeManagerUpgrades is Helpers {
         // Second upgrade
         MockFeeManagerV2 impl3 = new MockFeeManagerV2();
         vm.startPrank(gov);
-        (success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockFeeManagerV2.initializeV2, (3))
-            )
-        );
+        (success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockFeeManagerV2.initializeV2, (3))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify second upgrade
@@ -357,11 +294,7 @@ contract TestFeeManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockFeeManagerV2 newImpl = new MockFeeManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that reentrancy guard is still active
@@ -374,20 +307,14 @@ contract TestFeeManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockFeeManagerV2 newImpl = new MockFeeManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that UUPS functionality is preserved
         // The contract should still be upgradeable
         MockFeeManagerV2 impl3 = new MockFeeManagerV2();
         vm.startPrank(gov);
-        (success,) = address(feeManager).call(
-            abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), bytes(""))
-        );
+        (success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), bytes("")));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         assertTrue(true, "UUPS functionality should be preserved");
@@ -397,11 +324,7 @@ contract TestFeeManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockFeeManagerV2 newImpl = new MockFeeManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(feeManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that C3GovernDApp functionality is preserved

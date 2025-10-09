@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1XFallback } from "./ICTMRWA1XFallback.sol";
 
 /**
@@ -29,7 +29,7 @@ contract CTMRWA1XFallback is ICTMRWA1XFallback {
 
     modifier onlyRwa1X() {
         if (msg.sender != rwa1X) {
-            revert CTMRWA1XFallback_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX);
+            revert CTMRWA1XFallback_OnlyAuthorized(Address.Sender, Address.RWAX);
         }
         _;
     }

@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -39,7 +39,7 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWADeployInvest_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
+            revert CTMRWADeployInvest_OnlyAuthorized(Address.Sender, Address.Deployer);
         }
         _;
     }
@@ -74,13 +74,14 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     /// @param _rwaType The type of RWA token
     /// @param _version The version of the RWA token
     /// @param _feeToken The address of the fee token
+    /// @param _originalCaller The address of the original caller who should pay the fee
     /// @return The address of the deployed CTMRWA1Invest contract
-    function deployInvest(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken)
+    function deployInvest(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken, address _originalCaller)
         external
         onlyDeployer
         returns (address)
     {
-        _payFee(FeeType.DEPLOYINVEST, _feeToken);
+        _payFee(FeeType.DEPLOYINVEST, _feeToken, _originalCaller);
 
         bytes32 salt = keccak256(abi.encode(_ID, _rwaType, _version));
 
@@ -93,12 +94,14 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     /// @dev Pay the fee for deploying the Invest contract
     /// @param _feeType The type of fee to pay
     /// @param _feeToken The address of the fee token
-    function _payFee(FeeType _feeType, address _feeToken) internal returns (bool) {
+    /// @param _originalCaller The address of the original caller who should pay the fee
+    function _payFee(FeeType _feeType, address _feeToken, address _originalCaller) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
         uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), false, _feeType, feeTokenStr);
 
         if (feeWei > 0) {
-            IERC20(_feeToken).transferFrom(msg.sender, address(this), feeWei);
+            // Transfer the fee from the original caller to this contract
+            IERC20(_feeToken).transferFrom(_originalCaller, address(this), feeWei);
 
             IERC20(_feeToken).approve(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, feeTokenStr);

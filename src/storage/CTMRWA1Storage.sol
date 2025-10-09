@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Storage } from "./ICTMRWA1Storage.sol";
 import { URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
@@ -97,14 +97,14 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
 
     modifier onlyTokenAdmin() {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1Storage_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
+            revert CTMRWA1Storage_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
         }
         _;
     }
 
     modifier onlyStorageManager() {
         if (msg.sender != storageManagerAddr && msg.sender != storageUtilsAddr) {
-            revert CTMRWA1Storage_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.StorageManager);
+            revert CTMRWA1Storage_OnlyAuthorized(Address.Sender, Address.StorageManager);
         }
         _;
     }
@@ -177,7 +177,7 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         if (_uriType == URIType.SLOT) {
             (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
             if (!ok) {
-                revert CTMRWA1Storage_InvalidContract(CTMRWAErrorParam.Token);
+                revert CTMRWA1Storage_InvalidContract(Address.Token);
             }
             if (!ICTMRWA1(tokenAddr).slotExists(_slot)) {
                 revert CTMRWA1Storage_InvalidSlot(_slot);

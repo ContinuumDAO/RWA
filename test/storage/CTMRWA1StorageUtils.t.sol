@@ -9,7 +9,7 @@ import { CTMRWA1Storage } from "../../src/storage/CTMRWA1Storage.sol";
 import { CTMRWA1StorageManager } from "../../src/storage/CTMRWA1StorageManager.sol";
 import { ICTMRWA1Storage, URICategory, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageUtils } from "../../src/storage/ICTMRWA1StorageUtils.sol";
-import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
+import { Address } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
@@ -104,11 +104,7 @@ contract CTMRWA1StorageUtilsTest is Helpers {
         // Should fail for non-storageManager
         vm.prank(address(0xBEEF));
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ICTMRWA1StorageUtils.CTMRWA1StorageUtils_OnlyAuthorized.selector,
-                CTMRWAErrorParam.Sender,
-                CTMRWAErrorParam.StorageManager
-            )
+            abi.encodeWithSelector(ICTMRWA1StorageUtils.CTMRWA1StorageUtils_OnlyAuthorized.selector, Address.Sender, Address.StorageManager)
         );
         storageUtils.smC3Fallback(selector, data, reason);
     }

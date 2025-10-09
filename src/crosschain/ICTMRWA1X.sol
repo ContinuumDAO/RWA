@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { SlotData } from "../core/ICTMRWA1.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import { Address, List, Uint } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1X is ICTMRWA {
     /// @dev New c3call for CTMRWA1 deployment on destination chain toChainIdStr
@@ -32,21 +32,21 @@ interface ICTMRWA1X is ICTMRWA {
     event AdminChanged(uint256 ID, string newAdmin);
 
     // Address
-    error CTMRWA1X_OnlyAuthorized(CTMRWAErrorParam addr, CTMRWAErrorParam auth); // `addr` must be `auth`
-    error CTMRWA1X_IsZeroAddress(CTMRWAErrorParam);
-    error CTMRWA1X_InvalidContract(CTMRWAErrorParam);
-    error CTMRWA1X_InvalidAddress(CTMRWAErrorParam);
+    error CTMRWA1X_OnlyAuthorized(Address addr, Address auth); // `addr` must be `auth`
+    error CTMRWA1X_IsZeroAddress(Address);
+    error CTMRWA1X_InvalidContract(Address);
+    error CTMRWA1X_InvalidAddress(Address);
 
     // Input Validation
     error CTMRWA1X_SlotExists(uint256);
     error CTMRWA1X_NonExistentSlot(uint256);
-    error CTMRWA1X_InvalidLength(CTMRWAErrorParam);
+    error CTMRWA1X_InvalidLength(Uint);
     error CTMRWA1X_InvalidCallLogic();
     error CTMRWA1X_InvalidAttachmentState();
     error CTMRWA1X_SameChain();
 
     // Permissions
-    error CTMRWA1X_InvalidList(CTMRWAErrorParam);
+    error CTMRWA1X_InvalidList(List);
     error CTMRWA1X_KYCEnabled();
 
     function isMinter(address) external returns (bool);

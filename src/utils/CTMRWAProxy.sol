@@ -12,5 +12,5 @@ contract CTMRWAProxy is ERC1967Proxy {
         return ERC1967Utils.getImplementation();
     }
 
-    receive() external payable { }
+    receive() external payable {}
 }

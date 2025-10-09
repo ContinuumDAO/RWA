@@ -4,17 +4,17 @@ pragma solidity 0.8.27;
 
 import { console } from "forge-std/console.sol";
 
-import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
-import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
+import { Address, ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWAERC20 } from "../../src/deployment/ICTMRWAERC20.sol";
 import { ICTMRWAERC20Deployer } from "../../src/deployment/ICTMRWAERC20Deployer.sol";
-
-import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { IERC20Errors } from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+import { FeeType } from "../../src/managers/IFeeManager.sol";
+
+error EnforcedPause();
 
 contract TestERC20Deployer is Helpers {
     using Strings for *;
@@ -54,7 +54,7 @@ contract TestERC20Deployer is Helpers {
         string memory name = "Basic Stuff";
         usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, CTMRWAErrorParam.RWAERC20));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.RWAERC20));
         token.deployErc20(slot, name, address(usdc));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InvalidSlot.selector, 99));
         token.deployErc20(99, name, address(usdc));
@@ -234,7 +234,7 @@ contract TestERC20Deployer is Helpers {
 
         // Try to transfer as user1 while paused, should revert
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(Pausable.EnforcedPause.selector));
+        vm.expectRevert(EnforcedPause.selector);
         ICTMRWAERC20(newErc20).transfer(user2, 100);
         vm.stopPrank();
 
@@ -277,7 +277,7 @@ contract TestERC20Deployer is Helpers {
 
         // Try to transferFrom as user2 while paused, should revert
         vm.startPrank(user2);
-        vm.expectRevert(abi.encodeWithSelector(Pausable.EnforcedPause.selector));
+        vm.expectRevert(EnforcedPause.selector);
         ICTMRWAERC20(newErc20).transferFrom(user1, user2, 100);
         vm.stopPrank();
 
@@ -316,11 +316,7 @@ contract TestERC20Deployer is Helpers {
 
         // user2 is NOT whitelisted, user1 tries to transfer to user2, should revert with CTMRWA1_OnlyAuthorized
         vm.startPrank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.To, CTMRWAErrorParam.Allowable
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.To, Address.Allowable));
         ICTMRWAERC20(newErc20).transfer(user2, 100);
         vm.stopPrank();
 
@@ -336,6 +332,60 @@ contract TestERC20Deployer is Helpers {
         ICTMRWAERC20(newErc20).transfer(user2, 100);
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 900);
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 100);
+        vm.stopPrank();
+    }
+
+    function test_deployErc20_withFeePayment() public {
+        // Set up fee for ERC20 deployment
+        vm.startPrank(gov);
+        feeManager.setFeeMultiplier(FeeType.ERC20, 50); // Set ERC20 fee multiplier to 50
+        vm.stopPrank();
+
+        // Deploy CTMRWA1 contract
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        
+        uint256 slot = 1;
+        string memory name = "Fee Test ERC20";
+        
+        // Get initial balances
+        uint256 initialBalance = usdc.balanceOf(tokenAdmin);
+        uint256 initialFeeManagerBalance = usdc.balanceOf(address(feeManager));
+        
+        // Debug: Check what fee is actually being charged
+        string memory feeTokenStr = address(usdc).toHexString();
+        uint256 actualFee = feeManager.getXChainFee(
+            _stringToArray(block.chainid.toString()), 
+            false, 
+            FeeType.ERC20, 
+            feeTokenStr
+        );
+        
+        // Use the actual fee from the FeeManager
+        uint256 expectedFee = actualFee;
+        
+        // Approve the CTMRWAERC20Deployer to spend the fee tokens
+        usdc.approve(address(ctmRwaErc20Deployer), expectedFee);
+        
+        // Deploy the ERC20
+        token.deployErc20(slot, name, address(usdc));
+        
+        // Verify the ERC20 was deployed
+        address newErc20 = token.getErc20(slot);
+        assertEq(stringsEqual(ICTMRWAERC20(newErc20).name(), "slot 1| Fee Test ERC20"), true);
+        assertEq(stringsEqual(ICTMRWAERC20(newErc20).symbol(), "SFTX"), true);
+        
+        // Verify the fee was paid correctly
+        uint256 finalBalance = usdc.balanceOf(tokenAdmin);
+        uint256 finalFeeManagerBalance = usdc.balanceOf(address(feeManager));
+        
+        // The tokenAdmin should have paid the fee
+        assertEq(initialBalance - finalBalance, expectedFee, "TokenAdmin should have paid the correct fee");
+        
+        // The FeeManager should have received the fee
+        assertEq(finalFeeManagerBalance - initialFeeManagerBalance, expectedFee, "FeeManager should have received the fee");
+        
         vm.stopPrank();
     }
 }

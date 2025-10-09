@@ -2,13 +2,13 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import { Address, RWA } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWAMap {
-    error CTMRWAMap_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
+    error CTMRWAMap_OnlyAuthorized(Address, Address);
     error CTMRWAMap_AlreadyAttached(uint256 ID, address tokenAddr);
-    error CTMRWAMap_FailedAttachment(CTMRWAErrorParam);
-    error CTMRWAMap_IncompatibleRWA(CTMRWAErrorParam);
+    error CTMRWAMap_FailedAttachment(Address);
+    error CTMRWAMap_IncompatibleRWA(RWA);
 
     function gateway() external view returns (address);
     function ctmRwa1X() external view returns (address);

@@ -2,19 +2,18 @@
 
 pragma solidity 0.8.27;
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Test } from "forge-std/Test.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { CTMRWA1StorageManager } from "../../src/storage/CTMRWA1StorageManager.sol";
-import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
-
-import { URICategory, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
-import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
-import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
+import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
+import { CTMRWA1StorageManager } from "../../src/storage/CTMRWA1StorageManager.sol";
+import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
+import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
+import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { URICategory, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 
 // Mock implementation for testing upgrades
 contract MockCTMRWA1StorageManagerV2 is CTMRWA1StorageManager {
@@ -80,13 +79,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -108,9 +101,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
 
         // Upgrade the proxy without initialization
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), bytes(""))
-        );
+        (bool success,) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), bytes("")));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -127,17 +118,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         toChainIdsStr[0] = cIdStr;
         vm.startPrank(tokenAdmin);
         // Set up some state in mappings
-        storageManager.addURI(
-            ID,
-            "test-uri",
-            URICategory.ISSUER,
-            URIType.CONTRACT,
-            "test-checksum",
-            1,
-            keccak256("test-uri"),
-            toChainIdsStr,
-            address(usdc).toHexString()
-        );
+        storageManager.addURI(ID, "test-uri", URICategory.ISSUER, URIType.CONTRACT, "test-checksum", 1, keccak256("test-uri"), toChainIdsStr, address(usdc).toHexString());
         vm.stopPrank();
 
         // Verify initial state
@@ -145,13 +126,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -184,13 +159,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -228,13 +197,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
 
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
 
@@ -253,13 +216,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         uint256 initialVersion = storageManager.VERSION();
         // Upgrade the proxy
         vm.prank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         // Verify constants are preserved
         assertEq(storageManager.RWA_TYPE(), initialRwaType, "RWA_TYPE should be preserved");
@@ -272,13 +229,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         assertTrue(initialUtils != address(0), "Should have utils address");
         // Upgrade the proxy
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(mockImpl),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify fallback address is preserved
@@ -293,13 +244,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1StorageManagerV2 newImpl = new MockCTMRWA1StorageManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(newImpl),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify addresses are preserved
@@ -314,13 +259,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         // Try to upgrade without being gov
         vm.startPrank(user1);
         vm.expectRevert();
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(newImpl),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
     }
@@ -329,8 +268,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         // Try to upgrade to zero address
         vm.startPrank(gov);
         vm.expectRevert();
-        (bool success,) =
-            address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(0)));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
     }
@@ -340,13 +278,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         address invalidImpl = address(new CTMRWAMap());
         vm.startPrank(gov);
         vm.expectRevert();
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                invalidImpl,
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", invalidImpl, abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
     }
@@ -356,30 +288,14 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1StorageManagerV2 newImpl = new MockCTMRWA1StorageManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(newImpl),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that governance functions still work
         string[] memory toChainIdsStr = new string[](1);
         toChainIdsStr[0] = cIdStr;
         vm.prank(tokenAdmin);
-        storageManager.addURI(
-            ID,
-            "test-uri",
-            URICategory.ISSUER,
-            URIType.CONTRACT,
-            "test-checksum",
-            1,
-            keccak256("test-uri"),
-            toChainIdsStr,
-            address(usdc).toHexString()
-        );
+        storageManager.addURI(ID, "test-uri", URICategory.ISSUER, URIType.CONTRACT, "test-checksum", 1, keccak256("test-uri"), toChainIdsStr, address(usdc).toHexString());
         assertEq(stor.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT), 1, "URI should be added");
         vm.prank(gov);
         storageManager.setGateway(address(0x123));
@@ -393,13 +309,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         address oldImpl = abi.decode(dataOldImpl, (address));
         vm.startPrank(gov);
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(impl1),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (1))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl1), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (1))));
         assertTrue(success);
         vm.stopPrank();
         // check that version is still one
@@ -414,13 +324,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         // First upgrade
         MockCTMRWA1StorageManagerV2 impl2 = new MockCTMRWA1StorageManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(impl2),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (2))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl2), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (2))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify first upgrade
@@ -428,13 +332,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         // Second upgrade
         MockCTMRWA1StorageManagerV2 impl3 = new MockCTMRWA1StorageManagerV2();
         vm.startPrank(gov);
-        (success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(impl3),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (3))
-            )
-        );
+        (success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (3))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify second upgrade
@@ -449,13 +347,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         // First upgrade
         MockCTMRWA1StorageManagerV2 impl2 = new MockCTMRWA1StorageManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(impl2),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (2))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl2), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (2))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify first upgrade
@@ -464,13 +356,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         MockCTMRWA1StorageManagerV2 impl3 = new MockCTMRWA1StorageManagerV2();
         // not sending as gov to test that upgradeToAndCall reverts
         vm.expectRevert();
-        (success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(impl3),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (3))
-            )
-        );
+        (success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (3))));
         // Second upgrade should fail
         assertEq(MockCTMRWA1StorageManagerV2(address(storageManager)).newVersion(), 2, "Second upgrade should fail");
     }
@@ -479,13 +365,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1StorageManagerV2 newImpl = new MockCTMRWA1StorageManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(newImpl),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that reentrancy guard is still active
@@ -498,22 +378,14 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         // Deploy new implementation and upgrade
         MockCTMRWA1StorageManagerV2 newImpl = new MockCTMRWA1StorageManagerV2();
         vm.startPrank(gov);
-        (bool success,) = address(storageManager).call(
-            abi.encodeWithSignature(
-                "upgradeToAndCall(address,bytes)",
-                address(newImpl),
-                abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))
-            )
-        );
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that UUPS functionality is preserved
         // The contract should still be upgradeable
         MockCTMRWA1StorageManagerV2 impl3 = new MockCTMRWA1StorageManagerV2();
         vm.startPrank(gov);
-        (success,) = address(storageManager).call(
-            abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), bytes(""))
-        );
+        (success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), bytes("")));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         assertTrue(true, "UUPS functionality should be preserved");

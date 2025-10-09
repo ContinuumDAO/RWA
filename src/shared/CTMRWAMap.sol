@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { Address, CTMRWAUtils, RWA } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWAAttachment, ICTMRWAMap } from "./ICTMRWAMap.sol";
 import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -94,14 +94,14 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWAMap_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
+            revert CTMRWAMap_OnlyAuthorized(Address.Sender, Address.Deployer);
         }
         _;
     }
 
     modifier onlyRwa1X() {
         if (msg.sender != ctmRwa1X) {
-            revert CTMRWAMap_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX);
+            revert CTMRWAMap_OnlyAuthorized(Address.Sender, Address.RWAX);
         }
         _;
     }
@@ -243,17 +243,17 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
 
         ok = ICTMRWAAttachment(_tokenAddr).attachDividend(_dividendAddr);
         if (!ok) {
-            revert CTMRWAMap_FailedAttachment(CTMRWAErrorParam.Dividend);
+            revert CTMRWAMap_FailedAttachment(Address.Dividend);
         }
 
         ok = ICTMRWAAttachment(_tokenAddr).attachStorage(_storageAddr);
         if (!ok) {
-            revert CTMRWAMap_FailedAttachment(CTMRWAErrorParam.Storage);
+            revert CTMRWAMap_FailedAttachment(Address.Storage);
         }
 
         ok = ICTMRWAAttachment(_tokenAddr).attachSentry(_sentryAddr);
         if (!ok) {
-            revert CTMRWAMap_FailedAttachment(CTMRWAErrorParam.Sentry);
+            revert CTMRWAMap_FailedAttachment(Address.Sentry);
         }
     }
 
@@ -360,10 +360,10 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
         uint256 rwaType = ICTMRWA(_contractAddr).RWA_TYPE();
         uint256 version = ICTMRWA(_contractAddr).VERSION();
         if (_rwaType != rwaType) {
-            revert CTMRWAMap_IncompatibleRWA(CTMRWAErrorParam.Type);
+            revert CTMRWAMap_IncompatibleRWA(RWA.Type);
         }
         if (_version != version) {
-            revert CTMRWAMap_IncompatibleRWA(CTMRWAErrorParam.Version);
+            revert CTMRWAMap_IncompatibleRWA(RWA.Version);
         }
         return true;
     }

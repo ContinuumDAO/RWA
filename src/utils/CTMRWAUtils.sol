@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 /// @dev Numbers that can be referenced in errors
-enum CTMRWAErrorParam {
+enum Uint {
     TokenId,
     TokenName,
     Symbol,
@@ -16,6 +16,7 @@ enum CTMRWAErrorParam {
     Nonce,
     Address,
     Balance,
+    Dividend,
     Commission,
     CountryCode,
     Offering,
@@ -25,8 +26,22 @@ enum CTMRWAErrorParam {
     Payable,
     ChainID,
     Multiplier,
-    BaseURI,
-    Sender, // addresses
+    BaseURI
+}
+
+enum Time {
+    Early,
+    Late
+}
+
+enum RWA {
+    Type,
+    Version
+}
+
+/// @dev Common addresses referenced in errors in CTMRWA1
+enum Address {
+    Sender,
     Owner,
     To,
     From,
@@ -58,12 +73,10 @@ enum CTMRWAErrorParam {
     ERC20Deployer,
     Allowable,
     ApprovedOrOwner,
-    Wallet,
-    Early, // time
-    Late,
-    Type, // rwa
-    Version,
-    // whitelisting
+    Wallet
+}
+
+enum List {
     WL_Disabled, // whitelisting is disabled
     WL_Enabled, // whitelisting is enabled
     WL_BL_Undefined, // neither whitelist nor blacklist are defined
@@ -73,7 +86,7 @@ enum CTMRWAErrorParam {
 }
 
 library CTMRWAUtils {
-    error CTMRWAUtils_InvalidLength(CTMRWAErrorParam);
+    error CTMRWAUtils_InvalidLength(Uint);
     error CTMRWAUtils_InvalidHexCharacter();
     error CTMRWAUtils_StringTooLong();
 
@@ -102,7 +115,7 @@ library CTMRWAUtils {
         bytes memory strBytes = bytes(str);
         // require(strBytes.length == 42, "RWA: Invalid addr length");
         if (strBytes.length != 42) {
-            revert CTMRWAUtils_InvalidLength(CTMRWAErrorParam.Address);
+            revert CTMRWAUtils_InvalidLength(Uint.Address);
         }
         bytes memory addrBytes = new bytes(20);
 

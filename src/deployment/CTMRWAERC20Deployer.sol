@@ -7,7 +7,7 @@ import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { CTMRWAErrorParam, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
 import { CTMRWAERC20 } from "./CTMRWAERC20.sol";
 import { ICTMRWAERC20Deployer } from "./ICTMRWAERC20Deployer.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -43,10 +43,10 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
 
     constructor(address _ctmRwaMap, address _feeManager) {
         if (_ctmRwaMap == address(0)) {
-            revert CTMRWAERC20Deployer_IsZeroAddress(CTMRWAErrorParam.Map);
+            revert CTMRWAERC20Deployer_IsZeroAddress(Address.Map);
         }
         if (_feeManager == address(0)) {
-            revert CTMRWAERC20Deployer_IsZeroAddress(CTMRWAErrorParam.FeeManager);
+            revert CTMRWAERC20Deployer_IsZeroAddress(Address.FeeManager);
         }
 
         ctmRwaMap = _ctmRwaMap;
@@ -64,6 +64,7 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
      * @param  _symbol The symbol to use for the ERC20
      * @param  _feeToken The fee token address to pay. The contract address must be
      * in the return from feeTokenList() in FeeManager
+     * @param _originalCaller The address of the original caller who should pay the fee
      * NOTE The resulting ERC20 is only valid if this function is called from a CTMRWA1 contract
      * otherwise it will not be linked to it.
      * @return The address of the deployed ERC20 contract
@@ -75,17 +76,18 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
         uint256 _slot,
         string memory _name,
         string memory _symbol,
-        address _feeToken
+        address _feeToken,
+        address _originalCaller
     ) external returns (address) {
         (bool ok, address ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
         if (!ok) {
-            revert CTMRWAERC20Deployer_InvalidContract(CTMRWAErrorParam.Token);
+            revert CTMRWAERC20Deployer_InvalidContract(Address.Token);
         }
         if (msg.sender != ctmRwaToken) {
-            revert CTMRWAERC20Deployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Token);
+            revert CTMRWAERC20Deployer_OnlyAuthorized(Address.Sender, Address.Token);
         }
 
-        _payFee(FeeType.ERC20, _feeToken);
+        _payFee(FeeType.ERC20, _feeToken, _originalCaller);
 
         bytes32 salt = keccak256(abi.encode(_ID, _rwaType, _version, _slot));
 
@@ -97,13 +99,14 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
     /// @dev Pay the fee for deploying the ERC20
     /// @param _feeType The type of fee to pay
     /// @param _feeToken The address of the fee token
+    /// @param _originalCaller The address of the original caller who should pay the fee
     /// @return success True if the fee was paid, false otherwise
-    function _payFee(FeeType _feeType, address _feeToken) internal nonReentrant returns (bool) {
+    function _payFee(FeeType _feeType, address _feeToken, address _originalCaller) internal nonReentrant returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
         uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), false, _feeType, feeTokenStr);
 
         if (feeWei > 0) {
-            IERC20(_feeToken).transferFrom(msg.sender, address(this), feeWei);
+            IERC20(_feeToken).transferFrom(_originalCaller, address(this), feeWei);
 
             IERC20(_feeToken).approve(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, feeTokenStr);
