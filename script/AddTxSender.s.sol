@@ -5,9 +5,8 @@ pragma solidity 0.8.27;
 import { Script } from "forge-std/Script.sol";
 import { IC3GovernDApp } from "@c3caller/gov/IC3GovernDApp.sol";
 
-contract AddMPC is Script {
-    // mpc1 is already added on deployment
-    address mpc2;
+contract AddTxSender is Script {
+    address txSender;
     address gateway;
     address feeManager;
     address rwa1X;
@@ -19,10 +18,10 @@ contract AddMPC is Script {
     function run() public {
         string memory chainIdStr = vm.toString(block.chainid);
 
-        try vm.envAddress("MPC2") returns (address _mpc2) {
-            mpc2 = _mpc2;
+        try vm.envAddress("TX_SENDER") returns (address _txSender) {
+            txSender = _txSender;
         } catch {
-            revert ("MPC2 not defined");
+            revert ("TX_SENDER not defined");
         }
 
         try vm.envAddress(string.concat("GATEWAY_", chainIdStr)) returns (address _gateway) {
@@ -68,13 +67,13 @@ contract AddMPC is Script {
         }
 
         vm.startBroadcast();
-            IC3GovernDApp(gateway).addTxSender(mpc2);
-            IC3GovernDApp(feeManager).addTxSender(mpc2);
-            IC3GovernDApp(rwa1X).addTxSender(mpc2);
-            IC3GovernDApp(deployer).addTxSender(mpc2);
-            IC3GovernDApp(storageManager).addTxSender(mpc2);
-            IC3GovernDApp(sentryManager).addTxSender(mpc2);
-            IC3GovernDApp(map).addTxSender(mpc2);
+        IC3GovernDApp(gateway).addTxSender(txSender);
+        IC3GovernDApp(feeManager).addTxSender(txSender);
+        IC3GovernDApp(rwa1X).addTxSender(txSender);
+        IC3GovernDApp(deployer).addTxSender(txSender);
+        IC3GovernDApp(storageManager).addTxSender(txSender);
+        IC3GovernDApp(sentryManager).addTxSender(txSender);
+        IC3GovernDApp(map).addTxSender(txSender);
         vm.stopBroadcast();
     }
 }
