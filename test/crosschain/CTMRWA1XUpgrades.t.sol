@@ -14,7 +14,7 @@ import { CTMRWAGateway } from "../../src/crosschain/CTMRWAGateway.sol";
 import { FeeManager } from "../../src/managers/FeeManager.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
 import { CTMRWADeployer } from "../../src/deployment/CTMRWADeployer.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 // Mock implementation for testing upgrades
 contract MockCTMRWA1XV2 is CTMRWA1X {

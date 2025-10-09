@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { CTMRWA1Storage } from "./CTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageUtils } from "./ICTMRWA1StorageUtils.sol";
@@ -36,7 +36,7 @@ contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
 
     modifier onlyStorageManager() {
         if (msg.sender != storageManager) {
-            revert CTMRWA1StorageUtils_OnlyAuthorized(Address.Sender, Address.StorageManager);
+            revert CTMRWA1StorageUtils_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.StorageManager);
         }
         _;
     }
@@ -96,7 +96,7 @@ contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
 
             (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(ID, RWA_TYPE, VERSION);
             if (!ok) {
-                revert CTMRWA1StorageUtils_InvalidContract(Address.Storage);
+                revert CTMRWA1StorageUtils_InvalidContract(CTMRWAErrorParam.Storage);
             }
 
             ICTMRWA1Storage(storageAddr).popURILocal(objectName.length);
@@ -112,7 +112,7 @@ contract CTMRWA1StorageUtils is ICTMRWA1StorageUtils {
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
         (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1StorageUtils_InvalidContract(Address.Token);
+            revert CTMRWA1StorageUtils_InvalidContract(CTMRWAErrorParam.Token);
         }
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 

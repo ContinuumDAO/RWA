@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -22,16 +22,16 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     using Strings for *;
     using CTMRWAUtils for string;
 
-    /// @dev Address of the CTMRWAMap contract
+    /// @dev CTMRWAErrorParam of the CTMRWAMap contract
     address public ctmRwaMap;
 
-    /// @dev Address of the CTMRWADeployer contract
+    /// @dev CTMRWAErrorParam of the CTMRWADeployer contract
     address public ctmRwaDeployer;
 
     /// @dev The commission rate payable to FeeManager is a number from 0 to 10000 (%0.01)
     uint256 public commissionRate;
 
-    /// @dev Address of the FeeManager contract
+    /// @dev CTMRWAErrorParam of the FeeManager contract
     address public feeManager;
 
     /// @dev String representation of the local chainID
@@ -39,7 +39,7 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWADeployInvest_OnlyAuthorized(Address.Sender, Address.Deployer);
+            revert CTMRWADeployInvest_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
         }
         _;
     }

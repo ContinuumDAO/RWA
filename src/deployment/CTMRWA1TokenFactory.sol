@@ -5,7 +5,7 @@ pragma solidity 0.8.27;
 import { CTMRWA1 } from "../core/CTMRWA1.sol";
 import { ICTMRWA1, SlotData } from "../core/ICTMRWA1.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
 
 /**
@@ -24,7 +24,7 @@ contract CTMRWA1TokenFactory is ICTMRWA1TokenFactory {
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWA1TokenFactory_OnlyAuthorized(Address.Sender, Address.Deployer);
+            revert CTMRWA1TokenFactory_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
         }
         _;
     }

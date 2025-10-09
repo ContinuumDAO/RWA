@@ -7,7 +7,7 @@ import { CTMRWA1Identity } from "../../src/identity/CTMRWA1Identity.sol";
 import { ICTMRWA1Identity } from "../../src/identity/ICTMRWA1Identity.sol";
 import { FeeType } from "../../src/managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
-import { Address, CTMRWAUtils } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam, CTMRWAUtils } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -210,7 +210,7 @@ contract TestCTMRWA1Identity is Helpers {
     function test_onlyIdChain_revertIfZeroVerifier() public {
         vm.prank(gov);
         sentryManager.setIdentity(address(identity), address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, Address.ZKMe));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, CTMRWAErrorParam.ZKMe));
         identity.isVerifiedPerson(ID, user1);
     }
 
@@ -218,7 +218,7 @@ contract TestCTMRWA1Identity is Helpers {
     function test_verifyPerson_revertIfZeroVerifier() public {
         vm.prank(gov);
         sentryManager.setIdentity(address(identity), address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, Address.ZKMe));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, CTMRWAErrorParam.ZKMe));
         identity.verifyPerson(ID, chainIds, feeTokenStr);
     }
 
@@ -226,7 +226,7 @@ contract TestCTMRWA1Identity is Helpers {
         // Use a non-existent ID to force map.getSentryContract to fail
         uint256 badId = ID + 9999;
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_InvalidContract.selector, Address.Sentry)
+            abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_InvalidContract.selector, CTMRWAErrorParam.Sentry)
         );
         identity.verifyPerson(badId, chainIds, feeTokenStr);
     }
@@ -256,7 +256,7 @@ contract TestCTMRWA1Identity is Helpers {
         vm.prank(tokenAdmin);
         sentryManager.setZkMeParams(ID, "", "", address(0));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, Address.Cooperator)
+            abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, CTMRWAErrorParam.Cooperator)
         );
         identity.verifyPerson(ID, chainIds, feeTokenStr);
     }
@@ -306,7 +306,7 @@ contract TestCTMRWA1Identity is Helpers {
     function test_isVerifiedPerson_revertIfInvalidContract() public {
         uint256 badId = ID + 9999;
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_InvalidContract.selector, Address.Sentry)
+            abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_InvalidContract.selector, CTMRWAErrorParam.Sentry)
         );
         identity.isVerifiedPerson(badId, user1);
     }
@@ -324,7 +324,7 @@ contract TestCTMRWA1Identity is Helpers {
         vm.prank(tokenAdmin);
         sentryManager.setZkMeParams(ID, "", "", address(0));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, Address.Cooperator)
+            abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, CTMRWAErrorParam.Cooperator)
         );
         identity.isVerifiedPerson(ID, user1);
     }

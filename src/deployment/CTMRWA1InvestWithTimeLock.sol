@@ -8,7 +8,7 @@ import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils, Time, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { Holding, ICTMRWA1InvestWithTimeLock, Offering } from "./ICTMRWA1InvestWithTimeLock.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -67,13 +67,13 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     /// @dev The CTMRWA1X contract address corresponding to this ID
     address public ctmRwa1X;
 
-    /// @dev Address of the CTMRWAMap contract
+    /// @dev CTMRWAErrorParam of the CTMRWAMap contract
     address public ctmRwaMap;
 
     /// @dev The commission rate payable to FeeManager 0-10000 (0.01%)
     uint256 public commissionRate;
 
-    /// @dev Address of the FeeManager contract
+    /// @dev CTMRWAErrorParam of the FeeManager contract
     address public feeManager;
 
     /// @dev The Token Admin of this CTMRWA
@@ -105,19 +105,19 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
         (ok, ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Token);
+            revert CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Token);
         }
 
         decimalsRwa = ICTMRWA1(ctmRwaToken).valueDecimals();
 
         (ok, ctmRwaDividend) = ICTMRWAMap(ctmRwaMap).getDividendContract(ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Dividend);
+            revert CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Dividend);
         }
 
         (ok, ctmRwaSentry) = ICTMRWAMap(ctmRwaMap).getSentryContract(ID, RWA_TYPE, VERSION);
         if (!ok) {
-            revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Sentry);
+            revert CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Sentry);
         }
 
         ctmRwa1X = ICTMRWA1(ctmRwaToken).ctmRwa1X();
@@ -226,17 +226,17 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
             revert CTMRWA1InvestWithTimeLock_MaxOfferings();
         }
         if (bytes(_regulatorCountry).length > 2) {
-            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.CountryCode);
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(CTMRWAErrorParam.CountryCode);
         }
         if (bytes(_offeringType).length > 128) {
-            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.Offering);
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(CTMRWAErrorParam.Offering);
         }
 
         // Check that _rewardToken is a contract and implements totalSupply (ERC20), unless it is address(0)
         if (_rewardToken != address(0)) {
             (bool success, ) = _rewardToken.staticcall(abi.encodeWithSignature("totalSupply()"));
             if (!success) {
-                revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Token);
+                revert CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Token);
             }
         }
 
@@ -244,10 +244,10 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         uint256 slot = ICTMRWA1(ctmRwaToken).slotOf(_tokenId);
 
         if (_minInvestment > offer * _price / 10 ** decimalsRwa) {
-            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.MinInvestment);
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(CTMRWAErrorParam.MinInvestment);
         }
         if (_minInvestment > _maxInvestment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidLength(Uint.MinInvestment);
+            revert CTMRWA1InvestWithTimeLock_InvalidLength(CTMRWAErrorParam.MinInvestment);
         }
 
         _payFee(FeeType.OFFERING, _feeToken);
@@ -311,32 +311,32 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         }
 
         if (block.timestamp < offerings[_indx].startTime) {
-            revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Early);
+            revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(CTMRWAErrorParam.Early);
         }
 
         if (block.timestamp > offerings[_indx].endTime) {
-            revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Late);
+            revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(CTMRWAErrorParam.Late);
         }
 
         if (_investment == 0) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Value);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Value);
         }
 
         address currency = offerings[_indx].currency;
         if (IERC20(currency).balanceOf(msg.sender) < _investment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Balance);
         }
 
         if (_investment < offerings[_indx].minInvestment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.InvestmentLow);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.InvestmentLow);
         }
 
         if (offerings[_indx].maxInvestment > 0 && _investment > offerings[_indx].maxInvestment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.InvestmentHigh);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.InvestmentHigh);
         }
 
         if (offerings[_indx].balRemaining < _investment) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Balance);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Balance);
         }
 
         bool permitted = ICTMRWA1Sentry(ctmRwaSentry).isAllowableTransfer(msg.sender.toHexString());
@@ -401,7 +401,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         uint256 commission = commissionRate * investment / 10_000;
 
         if (commission == 0 && commissionRate != 0) {
-            revert CTMRWA1InvestWithTimeLock_InvalidAmount(Uint.Commission);
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Commission);
         }
 
         if (investment > 0) {
@@ -441,7 +441,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
 
         if (owner == address(this)) {
             if (block.timestamp < thisHolding.escrowTime) {
-                revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time.Early);
+                revert CTMRWA1InvestWithTimeLock_InvalidTimestamp(CTMRWAErrorParam.Early);
             }
 
             // ICTMRWA1Dividend(ctmRwaDividend).resetDividendByToken(tokenId);
@@ -572,7 +572,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         Offering storage offering = offerings[_offeringIndex];
         address rewardToken = offering.rewardToken;
         if (rewardToken == address(0)) {
-            revert CTMRWA1InvestWithTimeLock_InvalidContract(Address.Token);
+            revert CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Token);
         }
         // Transfer the reward tokens from the tokenAdmin to this contract
         IERC20(rewardToken).transferFrom(msg.sender, address(this), _fundAmount);
@@ -719,7 +719,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
     function _checkTokenAdmin(address _ctmRwaToken) internal {
         tokenAdmin = ICTMRWA1(_ctmRwaToken).tokenAdmin();
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1InvestWithTimeLock_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+            revert CTMRWA1InvestWithTimeLock_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
         }
     }
 

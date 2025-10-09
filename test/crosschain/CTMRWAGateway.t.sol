@@ -11,7 +11,7 @@ import { IC3GovernDApp } from "@c3caller/gov/IC3GovernDApp.sol";
 import { C3ErrorParam } from "@c3caller/utils/C3CallerUtils.sol";
 
 import { ICTMRWAGateway } from "../../src/crosschain/ICTMRWAGateway.sol";
-import { CTMRWAUtils, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 contract TestGateway is Helpers {

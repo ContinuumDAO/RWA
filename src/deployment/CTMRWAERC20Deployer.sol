@@ -7,7 +7,7 @@ import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { CTMRWAERC20 } from "./CTMRWAERC20.sol";
 import { ICTMRWAERC20Deployer } from "./ICTMRWAERC20Deployer.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -32,10 +32,10 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
     using Strings for *;
     using CTMRWAUtils for string;
 
-    /// @dev Address of the CTMRWAMap contract
+    /// @dev CTMRWAErrorParam of the CTMRWAMap contract
     address public ctmRwaMap;
 
-    /// @dev Address of the FeeManager contract
+    /// @dev CTMRWAErrorParam of the FeeManager contract
     address public feeManager;
 
     /// @dev String representation of the local chainID
@@ -43,10 +43,10 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
 
     constructor(address _ctmRwaMap, address _feeManager) {
         if (_ctmRwaMap == address(0)) {
-            revert CTMRWAERC20Deployer_IsZeroAddress(Address.Map);
+            revert CTMRWAERC20Deployer_IsZeroAddress(CTMRWAErrorParam.Map);
         }
         if (_feeManager == address(0)) {
-            revert CTMRWAERC20Deployer_IsZeroAddress(Address.FeeManager);
+            revert CTMRWAERC20Deployer_IsZeroAddress(CTMRWAErrorParam.FeeManager);
         }
 
         ctmRwaMap = _ctmRwaMap;
@@ -81,10 +81,10 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
     ) external returns (address) {
         (bool ok, address ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
         if (!ok) {
-            revert CTMRWAERC20Deployer_InvalidContract(Address.Token);
+            revert CTMRWAERC20Deployer_InvalidContract(CTMRWAErrorParam.Token);
         }
         if (msg.sender != ctmRwaToken) {
-            revert CTMRWAERC20Deployer_OnlyAuthorized(Address.Sender, Address.Token);
+            revert CTMRWAERC20Deployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Token);
         }
 
         _payFee(FeeType.ERC20, _feeToken, _originalCaller);

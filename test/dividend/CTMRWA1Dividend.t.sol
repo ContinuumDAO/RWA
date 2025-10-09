@@ -10,7 +10,7 @@ import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 import { CTMRWA1 } from "src/core/CTMRWA1.sol";
-import { Address, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
@@ -115,7 +115,7 @@ contract TestDividend is Helpers {
         
         // Try to fund as non-admin
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Dividend.CTMRWA1Dividend_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Dividend.CTMRWA1Dividend_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin));
         ICTMRWA1Dividend(dividendContract).fundDividend(1, 1 days, "test-funding");
         vm.stopPrank();
     }

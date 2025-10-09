@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAUtils, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ChainContract, ICTMRWAGateway } from "./ICTMRWAGateway.sol";
 import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -73,7 +73,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
         returns (bool)
     {
         if (_newChainIdsStr.length != _contractAddrsStr.length) {
-            revert CTMRWAGateway_LengthMismatch(Uint.Input);
+            revert CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
         bool preExisted;
@@ -324,11 +324,11 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
         returns (bool)
     {
         if (_chainIdsStr.length == 0 || _rwaXAddrsStr.length == 0) {
-            revert CTMRWAGateway_InvalidLength(Uint.Input);
+            revert CTMRWAGateway_InvalidLength(CTMRWAErrorParam.Input);
         }
 
         if (_chainIdsStr.length != _rwaXAddrsStr.length) {
-            revert CTMRWAGateway_LengthMismatch(Uint.Input);
+            revert CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
         bool preExisted;
@@ -340,7 +340,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
             string memory chainIdStr = _chainIdsStr[j]._toLower();
 
             if (bytes(rwaXAddrStr).length > 64) {
-                revert CTMRWAGateway_InvalidLength(Uint.Address);
+                revert CTMRWAGateway_InvalidLength(CTMRWAErrorParam.Address);
             }
 
             for (uint256 i = 0; i < rwaX[_rwaType][_version].length; i++) {
@@ -377,11 +377,11 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
         string[] memory _storageManagerAddrsStr
     ) external onlyGov returns (bool) {
         if (_chainIdsStr.length == 0 || _storageManagerAddrsStr.length == 0) {
-            revert CTMRWAGateway_InvalidLength(Uint.Input);
+            revert CTMRWAGateway_InvalidLength(CTMRWAErrorParam.Input);
         }
 
         if (_chainIdsStr.length != _storageManagerAddrsStr.length) {
-            revert CTMRWAGateway_LengthMismatch(Uint.Input);
+            revert CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
         bool preExisted;
@@ -425,11 +425,11 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
         string[] memory _sentryManagerAddrsStr
     ) external onlyGov returns (bool) {
         if (_chainIdsStr.length == 0 || _sentryManagerAddrsStr.length == 0) {
-            revert CTMRWAGateway_InvalidLength(Uint.Input);
+            revert CTMRWAGateway_InvalidLength(CTMRWAErrorParam.Input);
         }
 
         if (_chainIdsStr.length != _sentryManagerAddrsStr.length) {
-            revert CTMRWAGateway_LengthMismatch(Uint.Input);
+            revert CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
         bool preExisted;

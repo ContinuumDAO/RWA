@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { Address, CTMRWAUtils, RWA } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWAAttachment, ICTMRWAMap } from "./ICTMRWAMap.sol";
 import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -13,15 +13,15 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
  * @author @Selqui ContinuumDAO
  *
- * @notice This contract links together the various parts of the CTMRWA1 RWA.
- * For every ID, which is unique to one RWA, there are different contracts as follows -
+ * @notice This contract links together the various parts of the CTMRWA1 CTMRWAErrorParam.
+ * For every ID, which is unique to one CTMRWAErrorParam, there are different contracts as follows -
  *
  * (1) The CTMRWA1 contract itself, which is the Semi-Fungible-Token
  * (2) A Dividend contract called CTMRWA1Dividend
  * (3) A Storage contract called CTMRWA1Storage
  * (4) A Sentry contract called CTMRWA1Sentry
  *
- * This set all share a single ID, which is the same on all chains that the RWA is deployed to
+ * This set all share a single ID, which is the same on all chains that the CTMRWAErrorParam is deployed to
  * The whole set is deployed by CTMRWADeployer.
  * This contract, deployed just once on each chain, stores the state linking the ID to each of the
  * constituent contract addresses. The links from the contract addresses back to the ID are also stored.
@@ -32,13 +32,13 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
     using Strings for *;
     using CTMRWAUtils for string;
 
-    /// @dev Address of the CTMRWAGateway contract
+    /// @dev CTMRWAErrorParam of the CTMRWAGateway contract
     address public gateway;
 
-    /// @dev Address of the CTMRWADeployer contract
+    /// @dev CTMRWAErrorParam of the CTMRWADeployer contract
     address public ctmRwaDeployer;
 
-    /// @dev Address of the CTMRWA1X contract
+    /// @dev CTMRWAErrorParam of the CTMRWA1X contract
     address public ctmRwa1X;
 
     /// @dev String representation of the local chainID
@@ -94,14 +94,14 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWAMap_OnlyAuthorized(Address.Sender, Address.Deployer);
+            revert CTMRWAMap_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
         }
         _;
     }
 
     modifier onlyRwa1X() {
         if (msg.sender != ctmRwa1X) {
-            revert CTMRWAMap_OnlyAuthorized(Address.Sender, Address.RWAX);
+            revert CTMRWAMap_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX);
         }
         _;
     }
@@ -121,8 +121,8 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
      * NOTE The input address is a string.
      * NOTE The function also returns a boolean ok, which is false if the ID does not exist
      * @param _tokenAddrStr String version of the CTMRWA1 contract address
-     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA1
-     * @param _version The version of this RWA. Latest version is 1
+     * @param _rwaType The type of CTMRWAErrorParam. Must be 1 here, to match CTMRWA1
+     * @param _version The version of this CTMRWAErrorParam. Latest version is 1
      * @return ok True if the ID exists, false otherwise
      * @return id The ID of the CTMRWA1 contract
      */
@@ -146,8 +146,8 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
      * @notice Return the CTMRWA1 contract address for a given ID
      * NOTE The function also returns a boolean ok, which is false if the ID does not exist
      * @param _ID The ID being examined
-     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA1
-     * @param _version The version of this RWA. Latest version is 1
+     * @param _rwaType The type of CTMRWAErrorParam. Must be 1 here, to match CTMRWA1
+     * @param _version The version of this CTMRWAErrorParam. Latest version is 1
      * @return ok True if the ID exists, false otherwise
      * @return contractStr The address of the CTMRWA1 contract
      */
@@ -162,8 +162,8 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
      * @notice Return the CTMRWA1Dividend contract address for a given ID
      * NOTE The function also returns a boolean ok, which is false if the ID does not exist
      * @param _ID The ID being examined
-     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA1
-     * @param _version The version of this RWA. Latest version is 1
+     * @param _rwaType The type of CTMRWAErrorParam. Must be 1 here, to match CTMRWA1
+     * @param _version The version of this CTMRWAErrorParam. Latest version is 1
      * @return ok True if the ID exists, false otherwise
      * @return dividendStr The address of the CTMRWA1Dividend contract
      */
@@ -177,8 +177,8 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
      * @notice Return the CTMRWA1Storage contract address for a given ID
      * NOTE The function also returns a boolean ok, which is false if the ID does not exist
      * @param _ID The ID being examined
-     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA1
-     * @param _version The version of this RWA. Latest version is 1
+     * @param _rwaType The type of CTMRWAErrorParam. Must be 1 here, to match CTMRWA1
+     * @param _version The version of this CTMRWAErrorParam. Latest version is 1
      * @return ok True if the ID exists, false otherwise
      * @return storageStr The address of the CTMRWA1Storage contract
      */
@@ -192,8 +192,8 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
      * @notice Return the CTMRWA1Sentry contract address for a given ID
      * NOTE The function also returns a boolean ok, which is false if the ID does not exist
      * @param _ID The ID being examined
-     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA1
-     * @param _version The version of this RWA. Latest version is 1
+     * @param _rwaType The type of CTMRWAErrorParam. Must be 1 here, to match CTMRWA1
+     * @param _version The version of this CTMRWAErrorParam. Latest version is 1
      * @return ok True if the ID exists, false otherwise
      * @return sentryStr The address of the CTMRWA1Sentry contract
      */
@@ -207,8 +207,8 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
      * @notice Return the CTMRWADeployInvest contract address for a given ID
      * NOTE The function also returns a boolean ok, which is false if the ID does not exist
      * @param _ID The ID being examined
-     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA1
-     * @param _version The version of this RWA. Latest version is 1
+     * @param _rwaType The type of CTMRWAErrorParam. Must be 1 here, to match CTMRWA1
+     * @param _version The version of this CTMRWAErrorParam. Latest version is 1
      * @return ok True if the ID exists, false otherwise
      * @return investStr The address of the CTMRWADeployInvest contract
      */
@@ -221,9 +221,9 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
     /**
      * @dev This function is called by CTMRWADeployer after the deployment of the
      * CTMRWA1, CTMRWA1Dividend, CTMRWA1Storage and CTMRWA1Sentry contracts on a chain.
-     * It links them together by setting the same ID for the one RWA and storing their
+     * It links them together by setting the same ID for the one CTMRWAErrorParam and storing their
      * contract addresses.
-     * @param _ID The ID of the RWA token
+     * @param _ID The ID of the CTMRWAErrorParam token
      * @param _tokenAddr The address of the CTMRWA1 contract
      * @param _dividendAddr The address of the CTMRWA1Dividend contract
      * @param _storageAddr The address of the CTMRWA1Storage contract
@@ -243,25 +243,25 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
 
         ok = ICTMRWAAttachment(_tokenAddr).attachDividend(_dividendAddr);
         if (!ok) {
-            revert CTMRWAMap_FailedAttachment(Address.Dividend);
+            revert CTMRWAMap_FailedAttachment(CTMRWAErrorParam.Dividend);
         }
 
         ok = ICTMRWAAttachment(_tokenAddr).attachStorage(_storageAddr);
         if (!ok) {
-            revert CTMRWAMap_FailedAttachment(Address.Storage);
+            revert CTMRWAMap_FailedAttachment(CTMRWAErrorParam.Storage);
         }
 
         ok = ICTMRWAAttachment(_tokenAddr).attachSentry(_sentryAddr);
         if (!ok) {
-            revert CTMRWAMap_FailedAttachment(Address.Sentry);
+            revert CTMRWAMap_FailedAttachment(CTMRWAErrorParam.Sentry);
         }
     }
 
     /**
      * @dev Set the investment contract for a given ID
-     * @param _ID The ID of the RWA token
-     * @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA1
-     * @param _version The version of this RWA. Latest version is 1
+     * @param _ID The ID of the CTMRWAErrorParam token
+     * @param _rwaType The type of CTMRWAErrorParam. Must be 1 here, to match CTMRWA1
+     * @param _version The version of this CTMRWAErrorParam. Latest version is 1
      * @param _investAddr The address of the CTMRWADeployInvest contract
      * @return success True if the investment contract was set, false otherwise
      */
@@ -285,7 +285,7 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
     }
 
     /// @dev Internal helper function for attachContracts
-    /// @param _ID The ID of the RWA token
+    /// @param _ID The ID of the CTMRWAErrorParam token
     /// @param _ctmRwaAddr The address of the CTMRWA1 contract
     /// @param _dividendAddr The address of the CTMRWA1Dividend contract
     /// @param _storageAddr The address of the CTMRWA1Storage contract
@@ -342,11 +342,11 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
         return true;
     }
 
-    /// @dev Internal helper function to check the RWA type and version of a contract
+    /// @dev Internal helper function to check the CTMRWAErrorParam type and version of a contract
     /// @param _addrStr The address of the contract to check
-    /// @param _rwaType The type of RWA. Must be 1 here, to match CTMRWA1
-    /// @param _version The version of this RWA. Latest version is 1
-    /// @return ok True if the RWA type and version are compatible, false otherwise
+    /// @param _rwaType The type of CTMRWAErrorParam. Must be 1 here, to match CTMRWA1
+    /// @param _version The version of this CTMRWAErrorParam. Latest version is 1
+    /// @return ok True if the CTMRWAErrorParam type and version are compatible, false otherwise
     function _checkRwaTypeVersion(string memory _addrStr, uint256 _rwaType, uint256 _version)
         internal
         view
@@ -360,10 +360,10 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
         uint256 rwaType = ICTMRWA(_contractAddr).RWA_TYPE();
         uint256 version = ICTMRWA(_contractAddr).VERSION();
         if (_rwaType != rwaType) {
-            revert CTMRWAMap_IncompatibleRWA(RWA.Type);
+            revert CTMRWAMap_IncompatibleRWA(CTMRWAErrorParam.Type);
         }
         if (_version != version) {
-            revert CTMRWAMap_IncompatibleRWA(RWA.Version);
+            revert CTMRWAMap_IncompatibleRWA(CTMRWAErrorParam.Version);
         }
         return true;
     }

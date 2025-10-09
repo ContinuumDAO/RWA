@@ -11,7 +11,7 @@ import { CTMRWADeployer } from "../../src/deployment/CTMRWADeployer.sol";
 import { ICTMRWADeployer } from "../../src/deployment/ICTMRWADeployer.sol";
 import { FeeManager } from "../../src/managers/FeeManager.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 // Mock implementation for testing upgrades
 contract MockCTMRWADeployerV2 is CTMRWADeployer {

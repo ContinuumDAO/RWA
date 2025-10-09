@@ -12,7 +12,7 @@ import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 
-import { Time, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
@@ -272,7 +272,7 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), minInvest - 1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.InvestmentLow)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(CTMRWAErrorParam.InvestmentLow)
             )
         );
         investContract.investInOffering(0, minInvest - 1, currency);
@@ -284,7 +284,7 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), maxInvest + 1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.InvestmentHigh)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(CTMRWAErrorParam.InvestmentHigh)
             )
         );
         investContract.investInOffering(0, maxInvest + 1, currency);
@@ -410,7 +410,7 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), 0);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.Value)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(CTMRWAErrorParam.Value)
             )
         );
         investContract.investInOffering(0, 0, currency);
@@ -441,7 +441,7 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), excessiveAmount);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.Balance)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(CTMRWAErrorParam.Balance)
             )
         );
         investContract.investInOffering(0, excessiveAmount, currency);
@@ -797,7 +797,7 @@ contract TestInvest is Helpers {
         vm.startPrank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidTimestamp.selector, uint8(Time.Early)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidTimestamp.selector, uint8(CTMRWAErrorParam.Early)
             )
         );
         investContract.unlockTokenId(holdingIndex, address(usdc));

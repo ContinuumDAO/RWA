@@ -3,13 +3,13 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { Address, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1Sentry is ICTMRWA {
-    error CTMRWA1Sentry_Unauthorized(Address, Address);
-    error CTMRWA1Sentry_OnlyAuthorized(Address, Address);
+    error CTMRWA1Sentry_Unauthorized(CTMRWAErrorParam, CTMRWAErrorParam);
+    error CTMRWA1Sentry_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
     error CTMRWA1Sentry_InvalidID(uint256 expected, uint256 actual);
-    error CTMRWA1Sentry_InvalidLength(Uint);
+    error CTMRWA1Sentry_InvalidLength(CTMRWAErrorParam);
     error CTMRWA1Sentry_OutofBounds();
 
     function ID() external view returns (uint256);

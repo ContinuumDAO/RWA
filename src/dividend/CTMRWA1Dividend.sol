@@ -6,7 +6,7 @@ import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 
 import { ICTMRWA1InvestWithTimeLock } from "../deployment/ICTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
 import { Checkpoints } from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -84,7 +84,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
 
     modifier onlyTokenAdmin() {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1Dividend_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+            revert CTMRWA1Dividend_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
         }
         _;
     }
@@ -122,7 +122,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
      */
     function setDividendToken(address _dividendToken) external onlyTokenAdmin returns (bool) {
         if (dividendToken != address(0)) {
-            revert CTMRWA1Dividend_InvalidDividend(Uint.Balance);
+            revert CTMRWA1Dividend_InvalidDividend(CTMRWAErrorParam.Balance);
         }
 
         dividendToken = _dividendToken;
@@ -407,7 +407,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         }
 
         if (IERC20(dividendToken).balanceOf(address(this)) < dividend) {
-            revert CTMRWA1Dividend_InvalidDividend(Uint.Balance);
+            revert CTMRWA1Dividend_InvalidDividend(CTMRWAErrorParam.Balance);
         }
 
         IERC20(dividendToken).transfer(msg.sender, dividend);

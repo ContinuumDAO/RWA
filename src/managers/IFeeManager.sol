@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 
 enum FeeType {
     ADMIN,
@@ -36,7 +36,7 @@ enum FeeType {
 }
 
 interface IFeeManager {
-    error FeeManager_InvalidLength(Uint);
+    error FeeManager_InvalidLength(CTMRWAErrorParam);
     error FeeManager_NonExistentToken(address);
     error FeeManager_FailedTransfer();
 

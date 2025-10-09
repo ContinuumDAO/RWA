@@ -12,7 +12,7 @@ import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 import { CTMRWA1StorageManager } from "../../src/storage/CTMRWA1StorageManager.sol";
 import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { URICategory, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 
 // Mock implementation for testing upgrades

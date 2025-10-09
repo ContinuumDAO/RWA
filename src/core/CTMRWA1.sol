@@ -7,7 +7,7 @@ import { ICTMRWADeployer } from "../deployment/ICTMRWADeployer.sol";
 import { ICTMRWAERC20Deployer } from "../deployment/ICTMRWAERC20Deployer.sol";
 import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1Storage } from "../storage/ICTMRWA1Storage.sol";
-import { Address, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1, SlotData } from "./ICTMRWA1.sol";
 import { ICTMRWA1Receiver } from "./ICTMRWA1Receiver.sol";
 import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
@@ -167,7 +167,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
 
     modifier onlyTokenAdmin() {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
         }
         _;
     }
@@ -186,42 +186,42 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
 
     modifier onlyErc20Deployer() {
         if (!_erc20s[msg.sender]) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.ERC20Deployer);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.ERC20Deployer);
         }
         _;
     }
 
     modifier onlyTokenFactory() {
         if (msg.sender != tokenFactory) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.Factory);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Factory);
         }
         _;
     }
 
     modifier onlyCtmMap() {
         if (msg.sender != ctmRwaMap) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.Map);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Map);
         }
         _;
     }
 
     modifier onlyRwa1X() {
         if (msg.sender != ctmRwa1X && msg.sender != rwa1XFallback) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.RWAX);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX);
         }
         _;
     }
 
     modifier onlyMinter() {
         if (!ICTMRWA1X(ctmRwa1X).isMinter(msg.sender) && !_erc20s[msg.sender]) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.Minter);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Minter);
         }
         _;
     }
 
     modifier onlyERC20() {
         if (!_erc20s[msg.sender]) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.RWAERC20);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAERC20);
         }
         _;
     }
@@ -252,7 +252,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function setOverrideWallet(address _overrideWallet) public onlyTokenAdmin {
         if (ICTMRWA1Storage(storageAddr).regulatorWallet() == address(0)) {
-            revert CTMRWA1_IsZeroAddress(Address.Regulator);
+            revert CTMRWA1_IsZeroAddress(CTMRWAErrorParam.Regulator);
         }
         overrideWallet = _overrideWallet;
     }
@@ -290,7 +290,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function attachId(uint256 nextID, address _tokenAdmin) external onlyRwa1X returns (bool) {
         if (_tokenAdmin != tokenAdmin) {
-            revert CTMRWA1_OnlyAuthorized(Address.TokenAdmin, Address.TokenAdmin);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.TokenAdmin, CTMRWAErrorParam.TokenAdmin);
         }
         if (ID == 0) {
             // not yet attached
@@ -308,7 +308,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function attachDividend(address _dividendAddr) external onlyCtmMap returns (bool) {
         if (dividendAddr != address(0)) {
-            revert CTMRWA1_NotZeroAddress(Address.Dividend);
+            revert CTMRWA1_NotZeroAddress(CTMRWAErrorParam.Dividend);
         }
         dividendAddr = _dividendAddr;
         return (true);
@@ -321,7 +321,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function attachStorage(address _storageAddr) external onlyCtmMap returns (bool) {
         if (storageAddr != address(0)) {
-            revert CTMRWA1_NotZeroAddress(Address.Storage);
+            revert CTMRWA1_NotZeroAddress(CTMRWAErrorParam.Storage);
         }
         storageAddr = _storageAddr;
         return (true);
@@ -334,7 +334,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function attachSentry(address _sentryAddr) external onlyCtmMap returns (bool) {
         if (sentryAddr != address(0)) {
-            revert CTMRWA1_NotZeroAddress(Address.Sentry);
+            revert CTMRWA1_NotZeroAddress(CTMRWAErrorParam.Sentry);
         }
         sentryAddr = _sentryAddr;
         return (true);
@@ -371,7 +371,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function balanceOf(address _owner) public view virtual override returns (uint256) {
         if (_owner == address(0)) {
-            revert CTMRWA1_IsZeroAddress(Address.Owner);
+            revert CTMRWA1_IsZeroAddress(CTMRWAErrorParam.Owner);
         }
         return _addressData[_owner].ownedTokens.length;
     }
@@ -384,7 +384,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function balanceOf(address _owner, uint256 _slot) public view returns (uint256) {
         if (_owner == address(0)) {
-            revert CTMRWA1_IsZeroAddress(Address.Owner);
+            revert CTMRWA1_IsZeroAddress(CTMRWAErrorParam.Owner);
         }
 
         if (!slotExists(_slot)) {
@@ -396,7 +396,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
 
     function balanceOfAt(address _owner, uint256 _slot, uint256 _timestamp) public view returns (uint256) {
         if (_owner == address(0)) {
-            revert CTMRWA1_IsZeroAddress(Address.Owner);
+            revert CTMRWA1_IsZeroAddress(CTMRWAErrorParam.Owner);
         }
 
         if (!slotExists(_slot)) {
@@ -417,7 +417,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         }
         address owner = _allTokens[_allTokensIndex[_tokenId]].owner;
         if (owner == address(0)) {
-            revert CTMRWA1_IsZeroAddress(Address.Owner);
+            revert CTMRWA1_IsZeroAddress(CTMRWAErrorParam.Owner);
         }
         return owner;
     }
@@ -489,7 +489,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         }
 
         if (_erc20Slots[_slot] != address(0)) {
-            revert CTMRWA1_NotZeroAddress(Address.RWAERC20);
+            revert CTMRWA1_NotZeroAddress(CTMRWAErrorParam.RWAERC20);
         }
 
         if (bytes(_erc20Name).length > 128) {
@@ -522,11 +522,11 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     function approve(uint256 _tokenId, address _to, uint256 _value) public payable virtual override {
         address owner = CTMRWA1.ownerOf(_tokenId);
         if (_to == owner) {
-            revert CTMRWA1_Unauthorized(Address.To, Address.Owner);
+            revert CTMRWA1_Unauthorized(CTMRWAErrorParam.To, CTMRWAErrorParam.Owner);
         }
 
         if (!isApprovedOrOwner(msg.sender, _tokenId)) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.ApprovedOrOwner);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.ApprovedOrOwner);
         }
 
         _approveValue(_tokenId, _to, _value);
@@ -599,7 +599,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function transferFrom(address _from, address _to, uint256 _tokenId) public onlyRwa1X whenNotPaused {
         if (!isApprovedOrOwner(msg.sender, _tokenId)) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.ApprovedOrOwner);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.ApprovedOrOwner);
         }
         _transferTokenId(_from, _to, _tokenId);
     }
@@ -613,11 +613,11 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function forceTransfer(address _from, address _to, uint256 _tokenId) public returns (bool) {
         if (overrideWallet == address(0)) {
-            revert CTMRWA1_IsZeroAddress(Address.Override);
+            revert CTMRWA1_IsZeroAddress(CTMRWAErrorParam.Override);
         }
 
         if (msg.sender != overrideWallet) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.Override);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Override);
         }
 
         _transferTokenId(_from, _to, _tokenId);
@@ -678,7 +678,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function spendAllowance(address _operator, uint256 _tokenId, uint256 _value) public virtual {
         if (_value == 0) {
-            revert CTMRWA1_IsZeroUint(Uint.Value);
+            revert CTMRWA1_IsZeroUint(CTMRWAErrorParam.Value);
         }
         uint256 currentAllowance = CTMRWA1.allowance(_tokenId, _operator);
         if (!isApprovedOrOwner(_operator, _tokenId) && currentAllowance != type(uint256).max) {
@@ -710,11 +710,11 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     function approve(address _to, uint256 _tokenId) public virtual {
         address owner = ownerOf(_tokenId);
         if (_to == owner) {
-            revert CTMRWA1_Unauthorized(Address.To, Address.Owner);
+            revert CTMRWA1_Unauthorized(CTMRWAErrorParam.To, CTMRWAErrorParam.Owner);
         }
 
         if (msg.sender != owner) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.Owner);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Owner);
         }
 
         _approve(_to, _tokenId);
@@ -725,8 +725,8 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _tokenId The tokenId whose approval is being revoked
      */
     function revokeApproval(uint256 _tokenId) public virtual {
-        if (msg.sender != owner) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.Owner);
+        if (msg.sender != ownerOf(_tokenId)) {
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Owner);
         }
 
         _allTokens[_allTokensIndex[_tokenId]].approved = address(0);
@@ -792,10 +792,10 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function _mint(address _to, uint256 _tokenId, uint256 _slot, string memory _slotName, uint256 _value) internal {
         if (_to == address(0)) {
-            revert CTMRWA1_IsZeroAddress(Address.To);
+            revert CTMRWA1_IsZeroAddress(CTMRWAErrorParam.To);
         }
         if (_tokenId == 0) {
-            revert CTMRWA1_IsZeroUint(Uint.TokenId);
+            revert CTMRWA1_IsZeroUint(CTMRWAErrorParam.TokenId);
         }
         if (_exists(_tokenId)) {
             revert CTMRWA1_IDExists(_tokenId);
@@ -890,7 +890,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _tokenId The tokenId to burn
     function burn(uint256 _tokenId) public virtual whenNotPaused {
         if (!isApprovedOrOwner(msg.sender, _tokenId)) {
-            revert CTMRWA1_OnlyAuthorized(Address.Sender, Address.ApprovedOrOwner);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.ApprovedOrOwner);
         }
         _burn(_tokenId);
     }
@@ -1035,7 +1035,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _value The value to approve
     function _approveValue(uint256 _tokenId, address _to, uint256 _value) internal {
         if (_to == address(0)) {
-            revert CTMRWA1_IsZeroAddress(Address.To);
+            revert CTMRWA1_IsZeroAddress(CTMRWAErrorParam.To);
         }
 
         if (!_existApproveValue(_to, _tokenId)) {
@@ -1215,10 +1215,10 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _tokenId The tokenId to transfer
     function _transferTokenId(address _from, address _to, uint256 _tokenId) internal {
         if (_from != ownerOf(_tokenId)) {
-            revert CTMRWA1_OnlyAuthorized(Address.From, Address.Owner);
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.From, CTMRWAErrorParam.Owner);
         }
         if (_to == address(0)) {
-            revert CTMRWA1_IsZeroAddress(Address.To);
+            revert CTMRWA1_IsZeroAddress(CTMRWAErrorParam.To);
         }
 
         uint256 slot = CTMRWA1.slotOf(_tokenId);
@@ -1303,11 +1303,11 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _slotNames The array of slot names
     function initializeSlotData(uint256[] memory _slotNumbers, string[] memory _slotNames) external onlyTokenFactory {
         if (_slotNumbers.length != _slotNames.length) {
-            revert CTMRWA1_LengthMismatch(Uint.SlotLength);
+            revert CTMRWA1_LengthMismatch(CTMRWAErrorParam.SlotLength);
         }
 
         if (_allSlots.length != 0) {
-            revert CTMRWA1_NonZeroUint(Uint.SlotLength);
+            revert CTMRWA1_NonZeroUint(CTMRWAErrorParam.SlotLength);
         }
 
         for (uint256 i = 0; i < _slotNumbers.length; i++) {
@@ -1444,7 +1444,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         if (sentryAddr != address(0)) {
             string memory toAddressStr = _to.toHexString();
             if (!ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr)) {
-                revert CTMRWA1_OnlyAuthorized(Address.To, Address.Allowable);
+                revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.To, CTMRWAErrorParam.Allowable);
             }
         }
 

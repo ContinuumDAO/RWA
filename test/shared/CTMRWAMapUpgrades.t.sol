@@ -11,7 +11,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 import { FeeManager } from "../../src/managers/FeeManager.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 // Mock implementation for testing upgrades
 contract MockCTMRWAMapV2 is CTMRWAMap {

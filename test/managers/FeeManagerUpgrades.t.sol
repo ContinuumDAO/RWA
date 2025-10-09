@@ -15,7 +15,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { FeeManager } from "../../src/managers/FeeManager.sol";
 import { IFeeManager, FeeType } from "../../src/managers/IFeeManager.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 // Mock implementation for testing upgrades
 contract MockFeeManagerV2 is FeeManager {

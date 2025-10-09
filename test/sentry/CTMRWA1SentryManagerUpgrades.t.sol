@@ -12,7 +12,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { CTMRWA1SentryManager } from "../../src/sentry/CTMRWA1SentryManager.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 // Mock implementation for testing upgrades
 contract MockCTMRWA1SentryManagerV2 is CTMRWA1SentryManager {

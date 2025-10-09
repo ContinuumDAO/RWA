@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -47,14 +47,14 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
     modifier onlyTokenAdmin() {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1Sentry_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+            revert CTMRWA1Sentry_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
         }
         _;
     }
 
     modifier onlySentryManager() {
         if (msg.sender != sentryManagerAddr) {
-            revert CTMRWA1Sentry_OnlyAuthorized(Address.Sender, Address.SentryManager);
+            revert CTMRWA1Sentry_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.SentryManager);
         }
         _;
     }
@@ -226,7 +226,7 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
             if (walletStr.equal(adminStr) && !_choices[i]) {
                 // revert("CTMRWA1Sentry: Cannot remove tokenAdmin from the whitelist");
-                revert CTMRWA1Sentry_Unauthorized(Address.Wallet, Address.TokenAdmin);
+                revert CTMRWA1Sentry_Unauthorized(CTMRWAErrorParam.Wallet, CTMRWAErrorParam.TokenAdmin);
             } else if (indx != 0 && indx == ctmWhitelist.length - 1 && !_choices[i]) {
                 // last entry to be removed
                 whitelistIndx[walletStr] = 0;

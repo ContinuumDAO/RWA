@@ -8,7 +8,7 @@ import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1StorageManager } from "../storage/ICTMRWA1StorageManager.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address, RWA } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 import { ICTMRWADeployer } from "./ICTMRWADeployer.sol";
@@ -22,13 +22,13 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * @author @Selqui ContinuumDAO
  *
  * @notice The deploy function in this contract is called by CTMRWA1X on each chain that an
- * RWA is deployed to. It calls other contracts that use CREATE2 to deploy the suite of contracts for the RWA.
+ * CTMRWAErrorParam is deployed to. It calls other contracts that use CREATE2 to deploy the suite of contracts for the CTMRWAErrorParam.
  * These are CTMRWA1TokenFactory to deploy CTMRWA1, CTMRWA1StorageManager to deploy CTMRWA1Storage,
  * CTMRWA1DividendFactory to deploy CTMRWA1Dividend and CTMRWA1SentryManager to deploy CTMRWA1Sentry.
  * This unique set of contracts is deployed for every ID and then the contract addresses are stored in CTMRWAMap.
  * The contracts that do the deployment can be updated by Governance, with different addresses dependent on
  * the rwaType and version. The data passed to CTMRWA1TokenFactory is abi encoded deployData for maximum
- * flexibility for future types of RWA.
+ * flexibility for future types of CTMRWAErrorParam.
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
@@ -69,7 +69,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
 
     modifier onlyRwaX() {
         if (msg.sender != rwaX) {
-            revert CTMRWADeployer_OnlyAuthorized(Address.Sender, Address.RWAX);
+            revert CTMRWADeployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX);
         }
         _;
     }
@@ -96,7 +96,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
     /// @notice Governance function to change the CTMRWAGateway contract address
     function setGateway(address _gateway) external onlyGov {
         if (_gateway == address(0)) {
-            revert CTMRWADeployer_IsZeroAddress(Address.Gateway);
+            revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.Gateway);
         }
         gateway = _gateway;
     }
@@ -104,7 +104,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
     /// @notice Governance function to change the FeeManager contract address
     function setFeeManager(address _feeManager) external onlyGov {
         if (_feeManager == address(0)) {
-            revert CTMRWADeployer_IsZeroAddress(Address.FeeManager);
+            revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.FeeManager);
         }
         feeManager = _feeManager;
     }
@@ -112,14 +112,14 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
     /// @notice Governance function to change the CTMRWA1X contract address
     function setRwaX(address _rwaX) external onlyGov {
         if (_rwaX == address(0)) {
-            revert CTMRWADeployer_IsZeroAddress(Address.RWAX);
+            revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.RWAX);
         }
         rwaX = _rwaX;
     }
 
     function setMap(address _ctmRwaMap) external onlyGov {
         if (_ctmRwaMap == address(0)) {
-            revert CTMRWADeployer_IsZeroAddress(Address.Map);
+            revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.Map);
         }
         ctmRwaMap = _ctmRwaMap;
     }
@@ -130,7 +130,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
      */
     function setErc20DeployerAddress(address _erc20Deployer) external onlyGov {
         if (_erc20Deployer == address(0)) {
-            revert CTMRWADeployer_IsZeroAddress(Address.ERC20Deployer);
+            revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.ERC20Deployer);
         }
         erc20Deployer = _erc20Deployer;
     }
@@ -138,7 +138,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
     /// @notice Governance function to change the CTMRWADeployInvest contract address
     function setDeployInvest(address _deployInvest) external onlyGov {
         if (_deployInvest == address(0)) {
-            revert CTMRWADeployer_IsZeroAddress(Address.DeployInvest);
+            revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.DeployInvest);
         }
         deployInvest = _deployInvest;
     }
@@ -159,10 +159,10 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         address tokenAddr = ICTMRWA1TokenFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
 
         if (ICTMRWA1(tokenAddr).RWA_TYPE() != _rwaType) {
-            revert CTMRWADeployer_IncompatibleRWA(RWA.Type);
+            revert CTMRWADeployer_IncompatibleRWA(CTMRWAErrorParam.Type);
         }
         if (ICTMRWA1(tokenAddr).VERSION() != _version) {
-            revert CTMRWADeployer_IncompatibleRWA(RWA.Version);
+            revert CTMRWADeployer_IncompatibleRWA(CTMRWAErrorParam.Version);
         }
 
         address dividendAddr = dividendDeployer(_ID, tokenAddr, _rwaType, _version);
@@ -248,10 +248,10 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
     /**
      * @notice Deploy a new CTMRWA1Invest contract. Anyone can call this, but only tokenAdmin
      * can create an offering and collect invested funds
-     * @param _ID The ID of the RWA token
-     * @param _rwaType The type of RWA (set to 1 for CTMRWA1)
-     * @param _version The version of RWA (set to 1 for current version)
-     * @param _feeToken Address of a valid fee token. See getFeeTokenList in FeeManager.
+     * @param _ID The ID of the CTMRWAErrorParam token
+     * @param _rwaType The type of CTMRWAErrorParam (set to 1 for CTMRWA1)
+     * @param _version The version of CTMRWAErrorParam (set to 1 for current version)
+     * @param _feeToken CTMRWAErrorParam of a valid fee token. See getFeeTokenList in FeeManager.
      * NOTE only one CTMRWA1Invest contract can be deployed on each chain.
      */
     function deployNewInvestment(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken)
@@ -260,11 +260,11 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
     {
         (bool ok,) = ICTMRWAMap(ctmRwaMap).getInvestContract(_ID, _rwaType, _version);
         if (ok) {
-            revert CTMRWADeployer_InvalidContract(Address.Invest);
+            revert CTMRWADeployer_InvalidContract(CTMRWAErrorParam.Invest);
         }
 
         if (deployInvest == address(0)) {
-            revert CTMRWADeployer_IsZeroAddress(Address.DeployInvest);
+            revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.DeployInvest);
         }
 
         address investAddress = ICTMRWADeployInvest(deployInvest).deployInvest(_ID, _rwaType, _version, _feeToken, msg.sender);

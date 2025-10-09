@@ -7,7 +7,7 @@ import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { CTMRWA1TokenFactory } from "../../src/deployment/CTMRWA1TokenFactory.sol";
 import { ICTMRWA1TokenFactory } from "../../src/deployment/ICTMRWA1TokenFactory.sol";
 import { Helpers } from "../helpers/Helpers.sol";
-import {Address} from "../../src/utils/CTMRWAUtils.sol";
+import {CTMRWAErrorParam} from "../../src/utils/CTMRWAUtils.sol";
 
 contract MockDeployer {
 // Used to test onlyDeployer modifier
@@ -59,7 +59,7 @@ contract CTMRWA1TokenFactoryTest is Helpers {
         assertTrue(deployed != address(0), "Deployment should succeed");
         // Try as notDeployer
         vm.prank(notDeployer);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, Address.Sender, Address.Deployer));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer));
         factory.deploy(deployData);
     }
 
@@ -131,7 +131,7 @@ contract CTMRWA1TokenFactoryTest is Helpers {
         bytes memory deployData =
             getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(notDeployer);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, Address.Sender, Address.Deployer));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer));
         factory.deploy(deployData);
     }
 

@@ -3,9 +3,8 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
-import { Address } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
-import { Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -76,7 +75,7 @@ contract TestCTMRWA1Sentry is Helpers {
         address newAdmin = tokenAdmin2;
         // Only tokenAdmin or ctmRwa1X can call
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin));
         sentry.setTokenAdmin(newAdmin);
         // ctmRwa1X can call
         vm.prank(address(rwa1X));
@@ -98,7 +97,7 @@ contract TestCTMRWA1Sentry is Helpers {
     function test_setZkMeParams_access() public {
         // Only sentryManager can call
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_OnlyAuthorized.selector, Address.Sender, Address.SentryManager));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.SentryManager));
         sentry.setZkMeParams("app", "prog", user2);
         vm.prank(address(sentryManager));
         sentry.setZkMeParams("app", "prog", user2);

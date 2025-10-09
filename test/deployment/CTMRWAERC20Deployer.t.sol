@@ -8,11 +8,12 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
-import { Address, ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWAERC20 } from "../../src/deployment/ICTMRWAERC20.sol";
 import { ICTMRWAERC20Deployer } from "../../src/deployment/ICTMRWAERC20Deployer.sol";
 import { IERC20Errors } from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import { FeeType } from "../../src/managers/IFeeManager.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 error EnforcedPause();
 
@@ -54,7 +55,7 @@ contract TestERC20Deployer is Helpers {
         string memory name = "Basic Stuff";
         usdc.approve(address(feeManager), 100_000_000);
         token.deployErc20(slot, name, address(usdc));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.RWAERC20));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, CTMRWAErrorParam.RWAERC20));
         token.deployErc20(slot, name, address(usdc));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InvalidSlot.selector, 99));
         token.deployErc20(99, name, address(usdc));
@@ -316,7 +317,7 @@ contract TestERC20Deployer is Helpers {
 
         // user2 is NOT whitelisted, user1 tries to transfer to user2, should revert with CTMRWA1_OnlyAuthorized
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.To, Address.Allowable));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.To, CTMRWAErrorParam.Allowable));
         ICTMRWAERC20(newErc20).transfer(user2, 100);
         vm.stopPrank();
 

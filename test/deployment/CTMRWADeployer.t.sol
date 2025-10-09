@@ -14,12 +14,12 @@ import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.so
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
 
-import { Address, RWA, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { console } from "forge-std/console.sol";
 
-error CTMRWA1X_InvalidLength(Uint);
+error CTMRWA1X_InvalidLength(CTMRWAErrorParam);
 
 contract TestCTMRWADeployer is Helpers {
     using Strings for *;
@@ -117,14 +117,14 @@ contract TestCTMRWADeployer is Helpers {
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "TestToken6", "TTK6", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX));
         deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
     }
 
     function test_revertIfZeroAddress() public {
         vm.startPrank(gov); // Run as governor
         // Try to set a zero address for a critical dependency
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Gateway));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.Gateway));
         deployer.setGateway(address(0));
         vm.stopPrank();
     }
@@ -183,12 +183,12 @@ contract TestCTMRWADeployer is Helpers {
         );
         deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
         deployer.deployNewInvestment(testID, RWA_TYPE, VERSION, address(usdc));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_InvalidContract.selector, Address.Invest));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_InvalidContract.selector, CTMRWAErrorParam.Invest));
         deployer.deployNewInvestment(testID, RWA_TYPE, VERSION, address(usdc));
         vm.stopPrank();
     }
 
-    // Incompatible RWA Type/Version
+    // Incompatible CTMRWAErrorParam Type/Version
     function test_revertOnIncompatibleRWATypeOrVersion() public {
         vm.startPrank(address(rwa1X));
         uint256 testID = 99_999;
@@ -223,25 +223,25 @@ contract TestCTMRWADeployer is Helpers {
         vm.stopPrank();
     }
 
-    // Setter Zero Address Revert (all setters)
+    // Setter Zero CTMRWAErrorParam Revert (all setters)
     function test_revertIfZeroAddressSetters() public {
         vm.startPrank(gov);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Gateway));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.Gateway));
         deployer.setGateway(address(0));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.FeeManager)
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.FeeManager)
         );
         deployer.setFeeManager(address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.RWAX));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.RWAX));
         deployer.setRwaX(address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Map));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.Map));
         deployer.setMap(address(0));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.ERC20Deployer)
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.ERC20Deployer)
         );
         deployer.setErc20DeployerAddress(address(0));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.DeployInvest)
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.DeployInvest)
         );
         deployer.setDeployInvest(address(0));
         vm.stopPrank();

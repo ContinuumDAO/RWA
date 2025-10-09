@@ -11,7 +11,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { CTMRWAGateway } from "../../src/crosschain/CTMRWAGateway.sol";
 import { ICTMRWAGateway } from "../../src/crosschain/ICTMRWAGateway.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 // Mock implementation for testing upgrades
 contract MockCTMRWAGatewayV2 is CTMRWAGateway {

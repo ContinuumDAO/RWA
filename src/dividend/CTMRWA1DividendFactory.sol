@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { Address } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { CTMRWA1Dividend } from "./CTMRWA1Dividend.sol";
 import { ICTMRWA1DividendFactory } from "./ICTMRWA1DividendFactory.sol";
 
@@ -22,7 +22,7 @@ contract CTMRWA1DividendFactory is ICTMRWA1DividendFactory {
 
     modifier onlyDeployer() {
         if (msg.sender != deployer) {
-            revert CTMRWA1DividendFactory_OnlyAuthorized(Address.Sender, Address.Deployer);
+            revert CTMRWA1DividendFactory_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
         }
         _;
     }
