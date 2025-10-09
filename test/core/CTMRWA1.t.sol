@@ -208,7 +208,7 @@ contract TestCTMRWA1 is Helpers {
         uint256 initialBalance = token.balanceOf(testTokenId1);
 
         // Try to mint value to the token
-        token.mintValueX(testTokenId1, testSlot, 100);
+        token.mintValueX(testTokenId1, 100);
 
         // Verify only one mint occurred
         assertEq(token.balanceOf(testTokenId1), initialBalance + 100);
@@ -248,7 +248,7 @@ contract TestCTMRWA1 is Helpers {
         vm.expectRevert(
             abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Minter)
         );
-        token.mintValueX(testTokenId1, testSlot, 100);
+        token.mintValueX(testTokenId1, 100);
         vm.stopPrank();
     }
 
@@ -325,7 +325,7 @@ contract TestCTMRWA1 is Helpers {
         vm.startPrank(address(rwa1X));
 
         uint256 initialBalance = token.balanceOf(testTokenId1);
-        token.mintValueX(testTokenId1, testSlot, value);
+        token.mintValueX(testTokenId1, value);
 
         assertEq(token.balanceOf(testTokenId1), initialBalance + value);
 
@@ -449,6 +449,77 @@ contract TestCTMRWA1 is Helpers {
     }
 
     // ============ APPROVAL TESTS ============
+
+    function test_revokeApproval() public {
+        // Test revokeApproval function
+        vm.startPrank(user1);
+
+        // First, approve user2 to spend from testTokenId1
+        token.approve(user2, testTokenId1);
+        
+        // Verify approval was set
+        assertEq(token.getApproved(testTokenId1), user2);
+
+        // Revoke the approval
+        vm.expectEmit(true, true, true, true);
+        emit ICTMRWA1.RevokeApproval(testTokenId1);
+        token.revokeApproval(testTokenId1);
+
+        // Verify approval was revoked (should be address(0))
+        assertEq(token.getApproved(testTokenId1), address(0));
+
+        vm.stopPrank();
+    }
+
+    function test_revokeApproval_unauthorized() public {
+        // Test that only the owner can revoke approval
+        vm.startPrank(user1);
+
+        // First, approve user2 to spend from testTokenId1
+        token.approve(user2, testTokenId1);
+        
+        // Verify approval was set
+        assertEq(token.getApproved(testTokenId1), user2);
+
+        vm.stopPrank();
+
+        // Try to revoke approval as user2 (not the owner)
+        vm.startPrank(user2);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Owner));
+        token.revokeApproval(testTokenId1);
+        vm.stopPrank();
+
+        // Verify approval is still set (revocation failed)
+        assertEq(token.getApproved(testTokenId1), user2);
+    }
+
+    function test_revokeApproval_nonExistentToken() public {
+        // Test revoking approval for non-existent token
+        uint256 nonExistentTokenId = 999_999;
+        
+        vm.startPrank(user1);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IDNonExistent.selector, nonExistentTokenId));
+        token.revokeApproval(nonExistentTokenId);
+        vm.stopPrank();
+    }
+
+    function test_revokeApproval_noApprovalSet() public {
+        // Test revoking approval when no approval is set (should still work)
+        vm.startPrank(user1);
+
+        // Verify no approval is set initially
+        assertEq(token.getApproved(testTokenId1), address(0));
+
+        // Revoke approval (should not revert even if no approval was set)
+        vm.expectEmit(true, true, true, true);
+        emit ICTMRWA1.RevokeApproval(testTokenId1);
+        token.revokeApproval(testTokenId1);
+
+        // Verify approval is still address(0)
+        assertEq(token.getApproved(testTokenId1), address(0));
+
+        vm.stopPrank();
+    }
 
     function test_approvalSecurity() public {
         // Test approval security
@@ -625,12 +696,166 @@ contract TestCTMRWA1 is Helpers {
         // Test overflow protection (though Solidity 0.8+ has built-in protection)
         vm.startPrank(address(rwa1X));
 
-        // Try to mint maximum value
-        token.mintValueX(testTokenId1, testSlot, type(uint256).max - 1000);
+        // Try to mint maximum value (checkpoints use uint208 for the value)
+        // Current balance should be 1000 from setup
+        token.mintValueX(testTokenId1, type(uint208).max - 1000);
 
         // Try to mint more (should fail due to overflow)
-        vm.expectRevert("panic: arithmetic underflow or overflow (0x11)");
-        token.mintValueX(testTokenId1, testSlot, 1000);
+        // The current balance is now type(uint208).max, so minting any amount should fail
+        uint256 maxUint208 = 2**208 - 1;
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_ValueOverflow.selector, maxUint208 + 1, maxUint208));
+        token.mintValueX(testTokenId1, 1);
+
+        vm.stopPrank();
+    }
+
+    function test_mintValueXUpdatesCheckpoints() public {
+        // Test that mintValueX properly updates checkpointed arrays
+        vm.startPrank(address(rwa1X));
+
+        uint256 mintValue = 5000;
+        uint256 slot = token.slotOf(testTokenId1);
+        address owner = token.ownerOf(testTokenId1);
+
+        // Get initial values
+        uint256 initialBalance = token.balanceOf(owner, slot);
+        uint256 initialTokenBalance = token.balanceOf(testTokenId1);
+        uint256 initialSupplyInSlot = token.totalSupplyInSlot(slot);
+        
+
+        // Mint value using mintValueX
+        token.mintValueX(testTokenId1, mintValue);
+
+        // Check that token balance increased
+        uint256 newTokenBalance = token.balanceOf(testTokenId1);
+        assertEq(newTokenBalance, initialTokenBalance + mintValue, "Token balance should increase by minted value");
+
+        // Check that owner's balance in slot increased
+        uint256 newOwnerBalance = token.balanceOf(owner, slot);
+        assertEq(newOwnerBalance, initialBalance + mintValue, "Owner balance in slot should increase by minted value");
+
+        // Check that total supply in slot increased
+        uint256 newSupplyInSlot = token.totalSupplyInSlot(slot);
+        assertEq(newSupplyInSlot, initialSupplyInSlot + mintValue, "Total supply in slot should increase by minted value");
+
+        // Test checkpoint functionality by checking balance at different times
+        // First, warp to a specific timestamp to ensure the first mint happens at timestamp 100
+        vm.warp(100);
+        
+        // Wait a bit and mint more to create a different timestamp
+        vm.warp(block.timestamp + 100);
+        token.mintValueX(testTokenId1, 2000);
+        
+        uint256 timestamp2 = block.timestamp; // Capture timestamp after second mint
+        uint256 finalBalance = token.balanceOf(owner, slot);
+        uint256 finalSupplyInSlot = token.totalSupplyInSlot(slot);
+        
+        // Check final balances
+        assertEq(finalBalance, initialBalance + mintValue + 2000, "Final balance should be correct");
+        assertEq(finalSupplyInSlot, initialSupplyInSlot + mintValue + 2000, "Final supply in slot should be correct");
+        
+        // Now test historical lookup - this should work correctly with different timestamps
+        // Test that we can query balance at timestamp1 (should be after first mint only)
+        // The first mint happened at timestamp 1, so we need to query for timestamp 1
+        uint256 balanceAtTime1 = token.balanceOfAt(owner, slot, 1);
+        assertEq(balanceAtTime1, initialBalance + mintValue, "Balance at timestamp1 should be after first mint only");
+        
+        // Test that we can query balance at timestamp2 (should be after second mint)
+        uint256 balanceAtTime2 = token.balanceOfAt(owner, slot, timestamp2);
+        assertEq(balanceAtTime2, initialBalance + mintValue + 2000, "Balance at timestamp2 should be after both mints");
+        
+        // Test that we can query balance at a timestamp between the two mints
+        // Since there's no checkpoint between the mints, we should get the most recent checkpoint
+        // which should be the first mint (timestamp 1) with value 6000
+        uint256 midTimestamp = 150; // Between first and second mint
+        uint256 balanceAtMidTime = token.balanceOfAt(owner, slot, midTimestamp);
+        assertEq(balanceAtMidTime, initialBalance + mintValue, "Balance at mid timestamp should be after first mint only");
+        
+        // Note: We cannot query for a balance before any mints because the checkpoint system
+        // only creates checkpoints when mints happen, not for the initial state.
+        // The initial balance (1000) is not stored as a checkpoint.
+        
+        // Test supply historical lookup as well
+        uint256 supplyAtTime1 = token.totalSupplyInSlotAt(slot, 1);
+        assertEq(supplyAtTime1, initialSupplyInSlot + mintValue, "Supply at timestamp1 should be after first mint only");
+        
+        uint256 supplyAtTime2 = token.totalSupplyInSlotAt(slot, timestamp2);
+        assertEq(supplyAtTime2, initialSupplyInSlot + mintValue + 2000, "Supply at timestamp2 should be after both mints");
+
+        vm.stopPrank();
+    }
+
+    function test_burnValueXUpdatesCheckpoints() public {
+        // Test that burnValueX properly updates checkpointed arrays
+        vm.startPrank(address(rwa1X));
+
+        uint256 burnValue = 500; // Burn 500 from token with 1000 balance
+        uint256 slot = token.slotOf(testTokenId1);
+        address owner = token.ownerOf(testTokenId1);
+
+        // Get initial values
+        uint256 initialBalance = token.balanceOf(owner, slot);
+        uint256 initialTokenBalance = token.balanceOf(testTokenId1);
+        uint256 initialSupplyInSlot = token.totalSupplyInSlot(slot);
+
+        // Burn value using burnValueX
+        token.burnValueX(testTokenId1, burnValue);
+
+        // Check that token balance decreased
+        uint256 newTokenBalance = token.balanceOf(testTokenId1);
+        assertEq(newTokenBalance, initialTokenBalance - burnValue, "Token balance should decrease by burned value");
+
+        // Check that owner's balance in slot decreased
+        uint256 newOwnerBalance = token.balanceOf(owner, slot);
+        assertEq(newOwnerBalance, initialBalance - burnValue, "Owner balance in slot should decrease by burned value");
+
+        // Check that total supply in slot decreased
+        uint256 newSupplyInSlot = token.totalSupplyInSlot(slot);
+        assertEq(newSupplyInSlot, initialSupplyInSlot - burnValue, "Total supply in slot should decrease by burned value");
+
+        // Test checkpoint functionality by checking balance at different times
+        // First, warp to a specific timestamp to ensure the burn happens at timestamp 100
+        vm.warp(100);
+        
+        // Wait a bit and burn more to create a different timestamp
+        vm.warp(block.timestamp + 100);
+        token.burnValueX(testTokenId1, 200); // Burn 200 more (total burned: 500 + 200 = 700)
+        
+        uint256 timestamp2 = block.timestamp; // Capture timestamp after second burn
+        uint256 finalBalance = token.balanceOf(owner, slot);
+        uint256 finalSupplyInSlot = token.totalSupplyInSlot(slot);
+        
+        // Check final balances
+        assertEq(finalBalance, initialBalance - burnValue - 200, "Final balance should be correct");
+        assertEq(finalSupplyInSlot, initialSupplyInSlot - burnValue - 200, "Final supply in slot should be correct");
+        
+        // Now test historical lookup - this should work correctly with different timestamps
+        // Test that we can query balance at timestamp1 (should be after first burn only)
+        // The first burn happened at timestamp 1, so we need to query for timestamp 1
+        uint256 balanceAtTime1 = token.balanceOfAt(owner, slot, 1);
+        assertEq(balanceAtTime1, initialBalance - burnValue, "Balance at timestamp1 should be after first burn only");
+        
+        // Test that we can query balance at timestamp2 (should be after second burn)
+        uint256 balanceAtTime2 = token.balanceOfAt(owner, slot, timestamp2);
+        assertEq(balanceAtTime2, initialBalance - burnValue - 200, "Balance at timestamp2 should be after both burns");
+        
+        // Test that we can query balance at a timestamp between the two burns
+        // Since there's no checkpoint between the burns, we should get the most recent checkpoint
+        // which should be the first burn (timestamp 1) with value after first burn
+        uint256 midTimestamp = 150; // Between first and second burn
+        uint256 balanceAtMidTime = token.balanceOfAt(owner, slot, midTimestamp);
+        assertEq(balanceAtMidTime, initialBalance - burnValue, "Balance at mid timestamp should be after first burn only");
+        
+        // Note: We cannot query for a balance before any burns because the checkpoint system
+        // only creates checkpoints when burns happen, not for the initial state.
+        // The initial balance is not stored as a checkpoint.
+        
+        // Test supply historical lookup as well
+        uint256 supplyAtTime1 = token.totalSupplyInSlotAt(slot, 1);
+        assertEq(supplyAtTime1, initialSupplyInSlot - burnValue, "Supply at timestamp1 should be after first burn only");
+        
+        uint256 supplyAtTime2 = token.totalSupplyInSlotAt(slot, timestamp2);
+        assertEq(supplyAtTime2, initialSupplyInSlot - burnValue - 200, "Supply at timestamp2 should be after both burns");
 
         vm.stopPrank();
     }
