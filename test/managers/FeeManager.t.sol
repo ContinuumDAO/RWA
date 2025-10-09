@@ -7,8 +7,8 @@ import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {IC3GovernDApp} from "@c3caller/gov/IC3GovernDApp.sol";
-import {C3ErrorParam} from "@c3caller/utils/C3CallerUtils.sol";
+import { IC3GovernDApp } from "@c3caller/gov/IC3GovernDApp.sol";
+import { C3ErrorParam } from "@c3caller/utils/C3CallerUtils.sol";
 
 import { FeeManager } from "../../src/managers/FeeManager.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../../src/managers/IFeeManager.sol";
@@ -101,31 +101,51 @@ contract TestFeeManager is Helpers {
 
     // Access Control Tests
     function test_OnlyGovCanAddFeeToken() public {
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         vm.prank(user1);
         feeManager.addFeeToken(feeTokenStr);
     }
 
     function test_OnlyGovCanDelFeeToken() public {
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         vm.prank(user1);
         feeManager.delFeeToken(feeTokenStr);
     }
 
     function test_OnlyGovCanSetFeeMultiplier() public {
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         vm.prank(user1);
         feeManager.setFeeMultiplier(FeeType.TX, 5);
     }
 
     function test_OnlyGovCanWithdrawFee() public {
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         vm.prank(user1);
         feeManager.withdrawFee(feeTokenStr, FEE_AMOUNT, addressToString(treasury));
     }
 
     function test_OnlyGovCanPause() public {
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         vm.prank(user1);
         feeManager.pause();
     }
@@ -133,7 +153,11 @@ contract TestFeeManager is Helpers {
     function test_OnlyGovCanUnpause() public {
         vm.prank(gov);
         feeManager.pause();
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         vm.prank(user1);
         feeManager.unpause();
     }

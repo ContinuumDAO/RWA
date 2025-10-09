@@ -88,6 +88,9 @@ FEE_MULTIPLIER_25=5     # Deploy Invest
 FEE_MULTIPLIER_26=5     # Offering
 FEE_MULTIPLIER_27=5     # Invest
 
+# VERIFIER for ZKME
+VERIFIER_534351=0xf8E1973814E66BF03002862C325305A5EeF98cc1  # Scroll Sepolia
+
 # RPC Endpoints
 ARBITRUM_SEPOLIA_RPC_URL=https://sepolia-rollup.arbitrum.io/rpc
 SEPOLIA_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
@@ -128,21 +131,17 @@ Use the compilation script to compile the flattened source code and scripts.
 
 ## Deploy Contracts
 
-Run each of the following scripts to deploy. This will first execute a simulation, then allow you elect to deploy all contracts to the given network (broadcast) and verify the contracts on Etherscan if possible.
+### Core Contracts (every network)
+
+Run each of the following scripts to deploy. This will first execute a
+simulation, then allow you elect to deploy all contracts to the given network
+(broadcast) and verify the contracts on Etherscan if possible.
 
 ```bash
-./helpers/deploy/arbitrum-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/avalanche-fuji.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/base-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/bsc-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/holesky.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/opbnb-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/scroll-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/deploy/soneium-minato-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/deploy/all.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
 ```
 
-All contracts are now deployed and initialized; their addresses are accessible in `broadcast/<chain-id>/run-latest.json`.
+All contracts are now deployed and initialized; their addresses are accessible in `broadcast/DeployAssetX.s.sol/<chain-id>/run-latest.json`.
 
 The following contracts are proxies:
 
@@ -156,12 +155,24 @@ The following contracts are proxies:
 
 Note: For the proxies, go to Etherscan and select "Contract > More Options > Is this a proxy?" to link its implementation contract.
 
-## Write Deployed Contracts to Environment File
+### Identity Contract (Scroll Sepolia only)
 
-Run the JS helper found in `js-helpers/generate-environment.js` to generate a .env.deployed file from the saved logs.
+To deploy the Identity contract, which is used for ZK-proof verification of identity, run the following script:
 
 ```bash
-node js-helpers/generate-environment.js
+./helpers/7-deploy-identity.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+```
+
+This will deploy, initialize (in SentryManager) and verify the identity contract on Scroll Sepolia. The deployment information is accessible in `broadcast/DeployIdentity.s.sol/534351/run-latest.json`.
+
+## Write Deployed Contracts to Environment File
+
+Run the JS helpers found in `js-helpers/` to generate (i) a .env.deployed file from the saved logs, (ii) a JSON file with all deployed instances across all networks, and (iii) the addition of the saved identity contract address(es), if applicable.
+
+```bash
+node js-helpers/0-generate-environment.js
+node js-helpers/1-save-contract-addresses.js
+node js-helpers/2-save-identity-addresses.js
 ```
 
 ## Source the Deployed Contract Environment File
@@ -179,15 +190,7 @@ source helpers/6-export-env.sh
 Run each of the following scripts to configure initial values on all networks. This will first execute a simulation, then allow you elect to configure all contracts to the given network (broadcast), to link all other deployed contracts.
 
 ```bash
-./helpers/configure/arbitrum-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/avalanche-fuji.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/base-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/bsc-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/holesky.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/opbnb-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/scroll-sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/sepolia.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
-./helpers/configure/soneium-minato-testnet.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
+./helpers/configure/all.sh <DEPLOYER> <PATH_TO_PASSWORD_FILE>
 ```
 
 ## Complete

@@ -15,7 +15,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * @notice This contract is the gateway between any blockchain that can have an RWA deployed
  * to it. It stores the contract addresses of CTMRWAGateway contracts on other chians, as well
  * as the contract addresses of CTMRWA1X, CTMRWA1StorageManager and CTMRWA1SentryMananager
- * contracts. This enables c3calls to be made between all the c3Caller dApps that make up AssetX
+ * contracts. This enables c3calls to be made between all the c3Caller DApps that make up AssetX
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */

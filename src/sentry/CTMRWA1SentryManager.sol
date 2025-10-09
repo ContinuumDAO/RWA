@@ -657,7 +657,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         return (currentAdmin, currentAdminStr);
     }
 
-    /// @dev The fallback function for this GovernDapp in the event of a cross-chain call failure
+    /// @dev The fallback function for this GovernDApp in the event of a cross-chain call failure
     /// @param _selector The selector of the function that failed
     /// @param _data The data of the function that failed
     /// @param _reason The reason for the failure

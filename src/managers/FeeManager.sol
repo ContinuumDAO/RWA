@@ -25,7 +25,13 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
  * Governance can withdraw fees from this contract to a treasury address.
  * This contract is deployed once on each chain.
  */
-contract FeeManager is IFeeManager, ReentrancyGuardUpgradeable, C3GovernDAppUpgradeable, UUPSUpgradeable, PausableUpgradeable {
+contract FeeManager is
+    IFeeManager,
+    ReentrancyGuardUpgradeable,
+    C3GovernDAppUpgradeable,
+    UUPSUpgradeable,
+    PausableUpgradeable
+{
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;

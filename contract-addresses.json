@@ -189,7 +189,8 @@
     "sentryManagerProxy": "0x2af842c6517cf30fb3456aef485230e0dd085845",
     "sentryManagerImpl": "0x4ebd7ccbe32a51d1638cfe90e8ed1c4bdf42f729",
     "sentryUtils": "0x1cbc0de1cd20d6d80ae755275a63dbc9b1131a7c",
-    "feeToken": "0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58"
+    "feeToken": "0xe536Bf33585aa6bb528627Ed7Dc4D49009dafC58",
+    "identity": "0xb6afce4bdd4405824b60f927182b142bde2a7110"
   },
   "11155111": {
     "feeManagerProxy": "0x2f925d6512b2bbb00f5a36d8b18e01fcf35f7dc7",

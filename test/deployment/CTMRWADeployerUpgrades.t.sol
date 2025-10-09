@@ -345,7 +345,7 @@ contract TestCTMRWADeployerUpgrades is Helpers {
         (bool success, ) = address(deployer).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWADeployerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
-        // Test that C3GovernDapp functionality is preserved
+        // Test that C3GovernDApp functionality is preserved
         // The contract should still have governance controls
         vm.startPrank(user1);
         vm.expectRevert();

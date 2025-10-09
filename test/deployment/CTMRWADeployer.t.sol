@@ -4,8 +4,8 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 
-import {IC3GovernDApp} from "@c3caller/gov/IC3GovernDApp.sol";
-import {C3ErrorParam} from "@c3caller/utils/C3CallerUtils.sol";
+import { IC3GovernDApp } from "@c3caller/gov/IC3GovernDApp.sol";
+import { C3ErrorParam } from "@c3caller/utils/C3CallerUtils.sol";
 
 import { ICTMRWADeployInvest } from "../../src/deployment/ICTMRWADeployInvest.sol";
 import { ICTMRWADeployer } from "../../src/deployment/ICTMRWADeployer.sol";
@@ -135,17 +135,41 @@ contract TestCTMRWADeployer is Helpers {
         vm.assume(!deployer.txSenders(nonGov));
         address dummy = address(0x1234);
         vm.startPrank(nonGov);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setGateway(dummy);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setFeeManager(dummy);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setRwaX(dummy);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setMap(dummy);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setErc20DeployerAddress(dummy);
-        vm.expectRevert(abi.encodeWithSelector(IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
         deployer.setDeployInvest(dummy);
         vm.stopPrank();
     }

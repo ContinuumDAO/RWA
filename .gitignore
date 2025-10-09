@@ -9,6 +9,7 @@ todo.txt
 
 # Auth
 .auth.c3caller
+.auth.testnet0
 
 # Dependencies
 node_modules/

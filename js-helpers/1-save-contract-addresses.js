@@ -41,19 +41,19 @@ chainDirs.forEach(chainId => {
         console.warn(`Warning: run-latest.json not found for chain ID ${chainId}`)
         return
     }
-    
+
     console.log(`Processing chain ID: ${chainId}`)
-    
+
     try {
         // Load the deployment data
         const deploymentData = require(runFilePath)
-        
+
         // Process transactions to extract contract addresses
         deploymentData.transactions.forEach((tx, index) => {
             if (tx.transactionType === "CREATE" && tx.contractAddress && !tx.contractName.includes("Proxy")) {
                 const contractName = tx.contractName
                 const contractAddress = tx.contractAddress
-                
+
                 // Map contract names to the expected keys
                 switch (contractName) {
                     case "FeeManager":
