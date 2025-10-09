@@ -9,11 +9,11 @@ if [ $# -lt 2 ]; then
 fi
 
 # Simulate the operation
-forge script script/AddMPC.s.sol \
+forge script script/AddTxSender.s.sol \
 --account $1 \
 --password-file $2 \
---rpc-url sepolia-rpc-url \
---chain sepolia
+--rpc-url soneium-minato-testnet-rpc-url \
+--chain soneium-minato-testnet
 
 # Check if the simulation succeeded
 if [ $? -ne 0 ]; then
@@ -21,21 +21,21 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-read -p "Continue with add MPC operation? [Y/n] " -n 1 -r
+read -p "Continue with add txSender operation? [Y/n] " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]] && [[ ! $REPLY =~ ^$ ]]; then
-    echo "Add MPC operation cancelled."
+    echo "Add txSender operation cancelled."
     exit 1
 fi
 
-echo "Proceeding with add MPC operation..."
+echo "Proceeding with add txSender operation..."
 
-forge script script/AddMPC.s.sol \
+forge script script/AddTxSender.s.sol \
 --account $1 \
 --password-file $2 \
 --slow \
---rpc-url sepolia-rpc-url \
---chain sepolia \
+--rpc-url soneium-minato-testnet-rpc-url \
+--chain soneium-minato-testnet \
 --broadcast
 
-echo "Add MPC operation complete."
+echo "Add txSender operation complete."
