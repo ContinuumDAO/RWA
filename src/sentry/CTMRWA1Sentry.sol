@@ -42,7 +42,7 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
     bool public kybSwitch;
     bool public countryWLSwitch;
     bool public countryBLSwitch;
-    bool public accreditedSwitch;
+    bool public accreditedSwitch; 
     bool public age18Switch;
 
     modifier onlyTokenAdmin() {
@@ -85,7 +85,7 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         countryList.push("NOGO");
     }
 
-    /** @dev Thiss function is normally called by CTMRWA1X to set a new tokenAdmin
+    /** @dev This function is normally called by CTMRWA1X to set a new tokenAdmin
      * It can also be called by the current tokenAdmin, but htis should not normally be required
      * and would only happen to clean up in the event of a cross-chain failure to reset the tokenAdmin
      * @param _tokenAdmin The new tokenAdmin address
