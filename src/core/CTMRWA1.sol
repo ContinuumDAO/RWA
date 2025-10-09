@@ -807,12 +807,26 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             revert CTMRWA1_ValueOverflow(_value, maxUint208);
         }
 
+        // Check for overflow when adding to existing balance
+        uint208 currentBalance = _balance[_to][_slot].latest();
+        if (currentBalance > maxUint208 - _value) {
+            revert CTMRWA1_ValueOverflow(currentBalance + _value, maxUint208);
+        }
+        
+        // Check for overflow when adding to existing supply in slot
+        uint208 currentSupplyInSlot = _supplyInSlot[_slot].latest();
+        if (currentSupplyInSlot > maxUint208 - _value) {
+            revert CTMRWA1_ValueOverflow(currentSupplyInSlot + _value, maxUint208);
+        }
+
         _beforeValueTransfer(address(0), _to, 0, _tokenId, _slot, _slotName, _value);
         __mintToken(_to, _tokenId, _slot);
         __mintValue(_tokenId, _value);
-        uint208 newBalance = _balance[_to][_slot].latest() + uint208(_value);
+        uint256 newBalance256 = uint256(currentBalance) + _value;
+        uint208 newBalance = uint208(newBalance256);
         _balance[_to][_slot].push(uint48(block.timestamp), newBalance);
-        uint208 newSupplyInSlot = _supplyInSlot[_slot].latest() + uint208(_value);
+        uint256 newSupplyInSlot256 = uint256(currentSupplyInSlot) + _value;
+        uint208 newSupplyInSlot = uint208(newSupplyInSlot256);
         _supplyInSlot[_slot].push(uint48(block.timestamp), newSupplyInSlot);
         _afterValueTransfer(address(0), _to, 0, _tokenId, _slot, _slotName, _value);
     }
@@ -848,11 +862,20 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         address owner = CTMRWA1.ownerOf(_tokenId);
         uint256 slot = CTMRWA1.slotOf(_tokenId);
         string memory thisSlotName = CTMRWA1.slotNameOf(_tokenId);
+        
+        // Check for overflow when adding to existing balance
+        uint208 currentBalance = _balance[owner][slot].latest();
+        if (currentBalance > maxUint208 - _value) {
+            revert CTMRWA1_ValueOverflow(currentBalance + _value, maxUint208);
+        }
+        
         _beforeValueTransfer(address(0), owner, 0, _tokenId, slot, thisSlotName, _value);
         __mintValue(_tokenId, _value);
-        uint208 newBalance = _balance[owner][slot].latest() + uint208(_value);
+        uint256 newBalance256 = uint256(currentBalance) + _value;
+        uint208 newBalance = uint208(newBalance256);
         _balance[owner][slot].push(uint48(block.timestamp), newBalance);
-        uint208 newSupplyInSlot = _supplyInSlot[slot].latest() + uint208(_value);
+        uint256 newSupplyInSlot256 = uint256(_supplyInSlot[slot].latest()) + _value;
+        uint208 newSupplyInSlot = uint208(newSupplyInSlot256);
         _supplyInSlot[slot].push(uint48(block.timestamp), newSupplyInSlot);
         _afterValueTransfer(address(0), owner, 0, _tokenId, slot, thisSlotName, _value);
     }
@@ -1119,8 +1142,19 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         uint208 newBalanceFrom = _balance[fromTokenData.owner][slot].latest() - uint208(_value);
         _balance[fromTokenData.owner][slot].push(uint48(block.timestamp), newBalanceFrom);
 
+        // Check for overflow when adding to recipient's balance
+        uint256 maxUint208 = 2**208 - 1;
+        if (toTokenData.balance > maxUint208 - _value) {
+            revert CTMRWA1_ValueOverflow(toTokenData.balance + _value, maxUint208);
+        }
+        
+        uint208 currentBalanceTo = _balance[toTokenData.owner][slot].latest();
+        if (currentBalanceTo > maxUint208 - _value) {
+            revert CTMRWA1_ValueOverflow(currentBalanceTo + _value, maxUint208);
+        }
+        
         toTokenData.balance += _value;
-        uint208 newBalanceTo = _balance[toTokenData.owner][slot].latest() + uint208(_value);
+        uint208 newBalanceTo = currentBalanceTo + uint208(_value);
         _balance[toTokenData.owner][slot].push(uint48(block.timestamp), newBalanceTo);
 
         emit TransferValue(_fromTokenId, _toTokenId, _value);
@@ -1137,20 +1171,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @dev Burn 'value' from a pre-existing tokenId, callable by any 'Minter'
     /// @param _fromTokenId The tokenId to burn the value from
     /// @param _value The value to burn
-    // function burnValueX(uint256 _fromTokenId, uint256 _value) external onlyMinter whenNotPaused returns (bool) {
-    //     if (!_exists(_fromTokenId)) {
-    //         revert CTMRWA1_IDNonExistent(_fromTokenId);
-    //     }
-
-    //     TokenData storage fromTokenData = _allTokens[_allTokensIndex[_fromTokenId]];
-    //     if (fromTokenData.balance < _value) {
-    //         revert CTMRWA1_InsufficientBalance();
-    //     }
-
-    //     fromTokenData.balance -= _value;
-    //     return (true);
-    // }
-
+   
     function burnValueX(uint256 _fromTokenId, uint256 _value) external onlyMinter whenNotPaused {
        _burnValue(_fromTokenId, _value);
     }
@@ -1161,33 +1182,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _toTokenId The tokenId to mint the value to
      * @param _value The value to mint
      */
-    // function mintValueX(uint256 _toTokenId, uint256 _slot, uint256 _value)
-    //     external
-    //     onlyMinter
-    //     whenNotPaused
-    //     returns (bool)
-    // {
-    //     if (!_exists(_toTokenId)) {
-    //         revert CTMRWA1_IDNonExistent(_toTokenId);
-    //     }
-    //     address owner = ownerOf(_toTokenId);
-    //     string memory toAddressStr = owner.toHexString();
-
-    //     if (sentryAddr != address(0)) {
-    //         if (!ICTMRWA1Sentry(sentryAddr).isAllowableTransfer(toAddressStr)) {
-    //             revert CTMRWA1_WhiteListRejected(owner);
-    //         }
-    //     }
-
-    //     TokenData storage toTokenData = _allTokens[_allTokensIndex[_toTokenId]];
-    //     if (toTokenData.slot != _slot) {
-    //         revert CTMRWA1_InvalidSlot(_slot);
-    //     }
-
-    //     toTokenData.balance += _value;
-    //     return (true);
-    // }
-
+   
     function mintValueX(uint256 _toTokenId, uint256 _value)
         external
         onlyMinter
@@ -1235,7 +1230,15 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _balance[_from][slot].push(uint48(block.timestamp), newBalanceFrom);
 
         _addTokenToOwnerEnumeration(_to, _tokenId);
-        uint208 newBalanceTo = _balance[_to][slot].latest() + uint208(value);
+        
+        // Check for overflow when adding to recipient's balance
+        uint256 maxUint208 = 2**208 - 1;
+        uint208 currentBalanceTo = _balance[_to][slot].latest();
+        if (currentBalanceTo > maxUint208 - value) {
+            revert CTMRWA1_ValueOverflow(currentBalanceTo + value, maxUint208);
+        }
+        
+        uint208 newBalanceTo = currentBalanceTo + uint208(value);
         _balance[_to][slot].push(uint48(block.timestamp), newBalanceTo);
 
         emit Transfer(_from, _to, _tokenId);
