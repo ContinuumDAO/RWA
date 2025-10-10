@@ -143,4 +143,12 @@ interface ICTMRWA1X is ICTMRWA {
         uint256 _slot,
         uint256 _balance
     ) external returns (bool); // onlyCaller
+
+    function mintFromXForERC20(
+        uint256 _ID,
+        address _to,
+        uint256 _slot,
+        string memory _slotName,
+        uint256 _value
+    ) external returns (uint256);
 }

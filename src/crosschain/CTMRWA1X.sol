@@ -929,6 +929,40 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     }
 
     /**
+     * @notice Mint a new tokenId for ERC20 contract operations. This function ensures proper tracking
+     * of token ownership in the ownedCtmRwa1 mapping.
+     * @param _ID The ID of the CTMRWA1 contract
+     * @param _to The recipient address
+     * @param _slot The slot number
+     * @param _slotName The slot name
+     * @param _value The initial value (usually 0 for ERC20 operations)
+     * @return newTokenId The newly created tokenId
+     */
+    function mintFromXForERC20(
+        uint256 _ID,
+        address _to,
+        uint256 _slot,
+        string memory _slotName,
+        uint256 _value
+    ) external returns (uint256) {
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        
+        // Validate that the caller is an authorized ERC20 contract for this slot
+        address erc20Addr = ICTMRWA1(ctmRwa1Addr).getErc20(_slot);
+        if (erc20Addr != msg.sender) {
+            revert CTMRWA1X_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAERC20);
+        }
+        
+        // Mint the tokenId through CTMRWA1
+        uint256 newTokenId = ICTMRWA1(ctmRwa1Addr).mintFromX(_to, _slot, _slotName, _value);
+        
+        // Update the ownedCtmRwa1 mapping to track this ownership
+        _updateOwnedCtmRwa1(_to, ctmRwa1Addr);
+        
+        return newTokenId;
+    }
+
+    /**
      * @dev Handle failures in a cross-chain call. The logic is managed in a separate contract
      * CTMRWA1XFallback. See there for details.
      * @return ok True if the fallback was successful, false otherwise.
