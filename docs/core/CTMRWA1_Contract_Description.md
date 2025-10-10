@@ -18,7 +18,8 @@ CTMRWA1 is a multi-chain semi-fungible token contract for Real-World Assets (RWA
 - Cross-chain transfer capabilities
 - Pausable functionality
 - Reentrancy protection
-- ERC20 wrapper support
+- ERC20 wrapper support with approval system
+- Fine-grained ERC20 spending control
 
 ## Constructor
 
@@ -108,6 +109,13 @@ struct AddressData {
     mapping(uint256 => uint256) ownedTokensIndex; // Token ID to index mapping
 }
 ```
+
+### ERC20 Approval System
+The contract maintains a mapping for ERC20 approvals:
+```solidity
+mapping(address => mapping(uint256 => uint256[])) _erc20Approvals; // owner => slot => tokenId[]
+```
+This allows owners to selectively approve specific tokenIds for spending by ERC20 contracts, providing fine-grained control over which tokens can be used in ERC20 operations.
 
 ## Access Control Functions
 
@@ -560,15 +568,15 @@ function _mint(address _to, uint256 _slot, string memory _slotName, uint256 _val
 
 ### mintFromX()
 ```solidity
-function mintFromX(address _to, uint256 _slot, string memory _slotName, uint256 _value) external onlyMinter whenNotPaused
+function mintFromX(address _to, uint256 _slot, string memory _slotName, uint256 _value) external whenNotPaused
 ```
-**Description:** Mints a token from cross-chain call.  
+**Description:** Mints a token from cross-chain call or ERC20 contract.  
 **Parameters:**
 - `_to` (address): Recipient address
 - `_slot` (uint256): Slot number
 - `_slotName` (string): Slot name
 - `_value` (uint256): Initial value
-**Access:** Only minter  
+**Access:** Authorized minters or ERC20 contracts for the specific slot  
 
 ### mintFromX(address, uint256, uint256, string, uint256)
 ```solidity
@@ -619,16 +627,16 @@ function burnValueX(uint256 _fromTokenId, uint256 _value) external onlyMinter wh
 
 ## ERC20 Integration Functions
 
-### deployErc20()
+### setErc20()
 ```solidity
-function deployErc20(uint256 _slot, string memory _erc20Name, address _feeToken) public onlyTokenAdmin
+function setErc20(address _erc20, uint256 _slot) external onlyErc20Deployer
 ```
-**Description:** Deploys an ERC20 wrapper for a slot.  
+**Description:** Sets the ERC20 contract address for a specific slot.  
 **Parameters:**
+- `_erc20` (address): ERC20 contract address
 - `_slot` (uint256): Slot number
-- `_erc20Name` (string): ERC20 token name
-- `_feeToken` (address): Fee token address
-**Access:** Only tokenAdmin  
+**Access:** Only ERC20 deployer  
+**Requirements:** Slot must exist and no ERC20 already set for this slot
 
 ### getErc20()
 ```solidity
@@ -641,11 +649,55 @@ function getErc20(uint256 _slot) public view returns (address)
 
 ### createOriginalTokenId()
 ```solidity
-function createOriginalTokenId() external onlyERC20 returns (uint256)
+function createOriginalTokenId() external onlyErc20Deployer returns (uint256)
 ```
 **Description:** Creates an original token ID for ERC20 integration.  
 **Access:** Only ERC20 deployer  
-**Returns:** New token ID  
+**Returns:** New token ID
+
+## ERC20 Approval System
+
+### approveErc20()
+```solidity
+function approveErc20(uint256 tokenId) external
+```
+**Description:** Approves a tokenId to be spent by the ERC20 contract for its slot.  
+**Parameters:**
+- `tokenId` (uint256): Token ID to approve
+**Requirements:** 
+- Caller must be the owner of the tokenId
+- ERC20 contract must exist for the token's slot
+- TokenId must not already be approved
+**Effects:** Adds tokenId to the owner's ERC20 approvals array
+
+### revokeApproval()
+```solidity
+function revokeApproval(uint256 tokenId) external
+```
+**Description:** Revokes ERC20 approval for a tokenId.  
+**Parameters:**
+- `tokenId` (uint256): Token ID to revoke approval for
+**Requirements:** Caller must be the owner of the tokenId
+**Effects:** Removes tokenId from the owner's ERC20 approvals array
+
+### getErc20Approvals()
+```solidity
+function getErc20Approvals(address _owner, uint256 _slot) external view returns (uint256[] memory)
+```
+**Description:** Returns the array of tokenIds approved for ERC20 spending by an owner in a specific slot.  
+**Parameters:**
+- `_owner` (address): Owner address
+- `_slot` (uint256): Slot number
+**Returns:** Array of approved tokenIds
+
+### clearApprovedValuesFromERC20()
+```solidity
+function clearApprovedValuesFromERC20(uint256 _tokenId) external onlyERC20
+```
+**Description:** Clears all value approvals for a tokenId (called by ERC20 contracts).  
+**Parameters:**
+- `_tokenId` (uint256): Token ID
+**Access:** Only authorized ERC20 contracts  
 
 ## Utility Functions
 
@@ -673,13 +725,13 @@ function spendAllowance(address _operator, uint256 _tokenId, uint256 _value) pub
 
 ### approveFromX()
 ```solidity
-function approveFromX(address _to, uint256 _tokenId) external onlyRwa1X
+function approveFromX(address _to, uint256 _tokenId) external
 ```
-**Description:** Approves an address from cross-chain call.  
+**Description:** Approves an address from cross-chain call or ERC20 contract.  
 **Parameters:**
 - `_to` (address): Approved address
 - `_tokenId` (uint256): Token ID
-**Access:** Only CTMRWA1X  
+**Access:** CTMRWA1X, RWA1XFallback, or authorized ERC20 contracts  
 
 ### clearApprovedValues()
 ```solidity
@@ -716,7 +768,7 @@ function removeTokenFromOwnerEnumeration(address _from, uint256 _tokenId) extern
 - `onlyCtmMap`: Restricts access to CTMRWAMap contract
 - `onlyTokenFactory`: Restricts access to tokenFactory
 - `onlyMinter`: Restricts access to authorized minters
-- `onlyERC20`: Restricts access to ERC20 deployer
+- `onlyERC20`: Restricts access to authorized ERC20 contracts
 - `onlyErc20Deployer`: Restricts access to ERC20 deployer
 - `whenNotPaused`: Ensures contract is not paused
 

@@ -186,6 +186,19 @@ This contract is only deployed ONCE on each chain and manages all CTMRWA1 contra
   - `_balance`: Balance to mint
 - **Returns:** True if minting successful
 
+#### `mintFromXForERC20(uint256 _ID, address _to, uint256 _slot, string memory _slotName, uint256 _value)`
+- **Access:** Only callable by authorized ERC20 contract for the specified slot
+- **Purpose:** Mints a new tokenId for ERC20 contract operations with proper ownership tracking
+- **Parameters:**
+  - `_ID`: RWA ID
+  - `_to`: Recipient address
+  - `_slot`: Slot number
+  - `_slotName`: Slot name
+  - `_value`: Initial value (usually 0 for ERC20 operations)
+- **Returns:** New tokenId that was minted
+- **Security:** Validates that the caller is the authorized ERC20 contract for the specified slot
+- **Note:** Automatically updates the ownedCtmRwa1 mapping to track token ownership
+
 ### Slot Management Functions
 
 #### `createNewSlot(uint256 _ID, uint256 _slot, string memory _slotName, string[] memory _toChainIdsStr, string memory _feeTokenStr)`

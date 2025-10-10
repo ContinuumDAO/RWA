@@ -8,6 +8,7 @@ import { console } from "forge-std/console.sol";
 
 import { ICTMRWA1, CTMRWAErrorParam } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
+import { ICTMRWAERC20Deployer } from "../../src/deployment/ICTMRWAERC20Deployer.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 // Mock contract for reentrancy testing
@@ -310,8 +311,8 @@ contract TestCTMRWA1 is Helpers {
         string memory longName =
             "This is a very long name that exceeds the maximum allowed length of 128 characters and should cause a revert when trying to deploy an ERC20 token";
 
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NameTooLong.selector));
-        token.deployErc20(testSlot, longName, address(usdc));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWAERC20Deployer.CTMRWAERC20Deployer_NameTooLong.selector));
+        ctmRwaErc20Deployer.deployERC20(ID, 1, 1, testSlot, longName, address(usdc));
 
         vm.stopPrank();
     }
@@ -576,18 +577,28 @@ contract TestCTMRWA1 is Helpers {
         vm.stopPrank();
     }
 
-    // ============ ERC20 DEPLOYMENT TESTS ============
+    // ============ ERC20 APPROVAL TESTS ============
 
-    function test_erc20DeploymentSecurity() public {
-        // Test ERC20 deployment security
+    function test_erc20ApprovalSecurity() public {
+        // Test ERC20 approval security
         vm.startPrank(tokenAdmin);
+        
+        // First deploy an ERC20 for the test slot
+        usdc.approve(address(ctmRwaErc20Deployer), 100_000_000);
+        ctmRwaErc20Deployer.deployERC20(ID, 1, 1, testSlot, "Test ERC20", address(usdc));
+        vm.stopPrank();
+        
+        vm.startPrank(user1);
 
-        // Deploy ERC20 for slot
-        token.deployErc20(testSlot, "Test ERC20", address(usdc));
+        // Approve tokenId for ERC20 spending
+        token.approveErc20(testTokenId1);
 
-        // Try to deploy again for same slot (should fail)
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, CTMRWAErrorParam.RWAERC20));
-        token.deployErc20(testSlot, "Test ERC20 2", address(usdc));
+        // Verify approval
+        assertEq(token.getApproved(testTokenId1), token.getErc20(testSlot));
+
+        // Try to approve again (should fail)
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_ERC20AlreadyApproved.selector, testTokenId1));
+        token.approveErc20(testTokenId1);
 
         vm.stopPrank();
     }

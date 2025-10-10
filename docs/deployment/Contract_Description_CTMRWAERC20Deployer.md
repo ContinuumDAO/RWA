@@ -52,8 +52,8 @@ This contract is deployed only once on each chain and manages all CTMRWAERC20 co
 
 ### Deployment Functions
 
-#### `deployERC20(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, string memory _name, string memory _symbol, address _feeToken, address _originalCaller)`
-- **Access:** Only callable by valid CTMRWA1 contracts
+#### `deployERC20(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, string memory _name, address _feeToken)`
+- **Access:** Only callable by tokenAdmin of the CTMRWA1 contract
 - **Purpose:** Deploy a new ERC20 contract linked to a CTMRWA1 for one specific slot
 - **Parameters:**
   - `_ID`: Unique ID number for the CTMRWA1 contract
@@ -61,27 +61,27 @@ This contract is deployed only once on each chain and manages all CTMRWAERC20 co
   - `_version`: Version of the RWA token
   - `_slot`: Slot number selected for this ERC20
   - `_name`: Name for the ERC20 (will be prefixed with "slot X | ")
-  - `_symbol`: Symbol to use for the ERC20
   - `_feeToken`: Fee token address for payment
-  - `_originalCaller`: Address of the original caller who should pay the fee
 - **Logic:**
   - Validates CTMRWA1 contract exists in CTMRWAMap
-  - Ensures caller is the valid CTMRWA1 contract
-  - Pays deployment fee using FeeManager with original caller
+  - Ensures caller is the tokenAdmin of the CTMRWA1 contract
+  - Validates slot exists in CTMRWA1
+  - Pays deployment fee using FeeManager
   - Generates salt from ID, RWA type, version, and slot
   - Deploys CTMRWAERC20 using CREATE2 with salt
+  - Registers ERC20 address in CTMRWA1 using setErc20
   - Returns the deployed contract address
 - **Returns:** Address of the deployed CTMRWAERC20 contract
 - **Security:** Uses CREATE2 to ensure deterministic addresses
 - **Uniqueness:** Salt ensures only one ERC20 per slot per RWA per chain
-- **Fee Handling:** Fee is paid by the original caller, not the CTMRWA1 contract
+- **Integration:** Automatically registers ERC20 with CTMRWA1 contract
 
 ## Internal Functions
 
 ### Fee Management
 - **`_payFee(FeeType _feeType, address _feeToken, address _originalCaller)`**: Pays fees for deployment operations
   - Calculates cross-chain fee amount using FeeManager
-  - Transfers fee tokens from original caller
+  - Transfers fee tokens from caller (tokenAdmin)
   - Approves and pays fee to FeeManager
   - Uses nonReentrant modifier for security
   - Returns true if fee payment successful
@@ -91,10 +91,10 @@ This contract is deployed only once on each chain and manages all CTMRWAERC20 co
 
 The contract does not use custom access control modifiers, but implements access control through function-level validation:
 
-- **CTMRWA1 Validation:** Only valid CTMRWA1 contracts can deploy ERC20 tokens
+- **TokenAdmin Validation:** Only tokenAdmin of CTMRWA1 contracts can deploy ERC20 tokens
 - **Contract Existence Check:** Validates CTMRWA1 contract exists in CTMRWAMap
-- **Caller Verification:** Ensures caller is the actual CTMRWA1 contract
-- **Original Caller Tracking:** Tracks fee payer separately from contract caller
+- **Caller Verification:** Ensures caller is the tokenAdmin of the CTMRWA1 contract
+- **Slot Validation:** Validates slot exists in CTMRWA1 before deployment
 
 ## Events
 
@@ -102,7 +102,7 @@ The contract does not emit custom events, as it focuses solely on deployment ope
 
 ## Security Features
 
-1. **Access Control:** Only authorized CTMRWA1 contracts can deploy ERC20 tokens
+1. **Access Control:** Only tokenAdmin of CTMRWA1 contracts can deploy ERC20 tokens
 2. **Deterministic Addresses:** CREATE2 ensures predictable contract addresses
 3. **Salt-based Deployment:** Uses RWA ID, type, version, and slot as salt for uniqueness
 4. **Fee Integration:** Integrated fee system for deployment operations
@@ -110,8 +110,8 @@ The contract does not emit custom events, as it focuses solely on deployment ope
 6. **Reentrancy Protection:** Uses ReentrancyGuard for fee payment security
 7. **Zero Address Validation:** Prevents deployment with invalid addresses
 8. **Single Instance:** Ensures only one ERC20 per slot per RWA per chain
-9. **Original Caller Security:** Separates fee payer from contract caller
-10. **Cross-chain Fee Validation:** Validates fee tokens across chains
+9. **Slot Validation:** Validates slot exists in CTMRWA1 before deployment
+10. **Automatic Registration:** Automatically registers ERC20 with CTMRWA1 contract
 
 ## Integration Points
 
@@ -128,13 +128,14 @@ The contract uses custom error types for efficient gas usage and clear error mes
 - **`CTMRWAERC20Deployer_IsZeroAddress(CTMRWAErrorParam.Map)`**: Thrown when CTMRWAMap address is zero
 - **`CTMRWAERC20Deployer_IsZeroAddress(CTMRWAErrorParam.FeeManager)`**: Thrown when FeeManager address is zero
 - **`CTMRWAERC20Deployer_InvalidContract(CTMRWAErrorParam.Token)`**: Thrown when CTMRWA1 contract not found
-- **`CTMRWAERC20Deployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Token)`**: Thrown when unauthorized contract tries to deploy ERC20
+- **`CTMRWAERC20Deployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Token)`**: Thrown when unauthorized caller tries to deploy ERC20
+- **`CTMRWAERC20Deployer_NameTooLong()`**: Thrown when ERC20 name exceeds 128 characters
 
 ## Deployment Process
 
 ### 1. Deployment Request
-- **Step:** CTMRWA1 contract calls deployERC20 function with slot parameters
-- **Requirements:** Valid RWA ID, type, version, slot, fee token, and original caller
+- **Step:** TokenAdmin calls deployERC20 function with slot parameters
+- **Requirements:** Valid RWA ID, type, version, slot, name, and fee token
 - **Result:** Deployment process initiated
 
 ### 2. Contract Validation
@@ -143,29 +144,39 @@ The contract uses custom error types for efficient gas usage and clear error mes
 - **Result:** Proceed if valid, revert if invalid
 
 ### 3. Caller Verification
-- **Step:** Ensures caller is the actual CTMRWA1 contract
-- **Requirements:** Caller matches registered CTMRWA1 address
+- **Step:** Ensures caller is the tokenAdmin of the CTMRWA1 contract
+- **Requirements:** Caller matches tokenAdmin address in CTMRWA1
 - **Result:** Proceed if authorized, revert if unauthorized
 
-### 4. Fee Payment
-- **Step:** Pays deployment fee using FeeManager with original caller
-- **Requirements:** Sufficient fee token balance and approval from original caller
+### 4. Slot Validation
+- **Step:** Validates slot exists in CTMRWA1 contract
+- **Requirements:** Slot must exist in the CTMRWA1 contract
+- **Result:** Proceed if valid, revert if invalid
+
+### 5. Fee Payment
+- **Step:** Pays deployment fee using FeeManager
+- **Requirements:** Sufficient fee token balance and approval from tokenAdmin
 - **Result:** Fee paid and deployment proceeds
 
-### 5. Salt Generation
+### 6. Salt Generation
 - **Step:** Generates salt from RWA ID, type, version, and slot
 - **Requirements:** Valid RWA and slot parameters
 - **Result:** Unique salt for CREATE2 deployment
 
-### 6. Contract Creation
+### 7. Contract Creation
 - **Step:** CREATE2 instruction creates new CTMRWAERC20 contract
 - **Requirements:** Valid constructor parameters and unique salt
 - **Result:** ERC20 contract deployed with deterministic address
 
-### 7. Address Return
+### 8. ERC20 Registration
+- **Step:** Registers ERC20 address in CTMRWA1 using setErc20
+- **Requirements:** Successful deployment and valid ERC20 address
+- **Result:** ERC20 contract linked to CTMRWA1 slot
+
+### 9. Address Return
 - **Step:** Deployed contract address returned
-- **Requirements:** Successful deployment
-- **Result:** Address available for registration in CTMRWAMap
+- **Requirements:** Successful deployment and registration
+- **Result:** Address available for use in ERC20 operations
 
 ## Use Cases
 

@@ -9,6 +9,8 @@ interface ICTMRWAERC20Deployer {
     error CTMRWAERC20Deployer_IsZeroAddress(CTMRWAErrorParam);
     error CTMRWAERC20Deployer_InvalidContract(CTMRWAErrorParam);
     error CTMRWAERC20Deployer_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
+    error CTMRWAERC20Deployer_NameTooLong();
+
 
     function deployERC20(
         uint256 ID,
@@ -16,8 +18,6 @@ interface ICTMRWAERC20Deployer {
         uint256 version,
         uint256 slot,
         string memory name,
-        string memory symbol,
-        address feeToken,
-        address originalCaller
+        address feeToken
     ) external returns (address);
 }

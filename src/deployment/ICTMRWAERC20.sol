@@ -9,7 +9,6 @@ interface ICTMRWAERC20 is IERC20 {
     error CTMRWAERC20_InvalidContract(CTMRWAErrorParam);
     error CTMRWAERC20_NonExistentSlot(uint256);
     error CTMRWAERC20_IsZeroAddress(CTMRWAErrorParam);
-    error CTMRWAERC20_MaxTokens();
 
     function ID() external view returns (uint256);
     function ctmRwaName() external view returns (string memory);
@@ -21,4 +20,6 @@ interface ICTMRWAERC20 is IERC20 {
 
     function RWA_TYPE() external view returns (uint256);
     function VERSION() external view returns (uint256);
+    
+    function balanceOfApproved(address account) external view returns (uint256);
 }

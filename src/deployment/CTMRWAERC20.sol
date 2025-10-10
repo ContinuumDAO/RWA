@@ -4,6 +4,7 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
+import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWAERC20 } from "./ICTMRWAERC20.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -51,9 +52,6 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
 
     /// @dev The address of the CTMRWA1 contract that called this
     address ctmRwaToken;
-
-    /// @dev Max number of tokens to iterate through for balance transfers (block gas limit check)
-    uint256 constant MAX_TOKENS = 100;
 
     constructor(
         uint256 _ID,
@@ -125,13 +123,41 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
 
     /**
      * @notice The ERC20 balanceOf. This is derived from the CTMRWA1 and is the sum of
-     * the fungible balances of all tokenIds in this slot for this _account
+     * the fungible balances of approved tokenIds in this slot for this _account
      * @param _account The wallet address of the balanceOf being sought
-     * @return bal The balance of the _account
+     * @return bal The balance of the _account from approved tokenIds only
      */
     function balanceOf(address _account) public view override(ERC20, IERC20) returns (uint256) {
-        uint256 bal = ICTMRWA1(ctmRwaToken).balanceOf(_account, slot);
-        return (bal);
+        // Calculate total balance from all tokenIds owned by the account in this slot
+        uint256 totalBalance = 0;
+        uint256 tokenCount = ICTMRWA1(ctmRwaToken).balanceOf(_account);
+        
+        for (uint256 i = 0; i < tokenCount; i++) {
+            uint256 tokenId = ICTMRWA1(ctmRwaToken).tokenOfOwnerByIndex(_account, i);
+            uint256 tokenSlot = ICTMRWA1(ctmRwaToken).slotOf(tokenId);
+            if (tokenSlot == slot) {
+                totalBalance += ICTMRWA1(ctmRwaToken).balanceOf(tokenId);
+            }
+        }
+        
+        return totalBalance;
+    }
+
+    function balanceOfApproved(address _account) public view returns (uint256) {
+        // Get the array of approved tokenIds for this owner and slot
+        uint256[] memory approvedTokenIds = ICTMRWA1(ctmRwaToken).getErc20Approvals(_account, slot);
+        uint256 len = approvedTokenIds.length;
+        
+        uint256 approvedBalance = 0;
+        for (uint256 i = 0; i < len; i++) {
+            uint256 tokenId = approvedTokenIds[i];
+            // Verify the tokenId is still approved for this ERC20 contract
+            if (ICTMRWA1(ctmRwaToken).getApproved(tokenId) == address(this)) {
+                approvedBalance += ICTMRWA1(ctmRwaToken).balanceOf(tokenId);
+            }
+        }
+        
+        return approvedBalance;
     }
 
     /**
@@ -204,43 +230,46 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
      * of both the _from tokenIds and creating a new tokenId for the _to wallet
      */
     function _update(address _from, address _to, uint256 _value) internal override {
-        uint256 fromBalance = ICTMRWA1(ctmRwaToken).balanceOf(_from, slot);
+        // Get the array of approved tokenIds for this owner and slot
+        uint256[] memory approvedTokenIds = ICTMRWA1(ctmRwaToken).getErc20Approvals(_from, slot);
+        uint256 len = approvedTokenIds.length;
 
-        if (fromBalance < _value) {
-            revert ERC20InsufficientBalance(_from, fromBalance, _value);
+        if (len == 0) {
+            revert ERC20InsufficientBalance(_from, 0, _value);
+        }
+
+        // Calculate the total balance from approved tokenIds only
+        uint256 approvedBalance = balanceOfApproved(_from);
+
+        if (approvedBalance < _value) {
+            revert ERC20InsufficientBalance(_from, approvedBalance, _value);
         }
 
         uint256 tokenId;
         uint256 tokenIdBal;
         uint256 valRemaining = _value;
 
-        uint256 len = ICTMRWA1(ctmRwaToken).balanceOf(_from);
-
         for (uint256 i = 0; i < len; i++) {
-            tokenId = ICTMRWA1(ctmRwaToken).tokenOfOwnerByIndex(_from, i);
-
-            if (ICTMRWA1(ctmRwaToken).slotOf(tokenId) == slot) {
+            tokenId = approvedTokenIds[i];
+            
+            // Verify the tokenId is still approved for this ERC20 contract
+            if (ICTMRWA1(ctmRwaToken).getApproved(tokenId) == address(this)) {
                 tokenIdBal = ICTMRWA1(ctmRwaToken).balanceOf(tokenId);
 
-                uint256 newTokenId = ICTMRWA1(ctmRwaToken).mintFromX(_to, slot, slotName, 0);
+                uint256 newTokenId = ICTMRWA1X(ICTMRWA1(ctmRwaToken).ctmRwa1X()).mintFromXForERC20(ID, _to, slot, slotName, 0);
 
                 if (tokenIdBal >= valRemaining) {
-                    ICTMRWA1(ctmRwaToken).approve(tokenId, _to, valRemaining);
                     ICTMRWA1(ctmRwaToken).transferFrom(tokenId, newTokenId, valRemaining);
-                    ICTMRWA1(ctmRwaToken).clearApprovedValuesErc20(tokenId);
+                       ICTMRWA1(ctmRwaToken).clearApprovedValuesFromERC20(tokenId);
                     emit Transfer(_from, _to, _value);
                     return;
-                } else if (i < MAX_TOKENS) {
-                    ICTMRWA1(ctmRwaToken).approve(tokenId, _to, tokenIdBal);
+                } else {
                     ICTMRWA1(ctmRwaToken).transferFrom(tokenId, newTokenId, tokenIdBal);
                     valRemaining -= tokenIdBal;
                     if (valRemaining == 0) {
                         emit Transfer(_from, _to, _value);
                         return;
                     }
-                } else {
-                    // revert("CTMRWAERC20: Exceeded max number of tokens 100");
-                    revert CTMRWAERC20_MaxTokens();
                 }
             }
         }

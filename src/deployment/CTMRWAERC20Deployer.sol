@@ -58,16 +58,14 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
     /**
      * @notice Deploy a new ERC20 contract linked to a CTMRWA1 with ID, for ONE slot
      * @param _ID The unique ID number for the CTMRWA1
+     * @param _rwaType The type of RWA token
+     * @param _version The version of the RWA token
      * @param _slot The slot number selected for this ERC20.
      * @param _name The name for the ERC20. This will be pre-pended with "slot X | ", where X is
      * the slot number
-     * @param  _symbol The symbol to use for the ERC20
      * @param  _feeToken The fee token address to pay. The contract address must be
      * in the return from feeTokenList() in FeeManager
-     * @param _originalCaller The address of the original caller who should pay the fee
-     * NOTE The resulting ERC20 is only valid if this function is called from a CTMRWA1 contract
-     * otherwise it will not be linked to it.
-     * @return The address of the deployed ERC20 contract
+     * @return newErc20 The address of the deployed ERC20 contract
      */
     function deployERC20(
         uint256 _ID,
@@ -75,26 +73,32 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
         uint256 _version,
         uint256 _slot,
         string memory _name,
-        string memory _symbol,
-        address _feeToken,
-        address _originalCaller
+        address _feeToken
     ) external returns (address) {
         (bool ok, address ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
         if (!ok) {
             revert CTMRWAERC20Deployer_InvalidContract(CTMRWAErrorParam.Token);
         }
-        if (msg.sender != ctmRwaToken) {
+        address tokenAdmin = ICTMRWA1(ctmRwaToken).tokenAdmin();
+        if (msg.sender != tokenAdmin) {
             revert CTMRWAERC20Deployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Token);
         }
 
-        _payFee(FeeType.ERC20, _feeToken, _originalCaller);
+        if (bytes(_name).length > 128) {
+            revert CTMRWAERC20Deployer_NameTooLong();
+        }
+
+        _payFee(FeeType.ERC20, _feeToken, msg.sender);
 
         bytes32 salt = keccak256(abi.encode(_ID, _rwaType, _version, _slot));
 
-        CTMRWAERC20 newErc20 = new CTMRWAERC20{ salt: salt }(_ID, _rwaType, _version, _slot, _name, _symbol, ctmRwaMap);
+        CTMRWAERC20 newErc20 = new CTMRWAERC20{ salt: salt }(_ID, _rwaType, _version, _slot, _name, ICTMRWA1(ctmRwaToken).symbol(), ctmRwaMap);
+
+        ICTMRWA1(ctmRwaToken).setErc20(address(newErc20), _slot);
 
         return (address(newErc20));
     }
+
 
     /// @dev Pay the fee for deploying the ERC20
     /// @param _feeType The type of fee to pay
