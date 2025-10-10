@@ -58,6 +58,16 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     /// @param _ctmRwaMap The address of the CTMRWAMap contract
     /// @param _feeManager The address of the FeeManager contract
     function setDeployerMapFee(address _deployer, address _ctmRwaMap, address _feeManager) external onlyDeployer {
+        if (_deployer == address(0)) {
+            revert CTMRWADeployInvest_IsZeroAddress(CTMRWAErrorParam.Deployer);
+        }
+        if (_ctmRwaMap == address(0)) {
+            revert CTMRWADeployInvest_IsZeroAddress(CTMRWAErrorParam.Map);
+        }
+        if (_feeManager == address(0)) {
+            revert CTMRWADeployInvest_IsZeroAddress(CTMRWAErrorParam.FeeManager);
+        }
+
         ctmRwaDeployer = _deployer;
         ctmRwaMap = _ctmRwaMap;
         feeManager = _feeManager;

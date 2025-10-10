@@ -8,6 +8,7 @@ import { URICategory, URIType } from "./ICTMRWA1Storage.sol";
 
 interface ICTMRWA1StorageManager is ICTMRWA {
     error CTMRWA1StorageManager_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
+    error CTMRWA1StorageManager_IsZeroAddress(CTMRWAErrorParam);
     error CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam);
     error CTMRWA1StorageManager_NoStorage();
     error CTMRWA1StorageManager_ObjectAlreadyExists();

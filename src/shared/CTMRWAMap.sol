@@ -111,6 +111,16 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
      * NOTE Can only be called by the setMap function in CTMRWA1X, called by Governor
      */
     function setCtmRwaDeployer(address _deployer, address _gateway, address _rwa1X) external onlyRwa1X {
+        if (_deployer == address(0)) {
+            revert CTMRWAMap_IsZeroAddress(CTMRWAErrorParam.Deployer);
+        }
+        if (_gateway == address(0)) {
+            revert CTMRWAMap_IsZeroAddress(CTMRWAErrorParam.Gateway);
+        }
+        if (_rwa1X == address(0)) {
+            revert CTMRWAMap_IsZeroAddress(CTMRWAErrorParam.RWAX);
+        }
+
         ctmRwaDeployer = _deployer;
         gateway = _gateway;
         ctmRwa1X = _rwa1X;

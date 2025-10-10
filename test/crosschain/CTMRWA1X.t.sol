@@ -1416,8 +1416,8 @@ contract TestCTMRWA1X is Helpers {
         vm.prank(gov);
         CTMRWA1X(newRwa1X).initialize(address(0x1), address(0x2), gov, address(0x3), address(0x4), 1);
         vm.prank(gov);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_IsZeroAddress.selector, CTMRWAErrorParam.Deployer));
-        CTMRWA1X(newRwa1X).setCtmRwaMap(address(0x1234));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_IsZeroAddress.selector, CTMRWAErrorParam.Map));
+        CTMRWA1X(newRwa1X).setCtmRwaMap(address(0));
     }
 
     function test_revert_IsZeroAddress_Fallback() public {

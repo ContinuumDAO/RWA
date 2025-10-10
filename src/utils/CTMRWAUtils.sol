@@ -66,7 +66,8 @@ enum CTMRWAErrorParam {
     WL_Enabled, // whitelisting is enabled
     WL_BL_Undefined, // neither whitelist nor blacklist are defined
     WL_BL_Defined, // whitelist and blacklist are defined
-    WL_KYC_Disabled // neither whitelist nor kyc is enabled
+    WL_KYC_Disabled, // neither whitelist nor kyc is enabled
+    Utils
 }
 
 library CTMRWAUtils {

@@ -9,6 +9,7 @@ interface ICTMRWAMap {
     error CTMRWAMap_AlreadyAttached(uint256 ID, address tokenAddr);
     error CTMRWAMap_FailedAttachment(CTMRWAErrorParam);
     error CTMRWAMap_IncompatibleRWA(CTMRWAErrorParam);
+    error CTMRWAMap_IsZeroAddress(CTMRWAErrorParam);
 
     function gateway() external view returns (address);
     function ctmRwa1X() external view returns (address);

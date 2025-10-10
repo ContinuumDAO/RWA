@@ -45,7 +45,7 @@ contract FeeManager is
     mapping(address => uint256) public feeTokenIndexMap;
     address[] feetokens;
 
-    /// @dev The multiplier of the baseFee aplpicable for each FeeType
+    /// @dev The multiplier of the baseFee applicable for each FeeType
     uint256[29] public feeMultiplier;
 
     /// @dev A safe multiplier, so that Governance cannot set up an overflow of any FeeType.

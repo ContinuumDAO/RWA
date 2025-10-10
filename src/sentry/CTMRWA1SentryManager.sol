@@ -110,6 +110,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * @param _gateway address of the new CTMRWAGateway contract
      */
     function setGateway(address _gateway) external onlyGov {
+        if (_gateway == address(0)) {
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Gateway);
+        }
+
         gateway = _gateway;
     }
 
@@ -118,6 +122,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * @param _feeManager address of the new FeeManager contract
      */
     function setFeeManager(address _feeManager) external onlyGov {
+        if (_feeManager == address(0)) {
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.FeeManager);
+        }
+        
         feeManager = _feeManager;
     }
 
@@ -126,6 +134,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * @param _deployer address of the new CTMRWADeployer contract
      */
     function setCtmRwaDeployer(address _deployer) external onlyGov {
+        if (_deployer == address(0)) {
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Deployer);
+        }
+
         ctmRwaDeployer = _deployer;
     }
 
@@ -134,6 +146,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * @param _map address of the new CTMRWAMap contract
      */
     function setCtmRwaMap(address _map) external onlyGov {
+        if (_map == address(0)) {
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Map);
+        }
+
         ctmRwaMap = _map;
     }
 
@@ -142,6 +158,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * @param _utilsAddr address of the new CTMRWA1SentryUtils contract
      */
     function setSentryUtils(address _utilsAddr) external onlyGov {
+        if (_utilsAddr == address(0)) {
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Utils);
+        }
         utilsAddr = _utilsAddr;
     }
 

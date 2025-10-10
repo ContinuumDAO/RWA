@@ -108,6 +108,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * @param _feeManager address of the new FeeManager contract
      */
     function changeFeeManager(address _feeManager) external onlyGov {
+        if (_feeManager == address(0)) {
+            revert CTMRWA1X_IsZeroAddress(CTMRWAErrorParam.FeeManager);
+        }
         feeManager = _feeManager;
     }
 
@@ -116,6 +119,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * @param _gateway address of the new CTMRWAGateway contract
      */
     function setGateway(address _gateway) external onlyGov {
+        if (_gateway == address(0)) {
+            revert CTMRWA1X_IsZeroAddress(CTMRWAErrorParam.Gateway);
+        }
         gateway = _gateway;
     }
 
@@ -126,8 +132,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * @param _map address of the new CTMRWAMap contract
      */
     function setCtmRwaMap(address _map) external onlyGov {
-        if (ctmRwaDeployer == address(0)) {
-            revert CTMRWA1X_IsZeroAddress(CTMRWAErrorParam.Deployer);
+        if (_map == address(0)) {
+            revert CTMRWA1X_IsZeroAddress(CTMRWAErrorParam.Map);
         }
         ctmRwa1Map = _map;
         ICTMRWAMap(ctmRwa1Map).setCtmRwaDeployer(ctmRwaDeployer, gateway, address(this));
@@ -138,6 +144,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * @param _deployer address of the new CTMRWADeployer contract
      */
     function setCtmRwaDeployer(address _deployer) external onlyGov {
+        if (_deployer == address(0)) {
+            revert CTMRWA1X_IsZeroAddress(CTMRWAErrorParam.Deployer);
+        }
         ctmRwaDeployer = _deployer;
     }
 
