@@ -500,7 +500,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             revert CTMRWA1_NotZeroAddress(CTMRWAErrorParam.RWAERC20);
         }
 
-        // _erc20s[_erc20] = true;
         _erc20Slots[_slot] = _erc20;
     }
 
