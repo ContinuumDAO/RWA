@@ -80,6 +80,8 @@ interface ICTMRWA1 is ICTMRWA {
     error CTMRWA1_IDNonExistent(uint256 tokenId);
     error CTMRWA1_IDExists(uint256 _tokenId);
     error CTMRWA1_InvalidSlot(uint256 _slot);
+    error CTMRWA1_ERC20NonExistent(uint256 slot);
+    error CTMRWA1_ERC20AlreadyApproved(uint256 tokenId);
 
     /// @dev Transfer errors
     error CTMRWA1_ReceiverRejected();
@@ -104,6 +106,7 @@ interface ICTMRWA1 is ICTMRWA {
         external
         view
         returns (uint256 id, uint256 bal, address owner, uint256 slot, string memory slotName, address admin);
+    function idOf(uint256 tokenId) external view returns (uint256);
     function slotNameOf(uint256 _tokenId) external view returns (string memory);
     function balanceOf(uint256 _tokenId) external view returns (uint256);
     function balanceOf(address owner) external view returns (uint256);
@@ -133,14 +136,11 @@ interface ICTMRWA1 is ICTMRWA {
 
     function approveFromX(address to_, uint256 tokenId_) external;
     function clearApprovedValues(uint256 tokenId_) external;
-    function clearApprovedValuesErc20(uint256 tokenId_) external;
     function removeTokenFromOwnerEnumeration(address from, uint256 tokenId) external;
 
     function burn(uint256 tokenId) external;
 
-    // function burnValueX(uint256 fromTokenId, uint256 value) external returns (bool);
     function burnValueX(uint256 fromTokenId, uint256 value) external;
-    // function mintValueX(uint256 toTokenId, uint256 slot, uint256 value) external returns (bool);
     function mintValueX(uint256 toTokenId, uint256 value) external;
     function mintFromX(address to, uint256 slot, string memory slotName, uint256 value)
         external
@@ -155,15 +155,18 @@ interface ICTMRWA1 is ICTMRWA {
     function storageAddr() external view returns (address);
     function allSlotsIndex(uint256 slot) external view returns (uint256);
 
-    function createOriginalTokenId() external returns (uint256);
+    function clearApprovedValuesFromERC20(uint256 _tokenId) external;
 
-    function deployErc20(uint256 _slot, string memory _erc20Name, address _feeToken) external;
+    function setErc20(address erc20, uint256 slot) external;
 
     function slotOf(uint256 tokenId) external view returns (uint256);
 
     function approve(uint256 tokenId, address operator, uint256 value) external payable;
 
     function approve(address to, uint256 tokenId) external;
+    function approveErc20(uint256 tokenId) external;
+    function revokeApproval(uint256 tokenId) external;
+    function getErc20Approvals(address owner, uint256 slot) external view returns (uint256[] memory);
 
     function allowance(uint256 tokenId, address operator) external view returns (uint256);
 

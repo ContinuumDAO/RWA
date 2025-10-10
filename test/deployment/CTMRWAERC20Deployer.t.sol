@@ -41,7 +41,7 @@ contract TestERC20Deployer is Helpers {
         token.deployErc20(slot, name, address(usdc));
         address newErc20 = token.getErc20(slot);
         assertEq(stringsEqual(ICTMRWAERC20(newErc20).name(), "slot 1| Basic Stuff"), true);
-        assertEq(stringsEqual(ICTMRWAERC20(newErc20).symbol(), "SFTX"), true);
+        assertEq(stringsEqual(ICTMRWAERC20(newErc20).symbol(), "SFTX1"), true);
         assertEq(ICTMRWAERC20(newErc20).decimals(), 18);
         assertEq(ICTMRWAERC20(newErc20).totalSupply(), 0);
         vm.stopPrank();
@@ -375,7 +375,7 @@ contract TestERC20Deployer is Helpers {
         // Verify the ERC20 was deployed
         address newErc20 = token.getErc20(slot);
         assertEq(stringsEqual(ICTMRWAERC20(newErc20).name(), "slot 1| Fee Test ERC20"), true);
-        assertEq(stringsEqual(ICTMRWAERC20(newErc20).symbol(), "SFTX"), true);
+        assertEq(stringsEqual(ICTMRWAERC20(newErc20).symbol(), "SFTX1"), true);
         
         // Verify the fee was paid correctly
         uint256 finalBalance = usdc.balanceOf(tokenAdmin);

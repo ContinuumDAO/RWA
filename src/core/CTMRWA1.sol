@@ -137,10 +137,12 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
 
     mapping(address => AddressData) private _addressData;
 
-    /// @dev defines which address can deploy or mint slot specific ERC20 tokens
-    mapping(address => bool) private _erc20s;
+    // /// @dev defines which address can deploy or mint slot specific ERC20 tokens
+    // mapping(address => bool) private _erc20s;
     /// @dev slot number => address of the slot specific ERC20
     mapping(uint256 => address) private _erc20Slots;
+    /// @dev array of tokenIds approved for spending by ERC20 contracts. owner => slot => tokenId[]
+    mapping(address => mapping(uint256 => uint256[])) private _erc20Approvals;
 
     constructor(
         address _tokenAdmin,
@@ -185,7 +187,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     }
 
     modifier onlyErc20Deployer() {
-        if (!_erc20s[msg.sender]) {
+        if (msg.sender != erc20Deployer) {
             revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.ERC20Deployer);
         }
         _;
@@ -213,14 +215,23 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     }
 
     modifier onlyMinter() {
-        if (!ICTMRWA1X(ctmRwa1X).isMinter(msg.sender) && !_erc20s[msg.sender]) {
+        // if (!ICTMRWA1X(ctmRwa1X).isMinter(msg.sender) && !_erc20s[msg.sender]) {
+        if (!ICTMRWA1X(ctmRwa1X).isMinter(msg.sender)) {
             revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Minter);
         }
         _;
     }
 
     modifier onlyERC20() {
-        if (!_erc20s[msg.sender]) {
+        // Check if the caller is an authorized ERC20 contract for any slot
+        bool isAuthorizedERC20 = false;
+        for (uint256 i = 0; i < _allSlots.length; i++) {
+            if (_erc20Slots[_allSlots[i].slot] == msg.sender) {
+                isAuthorizedERC20 = true;
+                break;
+            }
+        }
+        if (!isAuthorizedERC20) {
             revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAERC20);
         }
         _;
@@ -475,15 +486,36 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         );
     }
 
-    /**
-     * @notice Deploy an ERC20 token that represents the fungible balance of a specific
-     * slot of this CTMRWA1. It allows interaction with lending/markeplace protocols.
-     * This function can only be called ONCE per slot.
-     * @param _slot The slot number for which to create an ERC20
-     * @param _erc20Name The name of this ERC20. It is automatically pre-pended with the slot number
-     * @param _feeToken The fee token to pay for this service with. Must be configured in FeeManager
-     */
-    function deployErc20(uint256 _slot, string memory _erc20Name, address _feeToken) public onlyTokenAdmin {
+    // /**
+    //  * @notice Deploy an ERC20 token that represents the fungible balance of a specific
+    //  * slot of this CTMRWA1. It allows interaction with lending/markeplace protocols.
+    //  * This function can only be called ONCE per slot.
+    //  * @param _slot The slot number for which to create an ERC20
+    //  * @param _erc20Name The name of this ERC20. It is automatically pre-pended with the slot number
+    //  * @param _feeToken The fee token to pay for this service with. Must be configured in FeeManager
+    //  */
+    // function deployErc20(uint256 _slot, string memory _erc20Name, address _feeToken) public onlyTokenAdmin {
+    //     if (!slotExists(_slot)) {
+    //         revert CTMRWA1_InvalidSlot(_slot);
+    //     }
+
+    //     if (_erc20Slots[_slot] != address(0)) {
+    //         revert CTMRWA1_NotZeroAddress(CTMRWAErrorParam.RWAERC20);
+    //     }
+
+    //     if (bytes(_erc20Name).length > 128) {
+    //         revert CTMRWA1_NameTooLong();
+    //     }
+
+    //     address newErc20 = ICTMRWAERC20Deployer(erc20Deployer).deployERC20(
+    //         ID, RWA_TYPE, VERSION, _slot, _erc20Name, _symbol, _feeToken, msg.sender
+    //     );
+
+    //     _erc20s[newErc20] = true;
+    //     _erc20Slots[_slot] = newErc20;
+    // }
+
+    function setErc20(address _erc20, uint256 _slot) external onlyErc20Deployer {
         if (!slotExists(_slot)) {
             revert CTMRWA1_InvalidSlot(_slot);
         }
@@ -492,16 +524,8 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             revert CTMRWA1_NotZeroAddress(CTMRWAErrorParam.RWAERC20);
         }
 
-        if (bytes(_erc20Name).length > 128) {
-            revert CTMRWA1_NameTooLong();
-        }
-
-        address newErc20 = ICTMRWAERC20Deployer(erc20Deployer).deployERC20(
-            ID, RWA_TYPE, VERSION, _slot, _erc20Name, _symbol, _feeToken, msg.sender
-        );
-
-        _erc20s[newErc20] = true;
-        _erc20Slots[_slot] = newErc20;
+        // _erc20s[_erc20] = true;
+        _erc20Slots[_slot] = _erc20;
     }
 
     /**
@@ -585,7 +609,18 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         returns (address)
     {
         spendAllowance(msg.sender, _fromTokenId, _value);
+        
+        // Check if this will empty the fromTokenId before transferring
+        uint256 fromBalance = balanceOf(_fromTokenId);
+        bool willBeEmpty = (fromBalance == _value);
+        
         _transferValue(_fromTokenId, _toTokenId, _value);
+        
+        // If the fromTokenId is now empty, remove it from owner enumeration
+        if (willBeEmpty) {
+            address fromOwner = ownerOf(_fromTokenId);
+            _removeTokenFromOwnerEnumeration(fromOwner, _fromTokenId);
+        }
 
         return (ownerOf(_toTokenId));
     }
@@ -725,8 +760,14 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _tokenId The tokenId whose approval is being revoked
      */
     function revokeApproval(uint256 _tokenId) public virtual {
-        if (msg.sender != ownerOf(_tokenId)) {
+        (,, address owner, uint256 slot,,) = this.getTokenInfo(_tokenId);
+
+        if (msg.sender != owner) {
             revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Owner);
+        }
+
+        if (getApproved(_tokenId) == _erc20Slots[slot]) {
+            _revokeErc20Approval(_tokenId);
         }
 
         _allTokens[_allTokensIndex[_tokenId]].approved = address(0);
@@ -745,7 +786,69 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             revert CTMRWA1_IDNonExistent(_tokenId);
         }
         address owner = CTMRWA1.ownerOf(_tokenId);
-        return (_operator == owner || getApproved(_tokenId) == _operator || _erc20s[_operator]);
+        // return (_operator == owner || getApproved(_tokenId) == _operator || _erc20s[_operator]);
+        return (_operator == owner || getApproved(_tokenId) == _operator);
+    }
+
+    function approveErc20(uint256 _tokenId) public {
+        (,, address owner, uint256 slot,,) = this.getTokenInfo(_tokenId);
+
+        if (msg.sender != owner) {
+            revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Owner);
+        }
+
+        if (!_exists(_tokenId)) {
+            revert CTMRWA1_IDNonExistent(_tokenId);
+        }
+
+        if (_erc20Slots[slot] == address(0)) {
+            revert CTMRWA1_ERC20NonExistent(slot);
+        }
+
+        if (getApproved(_tokenId) == _erc20Slots[slot]) {
+            revert CTMRWA1_ERC20AlreadyApproved(_tokenId);
+        }
+
+        _approve(_erc20Slots[slot], _tokenId);
+        _erc20Approvals[owner][slot].push(_tokenId);
+
+    }
+
+    function _revokeErc20Approval(uint256 _tokenId) internal {
+        address owner = ownerOf(_tokenId);
+        uint256 slot = slotOf(_tokenId);
+        
+        uint256[] storage approvals = _erc20Approvals[owner][slot];
+        uint256 length = approvals.length;
+        
+        // Find the index of the tokenId in the array
+        uint256 index = length; // Initialize to length (not found)
+        for (uint256 i = 0; i < length; i++) {
+            if (approvals[i] == _tokenId) {
+                index = i;
+                break;
+            }
+        }
+        
+        // If tokenId was found, remove it and maintain array integrity
+        if (index < length) {
+            // Move the last element to the position of the element to remove
+            if (index != length - 1) {
+                approvals[index] = approvals[length - 1];
+            }
+            // Remove the last element
+            approvals.pop();
+        }
+    }
+
+    /**
+     * @notice Returns the array of tokenIds approved for spending by ERC20 contracts for a given owner and slot
+     * @param _owner The owner address
+     * @param _slot The slot number
+     * @return Array of approved tokenIds
+     */
+    function getErc20Approvals(address _owner, uint256 _slot) external view returns (uint256[] memory) {
+        return _erc20Approvals[_owner][_slot];
     }
 
     /**
@@ -774,10 +877,16 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      */
     function mintFromX(address _to, uint256 _slot, string memory _slotName, uint256 _value)
         external
-        onlyMinter
         whenNotPaused
         returns (uint256 tokenId)
     {
+        // Allow both minters and ERC20 contracts to mint
+        if (!ICTMRWA1X(ctmRwa1X).isMinter(msg.sender)) {
+            // Check if the caller is an authorized ERC20 contract for this slot
+            if (_erc20Slots[_slot] != msg.sender) {
+                revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Minter);
+            }
+        }
         return (_mint(_to, _slot, _slotName, _value));
     }
 
@@ -1045,10 +1154,24 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         emit Approval(CTMRWA1.ownerOf(_tokenId), _to, _tokenId);
     }
 
-    /// @dev Version of _approve callable from CTMRWA1X
+    /// @dev Version of _approve callable from CTMRWA1X and ERC20 contracts
     /// @param _to The wallet address to approve
     /// @param _tokenId The tokenId to approve
-    function approveFromX(address _to, uint256 _tokenId) external onlyRwa1X {
+    function approveFromX(address _to, uint256 _tokenId) external {
+        // Allow both RWA1X and ERC20 contracts to approve
+        if (msg.sender != ctmRwa1X && msg.sender != rwa1XFallback) {
+            // Check if the caller is an authorized ERC20 contract
+            bool isAuthorizedERC20 = false;
+            for (uint256 i = 0; i < _allSlots.length; i++) {
+                if (_erc20Slots[_allSlots[i].slot] == msg.sender) {
+                    isAuthorizedERC20 = true;
+                    break;
+                }
+            }
+            if (!isAuthorizedERC20) {
+                revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX);
+            }
+        }
         _approve(_to, _tokenId);
     }
 
@@ -1089,9 +1212,9 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _clearApprovedValues(_tokenId);
     }
 
-    /// @dev Version of _clearApprovedValues callable by CTMRWAERC20Deployer
+    /// @dev Version of _clearApprovedValues callable by authorized ERC20 contracts
     /// @param _tokenId The tokenId to clear the approvals for
-    function clearApprovedValuesErc20(uint256 _tokenId) external onlyErc20Deployer {
+    function clearApprovedValuesFromERC20(uint256 _tokenId) external onlyERC20 {
         _clearApprovedValues(_tokenId);
     }
 
@@ -1246,11 +1369,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _afterValueTransfer(_from, _to, _tokenId, _tokenId, slot, thisSlotName, value);
     }
 
-    /// @dev Create a new tokenId. Only callable by an ERC20 interface
-    /// @return The new tokenId that was created
-    function createOriginalTokenId() external onlyERC20 returns (uint256) {
-        return (_createOriginalTokenId());
-    }
 
     /// @dev A function called when _toTokenId receives some 'value'. Designed to be overriden
     /// @param _fromTokenId The tokenId that is sending the value
