@@ -486,35 +486,11 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         );
     }
 
-    // /**
-    //  * @notice Deploy an ERC20 token that represents the fungible balance of a specific
-    //  * slot of this CTMRWA1. It allows interaction with lending/markeplace protocols.
-    //  * This function can only be called ONCE per slot.
-    //  * @param _slot The slot number for which to create an ERC20
-    //  * @param _erc20Name The name of this ERC20. It is automatically pre-pended with the slot number
-    //  * @param _feeToken The fee token to pay for this service with. Must be configured in FeeManager
-    //  */
-    // function deployErc20(uint256 _slot, string memory _erc20Name, address _feeToken) public onlyTokenAdmin {
-    //     if (!slotExists(_slot)) {
-    //         revert CTMRWA1_InvalidSlot(_slot);
-    //     }
-
-    //     if (_erc20Slots[_slot] != address(0)) {
-    //         revert CTMRWA1_NotZeroAddress(CTMRWAErrorParam.RWAERC20);
-    //     }
-
-    //     if (bytes(_erc20Name).length > 128) {
-    //         revert CTMRWA1_NameTooLong();
-    //     }
-
-    //     address newErc20 = ICTMRWAERC20Deployer(erc20Deployer).deployERC20(
-    //         ID, RWA_TYPE, VERSION, _slot, _erc20Name, _symbol, _feeToken, msg.sender
-    //     );
-
-    //     _erc20s[newErc20] = true;
-    //     _erc20Slots[_slot] = newErc20;
-    // }
-
+    /**
+     * @notice Set the address of the ERC20 token representing a slot in this CTMRWA1
+     * @param _erc20 The address of the ERC20 token representing the slot
+     * @param _slot The slot number
+     */
     function setErc20(address _erc20, uint256 _slot) external onlyErc20Deployer {
         if (!slotExists(_slot)) {
             revert CTMRWA1_InvalidSlot(_slot);
