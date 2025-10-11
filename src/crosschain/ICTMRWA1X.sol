@@ -49,6 +49,7 @@ interface ICTMRWA1X is ICTMRWA {
     // Permissions
     error CTMRWA1X_InvalidList(CTMRWAErrorParam);
     error CTMRWA1X_KYCEnabled();
+    error CTMRWA1X_FailedTransfer();
 
     function isMinter(address) external returns (bool);
     function changeMinterStatus(address minter, bool set) external;

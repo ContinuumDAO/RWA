@@ -538,9 +538,18 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         if (_feeWei > 0) {
             address feeToken = _feeTokenStr._stringToAddress();
 
-            IERC20(feeToken).transferFrom(msg.sender, address(this), _feeWei);
+            // Record spender balance before transfer
+            uint256 senderBalanceBefore = IERC20(feeToken).balanceOf(msg.sender);
 
-            IERC20(feeToken).approve(feeManager, _feeWei);
+            IERC20(feeToken).safeTransferFrom(msg.sender, address(this), _feeWei);
+
+            // Assert spender balance change
+            uint256 senderBalanceAfter = IERC20(feeToken).balanceOf(msg.sender);
+            if (senderBalanceBefore - senderBalanceAfter != _feeWei) {
+                revert CTMRWA1StorageManager_FailedTransfer();
+            }
+
+            IERC20(feeToken).forceApprove(feeManager, _feeWei);
             IFeeManager(feeManager).payFee(_feeWei, _feeTokenStr);
         }
         return (true);

@@ -20,6 +20,7 @@ interface ICTMRWA1Identity is ICTMRWA {
     error CTMRWA1Identity_KYCDisabled();
     error CTMRWA1Identity_AlreadyWhitelisted(address);
     error CTMRWA1Identity_InvalidKYC(address);
+    error CTMRWA1Identity_FailedTransfer();
 
     function setZkMeVerifierAddress(address verifierAddress) external;
 

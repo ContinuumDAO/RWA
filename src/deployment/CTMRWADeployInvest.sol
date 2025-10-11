@@ -8,6 +8,7 @@ import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
@@ -21,6 +22,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 contract CTMRWADeployInvest is ICTMRWADeployInvest {
     using Strings for *;
     using CTMRWAUtils for string;
+    using SafeERC20 for IERC20;
 
     /// @dev CTMRWAErrorParam of the CTMRWAMap contract
     address public ctmRwaMap;
@@ -111,10 +113,19 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
         feeWei = feeWei * (10000 - IFeeManager(feeManager).getFeeReduction(_originalCaller)) / 10000;
 
         if (feeWei > 0) {
-            // Transfer the fee from the original caller to this contract
-            IERC20(_feeToken).transferFrom(_originalCaller, address(this), feeWei);
+            // Record spender balance before transfer
+            uint256 senderBalanceBefore = IERC20(_feeToken).balanceOf(_originalCaller);
 
-            IERC20(_feeToken).approve(feeManager, feeWei);
+            // Transfer the fee from the original caller to this contract
+            IERC20(_feeToken).safeTransferFrom(_originalCaller, address(this), feeWei);
+
+            // Assert spender balance change
+            uint256 senderBalanceAfter = IERC20(_feeToken).balanceOf(_originalCaller);
+            if (senderBalanceBefore - senderBalanceAfter != feeWei) {
+                revert CTMRWADeployInvest_FailedTransfer();
+            }
+
+            IERC20(_feeToken).forceApprove(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, feeTokenStr);
         }
         return (true);

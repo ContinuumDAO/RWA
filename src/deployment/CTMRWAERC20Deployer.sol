@@ -11,6 +11,7 @@ import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { CTMRWAERC20 } from "./CTMRWAERC20.sol";
 import { ICTMRWAERC20Deployer } from "./ICTMRWAERC20Deployer.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -31,6 +32,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
     using Strings for *;
     using CTMRWAUtils for string;
+    using SafeERC20 for IERC20;
 
     /// @dev CTMRWAErrorParam of the CTMRWAMap contract
     address public ctmRwaMap;
@@ -111,9 +113,18 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
         feeWei = feeWei * (10000 - IFeeManager(feeManager).getFeeReduction(_originalCaller)) / 10000;
 
         if (feeWei > 0) {
-            IERC20(_feeToken).transferFrom(_originalCaller, address(this), feeWei);
+            // Record spender balance before transfer
+            uint256 senderBalanceBefore = IERC20(_feeToken).balanceOf(_originalCaller);
 
-            IERC20(_feeToken).approve(feeManager, feeWei);
+            IERC20(_feeToken).safeTransferFrom(_originalCaller, address(this), feeWei);
+
+            // Assert spender balance change
+            uint256 senderBalanceAfter = IERC20(_feeToken).balanceOf(_originalCaller);
+            if (senderBalanceBefore - senderBalanceAfter != feeWei) {
+                revert CTMRWAERC20Deployer_FailedTransfer();
+            }
+
+            IERC20(_feeToken).forceApprove(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, feeTokenStr);
         }
         return (true);

@@ -360,7 +360,16 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
             value = _investment / (offerings[_indx].price * scale);
         }
 
-        IERC20(currency).transferFrom(msg.sender, address(this), _investment);
+        // Record spender balance before transfer
+        uint256 senderBalanceBefore = IERC20(currency).balanceOf(msg.sender);
+
+        IERC20(currency).safeTransferFrom(msg.sender, address(this), _investment);
+
+        // Assert spender balance change
+        uint256 senderBalanceAfter = IERC20(currency).balanceOf(msg.sender);
+        if (senderBalanceBefore - senderBalanceAfter != _investment) {
+            revert CTMRWA1InvestWithTimeLock_FailedTransfer();
+        }
         offerings[_indx].investment += _investment;
 
         offerings[_indx].balRemaining -= value;
@@ -410,9 +419,9 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
             offerings[_indx].investment = 0;
             
             if (commission > 0) {
-                IERC20(currency).transfer(feeManager, commission);
+                IERC20(currency).safeTransfer(feeManager, commission);
             }
-            IERC20(currency).transfer(msg.sender, funds);
+            IERC20(currency).safeTransfer(msg.sender, funds);
 
             emit WithdrawFunds(ID, _indx, funds);
             return funds;
@@ -574,8 +583,17 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         if (rewardToken == address(0)) {
             revert CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Token);
         }
+        // Record spender balance before transfer
+        uint256 senderBalanceBefore = IERC20(rewardToken).balanceOf(msg.sender);
+
         // Transfer the reward tokens from the tokenAdmin to this contract
-        IERC20(rewardToken).transferFrom(msg.sender, address(this), _fundAmount);
+        IERC20(rewardToken).safeTransferFrom(msg.sender, address(this), _fundAmount);
+
+        // Assert spender balance change
+        uint256 senderBalanceAfter = IERC20(rewardToken).balanceOf(msg.sender);
+        if (senderBalanceBefore - senderBalanceAfter != _fundAmount) {
+            revert CTMRWA1InvestWithTimeLock_FailedTransfer();
+        }
         // Distribute rewards to all current holders
         for (uint256 i = 0; i < offering.holdings.length; i++) {
             Holding storage holding = offering.holdings[i];
@@ -657,7 +675,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         holdingsByAddress[msg.sender][holdingIndex].rewardAmount = 0;
         offering.holdings[foundIndex].rewardAmount = 0;
         // Transfer reward
-        IERC20(rewardToken).transfer(msg.sender, rewardAmount);
+        IERC20(rewardToken).safeTransfer(msg.sender, rewardAmount);
         emit RewardClaimed(msg.sender, offerIndex, holdingIndex, rewardAmount);
     }
 
@@ -730,9 +748,18 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         feeWei = feeWei * (10000 - IFeeManager(feeManager).getFeeReduction(msg.sender)) / 10000;
 
         if (feeWei > 0) {
-            IERC20(_feeToken).transferFrom(msg.sender, address(this), feeWei);
+            // Record spender balance before transfer
+            uint256 senderBalanceBefore = IERC20(_feeToken).balanceOf(msg.sender);
 
-            IERC20(_feeToken).approve(feeManager, feeWei);
+            IERC20(_feeToken).safeTransferFrom(msg.sender, address(this), feeWei);
+
+            // Assert spender balance change
+            uint256 senderBalanceAfter = IERC20(_feeToken).balanceOf(msg.sender);
+            if (senderBalanceBefore - senderBalanceAfter != feeWei) {
+                revert CTMRWA1InvestWithTimeLock_FailedTransfer();
+            }
+
+            IERC20(_feeToken).forceApprove(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, feeTokenStr);
         }
         return (true);

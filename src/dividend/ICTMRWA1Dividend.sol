@@ -19,6 +19,7 @@ interface ICTMRWA1Dividend is ICTMRWA {
     error CTMRWA1Dividend_FundTokenNotSet();
     error CTMRWA1Dividend_InvalidSlot(uint256);
     error CTMRWA1Dividend_EnforcedPause();
+    error CTMRWA1Dividend_FailedTransfer();
 
     function ID() external view returns (uint256);
     function tokenAdmin() external view returns (address);

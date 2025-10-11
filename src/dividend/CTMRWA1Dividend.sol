@@ -314,8 +314,15 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
             return (0);
         }
 
-        if (!IERC20(dividendToken).transferFrom(msg.sender, address(this), dividendPayable)) {
-            revert CTMRWA1Dividend_FailedTransaction();
+        // Record spender balance before transfer
+        uint256 senderBalanceBefore = IERC20(dividendToken).balanceOf(msg.sender);
+
+        IERC20(dividendToken).safeTransferFrom(msg.sender, address(this), dividendPayable);
+
+        // Assert spender balance change
+        uint256 senderBalanceAfter = IERC20(dividendToken).balanceOf(msg.sender);
+        if (senderBalanceBefore - senderBalanceAfter != dividendPayable) {
+            revert CTMRWA1Dividend_FailedTransfer();
         }
 
         dividendFundings.push(DividendFunding({slot: _slot, fundingTime: midnight, fundingAmount: dividendPayable, bnbGreenfieldObjectName: _bnbGreenfieldObjectName}));
@@ -410,7 +417,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
             revert CTMRWA1Dividend_InvalidDividend(CTMRWAErrorParam.Balance);
         }
 
-        IERC20(dividendToken).transfer(msg.sender, dividend);
+        IERC20(dividendToken).safeTransfer(msg.sender, dividend);
         totalDividendClaimed += dividend;
 
         emit ClaimDividend(msg.sender, dividend, dividendToken);

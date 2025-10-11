@@ -963,9 +963,18 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         if (feeWei > 0) {
             address feeToken = _feeTokenStr._stringToAddress();
 
-            IERC20(feeToken).transferFrom(msg.sender, address(this), feeWei);
+            // Record spender balance before transfer
+            uint256 senderBalanceBefore = IERC20(feeToken).balanceOf(msg.sender);
 
-            IERC20(feeToken).approve(feeManager, feeWei);
+            IERC20(feeToken).safeTransferFrom(msg.sender, address(this), feeWei);
+
+            // Assert spender balance change
+            uint256 senderBalanceAfter = IERC20(feeToken).balanceOf(msg.sender);
+            if (senderBalanceBefore - senderBalanceAfter != feeWei) {
+                revert CTMRWA1X_FailedTransfer();
+            }
+
+            IERC20(feeToken).forceApprove(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, _feeTokenStr);
         }
         return (true);

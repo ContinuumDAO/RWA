@@ -8,6 +8,7 @@ import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 interface ICTMRWADeployInvest {
     error CTMRWADeployInvest_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
     error CTMRWADeployInvest_IsZeroAddress(CTMRWAErrorParam);
+    error CTMRWADeployInvest_FailedTransfer();
 
     function commissionRate() external view returns (uint256);
 

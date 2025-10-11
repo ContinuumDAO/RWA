@@ -52,6 +52,7 @@ interface ICTMRWA1Storage is ICTMRWA {
     error CTMRWA1Storage_ForceTransferNotSetup();
     error CTMRWA1Storage_NoSecurityDescription();
     error CTMRWA1Storage_IssuerNotFirst();
+    error CTMRWA1Storage_FailedTransfer();
 
     function ID() external returns (uint256);
     function regulatorWallet() external returns (address);

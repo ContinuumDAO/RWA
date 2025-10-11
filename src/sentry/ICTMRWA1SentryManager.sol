@@ -17,6 +17,7 @@ interface ICTMRWA1SentryManager is ICTMRWA {
     error CTMRWA1SentryManager_LengthMismatch(CTMRWAErrorParam);
     error CTMRWA1SentryManager_SameChain();
     error CTMRWA1SentryManager_InvalidLength(CTMRWAErrorParam);
+    error CTMRWA1SentryManager_FailedTransfer();
 
     error CTMRWA1SentryManager_InvalidList(CTMRWAErrorParam);
 

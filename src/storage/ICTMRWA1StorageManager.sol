@@ -15,6 +15,7 @@ interface ICTMRWA1StorageManager is ICTMRWA {
     error CTMRWA1StorageManager_InvalidLength(CTMRWAErrorParam);
     error CTMRWA1StorageManager_SameChain();
     error CTMRWA1StorageManager_StartNonce();
+    error CTMRWA1StorageManager_FailedTransfer();
 
     function ctmRwaDeployer() external returns (address);
     function ctmRwa1Map() external returns (address);

@@ -64,6 +64,7 @@ interface ICTMRWA1InvestWithTimeLock {
     error CTMRWA1InvestWithTimeLock_HoldingNotFound();
     error CTMRWA1InvestWithTimeLock_OfferingNotEnded();
     error CTMRWA1InvestWithTimeLock_NoRemainingBalance();
+    error CTMRWA1InvestWithTimeLock_FailedTransfer();
 
     // Public constants
     function RWA_TYPE() external view returns (uint256);

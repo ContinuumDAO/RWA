@@ -10,6 +10,7 @@ interface ICTMRWAERC20Deployer {
     error CTMRWAERC20Deployer_InvalidContract(CTMRWAErrorParam);
     error CTMRWAERC20Deployer_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
     error CTMRWAERC20Deployer_NameTooLong();
+    error CTMRWAERC20Deployer_FailedTransfer();
 
 
     function deployERC20(

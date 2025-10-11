@@ -11,6 +11,7 @@ interface ICTMRWA1Sentry is ICTMRWA {
     error CTMRWA1Sentry_InvalidID(uint256 expected, uint256 actual);
     error CTMRWA1Sentry_InvalidLength(CTMRWAErrorParam);
     error CTMRWA1Sentry_OutofBounds();
+    error CTMRWA1Sentry_FailedTransfer();
 
     function ID() external view returns (uint256);
     function tokenAdmin() external view returns (address);

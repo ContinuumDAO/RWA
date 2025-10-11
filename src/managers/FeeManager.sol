@@ -296,9 +296,18 @@ contract FeeManager is
             revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
-        if (!IERC20(feeToken).transferFrom(msg.sender, address(this), _fee)) {
+        
+        // Record spender balance before transfer
+        uint256 senderBalanceBefore = IERC20(feeToken).balanceOf(msg.sender);
+
+        IERC20(feeToken).safeTransferFrom(msg.sender, address(this), _fee);
+
+        // Assert spender balance change
+        uint256 senderBalanceAfter = IERC20(feeToken).balanceOf(msg.sender);
+        if (senderBalanceBefore - senderBalanceAfter != _fee) {
             revert FeeManager_FailedTransfer();
         }
+        
         return (_fee);
     }
 
@@ -329,9 +338,7 @@ contract FeeManager is
         if (bal < _amount) {
             _amount = bal;
         }
-        if (!IERC20(feeToken).transfer(treasury, _amount)) {
-            revert FeeManager_FailedTransfer();
-        }
+        IERC20(feeToken).safeTransfer(treasury, _amount);
         emit WithdrawFee(feeToken, treasury, _amount);
         return true;
     }
