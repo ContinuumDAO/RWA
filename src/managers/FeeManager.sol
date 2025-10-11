@@ -36,7 +36,7 @@ contract FeeManager is
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
 
-    /// @dev A curent list of the allowable fee token ERC20 addresses on this chain
+    /// @dev A current list of the allowable fee token ERC20 addresses on this chain
     address[] public feeTokenList;
 
     /**
@@ -91,6 +91,8 @@ contract FeeManager is
         _unpause();
     }
 
+  
+
     /**
      * @notice Add a new fee token to the list of fee tokens allowed to be used
      * @param _feeTokenStr The fee token address (as a string) to add
@@ -103,6 +105,24 @@ contract FeeManager is
             revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
+        
+            // Check if token is SafeERC20 compliant
+            if (!_isSafeERC20Compliant(feeToken)) {
+                revert FeeManager_UnsafeToken(feeToken);
+            }
+
+            // Check if token has valid decimals (between 6 and 18 inclusive)
+            // We know the token has a decimals function from the SafeERC20 compliance check
+            uint8 decimals = IERC20Extended(feeToken).decimals();
+            if (decimals < 6 || decimals > 18) {
+                revert FeeManager_InvalidDecimals(feeToken, decimals);
+            }
+
+            // Check if token is upgradeable
+            if (_isUpgradeable(feeToken)) {
+                revert FeeManager_UpgradeableToken(feeToken);
+            }
+        
         uint256 index = feeTokenList.length;
         feeTokenList.push(feeToken);
         feeTokenIndexMap[feeToken] = index + 1;
@@ -360,7 +380,21 @@ contract FeeManager is
 
         address feeToken = _feeTokenStr._stringToAddress();
         string memory toChainIDStr = _toChainIDStr._toLower();
-        return _toFeeConfigs[toChainIDStr][feeToken];
+        uint256 baseFee = _toFeeConfigs[toChainIDStr][feeToken];
+        
+        // Get the actual decimals of the fee token
+        uint8 tokenDecimals = IERC20Extended(feeToken).decimals();
+        
+        // If token decimals are 18, return as is (no normalization needed)
+        if (tokenDecimals == 18) {
+            return baseFee;
+        }
+        
+        // Calculate the difference between 18 and actual decimals
+        uint256 decimalDifference = 18 - tokenDecimals;
+        
+        // Divide by 10^(18 - actual_decimals) to normalize from 18 decimals to actual decimals
+        return baseFee / (10 ** decimalDifference);
     }
 
     /**
@@ -471,6 +505,76 @@ contract FeeManager is
         
         // Return the reduction factor if active
         return reductionFactor;
+    }
+
+      /**
+     * @notice Check if a token is SafeERC20 compliant
+     * @param token The token address to check
+     * @return true if the token is SafeERC20 compliant, false otherwise
+     */
+    function _isSafeERC20Compliant(address token) internal view returns (bool) {
+        // Check if the token has code
+        if (token.code.length == 0) {
+            return false;
+        }
+
+        // Test basic ERC20 functions
+        try IERC20(token).balanceOf(address(this)) returns (uint256) {
+            // Token responds to balanceOf
+        } catch {
+            return false;
+        }
+
+        try IERC20(token).totalSupply() returns (uint256) {
+            // Token responds to totalSupply
+        } catch {
+            return false;
+        }
+
+        // Test if token has the required ERC20 functions
+        try IERC20Extended(token).decimals() returns (uint8) {
+            // Token has decimals function (IERC20Extended)
+        } catch {
+            // This is optional, not all ERC20 tokens have decimals
+        }
+
+        return true;
+    }
+
+    /**
+     * @notice Check if a token is upgradeable (proxy pattern)
+     * @param token The token address to check
+     * @return true if the token is upgradeable, false otherwise
+     */
+    function _isUpgradeable(address token) internal view returns (bool) {
+        // Check if the token has code
+        if (token.code.length == 0) {
+            return false;
+        }
+
+        // Don't check if the token is this contract itself (FeeManager is upgradeable)
+        if (token == address(this)) {
+            return false;
+        }
+
+        // Try to call getImplementation() function which is present in proxy contracts
+        // This is a common function in ERC1967 proxies
+        (bool success, bytes memory data) = token.staticcall(abi.encodeWithSignature("getImplementation()"));
+        
+        if (success && data.length >= 32) {
+            address impl = abi.decode(data, (address));
+            if (impl != address(0)) {
+                return true;
+            }
+        }
+
+        // Also check for upgradeTo function which is present in UUPS proxies
+        // Try to call upgradeTo with a valid address to see if the function exists
+        (bool hasUpgradeTo,) = token.staticcall(abi.encodeWithSignature("upgradeTo(address)", address(1)));
+        if (hasUpgradeTo) {
+            return true;
+        }
+        return false;
     }
 
     /// @dev The c3caller required fallback contract in the event of a cross-chain error

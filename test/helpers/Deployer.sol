@@ -122,8 +122,8 @@ contract Deployer is Utils {
         tokensStr.push(ctmAddrStr);
         tokensStr.push(usdcAddrStr);
 
-        fees.push(10 ** 18); // 1 CTM baseFee
-        fees.push(10 ** 6); // 1 USDC baseFee
+        fees.push(10 ** 18); // 1 CTM baseFee (18 decimals)
+        fees.push(10 ** 18); // 1 USDC baseFee (stored in 18 decimals, corrected to 6 decimals)
 
         feeManager.addFeeToken(destChain, tokensStr, fees);
         

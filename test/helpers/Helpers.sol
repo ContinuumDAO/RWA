@@ -10,8 +10,14 @@ import { RWA } from "./RWA.sol";
 
 contract Helpers is Test, Accounts, Deployer, RWA {
     function setUp() public virtual {
-        (admin, gov, treasury, user1, user2, tokenAdmin, tokenAdmin2) =
-            abi.decode(abi.encode(_getAccounts()), (address, address, address, address, address, address, address));
+        address[] memory accounts = _getAccounts();
+        admin = accounts[0];
+        gov = accounts[1];
+        treasury = accounts[2];
+        user1 = accounts[3];
+        user2 = accounts[4];
+        tokenAdmin = accounts[5];
+        tokenAdmin2 = accounts[6];
 
         (ctm, usdc) = _deployFeeTokens();
 

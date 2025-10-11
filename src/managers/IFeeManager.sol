@@ -43,6 +43,9 @@ interface IFeeManager {
     error FeeManager_InvalidReductionFactor(uint256);
     error FeeManager_InvalidExpiration(uint256);
     error FeeManager_InvalidAddress(address);
+    error FeeManager_UnsafeToken(address);
+    error FeeManager_UpgradeableToken(address);
+    error FeeManager_InvalidDecimals(address token, uint8 decimals);
 
     function getXChainFee(
         string[] memory _toChainIDsStr,
