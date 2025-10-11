@@ -38,6 +38,7 @@ contract FeeManager is
 
     /// @dev A curent list of the allowable fee token ERC20 addresses on this chain
     address[] public feeTokenList;
+
     /**
      * @dev feeTokenIndexMap is 1-based. If a token is removed and re-added, its index will change.
      * Off-chain consumers should not rely on index stability.
@@ -48,6 +49,12 @@ contract FeeManager is
     /// @dev The multiplier of the baseFee applicable for each FeeType
     uint256[29] public feeMultiplier;
 
+    /// @dev A fee reduction for wallet addresses. address => reduction factor (0 - 10000)
+    mapping(address => uint256) public feeReduction;
+
+    ///@dev The expiration timestamp of the fee reduction for a wallet address. address => expiration timestamp
+    mapping(address => uint256) public feeReductionExpiration;
+
     /// @dev A safe multiplier, so that Governance cannot set up an overflow of any FeeType.
     uint256 public constant MAX_SAFE_MULTIPLIER = 1e55;
 
@@ -57,6 +64,9 @@ contract FeeManager is
     event DelFeeToken(address indexed feeToken);
     event SetFeeMultiplier(FeeType indexed feeType, uint256 multiplier);
     event WithdrawFee(address indexed feeToken, address indexed treasury, uint256 amount);
+    event AddFeeReduction(address indexed account, uint256 reductionFactor, uint256 expiration);
+    event RemoveFeeReduction(address indexed account);
+    event UpdateFeeReductionExpiration(address indexed account, uint256 newExpiration);
 
     /// @dev key is toChainIDStr, value key is tokenAddress
     mapping(string => mapping(address => uint256)) private _toFeeConfigs;
@@ -268,6 +278,10 @@ contract FeeManager is
 
         uint256 fee = baseFee * getFeeMultiplier(_feeType);
 
+        if (fee == 0) {
+            revert FeeManager_UnsetFee(feeToken);
+        }
+        
         return fee;
     }
 
@@ -340,6 +354,116 @@ contract FeeManager is
         address feeToken = _feeTokenStr._stringToAddress();
         string memory toChainIDStr = _toChainIDStr._toLower();
         return _toFeeConfigs[toChainIDStr][feeToken];
+    }
+
+    /**
+     * @notice Add fee reduction for multiple addresses with corresponding expiration times
+     * @param _addresses Array of addresses to add fee reduction for
+     * @param _reductionFactors Array of reduction factors (0-10000, where 10000 = 100%)
+     * @param _expirations Array of expiration timestamps (0 for permanent)
+     * @return success True if all fee reductions were added successfully
+     */
+    function addFeeReduction(
+        address[] memory _addresses,
+        uint256[] memory _reductionFactors,
+        uint256[] memory _expirations
+    ) external onlyGov whenNotPaused nonReentrant returns (bool) {
+        if (_addresses.length != _reductionFactors.length || _addresses.length != _expirations.length) {
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Input);
+        }
+
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            if (_reductionFactors[i] > 10000) {
+                revert FeeManager_InvalidReductionFactor(_reductionFactors[i]);
+            }
+
+            if (_expirations[i] > 0 && _expirations[i] < block.timestamp) {
+                revert FeeManager_InvalidExpiration(_expirations[i]);
+            }
+            if (_addresses[i] == address(0)) {
+                revert FeeManager_InvalidAddress(_addresses[i]);
+            }
+
+            feeReduction[_addresses[i]] = _reductionFactors[i];
+            feeReductionExpiration[_addresses[i]] = _expirations[i];
+            
+            emit AddFeeReduction(_addresses[i], _reductionFactors[i], _expirations[i]);
+        }
+        
+        return true;
+    }
+
+    /**
+     * @notice Remove fee reduction for multiple addresses
+     * @param _addresses Array of addresses to remove fee reduction for
+     * @return success True if all fee reductions were removed successfully
+     */
+    function removeFeeReduction(address[] memory _addresses) external onlyGov whenNotPaused nonReentrant returns (bool) {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            if (_addresses[i] == address(0)) {
+                revert FeeManager_InvalidAddress(_addresses[i]);
+            }
+
+            feeReduction[_addresses[i]] = 0;
+            feeReductionExpiration[_addresses[i]] = 0;
+            
+            emit RemoveFeeReduction(_addresses[i]);
+        }
+        
+        return true;
+    }
+
+    /**
+     * @notice Update expiration times for multiple addresses
+     * @param _addresses Array of addresses to update expiration for
+     * @param _newExpirations Array of new expiration timestamps (0 for permanent)
+     * @return success True if all expiration times were updated successfully
+     */
+    function updateFeeReductionExpiration(
+        address[] memory _addresses,
+        uint256[] memory _newExpirations
+    ) external onlyGov whenNotPaused nonReentrant returns (bool) {
+        if (_addresses.length != _newExpirations.length) {
+            revert FeeManager_InvalidLength(CTMRWAErrorParam.Input);
+        }
+
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            if (_newExpirations[i] > 0 && _newExpirations[i] < block.timestamp) {
+                revert FeeManager_InvalidExpiration(_newExpirations[i]);
+            }
+            if (_addresses[i] == address(0)) {
+                revert FeeManager_InvalidAddress(_addresses[i]);
+            }
+
+            feeReductionExpiration[_addresses[i]] = _newExpirations[i];
+            
+            emit UpdateFeeReductionExpiration(_addresses[i], _newExpirations[i]);
+        }
+        
+        return true;
+    }
+
+    /**
+     * @notice Get the effective fee reduction factor for a single address
+     * @param _address The address to get fee reduction for
+     * @return The effective fee reduction factor (0 if no reduction or expired)
+     */
+    function getFeeReduction(address _address) external view returns (uint256) {
+        uint256 reductionFactor = feeReduction[_address];
+        uint256 expiration = feeReductionExpiration[_address];
+        
+        // Return 0 if no reduction is set
+        if (reductionFactor == 0) {
+            return 0;
+        }
+        
+        // Return 0 if expired (expiration > 0 and current time > expiration)
+        if (expiration > 0 && block.timestamp > expiration) {
+            return 0;
+        }
+        
+        // Return the reduction factor if active
+        return reductionFactor;
     }
 
     /// @dev The c3caller required fallback contract in the event of a cross-chain error

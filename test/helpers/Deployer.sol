@@ -94,6 +94,26 @@ contract Deployer is Utils {
         feeManager.setFeeMultiplier(FeeType.WHITELIST, 1);
         feeManager.setFeeMultiplier(FeeType.COUNTRY, 1);
         feeManager.setFeeMultiplier(FeeType.KYC, 1);
+        feeManager.setFeeMultiplier(FeeType.ERC20, 50);
+        feeManager.setFeeMultiplier(FeeType.DEPLOYINVEST, 100);
+        feeManager.setFeeMultiplier(FeeType.OFFERING, 50);
+        feeManager.setFeeMultiplier(FeeType.INVEST, 10);
+        feeManager.setFeeMultiplier(FeeType.PROVENANCE, 10);
+        feeManager.setFeeMultiplier(FeeType.ISSUER, 5);
+        feeManager.setFeeMultiplier(FeeType.LICENSE, 5);
+        feeManager.setFeeMultiplier(FeeType.VALUATION, 10);
+        feeManager.setFeeMultiplier(FeeType.PROSPECTUS, 10);
+        feeManager.setFeeMultiplier(FeeType.RATING, 10);
+        feeManager.setFeeMultiplier(FeeType.LEGAL, 10);
+        feeManager.setFeeMultiplier(FeeType.FINANCIAL, 10);
+        feeManager.setFeeMultiplier(FeeType.DUEDILIGENCE, 10);
+        feeManager.setFeeMultiplier(FeeType.NOTICE, 10);
+        feeManager.setFeeMultiplier(FeeType.DIVIDEND, 10);
+        feeManager.setFeeMultiplier(FeeType.REDEMPTION, 10);
+        feeManager.setFeeMultiplier(FeeType.WHOCANINVEST, 10);
+        feeManager.setFeeMultiplier(FeeType.IMAGE, 5);
+        feeManager.setFeeMultiplier(FeeType.VIDEO, 5);
+        feeManager.setFeeMultiplier(FeeType.ICON, 5);
 
         string memory destChain = "1";
         string memory ctmAddrStr = _toLower(address(ctm).toHexString());
@@ -106,6 +126,11 @@ contract Deployer is Utils {
         fees.push(10 ** 6); // 1 USDC baseFee
 
         feeManager.addFeeToken(destChain, tokensStr, fees);
+        
+        // Also set up fees for the current chain ID (local fees)
+        // This is needed because _includeLocal was changed to true in mintNewTokenValueLocal
+        string memory currentChainId = vm.toString(block.chainid);
+        feeManager.addFeeToken(currentChainId, tokensStr, fees);
     }
 
     function _deployGateway(address gov, address admin) internal {
@@ -272,7 +297,7 @@ contract Deployer is Utils {
             address(rwa1X),
             address(ctmRwaDeployInvest),
             address(ctmRwaErc20Deployer),
-            // address(identity),
+            address(0), // identity - will be set by individual tests
             address(sentryManager),
             address(storageManager)
         );

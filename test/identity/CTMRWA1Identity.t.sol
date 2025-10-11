@@ -94,6 +94,20 @@ contract TestCTMRWA1Identity is Helpers {
         vm.prank(gov);
         sentryManager.setIdentity(address(identity), address(zkMe));
         
+        // Update fee contracts to include identity contract
+        feeContracts.identity = address(identity);
+        
+        // Add token approvals for the identity contract
+        vm.startPrank(user1);
+        usdc.approve(address(identity), type(uint256).max);
+        ctm.approve(address(identity), type(uint256).max);
+        vm.stopPrank();
+        
+        vm.startPrank(user2);
+        usdc.approve(address(identity), type(uint256).max);
+        ctm.approve(address(identity), type(uint256).max);
+        vm.stopPrank();
+        
         // Deploy reentrant contract
         reentrantContract = new ReentrantContract(address(identity), ID, chainIds, feeTokenStr);
     }

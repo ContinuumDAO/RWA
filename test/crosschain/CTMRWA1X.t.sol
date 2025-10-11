@@ -20,6 +20,9 @@ import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 
+import { IFeeManager } from "../../src/managers/IFeeManager.sol";
+import { FeeType } from "../../src/managers/FeeManager.sol";
+
 import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 error EnforcedPause();
@@ -1546,5 +1549,98 @@ contract TestCTMRWA1X is Helpers {
         uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
         assertEq(token.ownerOf(tokenId), user1);
         assertEq(token.balanceOf(tokenId), 1000);
+    }
+
+    function test_feeReduction() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        vm.stopPrank();
+
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+
+        // Get the fee manager from the RWA1X contract
+        address feeManagerAddr = rwa1X.feeManager();
+        IFeeManager feeManager = IFeeManager(feeManagerAddr);
+
+        // Get initial USDC balance of tokenAdmin (who pays the fees)
+        uint256 initialBalance = usdc.balanceOf(tokenAdmin);
+        console.log("Initial USDC balance of tokenAdmin:", initialBalance);
+        
+        // Check what fee would be charged without reduction
+        string[] memory emptyArray = new string[](0);
+        uint256 baseFee = feeManager.getXChainFee(emptyArray, true, FeeType.MINT, feeTokenStr);
+        console.log("Base fee for MINT operation:", baseFee);
+        
+        // Check the fee multiplier for MINT
+        uint256 mintMultiplier = feeManager.getFeeMultiplier(FeeType.MINT);
+        console.log("MINT fee multiplier:", mintMultiplier);
+        
+        // Calculate expected fee
+        uint256 expectedFee = baseFee * mintMultiplier;
+        console.log("Expected fee (base * multiplier):", expectedFee);
+        
+        // Check tokenAdmin USDC balance
+        uint256 tokenAdminBalance = usdc.balanceOf(tokenAdmin);
+        console.log("TokenAdmin USDC balance:", tokenAdminBalance);
+        
+        // Check fee manager USDC balance
+        uint256 feeManagerBalance = usdc.balanceOf(feeManagerAddr);
+        console.log("FeeManager USDC balance:", feeManagerBalance);
+        
+        // Check fee reduction for user1 (should be 0 initially)
+        uint256 user1Reduction = feeManager.getFeeReduction(user1);
+        console.log("Fee reduction for user1 (before setup):", user1Reduction);
+
+        // First mint - without fee reduction
+        vm.prank(tokenAdmin);
+        uint256 tokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+
+        // Check balance after first mint (without fee reduction)
+        uint256 balanceAfterFirstMint = usdc.balanceOf(tokenAdmin);
+        uint256 feePaidFirstTime = initialBalance - balanceAfterFirstMint;
+        console.log("USDC balance after first mint (no fee reduction):", balanceAfterFirstMint);
+        console.log("Fee paid first time:", feePaidFirstTime);
+
+        // Verify token was minted successfully
+        assertEq(token.ownerOf(tokenId1), user1);
+        assertEq(token.balanceOf(tokenId1), 1000);
+
+        // Now apply fee reduction for tokenAdmin (50% reduction)
+        // Note: The fee is paid by tokenAdmin, so the reduction should be applied to tokenAdmin
+        address[] memory addresses = new address[](1);
+        uint256[] memory factors = new uint256[](1);
+        uint256[] memory expirations = new uint256[](1);
+        
+        addresses[0] = tokenAdmin;
+        factors[0] = 5000; // 50% reduction
+        expirations[0] = 0; // permanent
+
+        vm.prank(gov);
+        feeManager.addFeeReduction(addresses, factors, expirations);
+
+        // Verify the fee reduction is set correctly
+        assertEq(feeManager.getFeeReduction(tokenAdmin), 5000);
+
+        // Second mint - with fee reduction
+        vm.prank(tokenAdmin);
+        uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+
+        // Check balance after second mint (with fee reduction)
+        uint256 balanceAfterSecondMint = usdc.balanceOf(tokenAdmin);
+        uint256 feePaidSecondTime = balanceAfterFirstMint - balanceAfterSecondMint;
+        console.log("USDC balance after second mint (with fee reduction):", balanceAfterSecondMint);
+        console.log("Fee paid second time:", feePaidSecondTime);
+
+        // Verify token was minted successfully
+        assertEq(token.ownerOf(tokenId2), user1);
+        assertEq(token.balanceOf(tokenId2), 1000);
+
+        // Verify that the second fee is approximately 50% of the first fee
+        // Allow for some tolerance due to rounding
+        assertTrue(feePaidSecondTime < feePaidFirstTime, "Second fee should be less than first fee");
+        assertTrue(feePaidSecondTime * 2 <= feePaidFirstTime + 1, "Second fee should be approximately 50% of first fee");
+
+        console.log("Fee reduction test completed successfully - fee reduced from", feePaidFirstTime, "to", feePaidSecondTime);
     }
 }

@@ -108,6 +108,7 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
     function _payFee(FeeType _feeType, address _feeToken, address _originalCaller) internal nonReentrant returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
         uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), false, _feeType, feeTokenStr);
+        feeWei = feeWei * (10000 - IFeeManager(feeManager).getFeeReduction(_originalCaller)) / 10000;
 
         if (feeWei > 0) {
             IERC20(_feeToken).transferFrom(_originalCaller, address(this), feeWei);

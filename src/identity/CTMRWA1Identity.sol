@@ -198,8 +198,8 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
     /// @return success True if the fee was paid, false otherwise.
     function _payFee(string memory _feeTokenStr) internal returns (bool) {
         bool includeLocal = false;
-        uint256 feeWei =
-            IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), includeLocal, FeeType.KYC, _feeTokenStr);
+        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), includeLocal, FeeType.KYC, _feeTokenStr);
+        feeWei = feeWei * (10000 - IFeeManager(feeManager).getFeeReduction(msg.sender)) / 10000;
 
         if (feeWei > 0) {
             address feeToken = _feeTokenStr._stringToAddress();

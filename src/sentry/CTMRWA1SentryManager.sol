@@ -602,6 +602,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         bool includeLocal = false; // local chain is already included in _toChainIdsStr
 
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, includeLocal, _feeType, _feeTokenStr);
+        fee = fee * (10000 - IFeeManager(feeManager).getFeeReduction(msg.sender)) / 10000;
 
         return (fee * _nItems);
     }

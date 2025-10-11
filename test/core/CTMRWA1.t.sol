@@ -9,6 +9,7 @@ import { console } from "forge-std/console.sol";
 import { ICTMRWA1, CTMRWAErrorParam } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWAERC20Deployer } from "../../src/deployment/ICTMRWAERC20Deployer.sol";
+import { FeeType } from "../../src/managers/IFeeManager.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 // Mock contract for reentrancy testing
@@ -66,6 +67,14 @@ contract TestCTMRWA1 is Helpers {
 
     function setUp() public override {
         super.setUp();
+
+        // Set up fee multipliers for operations that will be tested
+        vm.startPrank(gov);
+        feeManager.setFeeMultiplier(FeeType.MINT, 5);
+        feeManager.setFeeMultiplier(FeeType.TX, 1);
+        feeManager.setFeeMultiplier(FeeType.ADMIN, 5);
+        feeManager.setFeeMultiplier(FeeType.ERC20, 50);
+        vm.stopPrank();
 
         // Deploy token
         vm.startPrank(tokenAdmin);

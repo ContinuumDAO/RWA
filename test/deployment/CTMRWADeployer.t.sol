@@ -64,6 +64,10 @@ contract TestCTMRWADeployer is Helpers {
             testID, tokenAdmin, "TestToken2", "TTK2", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
         deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
+        vm.stopPrank();
+        
+        // Call deployNewInvestment as tokenAdmin (who has token balances and approvals)
+        vm.startPrank(tokenAdmin);
         address investAddr = deployer.deployNewInvestment(testID, RWA_TYPE, VERSION, address(usdc));
         assertTrue(investAddr != address(0), "Investment not deployed");
         vm.stopPrank();
@@ -182,6 +186,10 @@ contract TestCTMRWADeployer is Helpers {
             testID, tokenAdmin, "DoubleInvest", "DBL", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
         deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
+        vm.stopPrank();
+        
+        // Call deployNewInvestment as tokenAdmin (who has token balances and approvals)
+        vm.startPrank(tokenAdmin);
         deployer.deployNewInvestment(testID, RWA_TYPE, VERSION, address(usdc));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_InvalidContract.selector, CTMRWAErrorParam.Invest));
         deployer.deployNewInvestment(testID, RWA_TYPE, VERSION, address(usdc));

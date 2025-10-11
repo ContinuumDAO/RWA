@@ -9,6 +9,7 @@ import { CTMRWA1Storage } from "../../src/storage/CTMRWA1Storage.sol";
 import { CTMRWA1StorageManager } from "../../src/storage/CTMRWA1StorageManager.sol";
 import { ICTMRWA1Storage, URICategory, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageUtils } from "../../src/storage/ICTMRWA1StorageUtils.sol";
+import { FeeType } from "../../src/managers/IFeeManager.sol";
 import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
@@ -24,6 +25,13 @@ contract CTMRWA1StorageUtilsTest is Helpers {
     function setUp() public override {
         super.setUp();
         // All helpers and contracts are deployed, including storageUtils, storageManager, map, etc.
+
+        // Set up fee multipliers for operations that will be tested
+        vm.startPrank(gov);
+        feeManager.setFeeMultiplier(FeeType.MINT, 5);
+        feeManager.setFeeMultiplier(FeeType.PROVENANCE, 10);
+        feeManager.setFeeMultiplier(FeeType.ISSUER, 5);
+        vm.stopPrank();
 
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));

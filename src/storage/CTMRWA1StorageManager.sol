@@ -474,6 +474,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         }
 
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, feeType, _feeTokenStr);
+        fee = fee * (10000 - IFeeManager(feeManager).getFeeReduction(msg.sender)) / 10000;
 
         return (fee);
     }

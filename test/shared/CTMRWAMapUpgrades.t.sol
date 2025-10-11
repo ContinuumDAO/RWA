@@ -101,7 +101,11 @@ contract TestCTMRWAMapUpgrades is Helpers {
     }
 
     function test_upgrade_proxy_preserves_mappings() public {
+        // Call deployNewInvestment as tokenAdmin (who has token balances and approvals)
+        vm.startPrank(tokenAdmin);
         deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
+        vm.stopPrank();
+        
         (bool ok, address investmentContractAddr) = map.getInvestContract(ID, 1, 1);
         assertTrue(ok, "Invest contract should be deployed");
         assertNotEq(investmentContractAddr, address(0), "Invest contract should be deployed");

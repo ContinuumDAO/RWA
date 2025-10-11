@@ -108,6 +108,7 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     function _payFee(FeeType _feeType, address _feeToken, address _originalCaller) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
         uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), false, _feeType, feeTokenStr);
+        feeWei = feeWei * (10000 - IFeeManager(feeManager).getFeeReduction(_originalCaller)) / 10000;
 
         if (feeWei > 0) {
             // Transfer the fee from the original caller to this contract

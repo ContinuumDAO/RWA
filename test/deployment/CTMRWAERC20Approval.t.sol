@@ -10,6 +10,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWAERC20 } from "../../src/deployment/ICTMRWAERC20.sol";
 import { ICTMRWAERC20Deployer } from "../../src/deployment/ICTMRWAERC20Deployer.sol";
+import { FeeType } from "../../src/managers/IFeeManager.sol";
 import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 contract TestERC20Approval is Helpers {
@@ -21,6 +22,12 @@ contract TestERC20Approval is Helpers {
 
     function setUp() public override {
         super.setUp();
+        
+        // Set up fee multipliers for operations that will be tested
+        vm.startPrank(gov);
+        feeManager.setFeeMultiplier(FeeType.MINT, 5);
+        feeManager.setFeeMultiplier(FeeType.ERC20, 50);
+        vm.stopPrank();
         
         // Deploy CTMRWA1 and create slots
         vm.startPrank(tokenAdmin);

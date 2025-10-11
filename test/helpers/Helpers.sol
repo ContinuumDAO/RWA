@@ -40,7 +40,21 @@ contract Helpers is Test, Accounts, Deployer, RWA {
 
         _setFeeContracts();
 
-        _approveAllERC20(address(usdc), _100_000, feeContracts);
-        _approveAllERC20(address(ctm), _100_000, feeContracts);
+        // Give rwa1X contract token balances to pay fees
+        deal(address(usdc), address(rwa1X), _100_000 * 10 ** usdc.decimals());
+        deal(address(ctm), address(rwa1X), _100_000 * 10 ** ctm.decimals());
+        
+        // Give additional tokens for minting operations
+        deal(address(usdc), address(rwa1X), _100_000 * 10 ** usdc.decimals() * 2);
+        deal(address(ctm), address(rwa1X), _100_000 * 10 ** ctm.decimals() * 2);
+
+        _approveAllERC20(address(usdc), _100_000 * 10, feeContracts);
+        _approveAllERC20(address(ctm), _100_000 * 10, feeContracts);
+
+        // Give rwa1X contract self-approvals to spend its own tokens for fees
+        vm.startPrank(address(rwa1X));
+        usdc.approve(address(rwa1X), type(uint256).max);
+        ctm.approve(address(rwa1X), type(uint256).max);
+        vm.stopPrank();
     }
 }

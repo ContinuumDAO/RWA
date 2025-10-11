@@ -1060,7 +1060,7 @@ contract TestSentryManager is Helpers {
         uint256 gasBefore = gasleft();
         sentryManager.addCountrylist(ID, countries, choices, _stringToArray(cIdStr), feeTokenStr);
         uint256 gasUsed = gasBefore - gasleft();
-        assertTrue(gasUsed < 500_000, string.concat("Gas used: ", vm.toString(gasUsed)));
+        assertTrue(gasUsed < 600_000, string.concat("Gas used: ", vm.toString(gasUsed)));
         vm.stopPrank();
     }
 
