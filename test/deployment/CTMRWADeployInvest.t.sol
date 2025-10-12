@@ -131,7 +131,7 @@ contract TestInvest is Helpers {
         vm.stopPrank();
         
         vm.startPrank(tokenAdmin);
-        address investAddr = deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
+        address investAddr = deployer.deployNewInvestment(ID, RWA_TYPE, rwa1X.VERSION(), address(usdc));
         vm.stopPrank();
 
         // Get the actual investment contract from the map
@@ -161,6 +161,7 @@ contract TestInvest is Helpers {
             slotId, // slot
             1000e18, // value (1000 tokens)
             ID, // ID
+            rwa1X.VERSION(), // version
             feeTokenStr // feeTokenStr
         );
         vm.stopPrank();
@@ -579,7 +580,7 @@ contract TestInvest is Helpers {
     function test_gas_createOffering() public {
         // First mint a new token for this test
         vm.startPrank(tokenAdmin);
-        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, feeTokenStr);
+        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, VERSION, feeTokenStr);
 
         // Approve the investment contract to transfer the token
         token.approve(address(investContract), testTokenId);
@@ -1120,7 +1121,7 @@ contract TestInvest is Helpers {
     function test_removeRemainingTokenId_success() public {
         // First, create a new offering with a larger token for this specific test
         vm.startPrank(tokenAdmin);
-        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 2000e18, ID, feeTokenStr);
+        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 2000e18, ID, VERSION, feeTokenStr);
         token.approve(address(investContract), testTokenId);
         
         // Create a new offering with the test token
@@ -1184,7 +1185,7 @@ contract TestInvest is Helpers {
     function test_removeRemainingTokenId_noRemainingBalance() public {
         // First, create a new offering for this test
         vm.startPrank(tokenAdmin);
-        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, feeTokenStr);
+        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, VERSION, feeTokenStr);
         token.approve(address(investContract), testTokenId);
         
         investContract.createOffering(

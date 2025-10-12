@@ -253,7 +253,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         _payFee(FeeType.OFFERING, _feeToken);
 
         ICTMRWA1X(ctmRwa1X).transferWholeTokenX(
-            tokenAdmin.toHexString(), address(this).toHexString(), cIdStr, _tokenId, ID, _feeToken.toHexString()
+            tokenAdmin.toHexString(), address(this).toHexString(), cIdStr, _tokenId, ID, VERSION, _feeToken.toHexString()
         );
 
         Holding[] memory holdings;
@@ -375,7 +375,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         offerings[_indx].balRemaining -= value;
 
         uint256 newTokenId = ICTMRWA1X(ctmRwa1X).transferPartialTokenX(
-            tokenId, address(this).toHexString(), cIdStr, value, ID, feeTokenStr
+            tokenId, address(this).toHexString(), cIdStr, value, ID, VERSION, feeTokenStr
         );
 
         Holding memory newHolding =
@@ -457,7 +457,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
             _removeTokenIdInEscrow(tokenId);
 
             ICTMRWA1X(ctmRwa1X).transferWholeTokenX(
-                address(this).toHexString(), msg.sender.toHexString(), cIdStr, tokenId, ID, _feeToken.toHexString()
+                address(this).toHexString(), msg.sender.toHexString(), cIdStr, tokenId, ID, VERSION, _feeToken.toHexString()
             );
 
             emit UnlockInvestmentToken(ID, msg.sender, _myIndx);
@@ -722,6 +722,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
             cIdStr, 
             remainingBalance, 
             ID, 
+            VERSION,
             _feeToken.toHexString()
         );
 

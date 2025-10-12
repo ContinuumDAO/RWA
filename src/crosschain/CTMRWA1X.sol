@@ -40,8 +40,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     /// @dev The address of the CTMRWAGateway contract
     address public gateway;
 
-    /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 public constant RWA_TYPE = 1;
+    /// @dev rwaType is the RWA type defining CTMRWA1. It CANNOT be changed with proxy upgrades
+    uint256 public immutable RWA_TYPE;
 
     /// @dev version is the single integer version of this RWA type
     uint256 public constant VERSION = 1;
@@ -72,6 +72,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * CTMRWAErrorParam  of CTMRWA1 contracts that an owner address has one or more tokenIds
      */
     mapping(address => address[]) public ownedCtmRwa1;
+
+    constructor() {
+        RWA_TYPE = 1;
+    }
 
     function initialize(
         address _gateway,
@@ -175,8 +179,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * @param _includeLocal If set, a new RWA is created. If not set, an existing one is expanded to other chains.
      * @param _existingID Set to ZERO to create a new RWA, or set to an existing ID to extend it.
      * @dev A user cannot determine the ID for a new RWA. It is effectively random (keccak256)
-     * @param _rwaType Type of RWA. For CTMRWA1, set to 1 etc.
-     * @param _version Version of this RWA. The current version is 1
+     * @param _version Version of this RWA. The latest version is 1
      * @param _tokenName The name of the RWA. The name must be between 10 and 512 characters
      * @param _symbol The symbol name for the RWA.
      * NOTE Convention is that it is alphabetic, UPPER CASE and between 1 and 6 characters, with no spaces.
@@ -197,7 +200,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     function deployAllCTMRWA1X(
         bool _includeLocal,
         uint256 _existingID,
-        uint256 _rwaType,
         uint256 _version,
         string memory _tokenName,
         string memory _symbol,
@@ -251,13 +253,13 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
             currentAdmin = msg.sender;
             ctmRwa1Addr =
-                _deployCTMRWA1Local(ID, _tokenName, _symbol, _decimals, baseURI, slotNumbers, slotNames, currentAdmin);
+                _deployCTMRWA1Local(ID, _version, _tokenName, _symbol, _decimals, baseURI, slotNumbers, slotNames, currentAdmin);
 
             emit CreateNewCTMRWA1(ID);
         } else {
             // a CTMRWA1 token must be deployed already, so use the existing ID
             ID = _existingID;
-            (bool ok, address rwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(ID, _rwaType, _version);
+            (bool ok, address rwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(ID, RWA_TYPE, _version);
             if (!ok) {
                 revert CTMRWA1X_InvalidContract(CTMRWAErrorParam.Token);
             }
@@ -265,7 +267,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
             _checkTokenAdmin(ctmRwa1Addr);
 
-            (, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(ID, _rwaType, _version);
+            (, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(ID, RWA_TYPE, _version);
             bool whitelist = ICTMRWA1Sentry(sentryAddr).whitelistSwitch();
             bool kyc = ICTMRWA1Sentry(sentryAddr).kycSwitch();
             if (whitelist) {
@@ -289,7 +291,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
         for (uint256 i = 0; i < nChains; i++) {
             _deployCTMRWA1X(
-                tokenName, symbol, decimals, baseURI, _toChainIdsStr[i], slotNumbers, slotNames, ctmRwa1AddrStr
+                _version,tokenName, symbol, decimals, baseURI, _toChainIdsStr[i], slotNumbers, slotNames, ctmRwa1AddrStr
             );
         }
 
@@ -301,6 +303,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      */
     function _deployCTMRWA1Local(
         uint256 _ID,
+        uint256 _version,
         string memory _tokenName,
         string memory _symbol,
         uint8 _decimals,
@@ -309,7 +312,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         string[] memory _slotNames,
         address _tokenAdmin
     ) internal returns (address) {
-        (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+        (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, _version);
         if (ok) {
             revert CTMRWA1X_InvalidContract(CTMRWAErrorParam.Token);
         }
@@ -318,7 +321,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             _ID, _tokenAdmin, _tokenName, _symbol, _decimals, _baseURI, _slotNumbers, _slotNames, address(this)
         );
 
-        (address ctmRwa1Token,,,) = ICTMRWADeployer(ctmRwaDeployer).deploy(_ID, RWA_TYPE, VERSION, deployData);
+        (address ctmRwa1Token,,,) = ICTMRWADeployer(ctmRwaDeployer).deploy(_ID, RWA_TYPE, _version, deployData);
 
         ICTMRWA1(ctmRwa1Token).changeAdmin(_tokenAdmin);
 
@@ -340,6 +343,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * NOTE This function is ONLY called by deployAllCTMRWA1X
      */
     function _deployCTMRWA1X(
+        uint256 _version,
         string memory _tokenName,
         string memory _symbol,
         uint8 _decimals,
@@ -362,9 +366,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
         (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
 
-        string memory funcCall = "deployCTMRWA1(string,uint256,string,string,uint8,string,uint256[],string[])";
+        string memory funcCall = "deployCTMRWA1(uint256,string,uint256,string,string,uint8,string,uint256[],string[])";
         bytes memory callData = abi.encodeWithSignature(
-            funcCall, currentAdminStr, ID, _tokenName, _symbol, _decimals, _baseURI, _slotNumbers, _slotNames
+            funcCall, _version, currentAdminStr, ID, _tokenName, _symbol, _decimals, _baseURI, _slotNumbers, _slotNames
         );
 
         _c3call(toRwaXStr, toChainIdStr, callData);
@@ -380,6 +384,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * NOTE This function is ONLY called by the MPC network.
      */
     function deployCTMRWA1(
+        uint256 _version,
         string memory _newAdminStr,
         uint256 _ID,
         string memory _tokenName,
@@ -389,14 +394,14 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         uint256[] memory _slotNumbers,
         string[] memory _slotNames
     ) external onlyCaller returns (bool) {
-        (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+        (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, _version);
         if (ok) {
             revert CTMRWA1X_InvalidContract(CTMRWAErrorParam.Token);
         }
 
         address newAdmin = _newAdminStr._stringToAddress();
 
-        _deployCTMRWA1Local(_ID, _tokenName, _symbol, _decimals, _baseURI, _slotNumbers, _slotNames, newAdmin);
+        _deployCTMRWA1Local(_ID, _version, _tokenName, _symbol, _decimals, _baseURI, _slotNumbers, _slotNames, newAdmin);
 
         return (true);
     }
@@ -405,20 +410,20 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * @dev Change the tokenAdmin (Issuer) on the local chain for an RWA with _ID
      * NOTE The tokenAdmin is also changed in the linked contracts CTMRWA1Storage and CTMRWA1Sentry
      */
-    function _changeAdmin(address _currentAdmin, address _newAdmin, uint256 _ID) internal returns (bool) {
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+    function _changeAdmin(address _currentAdmin, address _newAdmin, uint256 _ID, uint256 _version) internal returns (bool) {
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
 
         ICTMRWA1(ctmRwa1Addr).changeAdmin(_newAdmin);
 
-        (, address ctmRwa1DividendAddr) = ICTMRWAMap(ctmRwa1Map).getDividendContract(_ID, RWA_TYPE, VERSION);
+        (, address ctmRwa1DividendAddr) = ICTMRWAMap(ctmRwa1Map).getDividendContract(_ID, RWA_TYPE, _version);
         ICTMRWA1Dividend(ctmRwa1DividendAddr).setTokenAdmin(_newAdmin);
 
-        (, address ctmRwa1StorageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
+        (, address ctmRwa1StorageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, _version);
         ICTMRWA1Storage(ctmRwa1StorageAddr).setTokenAdmin(_newAdmin);
 
-        (, address ctmRwa1SentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
+        (, address ctmRwa1SentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, _version);
 
-        (bool ok, address ctmRwaInvestAddr) = ICTMRWAMap(ctmRwa1Map).getInvestContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address ctmRwaInvestAddr) = ICTMRWAMap(ctmRwa1Map).getInvestContract(_ID, RWA_TYPE, _version);
         if (ok) {
             ICTMRWA1InvestWithTimeLock(ctmRwaInvestAddr).setTokenAdmin(_newAdmin, false);
         }
@@ -446,13 +451,14 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         string memory _newAdminStr,
         string[] memory _toChainIdsStr,
         uint256 _ID,
+        uint256 _version,
         string memory _feeTokenStr
     ) public returns (bool) {
         string memory toChainIdStr;
         string memory funcCall;
         bytes memory callData;
 
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         (address currentAdmin, string memory currentAdminStr) = _checkTokenAdmin(ctmRwa1Addr);
         address newAdmin = _newAdminStr._stringToAddress();
 
@@ -463,12 +469,12 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             toChainIdStr = _toChainIdsStr[i]._toLower();
 
             if (toChainIdStr.equal(cIdStr)) {
-                _changeAdmin(currentAdmin, newAdmin, _ID);
+                _changeAdmin(currentAdmin, newAdmin, _ID, _version);
             } else {
                 (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
 
-                funcCall = "adminX(uint256,string,string)";
-                callData = abi.encodeWithSignature(funcCall, _ID, currentAdminStr, _newAdminStr);
+                funcCall = "adminX(uint256,uint256,string,string)";
+                callData = abi.encodeWithSignature(funcCall, _ID, _version, currentAdminStr, _newAdminStr);
 
                 _c3call(toRwaXStr, toChainIdStr, callData);
 
@@ -483,12 +489,12 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * @dev Change the tokenAdmin of RWA with _ID on a chain.
      * This function can only be called by the MPC network.
      */
-    function adminX(uint256 _ID, string memory _oldAdminStr, string memory _newAdminStr)
+    function adminX(uint256 _ID, uint256 _version, string memory _oldAdminStr, string memory _newAdminStr)
         external
         onlyCaller
         returns (bool)
     {
-        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1X_InvalidContract(CTMRWAErrorParam.Token);
         }
@@ -504,7 +510,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             revert CTMRWA1X_InvalidAddress(CTMRWAErrorParam.Admin);
         }
 
-        _changeAdmin(currentAdmin, newAdmin, _ID);
+        _changeAdmin(currentAdmin, newAdmin, _ID, _version);
 
         emit AdminChanged(_ID, _newAdminStr);
 
@@ -518,6 +524,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * @param _slot The Asset Class (slot) for which to mint value if _toTokenId == 0, else must be zero.
      * @param _value The fungible value to create. This is in wei if CTMRWA1().valueDecimals() == 18
      * @param _ID The ID to create new value in
+     * @param _version The version of the RWA contract
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * NOTE For EVM chains, the address of the fee token must be converted to a string.
@@ -530,15 +537,15 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         uint256 _slot,
         uint256 _value,
         uint256 _ID,
+        uint256 _version,
         string memory _feeTokenStr
     ) public returns (uint256) {
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         _checkTokenAdmin(ctmRwa1Addr);
 
         _payFee(FeeType.MINT, _feeTokenStr, cIdStr._stringToArray(), true);
 
         if (_toTokenId > 0) {
-            // ICTMRWA1(ctmRwa1Addr).mintValueX(_toTokenId, _slot, _value);
             if (_slot != 0) {
                 revert CTMRWA1X_NonZeroSlot(_slot);
             }
@@ -573,6 +580,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      */
     function createNewSlot(
         uint256 _ID,
+        uint256 _version,
         uint256 _slot,
         string memory _slotName,
         string[] memory _toChainIdsStr,
@@ -581,7 +589,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         if (bytes(_slotName).length > 256) {
             revert CTMRWA1X_InvalidLength(CTMRWAErrorParam.SlotName);
         }
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         if (ICTMRWA1(ctmRwa1Addr).slotExists(_slot)) {
             revert CTMRWA1X_SlotExists(_slot);
         }
@@ -600,8 +608,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             toChainIdStr = _toChainIdsStr[i]._toLower();
             if (!cIdStr.equal(toChainIdStr)) {
                 (fromAddressStr, toRwaXStr) = _getRWAX(toChainIdStr);
-                string memory funcCall = "createNewSlotX(uint256,string,uint256,string)";
-                bytes memory callData = abi.encodeWithSignature(funcCall, _ID, fromAddressStr, _slot, _slotName);
+                string memory funcCall = "createNewSlotX(uint256,uint256,string,uint256,string)";
+                bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _version, fromAddressStr, _slot, _slotName);
 
                 _c3call(toRwaXStr, toChainIdStr, callData);
 
@@ -620,15 +628,14 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * RWA on the source chain is the same as the tokenAdmin of the RWA on this chain.
      * @return success True if the slot was created, false otherwise.
      */
-    function createNewSlotX(uint256 _ID, string memory _fromAddressStr, uint256 _slot, string memory _slotName)
+    function createNewSlotX(uint256 _ID, uint256 _version, string memory _fromAddressStr, uint256 _slot, string memory _slotName)
         external
         onlyCaller
         returns (bool)
     {
-        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
-        if (!ok) {
-            revert CTMRWA1X_InvalidContract(CTMRWAErrorParam.Token);
-        }
+        // (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, _version);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
+            
         if (ICTMRWA1(ctmRwa1Addr).slotExists(_slot)) {
             revert CTMRWA1X_SlotExists(_slot);
         }
@@ -656,6 +663,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * @param _toChainIdStr The destination chainID AS A STRING
      * @param _value The fungible value to send. This is in wei if CTMRWA1().valueDecimals() == 18
      * @param _ID The ID of the RWA
+     * @param _version The version of the RWA contract
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * NOTE For EVM chains, the address of the fee token must be converted to a string.
@@ -669,11 +677,12 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         string memory _toChainIdStr,
         uint256 _value,
         uint256 _ID,
+        uint256 _version,
         string memory _feeTokenStr
     ) public nonReentrant returns (uint256) {
         string memory toChainIdStr = _toChainIdStr._toLower();
 
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         if (!ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId)) {
             revert CTMRWA1X_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.ApprovedOrOwner);
         }
@@ -697,9 +706,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
             ICTMRWA1(ctmRwa1Addr).burnValueX(_fromTokenId, _value);
 
-            string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
+            string memory funcCall = "mintX(uint256,uint256,string,string,uint256,uint256)";
 
-            bytes memory callData = abi.encodeWithSignature(funcCall, _ID, fromAddressStr, _toAddressStr, slot, _value);
+            bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _version, fromAddressStr, _toAddressStr, slot, _value);
 
             _c3call(toRwaXStr, toChainIdStr, callData);
 
@@ -724,11 +733,12 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         string memory _toChainIdStr,
         uint256 _fromTokenId,
         uint256 _ID,
+        uint256 _version,
         string memory _feeTokenStr
     ) public nonReentrant {
         string memory toChainIdStr = _toChainIdStr._toLower();
 
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         address fromAddr = _fromAddrStr._stringToAddress();
         if (!ICTMRWA1(ctmRwa1Addr).isApprovedOrOwner(msg.sender, _fromTokenId)) {
             revert CTMRWA1X_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.ApprovedOrOwner);
@@ -769,6 +779,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      */
     function mintX(
         uint256 _ID,
+        uint256 _version,
         string memory _fromAddressStr,
         string memory _toAddressStr,
         uint256 _slot,
@@ -778,7 +789,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
         address toAddr = _toAddressStr._stringToAddress();
 
-        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1X_InvalidContract(CTMRWAErrorParam.Token);
         }
@@ -814,12 +825,13 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      */
     function mintFromXForERC20(
         uint256 _ID,
+        uint256 _version,
         address _to,
         uint256 _slot,
         string memory _slotName,
         uint256 _value
     ) external returns (uint256) {
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         
         // Validate that the caller is an authorized ERC20 contract for this slot
         address erc20Addr = ICTMRWA1(ctmRwa1Addr).getErc20(_slot);
@@ -888,12 +900,17 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     }
 
     /// @dev Get the CTMRWA1 address and string version on this chain for an ID
+    /// @param _ID The ID of the RWA token
+    /// @param _version The version of the RWA contract
     /// @return tokenAddr The CTMRWA1 address on this chain for an ID
     /// @return tokenAddrStr The string version of the CTMRWA1 address on this chain for an ID
-    function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+    function _getTokenAddr(uint256 _ID, uint256 _version) internal view returns (address, string memory) {
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1X_InvalidContract(CTMRWAErrorParam.Token);
+        }
+        if (_version != ICTMRWA1(tokenAddr).VERSION()) {
+            revert CTMRWA1X_InvalidVersion(_version);
         }
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 

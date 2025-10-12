@@ -310,7 +310,6 @@ contract Deployer is Utils {
         ID = rwa1X.deployAllCTMRWA1X(
             true, // include local mint
             0,
-            RWA_TYPE,
             VERSION,
             "Semi Fungible Token XChain",
             "SFTX",

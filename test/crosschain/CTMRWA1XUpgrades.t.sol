@@ -131,7 +131,6 @@ contract CTMRWA1XUpgradesTest is Helpers {
         rwa1X.deployAllCTMRWA1X(
             true, // includeLocal
             0, // existingID
-            1, // rwaType
             1, // version
             "Test Token",
             "TEST",
@@ -170,7 +169,6 @@ contract CTMRWA1XUpgradesTest is Helpers {
         rwa1X.deployAllCTMRWA1X(
             true, // includeLocal
             0, // existingID
-            1, // rwaType
             1, // version
             "Test Token",
             "TEST",

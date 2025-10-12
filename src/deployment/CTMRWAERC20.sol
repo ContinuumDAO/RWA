@@ -256,7 +256,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
             if (ICTMRWA1(ctmRwaToken).getApproved(tokenId) == address(this)) {
                 tokenIdBal = ICTMRWA1(ctmRwaToken).balanceOf(tokenId);
 
-                uint256 newTokenId = ICTMRWA1X(ICTMRWA1(ctmRwaToken).ctmRwa1X()).mintFromXForERC20(ID, _to, slot, slotName, 0);
+                uint256 newTokenId = ICTMRWA1X(ICTMRWA1(ctmRwaToken).ctmRwa1X()).mintFromXForERC20(ID, VERSION, _to, slot, slotName, 0);
 
                 if (tokenIdBal >= valRemaining) {
                     ICTMRWA1(ctmRwaToken).transferFrom(tokenId, newTokenId, valRemaining);

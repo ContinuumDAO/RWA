@@ -747,7 +747,7 @@ contract TestSentryManager is Helpers {
         );
 
         // Change token admin
-        rwa1X.changeTokenAdmin(user1.toHexString(), _stringToArray(cIdStr), ID, feeTokenStr);
+        rwa1X.changeTokenAdmin(user1.toHexString(), _stringToArray(cIdStr), ID, VERSION, feeTokenStr);
 
         (, address sentry) = map.getSentryContract(ID, RWA_TYPE, VERSION);
         address newAdmin = ICTMRWA1Sentry(sentry).tokenAdmin();
@@ -866,7 +866,6 @@ contract TestSentryManager is Helpers {
         rwa1X.deployAllCTMRWA1X(
             false, // include local mint
             ID,
-            RWA_TYPE,
             VERSION,
             "Token Name",
             "Symbol",

@@ -36,6 +36,7 @@ interface ICTMRWA1X is ICTMRWA {
     error CTMRWA1X_IsZeroAddress(CTMRWAErrorParam);
     error CTMRWA1X_InvalidContract(CTMRWAErrorParam);
     error CTMRWA1X_InvalidAddress(CTMRWAErrorParam);
+    error CTMRWA1X_InvalidVersion(uint256);
 
     // Input Validation
     error CTMRWA1X_SlotExists(uint256);
@@ -60,6 +61,7 @@ interface ICTMRWA1X is ICTMRWA {
         string memory newAdminStr,
         string[] memory toChainIdsStr,
         uint256 ID,
+        uint256 version,
         string memory feeTokenStr
     ) external returns (bool);
 
@@ -76,7 +78,6 @@ interface ICTMRWA1X is ICTMRWA {
     function deployAllCTMRWA1X(
         bool includeLocal,
         uint256 existingID,
-        uint256 rwaType,
         uint256 version,
         string memory tokenName,
         string memory symbol,
@@ -87,6 +88,7 @@ interface ICTMRWA1X is ICTMRWA {
     ) external returns (uint256);
 
     function deployCTMRWA1(
+        uint256 version,
         string memory newAdminStr,
         uint256 ID,
         string memory tokenName,
@@ -97,7 +99,7 @@ interface ICTMRWA1X is ICTMRWA {
         string[] memory slotNames
     ) external returns (bool); // onlyCaller function (added for DEBUG purposes)
 
-    function adminX(uint256 ID, string memory oldAdminStr, string memory newAdminStr) external returns (bool); // onlyCaller
+    function adminX(uint256 ID, uint256 version, string memory oldAdminStr, string memory newAdminStr) external returns (bool); // onlyCaller
 
     function getAllTokensByAdminAddress(address admin) external view returns (address[] memory);
     function getAllTokensByOwnerAddress(address owner) external view returns (address[] memory);
@@ -108,11 +110,13 @@ interface ICTMRWA1X is ICTMRWA {
         uint256 slot,
         uint256 value,
         uint256 ID,
+        uint256 version,
         string memory feeTokenStr
     ) external returns (uint256);
 
     function createNewSlot(
         uint256 ID,
+        uint256 version,
         uint256 slot,
         string memory slotName,
         string[] memory toChainIdsStr,
@@ -125,6 +129,7 @@ interface ICTMRWA1X is ICTMRWA {
         string memory toChainIdStr,
         uint256 value,
         uint256 ID,
+        uint256 version,
         string memory feeTokenStr
     ) external returns (uint256);
 
@@ -134,11 +139,13 @@ interface ICTMRWA1X is ICTMRWA {
         string memory toChainIdStr,
         uint256 fromTokenId,
         uint256 ID,
+        uint256 version,
         string memory feeTokenStr
     ) external;
 
     function mintX(
         uint256 _ID,
+        uint256 _version,
         string memory _fromAddressStr,
         string memory _toAddressStr,
         uint256 _slot,
@@ -147,6 +154,7 @@ interface ICTMRWA1X is ICTMRWA {
 
     function mintFromXForERC20(
         uint256 _ID,
+        uint256 _version,
         address _to,
         uint256 _slot,
         string memory _slotName,

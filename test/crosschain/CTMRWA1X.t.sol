@@ -43,7 +43,7 @@ contract ReentrantContract {
     function attackMint(uint256 _ID, string memory _feeTokenStr) external {
         if (attackCount < 3) {
             attackCount++;
-            rwa1X.mintNewTokenValueLocal(address(this), 0, 5, 1000, _ID, _feeTokenStr);
+            rwa1X.mintNewTokenValueLocal(address(this), 0, 5, 1000, _ID, rwa1X.VERSION(), _feeTokenStr);
         }
     }
 
@@ -58,7 +58,7 @@ contract ReentrantContract {
     ) external {
         if (attackCount < 3) {
             attackCount++;
-            rwa1X.transferWholeTokenX(_from.toHexString(), _to.toHexString(), _chainId, _tokenId, _ID, _feeTokenStr);
+            rwa1X.transferWholeTokenX(_from.toHexString(), _to.toHexString(), _chainId, _tokenId, _ID, 1, _feeTokenStr);
         }
     }
 
@@ -73,7 +73,7 @@ contract ReentrantContract {
     ) external {
         if (attackCount < 3) {
             attackCount++;
-            rwa1X.transferPartialTokenX(_tokenId, _to.toHexString(), _chainId, _amount, _ID, _feeTokenStr);
+            rwa1X.transferPartialTokenX(_tokenId, _to.toHexString(), _chainId, _amount, _ID, 1, _feeTokenStr);
         }
     }
 
@@ -84,9 +84,10 @@ contract ReentrantContract {
         uint256 _ID,
         string memory _feeTokenStr
     ) external {
+        uint256 version = 1;    
         if (attackCount < 3) {
             attackCount++;
-            rwa1X.changeTokenAdmin(_newAdmin, _chainIds, _ID, _feeTokenStr);
+            rwa1X.changeTokenAdmin(_newAdmin, _chainIds, _ID, version, _feeTokenStr);
         }
     }
 }
@@ -112,7 +113,6 @@ contract TestCTMRWA1X is Helpers {
         uint256 ID = rwa1X.deployAllCTMRWA1X(
             true, // include local mint
             0,
-            RWA_TYPE,
             VERSION,
             "Semi Fungible Token XChain",
             "SFTX",
@@ -194,7 +194,7 @@ contract TestCTMRWA1X is Helpers {
 
         // Change a token admin in the middle of the list to tokenAdmin2
         vm.prank(tokenAdmin);
-        rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), IDs[2], feeTokenStr);
+        rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), IDs[2], VERSION, feeTokenStr);
         aTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
         // Check that the aToken list is one less
         assertEq(aTokens.length, 4);
@@ -211,7 +211,7 @@ contract TestCTMRWA1X is Helpers {
 
         // Change a token admin from the end of the list to tokenAdmin2
         vm.prank(tokenAdmin);
-        rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), IDs[4], feeTokenStr);
+        rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), IDs[4], VERSION, feeTokenStr);
         aTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
         // Check that the aToken list is one less
         assertEq(aTokens.length, 3);
@@ -234,7 +234,7 @@ contract TestCTMRWA1X is Helpers {
 
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
 
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 2000, ID, feeTokenStr);
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 2000, ID, VERSION, feeTokenStr);
         vm.stopPrank();
 
         assertEq(tokenId, 1);
@@ -269,16 +269,16 @@ contract TestCTMRWA1X is Helpers {
 
         // Mint two tokenIds in (ID1, token1) to user1 and user2 in slots 3 and 5
         uint256 slot = 5;
-        uint256 tokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID1, feeTokenStr);
-        uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID1, feeTokenStr);
-        uint256 tokenId3 = rwa1X.mintNewTokenValueLocal(user2, 0, slot, 2000, ID1, feeTokenStr);
+        uint256 tokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID1, VERSION, feeTokenStr);
+        uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID1, VERSION, feeTokenStr);
+        uint256 tokenId3 = rwa1X.mintNewTokenValueLocal(user2, 0, slot, 2000, ID1, VERSION, feeTokenStr);
         slot = 3;
-        uint256 tokenId4 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID1, feeTokenStr);
-        uint256 tokenId5 = rwa1X.mintNewTokenValueLocal(user2, 0, slot, 2000, ID1, feeTokenStr);
+        uint256 tokenId4 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID1, VERSION, feeTokenStr);
+        uint256 tokenId5 = rwa1X.mintNewTokenValueLocal(user2, 0, slot, 2000, ID1, VERSION, feeTokenStr);
 
         // Mint a tokenId in (ID2, token2) to user1 in slot 3
         slot = 3;
-        uint256 tokenId6 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID2, feeTokenStr);
+        uint256 tokenId6 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID2, VERSION, feeTokenStr);
 
         vm.stopPrank();
 
@@ -320,7 +320,7 @@ contract TestCTMRWA1X is Helpers {
 
         // Now transfer tokenId6 from user1 to user2
         vm.prank(user1);
-        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId6, ID2, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId6, ID2, VERSION, feeTokenStr);
 
         user2Contracts = rwa1X.getAllTokensByOwnerAddress(user2);
         // With the addition of (ID2, token2) for user2, this increases from 1 to 2
@@ -346,12 +346,12 @@ contract TestCTMRWA1X is Helpers {
         vm.expectRevert(
             abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.ApprovedOrOwner)
         );
-        rwa1X.transferPartialTokenX(tokenId, user1.toHexString(), cIdStr, 5, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user1.toHexString(), cIdStr, 5, ID, VERSION, feeTokenStr);
         vm.stopPrank();
 
         vm.startPrank(user1);
         uint256 balBefore = token.balanceOf(tokenId);
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 5, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 5, ID, VERSION, feeTokenStr);
         uint256 balAfter = token.balanceOf(tokenId);
         assertEq(balBefore, balAfter + 5);
 
@@ -377,7 +377,7 @@ contract TestCTMRWA1X is Helpers {
         string memory feeTokenStr = feeTokenList[0].toHexString();
 
         // Check that tokenAdmin can transfer tokenId2 to user1
-        rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId2, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId2, ID, VERSION, feeTokenStr);
         vm.stopPrank();
 
         // Check that user1 is now the owner of tokenId2
@@ -389,7 +389,7 @@ contract TestCTMRWA1X is Helpers {
         vm.expectRevert(
             abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.ApprovedOrOwner)
         );
-        rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr);
         vm.stopPrank();
 
         // Check the approval mechanism - tokenAdmin approves user2 to transfer tokenId
@@ -403,7 +403,7 @@ contract TestCTMRWA1X is Helpers {
 
         // Check that user2 can now transfer tokenId to user1
         vm.prank(user2);
-        rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(tokenAdmin.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr);
 
         // Check that user1 is now the owner of tokenId
         owner = token.ownerOf(tokenId);
@@ -430,7 +430,7 @@ contract TestCTMRWA1X is Helpers {
         assertEq(aTokens[0], address(token1));
         assertEq(aTokens[1], address(token2));
 
-        rwa1X.changeTokenAdmin(_toLower(user2.toHexString()), _stringToArray(cIdStr), ID1, feeTokenStr);
+        rwa1X.changeTokenAdmin(_toLower(user2.toHexString()), _stringToArray(cIdStr), ID1, VERSION, feeTokenStr);
 
         aTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
         assertEq(aTokens.length, 1);
@@ -468,7 +468,7 @@ contract TestCTMRWA1X is Helpers {
         assertEq(currentAdmin, tokenAdmin);
 
         // Lock the token (change to address(0))
-        rwa1X.changeTokenAdmin(_toLower(address(0).toHexString()), _stringToArray(cIdStr), ID, feeTokenStr);
+        rwa1X.changeTokenAdmin(_toLower(address(0).toHexString()), _stringToArray(cIdStr), ID, VERSION, feeTokenStr);
 
         // Check the admin again
         currentAdmin = token.tokenAdmin();
@@ -493,6 +493,7 @@ contract TestCTMRWA1X is Helpers {
         // Simulate the call on the destination chain by c3caller (onlyCaller)
         vm.prank(address(c3caller));
         bool ok = rwa1X.deployCTMRWA1(
+            VERSION,
             newAdminStr,
             IDnew,
             tokenName,
@@ -545,7 +546,7 @@ contract TestCTMRWA1X is Helpers {
         vm.startPrank(address(c3caller));
 
         // Mint a new tokenId for user2 in slot 5, with a balance of 140
-        bool ok = rwa1X.mintX(ID, user1.toHexString(), user2.toHexString(), 5, 140);
+        bool ok = rwa1X.mintX(ID, VERSION, user1.toHexString(), user2.toHexString(), 5, 140);
 
         assertTrue(ok);
         vm.stopPrank();
@@ -567,7 +568,7 @@ contract TestCTMRWA1X is Helpers {
 
         // Set to tokenAdmin2 on destination chain
         vm.startPrank(address(c3caller));
-        rwa1X.adminX(ID, tokenAdmin.toHexString(), tokenAdmin2.toHexString());
+        rwa1X.adminX(ID, VERSION, tokenAdmin.toHexString(), tokenAdmin2.toHexString());
         vm.stopPrank();
 
         address currentAdmin;
@@ -617,7 +618,7 @@ contract TestCTMRWA1X is Helpers {
         // Transfer token to attacker first
         vm.prank(user1);
         rwa1X.transferWholeTokenX(
-            user1.toHexString(), address(attacker).toHexString(), cIdStr, tokenId, ID, feeTokenStr
+            user1.toHexString(), address(attacker).toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr
         );
 
         // Try the reentrancy attack - it may or may not revert depending on implementation
@@ -645,7 +646,7 @@ contract TestCTMRWA1X is Helpers {
         // Transfer token to attacker first
         vm.prank(user1);
         rwa1X.transferWholeTokenX(
-            user1.toHexString(), address(attacker).toHexString(), cIdStr, tokenId, ID, feeTokenStr
+            user1.toHexString(), address(attacker).toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr
         );
 
         uint256 initialBalance = token.balanceOf(tokenId);
@@ -693,7 +694,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to transfer 0 amount
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 0, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 0, ID, VERSION, feeTokenStr);
 
         // Verify no transfer occurred
         assertEq(token.balanceOf(tokenId), 2000);
@@ -710,7 +711,7 @@ contract TestCTMRWA1X is Helpers {
 
         // Transfer to self should work
         vm.prank(user1);
-        rwa1X.transferWholeTokenX(user1.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user1.toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr);
 
         // Verify ownership remains the same
         assertEq(token.ownerOf(tokenId), user1);
@@ -727,7 +728,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to transfer more than balance
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 3000, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 3000, ID, VERSION, feeTokenStr);
 
         // Verify no transfer occurred
         assertEq(token.balanceOf(tokenId), 2000);
@@ -745,7 +746,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to transfer with empty chain ID
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), "", tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), "", tokenId, ID, VERSION, feeTokenStr);
     }
 
     function test_edgeCaseInvalidTokenId() public {
@@ -758,7 +759,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to transfer non-existent token ID
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, 999_999, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, 999_999, ID, VERSION, feeTokenStr);
     }
 
     function test_edgeCaseZeroAddressTransfer() public {
@@ -772,7 +773,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to transfer to zero address
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.transferWholeTokenX(user1.toHexString(), address(0).toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), address(0).toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr);
     }
 
     function test_edgeCaseMaxUint256Amount() public {
@@ -786,7 +787,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to transfer max uint256 amount
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, type(uint256).max, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, type(uint256).max, ID, VERSION, feeTokenStr);
     }
 
     // ============ OVERFLOW/UNDERFLOW TESTS ============
@@ -803,7 +804,7 @@ contract TestCTMRWA1X is Helpers {
         vm.prank(tokenAdmin);
         uint256 maxUint208 = 2**208 - 1;
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_ValueOverflow.selector, maxUint208 + 1, maxUint208));
-        rwa1X.mintNewTokenValueLocal(user1, 0, 5, maxUint208 + 1, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(user1, 0, 5, maxUint208 + 1, ID, VERSION, feeTokenStr);
     }
 
     function test_underflowTransferPartialTokenX() public {
@@ -817,7 +818,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to transfer more than the balance (should revert)
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 3000, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 3000, ID, VERSION, feeTokenStr);
     }
 
     function test_underflowBurn() public {
@@ -848,10 +849,10 @@ contract TestCTMRWA1X is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
         // Mint with a
         vm.prank(tokenAdmin);
-        rwa1X.mintNewTokenValueLocal(user1, 0, 5, a, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(user1, 0, 5, a, ID, VERSION, feeTokenStr);
         // Try to mint with b (should not overflow)
         vm.prank(tokenAdmin);
-        uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, b, ID, feeTokenStr);
+        uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, b, ID, VERSION, feeTokenStr);
         assertEq(token.balanceOf(tokenId2), b);
     }
 
@@ -865,7 +866,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to transfer more than balance
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, amount, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, amount, ID, VERSION, feeTokenStr);
     }
 
     // ============ FUZZ TESTS ============
@@ -881,7 +882,7 @@ contract TestCTMRWA1X is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
 
         vm.prank(tokenAdmin);
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, amount, ID, feeTokenStr);
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, amount, ID, VERSION, feeTokenStr);
 
         assertEq(token.balanceOf(tokenId), amount);
         assertEq(token.ownerOf(tokenId), user1);
@@ -901,7 +902,7 @@ contract TestCTMRWA1X is Helpers {
         vm.assume(amount <= initialBalance);
 
         vm.prank(user1);
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, amount, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, amount, ID, VERSION, feeTokenStr);
 
         assertEq(token.balanceOf(tokenId), initialBalance - amount);
 
@@ -921,7 +922,7 @@ contract TestCTMRWA1X is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
 
         vm.prank(tokenAdmin);
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, feeTokenStr);
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, VERSION, feeTokenStr);
 
         (,,, uint256 slotNum,,) = token.getTokenInfo(tokenId);
         assertEq(slotNum, slot);
@@ -941,7 +942,7 @@ contract TestCTMRWA1X is Helpers {
 
         // Mint a new token
         vm.prank(tokenAdmin);
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, VERSION, feeTokenStr);
 
         uint256 totalSupplyAfter = token.totalSupply();
         assertEq(totalSupplyAfter, totalSupplyBefore + 1);
@@ -966,7 +967,7 @@ contract TestCTMRWA1X is Helpers {
         uint256 transferAmount = 500;
 
         vm.prank(user1);
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, transferAmount, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, transferAmount, ID, VERSION, feeTokenStr);
 
         // Verify total balance remains the same
         assertEq(token.balanceOf(tokenId) + token.balanceOf(token.tokenOfOwnerByIndex(user2, 0)), initialBalance);
@@ -983,7 +984,7 @@ contract TestCTMRWA1X is Helpers {
         address initialOwner = token.ownerOf(tokenId);
 
         vm.prank(user1);
-        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr);
 
         address newOwner = token.ownerOf(tokenId);
         assertTrue(initialOwner != newOwner);
@@ -1000,7 +1001,7 @@ contract TestCTMRWA1X is Helpers {
         address initialAdmin = token.tokenAdmin();
 
         vm.prank(tokenAdmin);
-        rwa1X.changeTokenAdmin(user2.toHexString(), _stringToArray(cIdStr), ID, feeTokenStr);
+        rwa1X.changeTokenAdmin(user2.toHexString(), _stringToArray(cIdStr), ID, VERSION, feeTokenStr);
 
         address newAdmin = token.tokenAdmin();
         assertTrue(initialAdmin != newAdmin);
@@ -1020,7 +1021,7 @@ contract TestCTMRWA1X is Helpers {
         uint256 gasBefore = gasleft();
 
         vm.prank(tokenAdmin);
-        rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, VERSION, feeTokenStr);
 
         uint256 gasUsed = gasBefore - gasleft();
 
@@ -1039,7 +1040,7 @@ contract TestCTMRWA1X is Helpers {
         uint256 gasBefore = gasleft();
 
         vm.prank(user1);
-        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr);
 
         uint256 gasUsed = gasBefore - gasleft();
 
@@ -1058,7 +1059,7 @@ contract TestCTMRWA1X is Helpers {
         uint256 gasBefore = gasleft();
 
         vm.prank(user1);
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 500, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 500, ID, VERSION, feeTokenStr);
 
         uint256 gasUsed = gasBefore - gasleft();
 
@@ -1076,7 +1077,7 @@ contract TestCTMRWA1X is Helpers {
         uint256 gasBefore = gasleft();
 
         vm.prank(tokenAdmin);
-        rwa1X.changeTokenAdmin(user2.toHexString(), _stringToArray(cIdStr), ID, feeTokenStr);
+        rwa1X.changeTokenAdmin(user2.toHexString(), _stringToArray(cIdStr), ID, VERSION, feeTokenStr);
 
         uint256 gasUsed = gasBefore - gasleft();
 
@@ -1097,7 +1098,7 @@ contract TestCTMRWA1X is Helpers {
         // Mint 10 tokens in sequence
         for (uint256 i = 0; i < 10; i++) {
             vm.prank(tokenAdmin);
-            uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+            uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, VERSION, feeTokenStr);
             assertEq(token.ownerOf(tokenId), user1);
         }
 
@@ -1115,7 +1116,7 @@ contract TestCTMRWA1X is Helpers {
         // Perform multiple partial transfers
         for (uint256 i = 0; i < 5; i++) {
             vm.prank(user1);
-            rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 100, ID, feeTokenStr);
+            rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 100, ID, VERSION, feeTokenStr);
         }
 
         assertEq(token.balanceOf(tokenId), 1500); // 2000 - (5 * 100)
@@ -1140,7 +1141,7 @@ contract TestCTMRWA1X is Helpers {
 
         for (uint256 i = 0; i < admins.length; i++) {
             vm.prank(currentAdmin);
-            rwa1X.changeTokenAdmin(admins[i].toHexString(), _stringToArray(cIdStr), ID, feeTokenStr);
+            rwa1X.changeTokenAdmin(admins[i].toHexString(), _stringToArray(cIdStr), ID, VERSION, feeTokenStr);
             assertEq(token.tokenAdmin(), admins[i]);
             currentAdmin = admins[i]; // Update current admin for next iteration
         }
@@ -1159,7 +1160,7 @@ contract TestCTMRWA1X is Helpers {
         // Non-admin should not be able to mint
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.mintNewTokenValueLocal(user2, 0, 5, 1000, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(user2, 0, 5, 1000, ID, VERSION, feeTokenStr);
     }
 
     function test_accessControlNonOwnerTransfer() public {
@@ -1173,7 +1174,7 @@ contract TestCTMRWA1X is Helpers {
         // Non-owner should not be able to transfer
         vm.prank(user2);
         vm.expectRevert();
-        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr);
     }
 
     function test_accessControlNonAdminChangeAdmin() public {
@@ -1186,7 +1187,7 @@ contract TestCTMRWA1X is Helpers {
         // Non-admin should not be able to change admin
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.changeTokenAdmin(user2.toHexString(), _stringToArray(cIdStr), ID, feeTokenStr);
+        rwa1X.changeTokenAdmin(user2.toHexString(), _stringToArray(cIdStr), ID, VERSION, feeTokenStr);
     }
 
     function test_accessControlC3CallerOnly() public {
@@ -1197,7 +1198,7 @@ contract TestCTMRWA1X is Helpers {
         // Non-c3caller should not be able to call c3caller-only functions
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.deployCTMRWA1(tokenAdmin.toHexString(), ID, "Test", "TEST", 18, "GFLD", new uint256[](0), new string[](0));
+        rwa1X.deployCTMRWA1(VERSION, tokenAdmin.toHexString(), ID, "Test", "TEST", 18, "GFLD", new uint256[](0), new string[](0));
     }
 
     // ============ INPUT VALIDATION TESTS ============
@@ -1211,7 +1212,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to mint with invalid fee token
         vm.prank(tokenAdmin);
         vm.expectRevert();
-        rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, "invalid_token");
+        rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, VERSION, "invalid_token");
     }
 
     function test_inputValidationInvalidChainId() public {
@@ -1225,7 +1226,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to transfer with invalid chain ID
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), "invalid_chain", tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), "invalid_chain", tokenId, ID, VERSION, feeTokenStr);
     }
 
     function test_inputValidationInvalidAddress() public {
@@ -1239,7 +1240,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to mint to invalid address
         vm.prank(tokenAdmin);
         vm.expectRevert();
-        rwa1X.mintNewTokenValueLocal(address(0), 0, 5, 1000, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(address(0), 0, 5, 1000, ID, VERSION, feeTokenStr);
     }
 
     // ============ STATE CONSISTENCY TESTS ============
@@ -1258,7 +1259,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to transfer more than balance (should fail)
         vm.prank(user1);
         vm.expectRevert();
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 3000, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 3000, ID, VERSION, feeTokenStr);
 
         // State should remain unchanged
         assertEq(token.balanceOf(tokenId), initialBalance);
@@ -1276,7 +1277,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to mint with invalid parameters (should fail)
         vm.prank(tokenAdmin);
         vm.expectRevert();
-        rwa1X.mintNewTokenValueLocal(address(0), 0, 5, 1000, ID, "invalid_fee_token");
+        rwa1X.mintNewTokenValueLocal(address(0), 0, 5, 1000, ID, VERSION, "invalid_fee_token");
 
         // Supply should remain unchanged
         assertEq(token.totalSupply(), initialSupply);
@@ -1295,7 +1296,7 @@ contract TestCTMRWA1X is Helpers {
         // Mint many tokens to approach max token ID
         for (uint256 i = 0; i < 100; i++) {
             vm.prank(tokenAdmin);
-            uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+            uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, VERSION, feeTokenStr);
             assertTrue(tokenId > 0);
         }
     }
@@ -1311,7 +1312,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to mint with maximum uint208 balance (should succeed)
         uint256 maxUint208 = 2**208 - 1;
         vm.prank(tokenAdmin);
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, maxUint208, ID, feeTokenStr);
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, maxUint208, ID, VERSION, feeTokenStr);
 
         assertEq(token.balanceOf(tokenId), maxUint208);
     }
@@ -1326,7 +1327,7 @@ contract TestCTMRWA1X is Helpers {
 
         // Try to mint with minimum balance
         vm.prank(tokenAdmin);
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1, ID, feeTokenStr);
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1, ID, VERSION, feeTokenStr);
 
         assertEq(token.balanceOf(tokenId), 1);
     }
@@ -1343,19 +1344,19 @@ contract TestCTMRWA1X is Helpers {
 
         // 1. Mint token
         vm.prank(tokenAdmin);
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, VERSION, feeTokenStr);
 
         // 2. Transfer whole token
         vm.prank(user1);
-        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr);
 
         // 3. Transfer partial amount
         vm.prank(user2);
-        rwa1X.transferPartialTokenX(tokenId, user1.toHexString(), cIdStr, 300, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user1.toHexString(), cIdStr, 300, ID, VERSION, feeTokenStr);
 
         // 4. Change admin
         vm.prank(tokenAdmin);
-        rwa1X.changeTokenAdmin(user2.toHexString(), _stringToArray(cIdStr), ID, feeTokenStr);
+        rwa1X.changeTokenAdmin(user2.toHexString(), _stringToArray(cIdStr), ID, VERSION, feeTokenStr);
 
         // Verify final state
         assertEq(token.ownerOf(tokenId), user2);
@@ -1380,17 +1381,17 @@ contract TestCTMRWA1X is Helpers {
 
         // Mint tokens in both contracts
         vm.prank(tokenAdmin);
-        uint256 tokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID1, feeTokenStr);
+        uint256 tokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID1, VERSION, feeTokenStr);
 
         vm.prank(tokenAdmin);
-        uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID2, feeTokenStr);
+        uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID2, VERSION, feeTokenStr);
 
         // Transfer tokens between different contracts
         vm.prank(user1);
-        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId1, ID1, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId1, ID1, VERSION, feeTokenStr);
 
         vm.prank(user1);
-        rwa1X.transferPartialTokenX(tokenId2, user2.toHexString(), cIdStr, 500, ID2, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId2, user2.toHexString(), cIdStr, 500, ID2, VERSION, feeTokenStr);
 
         // Verify state
         assertEq(token1.ownerOf(tokenId1), user2);
@@ -1435,7 +1436,7 @@ contract TestCTMRWA1X is Helpers {
         // Try to mint to a non-existent slot
         string memory feeTokenStr = address(usdc).toHexString();
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_NonExistentSlot.selector, 999));
-        rwa1X.mintNewTokenValueLocal(user1, 0, 999, 1000, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(user1, 0, 999, 1000, ID, VERSION, feeTokenStr);
         vm.stopPrank();
     }
 
@@ -1448,7 +1449,7 @@ contract TestCTMRWA1X is Helpers {
         vm.expectRevert(
             abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Admin)
         );
-        rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), ID, address(usdc).toHexString());
+        rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), ID, VERSION, address(usdc).toHexString());
         vm.stopPrank();
     }
 
@@ -1484,7 +1485,7 @@ contract TestCTMRWA1X is Helpers {
         // Paused: should revert
         vm.startPrank(user1);
         vm.expectRevert(EnforcedPause.selector);
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 5, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 5, ID, VERSION, feeTokenStr);
         vm.stopPrank();
 
         // Unpause and try again
@@ -1493,7 +1494,7 @@ contract TestCTMRWA1X is Helpers {
 
         vm.startPrank(user1);
         uint256 balBefore = token.balanceOf(tokenId);
-        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 5, ID, feeTokenStr);
+        rwa1X.transferPartialTokenX(tokenId, user2.toHexString(), cIdStr, 5, ID, VERSION, feeTokenStr);
         uint256 balAfter = token.balanceOf(tokenId);
         assertEq(balBefore, balAfter + 5);
         address owned = rwa1X.getAllTokensByOwnerAddress(user2)[0];
@@ -1516,14 +1517,14 @@ contract TestCTMRWA1X is Helpers {
         // Paused: should revert
         vm.prank(user1);
         vm.expectRevert(EnforcedPause.selector);
-        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr);
 
         // Unpause and try again
         vm.prank(tokenAdmin);
         token.unpause();
 
         vm.prank(user1);
-        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, feeTokenStr);
+        rwa1X.transferWholeTokenX(user1.toHexString(), user2.toHexString(), cIdStr, tokenId, ID, VERSION, feeTokenStr);
         address owner = token.ownerOf(tokenId);
         assertEq(owner, user2);
     }
@@ -1539,14 +1540,14 @@ contract TestCTMRWA1X is Helpers {
         // Paused: should revert
         vm.prank(tokenAdmin);
         vm.expectRevert(EnforcedPause.selector);
-        rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+        rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, VERSION, feeTokenStr);
 
         // Unpause and try again
         vm.prank(tokenAdmin);
         token.unpause();
 
         vm.prank(tokenAdmin);
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, VERSION, feeTokenStr);
         assertEq(token.ownerOf(tokenId), user1);
         assertEq(token.balanceOf(tokenId), 1000);
     }
@@ -1594,7 +1595,7 @@ contract TestCTMRWA1X is Helpers {
 
         // First mint - without fee reduction
         vm.prank(tokenAdmin);
-        uint256 tokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+        uint256 tokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, VERSION, feeTokenStr);
 
         // Check balance after first mint (without fee reduction)
         uint256 balanceAfterFirstMint = usdc.balanceOf(tokenAdmin);
@@ -1624,7 +1625,7 @@ contract TestCTMRWA1X is Helpers {
 
         // Second mint - with fee reduction
         vm.prank(tokenAdmin);
-        uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, feeTokenStr);
+        uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user1, 0, 5, 1000, ID, VERSION, feeTokenStr);
 
         // Check balance after second mint (with fee reduction)
         uint256 balanceAfterSecondMint = usdc.balanceOf(tokenAdmin);

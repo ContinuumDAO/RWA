@@ -108,12 +108,11 @@ This contract is only deployed ONCE on each chain and manages all CTMRWA1 contra
 
 ### Deployment Functions
 
-#### `deployAllCTMRWA1X(bool _includeLocal, uint256 _existingID, uint256 _rwaType, uint256 _version, string memory _tokenName, string memory _symbol, uint8 _decimals, string memory _baseURI, string[] memory _toChainIdsStr, string memory _feeTokenStr)`
+#### `deployAllCTMRWA1X(bool _includeLocal, uint256 _existingID, uint256 _version, string memory _tokenName, string memory _symbol, uint8 _decimals, string memory _baseURI, string[] memory _toChainIdsStr, string memory _feeTokenStr)`
 - **Purpose:** Deploy or extend the deployment of an RWA
 - **Parameters:**
   - `_includeLocal`: If TRUE, deploys new CTMRWA1 on local chain. If FALSE, extends existing RWA
   - `_existingID`: Set to ZERO for new RWA, or existing ID to extend
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
   - `_version`: Version of RWA (1 for current)
   - `_tokenName`: Name of RWA (10-512 characters)
   - `_symbol`: Symbol for RWA (1-6 characters, uppercase, no spaces)
@@ -128,10 +127,11 @@ This contract is only deployed ONCE on each chain and manages all CTMRWA1 contra
   - Validates parameters and pays fees
   - Deploys to specified chains
 
-#### `deployCTMRWA1(string memory _newAdminStr, uint256 _ID, string memory _tokenName, string memory _symbol, uint8 _decimals, string memory _baseURI, uint256[] memory _slotNumbers, string[] memory _slotNames)`
+#### `deployCTMRWA1(uint256 _version, string memory _newAdminStr, uint256 _ID, string memory _tokenName, string memory _symbol, uint8 _decimals, string memory _baseURI, uint256[] memory _slotNumbers, string[] memory _slotNames)`
 - **Access:** Only callable by MPC network
 - **Purpose:** Deploys new CTMRWA1 instance on destination chain
 - **Parameters:**
+  - `_version`: Version of RWA (1 for current)
   - `_newAdminStr`: New admin address as string
   - `_ID`: RWA ID
   - `_tokenName`, `_symbol`, `_decimals`, `_baseURI`: Token metadata
@@ -140,22 +140,24 @@ This contract is only deployed ONCE on each chain and manages all CTMRWA1 contra
 
 ### Admin Management Functions
 
-#### `changeTokenAdmin(string memory _newAdminStr, string[] memory _toChainIdsStr, uint256 _ID, string memory _feeTokenStr)`
+#### `changeTokenAdmin(string memory _newAdminStr, string[] memory _toChainIdsStr, uint256 _ID, uint256 _version, string memory _feeTokenStr)`
 - **Purpose:** Changes tokenAdmin address across multiple chains
 - **Parameters:**
   - `_newAdminStr`: New tokenAdmin as string
   - `_toChainIdsStr`: Array of chainID strings (includes local chain)
   - `_ID`: RWA ID
+  - `_version`: Version of the RWA contract
   - `_feeTokenStr`: Fee token address as string
 - **Access:** Only callable by current tokenAdmin
 - **Note:** To lock RWA, set `_newAdminStr` to `address(0).toHexString()`
 - **Returns:** True if change successful
 
-#### `adminX(uint256 _ID, string memory _oldAdminStr, string memory _newAdminStr)`
+#### `adminX(uint256 _ID, uint256 _version, string memory _oldAdminStr, string memory _newAdminStr)`
 - **Access:** Only callable by MPC network
 - **Purpose:** Changes tokenAdmin of RWA on a specific chain
 - **Parameters:**
   - `_ID`: RWA ID
+  - `_version`: Version of the RWA contract
   - `_oldAdminStr`: Old admin address as string
   - `_newAdminStr`: New admin address as string
 - **Returns:** True if change successful
@@ -201,10 +203,11 @@ This contract is only deployed ONCE on each chain and manages all CTMRWA1 contra
 
 ### Slot Management Functions
 
-#### `createNewSlot(uint256 _ID, uint256 _slot, string memory _slotName, string[] memory _toChainIdsStr, string memory _feeTokenStr)`
+#### `createNewSlot(uint256 _ID, uint256 _version, uint256 _slot, string memory _slotName, string[] memory _toChainIdsStr, string memory _feeTokenStr)`
 - **Purpose:** Creates a new Asset Class (slot) across multiple chains
 - **Parameters:**
   - `_ID`: RWA ID
+  - `_version`: Version of the RWA contract
   - `_slot`: New slot number (must be unique)
   - `_slotName`: Name of new Asset Class (max 256 characters)
   - `_toChainIdsStr`: Array of chainID strings (includes local chain)
@@ -212,11 +215,12 @@ This contract is only deployed ONCE on each chain and manages all CTMRWA1 contra
 - **Access:** Only callable by tokenAdmin
 - **Returns:** True if slot creation successful
 
-#### `createNewSlotX(uint256 _ID, string memory _fromAddressStr, uint256 _slot, string memory _slotName)`
+#### `createNewSlotX(uint256 _ID, uint256 _version, string memory _fromAddressStr, uint256 _slot, string memory _slotName)`
 - **Access:** Only callable by MPC network
 - **Purpose:** Creates new slot for RWA on a specific chain
 - **Parameters:**
   - `_ID`: RWA ID
+  - `_version`: Version of the RWA contract
   - `_fromAddressStr`: Source address as string
   - `_slot`: Slot number
   - `_slotName`: Slot name
