@@ -53,6 +53,7 @@ interface ICTMRWA1X {
     error CTMRWA1X_SameChain();
 
     // Permissions
+    error CTMRWA1X_InvalidID(uint256);
     error CTMRWA1X_InvalidList(CTMRWAErrorParam);
     error CTMRWA1X_KYCEnabled();
     error CTMRWA1X_FailedTransfer();

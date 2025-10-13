@@ -156,7 +156,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         onlyRwaX
         returns (address, address, address, address)
     {
-        address tokenAddr = ICTMRWA1TokenFactory(tokenFactory[_rwaType][_version]).deploy(deployData);
+        address tokenAddr = ICTMRWA1TokenFactory(tokenFactory[_rwaType][_version]).deploy(_rwaType, _version, deployData);
 
         if (ICTMRWA1(tokenAddr).RWA_TYPE() != _rwaType) {
             revert CTMRWADeployer_IncompatibleRWA(CTMRWAErrorParam.Type);

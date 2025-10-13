@@ -9,6 +9,9 @@ interface ICTMRWADeployInvest {
     error CTMRWADeployInvest_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
     error CTMRWADeployInvest_IsZeroAddress(CTMRWAErrorParam);
     error CTMRWADeployInvest_FailedTransfer();
+    error CTMRWADeployInvest_InvalidVersion(uint256);
+    error CTMRWADeployInvest_InvalidRWAType(uint256);
+    
 
     function commissionRate() external view returns (uint256);
 

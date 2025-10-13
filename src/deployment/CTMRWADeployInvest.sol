@@ -6,6 +6,7 @@ import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
 import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
+import { ICTMRWA1InvestWithTimeLock } from "./ICTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -99,6 +100,14 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
 
         CTMRWA1InvestWithTimeLock newInvest =
             new CTMRWA1InvestWithTimeLock{ salt: salt }(_ID, ctmRwaMap, commissionRate, feeManager);
+
+        if (_version != ICTMRWA1InvestWithTimeLock(newInvest).VERSION()) {
+            revert CTMRWADeployInvest_InvalidVersion(_version);
+        }
+        if (_rwaType != ICTMRWA1InvestWithTimeLock(newInvest).RWA_TYPE()) {
+            revert CTMRWADeployInvest_InvalidRWAType(_rwaType);
+        }
+       
 
         return (address(newInvest));
     }

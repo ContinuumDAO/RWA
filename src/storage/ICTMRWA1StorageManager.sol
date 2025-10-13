@@ -17,7 +17,9 @@ interface ICTMRWA1StorageManager  {
     error CTMRWA1StorageManager_StartNonce();
     error CTMRWA1StorageManager_FailedTransfer();
     error CTMRWA1StorageManager_InvalidVersion(uint256);
-
+    error CTMRWA1StorageManager_InvalidID(uint256);
+    error CTMRWA1StorageManager_InvalidRWAType(uint256);
+    
     function LATEST_VERSION() external view returns (uint256);
     function RWA_TYPE() external view returns (uint256);
     function updateLatestVersion(uint256 _newVersion) external;

@@ -170,6 +170,15 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         returns (address)
     {
         address storageAddr = ICTMRWA1StorageUtils(utilsAddr).deployStorage(_ID, _tokenAddr, _rwaType, _version, _map);
+        
+        // Verify that the deployed storage contract is for the correct version, RWA type
+        if (_version != ICTMRWA1Storage(storageAddr).VERSION()) {
+            revert CTMRWA1StorageManager_InvalidVersion(_version);
+        }
+
+        if (_rwaType != ICTMRWA1Storage(storageAddr).RWA_TYPE()) {
+            revert CTMRWA1StorageManager_InvalidRWAType(_rwaType);
+        }
 
         return (storageAddr);
     }

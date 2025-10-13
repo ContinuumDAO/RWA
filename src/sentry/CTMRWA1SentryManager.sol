@@ -205,6 +205,19 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     {
         address sentryAddr = ICTMRWA1SentryUtils(utilsAddr).deploySentry(_ID, _tokenAddr, _rwaType, _version, _map);
 
+        // Verify that the deployed sentry contract is for the correct version, RWA type
+        if (_version != ICTMRWA1Sentry(sentryAddr).VERSION()) {
+            revert CTMRWA1SentryManager_InvalidVersion(_version);
+        }
+
+        if (_rwaType != ICTMRWA1Sentry(sentryAddr).RWA_TYPE()) {
+            revert CTMRWA1SentryManager_InvalidRWAType(_rwaType);
+        }
+
+        if (RWA_TYPE != ICTMRWA1Sentry(sentryAddr).RWA_TYPE()) {
+            revert CTMRWA1SentryManager_InvalidRWAType(RWA_TYPE);
+        }
+
         return (sentryAddr);
     }
 

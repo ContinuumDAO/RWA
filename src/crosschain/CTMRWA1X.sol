@@ -268,6 +268,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             ctmRwa1Addr =
                 _deployCTMRWA1Local(ID, _version, _tokenName, _symbol, _decimals, baseURI, slotNumbers, slotNames, currentAdmin);
 
+            if (ID != ICTMRWA1(ctmRwa1Addr).ID()) {
+                revert CTMRWA1X_InvalidID(ID);
+            }
+
             emit CreateNewCTMRWA1(ID);
         } else {
             // a CTMRWA1 token must be deployed already, so use the existing ID

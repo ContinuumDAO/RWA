@@ -19,6 +19,8 @@ interface ICTMRWA1SentryManager {
     error CTMRWA1SentryManager_InvalidLength(CTMRWAErrorParam);
     error CTMRWA1SentryManager_FailedTransfer();
     error CTMRWA1SentryManager_InvalidVersion(uint256);
+    error CTMRWA1SentryManager_InvalidRWAType(uint256);
+    error CTMRWA1SentryManager_InvalidID(uint256);
 
     error CTMRWA1SentryManager_InvalidList(CTMRWAErrorParam);
 

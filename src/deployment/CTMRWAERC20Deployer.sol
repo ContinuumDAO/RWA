@@ -96,6 +96,16 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
 
         CTMRWAERC20 newErc20 = new CTMRWAERC20{ salt: salt }(_ID, _rwaType, _version, _slot, _name, ICTMRWA1(ctmRwaToken).symbol(), ctmRwaMap);
 
+        if (_version != newErc20.VERSION()) {
+            revert CTMRWAERC20Deployer_InvalidVersion(_version);
+        }
+        if (_rwaType != newErc20.RWA_TYPE()) {
+            revert CTMRWAERC20Deployer_InvalidRWAType(_rwaType);
+        }
+        if (_slot != newErc20.slot()) {
+            revert CTMRWAERC20Deployer_InvalidSlot(_slot);
+        }
+
         ICTMRWA1(ctmRwaToken).setErc20(address(newErc20), _slot);
 
         return (address(newErc20));
