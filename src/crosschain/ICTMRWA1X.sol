@@ -2,11 +2,16 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA } from "../core/ICTMRWA.sol";
+// import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { SlotData } from "../core/ICTMRWA1.sol";
 import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1X {
+
+    function LATEST_VERSION() external view returns (uint256);
+    function RWA_TYPE() external view returns (uint256);
+
+
     /// @dev New c3call for CTMRWA1 deployment on destination chain toChainIdStr
     event DeployCTMRWA1(uint256 ID, string toChainIdStr);
 
@@ -52,6 +57,7 @@ interface ICTMRWA1X {
     error CTMRWA1X_KYCEnabled();
     error CTMRWA1X_FailedTransfer();
 
+    function updateLatestVersion(uint256 _newVersion) external;
     function isMinter(address) external returns (bool);
     function changeMinterStatus(address minter, bool set) external;
 

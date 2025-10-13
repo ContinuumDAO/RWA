@@ -21,6 +21,8 @@ contract MockCTMRWA1StorageManagerV2 is CTMRWA1StorageManager {
 
     function initializeV2(uint256 _newVersion) external reinitializer(uint64(_newVersion)) {
         newVersion = _newVersion;
+        // Simulate bumping the latest token version during an upgrade
+        LATEST_VERSION = _newVersion;
     }
 
     function newFunction() external pure returns (string memory) {
@@ -75,7 +77,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         address initialMap = storageManager.ctmRwa1Map();
         address initialUtils = storageManager.utilsAddr();
         uint256 initialRwaType = storageManager.RWA_TYPE();
-        uint256 initialVersion = 1; // CTMRWA1StorageManager VERSION
+        uint256 initialLatestVersion = storageManager.LATEST_VERSION();
 
         // Upgrade the proxy
         vm.startPrank(gov);
@@ -88,7 +90,8 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         assertEq(storageManager.ctmRwa1Map(), initialMap, "Map should be preserved");
         assertEq(storageManager.utilsAddr(), initialUtils, "Utils should be preserved");
         assertEq(storageManager.RWA_TYPE(), initialRwaType, "RWA_TYPE should be preserved");
-        assertTrue(true, "StorageManager upgrade completed successfully");
+        // Verify LATEST_VERSION was updated by the upgrade initializer
+        assertEq(storageManager.LATEST_VERSION(), 42, "LATEST_VERSION should be bumped to new initializer version");
 
         // Verify new functionality works
         MockCTMRWA1StorageManagerV2(address(storageManager)).newFunction();
@@ -389,5 +392,105 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         assertTrue(true, "UUPS functionality should be preserved");
+    }
+
+    function test_updateLatestVersion_basic_functionality() public {
+        // Test basic updateLatestVersion functionality
+        uint256 initialVersion = storageManager.LATEST_VERSION();
+        assertEq(initialVersion, 1, "Initial version should be 1");
+
+        // Update to version 5
+        vm.prank(gov);
+        storageManager.updateLatestVersion(5);
+        assertEq(storageManager.LATEST_VERSION(), 5, "Version should be updated to 5");
+
+        // Update to version 10
+        vm.prank(gov);
+        storageManager.updateLatestVersion(10);
+        assertEq(storageManager.LATEST_VERSION(), 10, "Version should be updated to 10");
+    }
+
+    function test_updateLatestVersion_unauthorized_reverts() public {
+        // Test that non-governance addresses cannot update version
+        vm.prank(user1);
+        vm.expectRevert();
+        storageManager.updateLatestVersion(5);
+    }
+
+    function test_updateLatestVersion_after_upgrade() public {
+        // Store initial version
+        uint256 initialVersion = storageManager.LATEST_VERSION();
+        assertEq(initialVersion, 1, "Initial version should be 1");
+
+        // Upgrade the proxy
+        MockCTMRWA1StorageManagerV2 newImpl = new MockCTMRWA1StorageManagerV2();
+        vm.startPrank(gov);
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
+        assertTrue(success, "upgradeToAndCall failed");
+        vm.stopPrank();
+
+        // Verify version was updated by the upgrade initializer
+        assertEq(storageManager.LATEST_VERSION(), 42, "Version should be updated by upgrade initializer");
+
+        // Test that updateLatestVersion still works after upgrade
+        vm.prank(gov);
+        storageManager.updateLatestVersion(100);
+        assertEq(storageManager.LATEST_VERSION(), 100, "Version should be updateable after upgrade");
+
+        // Test multiple updates after upgrade
+        vm.prank(gov);
+        storageManager.updateLatestVersion(200);
+        assertEq(storageManager.LATEST_VERSION(), 200, "Version should be updateable multiple times after upgrade");
+    }
+
+    function test_updateLatestVersion_preserves_other_state() public {
+        // Store initial state
+        address initialDeployer = storageManager.ctmRwaDeployer();
+        address initialMap = storageManager.ctmRwa1Map();
+        address initialUtils = storageManager.utilsAddr();
+        address initialGateway = storageManager.gateway();
+        address initialFeeManager = storageManager.feeManager();
+
+        // Update version
+        vm.prank(gov);
+        storageManager.updateLatestVersion(5);
+
+        // Verify other state is preserved
+        assertEq(storageManager.ctmRwaDeployer(), initialDeployer, "Deployer should be preserved");
+        assertEq(storageManager.ctmRwa1Map(), initialMap, "Map should be preserved");
+        assertEq(storageManager.utilsAddr(), initialUtils, "Utils should be preserved");
+        assertEq(storageManager.gateway(), initialGateway, "Gateway should be preserved");
+        assertEq(storageManager.feeManager(), initialFeeManager, "FeeManager should be preserved");
+        assertEq(storageManager.RWA_TYPE(), 1, "RWA_TYPE should be preserved");
+    }
+
+    function test_updateLatestVersion_with_zero_version_reverts() public {
+        // Test updating to version 0 (should revert)
+        vm.prank(gov);
+        vm.expectRevert();
+        storageManager.updateLatestVersion(0);
+    }
+
+    function test_updateLatestVersion_with_max_version() public {
+        // Test updating to a very large version number
+        uint256 maxVersion = type(uint256).max;
+        vm.prank(gov);
+        storageManager.updateLatestVersion(maxVersion);
+        assertEq(storageManager.LATEST_VERSION(), maxVersion, "Version should be updateable to max uint256");
+    }
+
+
+    function test_updateLatestVersion_multiple_updates() public {
+        // Test multiple sequential updates
+        vm.startPrank(gov);
+        storageManager.updateLatestVersion(2);
+        assertEq(storageManager.LATEST_VERSION(), 2, "First update should work");
+        
+        storageManager.updateLatestVersion(3);
+        assertEq(storageManager.LATEST_VERSION(), 3, "Second update should work");
+        
+        storageManager.updateLatestVersion(1);
+        assertEq(storageManager.LATEST_VERSION(), 1, "Third update should work");
+        vm.stopPrank();
     }
 }

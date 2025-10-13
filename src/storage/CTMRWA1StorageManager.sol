@@ -33,6 +33,9 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     using SafeERC20 for IERC20;
     using CTMRWAUtils for *;
 
+    /// @dev The latest version of RWA type
+    uint256 public LATEST_VERSION;
+
     /// @dev The address of the CTMRWADeployer contract on this chain
     address public ctmRwaDeployer;
 
@@ -67,7 +70,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         _;
     }
 
-
+    /// @dev Initialize the contract
     function initialize(
         address _gov,
         address _c3callerProxy,
@@ -78,6 +81,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         address _feeManager
     ) external initializer {
         __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        LATEST_VERSION = 1;
         ctmRwaDeployer = _ctmRwaDeployer;
         gateway = _gateway;
         feeManager = _feeManager;
@@ -85,6 +89,17 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+
+    /**
+     * @notice Governance can update the latest version
+     * @param _newVersion The new latest version
+     */
+    function updateLatestVersion(uint256 _newVersion) external onlyGov {
+        if (_newVersion == 0) {
+            revert CTMRWA1StorageManager_InvalidVersion(_newVersion);
+        }
+        LATEST_VERSION = _newVersion;
+    }
 
     /**
      * @notice Governance can change to a new CTMRWAGateway contract
@@ -389,7 +404,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         if (!ok) {
             revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Token);
         }
-        if (_version != ICTMRWA1(tokenAddr).VERSION()) {
+        if (_version > LATEST_VERSION || _version != ICTMRWA1(tokenAddr).VERSION()) {
             revert CTMRWA1StorageManager_InvalidVersion(_version);
         }
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();

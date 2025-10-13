@@ -397,6 +397,7 @@ contract TestInvest is Helpers {
         vm.startPrank(tokenAdmin);
         ICTMRWA1SentryManager(address(sentryManager)).setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false, // kyc
             false, // kyb

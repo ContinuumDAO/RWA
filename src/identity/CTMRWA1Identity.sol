@@ -112,12 +112,13 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
      * submit their credentials to the Verifier by calling the hasApproved function. If they pass,
      * then their wallet address is added tot he RWA token Whitelist via a call to CTMRWASentryManager
      * @param _ID The ID of the RWA token
+     * @param _version The version of the RWA token
      * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * @return success True if the person was verified, false otherwise.
      */
-    function verifyPerson(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr)
+    function verifyPerson(uint256 _ID, uint256 _version, string[] memory _chainIdsStr, string memory _feeTokenStr)
         public
         onlyIdChain
         nonReentrant
@@ -127,7 +128,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
             revert CTMRWA1Identity_IsZeroAddress(CTMRWAErrorParam.ZKMe);
         }
 
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1Identity_InvalidContract(CTMRWAErrorParam.Sentry);
         }
@@ -153,7 +154,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
         _payFee(_feeTokenStr);
 
         ICTMRWA1SentryManager(sentryManager).addWhitelist(
-            _ID, msg.sender.toHexString()._stringToArray(), CTMRWAUtils._boolToArray(true), _chainIdsStr, _feeTokenStr
+            _ID, _version, msg.sender.toHexString()._stringToArray(), CTMRWAUtils._boolToArray(true), _chainIdsStr, _feeTokenStr
         );
 
         return (true);
@@ -172,11 +173,14 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
     /**
      * @notice Check if a wallet address has the correct credentials to satisfy the Schema of
      * the currently implemeted zkMe programNo.
+     * @param _ID The ID of the RWA token
+     * @param _version The version of the RWA token
+     * @param _wallet The wallet address to check
      * NOTE that since the zkMe parameters can be updated, a user wallet can change its status
      * NOTE This function does NOT check if a wallet address is currently Whitelisted
      */
-    function isVerifiedPerson(uint256 _ID, address _wallet) public view onlyIdChain returns (bool) {
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, VERSION);
+    function isVerifiedPerson(uint256 _ID, uint256 _version, address _wallet) public view onlyIdChain returns (bool) {
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwa1Map).getSentryContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1Identity_InvalidContract(CTMRWAErrorParam.Sentry);
         }

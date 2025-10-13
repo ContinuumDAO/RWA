@@ -37,6 +37,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
 
+    /// @dev The latest version of RWA type
+    uint256 public LATEST_VERSION;
+
     /// @dev The address of the CTMRWAGateway contract
     address public gateway;
 
@@ -81,6 +84,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     ) external initializer {
         __ReentrancyGuard_init();
         __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        LATEST_VERSION = 1;
         gateway = _gateway;
         feeManager = _feeManager;
         cIdStr = cID().toString();
@@ -88,6 +92,17 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+
+    /**
+     * @notice Governance can update the latest version
+     * @param _newVersion The new latest version
+     */
+    function updateLatestVersion(uint256 _newVersion) external onlyGov {
+        if (_newVersion == 0) {
+            revert CTMRWA1X_InvalidVersion(_newVersion);
+        }
+        LATEST_VERSION = _newVersion;
+    }
 
     /**
      * @notice Governance adds or removes a router able to bridge tokens or value cross-chain
@@ -237,6 +252,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         string[] memory slotNames;
 
         if (_includeLocal) {
+            // Restrict new CTMRWA1 tokens to be deployed to the latest version
+            if (_version != LATEST_VERSION) {
+                revert CTMRWA1X_InvalidVersion(_version);
+            }
             // generate a new ID
             ID = uint256(keccak256(abi.encode(_tokenName, _symbol, _decimals, block.timestamp, msg.sender)));
 
@@ -903,7 +922,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         if (!ok) {
             revert CTMRWA1X_InvalidContract(CTMRWAErrorParam.Token);
         }
-        if (_version != ICTMRWA1(tokenAddr).VERSION()) {
+        if (_version > LATEST_VERSION || _version != ICTMRWA1(tokenAddr).VERSION()) {
             revert CTMRWA1X_InvalidVersion(_version);
         }
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();

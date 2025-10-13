@@ -22,6 +22,8 @@ contract MockCTMRWA1XV2 is CTMRWA1X {
 
     function initializeVX(uint256 _newVersion) external reinitializer(uint64(_newVersion)) {
         newVersion = _newVersion;
+        // Simulate bumping the latest token version during an upgrade
+        LATEST_VERSION = _newVersion;
     }
 
     function newFunction() external pure returns (string memory) {
@@ -80,6 +82,9 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Verify new functionality works
         MockCTMRWA1XV2(address(rwa1X)).newFunction();
         assertEq(MockCTMRWA1XV2(address(rwa1X)).newVersion(), 42, "New version should be set");
+        // Verify LATEST_VERSION was updated by the upgrade initializer and RWA_TYPE preserved
+        assertEq(rwa1X.LATEST_VERSION(), 42, "LATEST_VERSION should be bumped to new initializer version");
+        assertEq(rwa1X.RWA_TYPE(), 1, "RWA_TYPE should be preserved");
     }
 
     function test_upgrade_proxy_without_initialization() public {
@@ -417,5 +422,112 @@ contract CTMRWA1XUpgradesTest is Helpers {
         vm.stopPrank();
         // Verify fallback minter status is preserved
         assertEq(rwa1X.isMinter(fallbackAddr), fallbackMinterStatus, "Fallback minter status should be preserved");
+    }
+
+    function test_updateLatestVersion_basic_functionality() public {
+        // Test basic updateLatestVersion functionality
+        uint256 initialVersion = rwa1X.LATEST_VERSION();
+        assertEq(initialVersion, 1, "Initial version should be 1");
+
+        // Update to version 5
+        vm.prank(gov);
+        rwa1X.updateLatestVersion(5);
+        assertEq(rwa1X.LATEST_VERSION(), 5, "Version should be updated to 5");
+
+        // Update to version 10
+        vm.prank(gov);
+        rwa1X.updateLatestVersion(10);
+        assertEq(rwa1X.LATEST_VERSION(), 10, "Version should be updated to 10");
+    }
+
+    function test_updateLatestVersion_unauthorized_reverts() public {
+        // Test that non-governance addresses cannot update version
+        vm.prank(user1);
+        vm.expectRevert();
+        rwa1X.updateLatestVersion(5);
+    }
+
+    function test_updateLatestVersion_after_upgrade() public {
+        // Store initial version
+        uint256 initialVersion = rwa1X.LATEST_VERSION();
+        assertEq(initialVersion, 1, "Initial version should be 1");
+
+        // Upgrade the proxy
+        MockCTMRWA1XV2 newImpl = new MockCTMRWA1XV2();
+        vm.startPrank(gov);
+        (bool success, ) = address(rwa1X).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1XV2.initializeVX, (42))));
+        assertTrue(success, "upgradeToAndCall failed");
+        vm.stopPrank();
+
+        // Verify version was updated by the upgrade initializer
+        assertEq(rwa1X.LATEST_VERSION(), 42, "Version should be updated by upgrade initializer");
+
+        // Test that updateLatestVersion still works after upgrade
+        vm.prank(gov);
+        rwa1X.updateLatestVersion(100);
+        assertEq(rwa1X.LATEST_VERSION(), 100, "Version should be updateable after upgrade");
+
+        // Test multiple updates after upgrade
+        vm.prank(gov);
+        rwa1X.updateLatestVersion(200);
+        assertEq(rwa1X.LATEST_VERSION(), 200, "Version should be updateable multiple times after upgrade");
+    }
+
+    function test_updateLatestVersion_preserves_other_state() public {
+        // Store initial state
+        address initialGateway = rwa1X.gateway();
+        address initialFeeManager = rwa1X.feeManager();
+        address initialFallback = rwa1X.fallbackAddr();
+
+        // Update version
+        vm.prank(gov);
+        rwa1X.updateLatestVersion(5);
+
+        // Verify other state is preserved
+        assertEq(rwa1X.gateway(), initialGateway, "Gateway should be preserved");
+        assertEq(rwa1X.feeManager(), initialFeeManager, "FeeManager should be preserved");
+        assertEq(rwa1X.fallbackAddr(), initialFallback, "Fallback should be preserved");
+        assertEq(rwa1X.RWA_TYPE(), 1, "RWA_TYPE should be preserved");
+    }
+
+    function test_updateLatestVersion_with_zero_version_reverts() public {
+        // Test updating to version 0 (should revert)
+        vm.prank(gov);
+        vm.expectRevert();
+        rwa1X.updateLatestVersion(0);
+    }
+
+    function test_updateLatestVersion_with_max_version() public {
+        // Test updating to a very large version number
+        uint256 maxVersion = type(uint256).max;
+        vm.prank(gov);
+        rwa1X.updateLatestVersion(maxVersion);
+        assertEq(rwa1X.LATEST_VERSION(), maxVersion, "Version should be updateable to max uint256");
+    }
+
+    function test_updateLatestVersion_restricts_deployment_to_current_version() public {
+        // Update version to 2
+        vm.prank(gov);
+        rwa1X.updateLatestVersion(2);
+
+        // Verify that deployment with old version fails
+        vm.startPrank(tokenAdmin);
+        string[] memory toChainIdsStr = new string[](0);
+        vm.expectRevert();
+        rwa1X.deployAllCTMRWA1X(
+            true, // includeLocal
+            0, // existingID
+            1, // version (old version)
+            "Test Token",
+            "TEST",
+            18, // decimals
+            "GFLD", // baseURI
+            toChainIdsStr,
+            _toLower(addressToString(address(ctm)))
+        );
+        vm.stopPrank();
+
+        // Verify that LATEST_VERSION was updated correctly
+        assertEq(rwa1X.LATEST_VERSION(), 2, "LATEST_VERSION should be 2");
     }
 }

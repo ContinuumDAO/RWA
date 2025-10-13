@@ -32,31 +32,33 @@ contract MockZkMeVerify {
 contract ReentrantContract {
     CTMRWA1Identity identity;
     uint256 ID;
+    uint256 version;
     string[] chainIds;
     string feeTokenStr;
 
-    constructor(address _identity, uint256 _ID, string[] memory _chainIds, string memory _feeTokenStr) {
+    constructor(address _identity, uint256 _ID, uint256 _version, string[] memory _chainIds, string memory _feeTokenStr) {
         identity = CTMRWA1Identity(_identity);
         ID = _ID;
+        version = _version;
         chainIds = _chainIds;
         feeTokenStr = _feeTokenStr;
     }
 
     function attack() external {
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, version, chainIds, feeTokenStr);
     }
 
     // This function will be called during verifyPerson execution
     function onERC20Received(address, address, uint256, bytes calldata) external returns (bytes4) {
         // Try to reenter verifyPerson
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, version, chainIds, feeTokenStr);
         return this.onERC20Received.selector;
     }
 
     // Alternative reentrant attack using a fallback function
     receive() external payable {
         // Try to reenter verifyPerson
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, version, chainIds, feeTokenStr);
     }
 }
 
@@ -109,7 +111,7 @@ contract TestCTMRWA1Identity is Helpers {
         vm.stopPrank();
         
         // Deploy reentrant contract
-        reentrantContract = new ReentrantContract(address(identity), ID, chainIds, feeTokenStr);
+        reentrantContract = new ReentrantContract(address(identity), ID, VERSION, chainIds, feeTokenStr);
     }
 
     // --- Setters & Getters ---
@@ -135,9 +137,9 @@ contract TestCTMRWA1Identity is Helpers {
     function test_verifyPerson_nonReentrant() public {
         // Setup KYC
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, true, false, false, false, false, false, chainIds, feeTokenStr);
         vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0x1234));
+        sentryManager.setZkMeParams(ID, VERSION, "", "", address(0x1234));
         zkMe.setApproved(true);
         
         // The nonReentrant modifier ensures that if there were any reentrant calls,
@@ -145,50 +147,50 @@ contract TestCTMRWA1Identity is Helpers {
         // we verify that the modifier is working by ensuring the function completes normally
         // and that subsequent calls from the same user are properly handled
         vm.prank(user1);
-        bool ok = identity.verifyPerson(ID, chainIds, feeTokenStr);
+        bool ok = identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
         assertTrue(ok);
         
         // Verify that a second call from the same user is properly rejected (not due to reentrancy)
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_AlreadyWhitelisted.selector, user1));
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
     }
 
     function test_verifyPerson_reentrancyProtection_multipleCalls() public {
         // Setup KYC
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, true, false, false, false, false, false, chainIds, feeTokenStr);
         vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0x1234));
+        sentryManager.setZkMeParams(ID, VERSION, "", "", address(0x1234));
         zkMe.setApproved(true);
         
         // First call should succeed
         vm.prank(user1);
-        bool ok = identity.verifyPerson(ID, chainIds, feeTokenStr);
+        bool ok = identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
         assertTrue(ok);
         
         // Second call should fail (already whitelisted)
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_AlreadyWhitelisted.selector, user1));
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
     }
 
     function test_verifyPerson_reentrancyProtection_differentUsers() public {
         // Setup KYC
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, true, false, false, false, false, false, chainIds, feeTokenStr);
         vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0x1234));
+        sentryManager.setZkMeParams(ID, VERSION, "", "", address(0x1234));
         zkMe.setApproved(true);
         
         // User1 should succeed
         vm.prank(user1);
-        bool ok = identity.verifyPerson(ID, chainIds, feeTokenStr);
+        bool ok = identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
         assertTrue(ok);
         
         // User2 should also succeed (different user)
         vm.prank(user2);
-        ok = identity.verifyPerson(ID, chainIds, feeTokenStr);
+        ok = identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
         assertTrue(ok);
         
         // Both should be whitelisted
@@ -201,15 +203,15 @@ contract TestCTMRWA1Identity is Helpers {
     function test_verifyPerson_nonReentrant_protection() public {
         // Setup KYC
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, true, false, false, false, false, false, chainIds, feeTokenStr);
         vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0x1234));
+        sentryManager.setZkMeParams(ID, VERSION, "", "", address(0x1234));
         zkMe.setApproved(true);
         
         // Test that the nonReentrant modifier is present and working
         // by ensuring that the function can be called successfully and completes
         vm.prank(user1);
-        bool ok = identity.verifyPerson(ID, chainIds, feeTokenStr);
+        bool ok = identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
         assertTrue(ok);
         
         // The nonReentrant modifier ensures that if there were any reentrant calls,
@@ -225,7 +227,7 @@ contract TestCTMRWA1Identity is Helpers {
         vm.prank(gov);
         sentryManager.setIdentity(address(identity), address(0));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, CTMRWAErrorParam.ZKMe));
-        identity.isVerifiedPerson(ID, user1);
+        identity.isVerifiedPerson(ID, VERSION, user1);
     }
 
     // --- verifyPerson: all revert paths ---
@@ -233,7 +235,7 @@ contract TestCTMRWA1Identity is Helpers {
         vm.prank(gov);
         sentryManager.setIdentity(address(identity), address(0));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, CTMRWAErrorParam.ZKMe));
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
     }
 
     function test_verifyPerson_revertIfInvalidContract() public {
@@ -242,59 +244,59 @@ contract TestCTMRWA1Identity is Helpers {
         vm.expectRevert(
             abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_InvalidContract.selector, CTMRWAErrorParam.Sentry)
         );
-        identity.verifyPerson(badId, chainIds, feeTokenStr);
+        identity.verifyPerson(badId, VERSION, chainIds, feeTokenStr);
     }
 
     function test_verifyPerson_revertIfKYCDisabled() public {
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, false, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, false, false, false, false, false, false, chainIds, feeTokenStr);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_KYCDisabled.selector));
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
     }
 
     function test_verifyPerson_revertIfAlreadyWhitelisted() public {
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, true, false, false, false, false, false, chainIds, feeTokenStr);
         vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0x1234));
+        sentryManager.setZkMeParams(ID, VERSION, "", "", address(0x1234));
         vm.prank(user1);
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_AlreadyWhitelisted.selector, user1));
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
     }
 
     function test_verifyPerson_revertIfZeroCooperator() public {
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, true, false, false, false, false, false, chainIds, feeTokenStr);
         vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0));
+        sentryManager.setZkMeParams(ID, VERSION, "", "", address(0));
         vm.expectRevert(
             abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, CTMRWAErrorParam.Cooperator)
         );
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
     }
 
     function test_verifyPerson_revertIfInvalidKYC() public {
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, true, false, false, false, false, false, chainIds, feeTokenStr);
         vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0x1234));
+        sentryManager.setZkMeParams(ID, VERSION, "", "", address(0x1234));
         zkMe.setApproved(false);
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_InvalidKYC.selector, user1));
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
     }
     // --- verifyPerson: happy path ---
 
     function test_verifyPerson_success() public {
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, true, false, false, false, false, false, chainIds, feeTokenStr);
         vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0x1234));
+        sentryManager.setZkMeParams(ID, VERSION, "", "", address(0x1234));
         zkMe.setApproved(true);
         vm.prank(user1);
-        bool ok = identity.verifyPerson(ID, chainIds, feeTokenStr);
+        bool ok = identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
         assertTrue(ok);
         // User should now be whitelisted
         string memory userHex = user1.toHexString();
@@ -303,13 +305,13 @@ contract TestCTMRWA1Identity is Helpers {
 
     function test_verifyPerson_gasUsage() public {
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, true, false, false, false, false, false, chainIds, feeTokenStr);
         vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0x1234));
+        sentryManager.setZkMeParams(ID, VERSION, "", "", address(0x1234));
         zkMe.setApproved(true);
         vm.prank(user1);
         uint256 gasBefore = gasleft();
-        identity.verifyPerson(ID, chainIds, feeTokenStr);
+        identity.verifyPerson(ID, VERSION, chainIds, feeTokenStr);
         uint256 gasAfter = gasleft();
         uint256 gasUsed = gasBefore - gasAfter;
         // console.log("Gas used by verifyPerson (happy path):", gasUsed);
@@ -322,37 +324,37 @@ contract TestCTMRWA1Identity is Helpers {
         vm.expectRevert(
             abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_InvalidContract.selector, CTMRWAErrorParam.Sentry)
         );
-        identity.isVerifiedPerson(badId, user1);
+        identity.isVerifiedPerson(badId, VERSION, user1);
     }
 
     function test_isVerifiedPerson_revertIfKYCDisabled() public {
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, false, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, false, false, false, false, false, false, chainIds, feeTokenStr);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_KYCDisabled.selector));
-        identity.isVerifiedPerson(ID, user1);
+        identity.isVerifiedPerson(ID, VERSION, user1);
     }
 
     function test_isVerifiedPerson_revertIfZeroCooperator() public {
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, true, false, false, false, false, false, chainIds, feeTokenStr);
         vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0));
+        sentryManager.setZkMeParams(ID, VERSION, "", "", address(0));
         vm.expectRevert(
             abi.encodeWithSelector(ICTMRWA1Identity.CTMRWA1Identity_IsZeroAddress.selector, CTMRWAErrorParam.Cooperator)
         );
-        identity.isVerifiedPerson(ID, user1);
+        identity.isVerifiedPerson(ID, VERSION, user1);
     }
 
     function test_isVerifiedPerson_success() public {
         vm.prank(tokenAdmin);
-        sentryManager.setSentryOptions(ID, true, true, false, false, false, false, false, chainIds, feeTokenStr);
+        sentryManager.setSentryOptions(ID, VERSION, true, true, false, false, false, false, false, chainIds, feeTokenStr);
         vm.prank(tokenAdmin);
-        sentryManager.setZkMeParams(ID, "", "", address(0x1234));
+        sentryManager.setZkMeParams(ID, VERSION, "", "", address(0x1234));
         zkMe.setApproved(true);
-        bool ok = identity.isVerifiedPerson(ID, user1);
+        bool ok = identity.isVerifiedPerson(ID, VERSION, user1);
         assertTrue(ok);
         zkMe.setApproved(false);
-        ok = identity.isVerifiedPerson(ID, user1);
+        ok = identity.isVerifiedPerson(ID, VERSION, user1);
         assertFalse(ok);
     }
 }

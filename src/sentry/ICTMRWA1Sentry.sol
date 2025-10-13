@@ -9,6 +9,7 @@ interface ICTMRWA1Sentry is ICTMRWA {
     error CTMRWA1Sentry_Unauthorized(CTMRWAErrorParam, CTMRWAErrorParam);
     error CTMRWA1Sentry_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
     error CTMRWA1Sentry_InvalidID(uint256 expected, uint256 actual);
+    error CTMRWA1Sentry_InvalidVersion(uint256 expected, uint256 actual);
     error CTMRWA1Sentry_InvalidLength(CTMRWAErrorParam);
     error CTMRWA1Sentry_OutofBounds();
     error CTMRWA1Sentry_FailedTransfer();
@@ -34,6 +35,7 @@ interface ICTMRWA1Sentry is ICTMRWA {
 
     function setSentryOptionsLocal(
         uint256 ID,
+        uint256 version,
         bool whitelistOnly,
         bool kyc,
         bool kyb,
@@ -43,11 +45,11 @@ interface ICTMRWA1Sentry is ICTMRWA {
         bool countryBL
     ) external;
 
-    function setCountryListLocal(uint256 ID, string[] memory countryList, bool[] memory choices) external;
+    function setCountryListLocal(uint256 ID, uint256 version, string[] memory countryList, bool[] memory choices) external;
 
     function getWhitelistAddressAtIndx(uint256 _indx) external view returns (string memory);
     function getWhitelistLength() external returns (uint256);
 
     function isAllowableTransfer(string memory _user) external view returns (bool);
-    function setWhitelistSentry(uint256 ID, string[] memory _wallets, bool[] memory _choices) external;
+    function setWhitelistSentry(uint256 ID, uint256 version, string[] memory _wallets, bool[] memory _choices) external;
 }

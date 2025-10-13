@@ -24,9 +24,9 @@ interface ICTMRWA1Identity is ICTMRWA {
 
     function setZkMeVerifierAddress(address verifierAddress) external;
 
-    function verifyPerson(uint256 ID, string[] memory chainIdsStr, string memory feeTokenStr) external returns (bool);
+    function verifyPerson(uint256 ID, uint256 version, string[] memory chainIdsStr, string memory feeTokenStr) external returns (bool);
 
     function isKycChain() external view returns (bool);
 
-    function isVerifiedPerson(uint256 ID, address wallet) external view returns (bool);
+    function isVerifiedPerson(uint256 ID, uint256 version, address wallet) external view returns (bool);
 }
