@@ -236,6 +236,13 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
             revert CTMRWA1StorageManager_NoStorage();
         }
 
+        if (_uToCat(uint8(_uriCategory)) == URICategory.EMPTY) {
+            revert CTMRWA1StorageManager_InvalidCategory(_uriCategory);
+        }
+        if (_uToType(uint8(_uriType)) == URIType.EMPTY) {
+            revert CTMRWA1StorageManager_InvalidType(_uriType);
+        }
+
         uint256 fee;
         uint256 titleLength;
 
@@ -389,6 +396,14 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         uint256 len = _objectName.length;
 
         for (uint256 i = 0; i < len; i++) {
+            // Validate that the converted enum values are not EMPTY (invalid)
+            if (_uToCat(_uriCategory[i]) == URICategory.EMPTY) {
+                revert CTMRWA1StorageManager_InvalidCategory(URICategory.EMPTY);
+            }
+            if (_uToType(_uriType[i]) == URIType.EMPTY) {
+                revert CTMRWA1StorageManager_InvalidType(URIType.EMPTY);
+            }
+            
             ICTMRWA1Storage(storageAddr).addURILocal(
                 _ID,
                 _version,
@@ -500,6 +515,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
             feeType = FeeType.VIDEO;
         } else if (_uriCategory == URICategory.ICON) {
             feeType = FeeType.ICON;
+        } else {
+            feeType = FeeType.EMPTY;
         }
 
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, feeType, _feeTokenStr);
@@ -544,6 +561,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
             uriCategory = URICategory.VIDEO;
         } else if (_cat == 15) {
             uriCategory = URICategory.ICON;
+        } else {
+            uriCategory = URICategory.EMPTY;
         }
 
         return uriCategory;
@@ -557,6 +576,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
             uriType = URIType.CONTRACT;
         } else if (_type == 1) {
             uriType = URIType.SLOT;
+        } else {
+            uriType = URIType.EMPTY;
         }
 
         return uriType;

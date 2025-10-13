@@ -205,7 +205,6 @@ contract CTMRWA1XUpgradesTest is Helpers {
     function test_upgrade_proxy_preserves_constants() public {
         // Store initial constants
         uint256 initialRwaType = rwa1X.RWA_TYPE();
-        uint256 initialVersion = 1; // CTMRWA1X VERSION
         // string memory initialCIdStr = rwa1X.cIdStr(); // cIdStr is not public
         // Upgrade the proxy
         vm.prank(gov);

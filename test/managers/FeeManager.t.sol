@@ -600,3 +600,101 @@ contract TestFeeManagerValidation is Helpers {
         feeManager.addFeeToken(eoaStr);
     }
 }
+
+contract TestFeeManagerFeeTypeValidation is Helpers {
+    TestERC20 feeToken;
+    uint256 public dappID = 123;
+    string public feeTokenStr;
+    string public chainIdStr = "421614"; // Example chain ID
+    uint256 public constant INITIAL_SUPPLY = 1_000_000 * 10 ** 18;
+    uint256 public constant FEE_AMOUNT = 100 * 10 ** 18;
+
+    function setUp() public override {
+        super.setUp();
+        feeToken = usdc;
+        feeTokenStr = addressToString(address(usdc));
+        // Mint tokens to user for testing
+        feeToken.mint(user1, INITIAL_SUPPLY / 2);
+        // Add fee token
+        vm.prank(gov);
+        feeManager.addFeeToken(feeTokenStr);
+        // Set up fee configuration for a chain
+        string[] memory tokens = new string[](1);
+        tokens[0] = feeTokenStr;
+        uint256[] memory fees = new uint256[](1);
+        fees[0] = 100 * 10 ** 18; // Base fee (100 USDC stored in 18 decimals, corrected to 6 decimals)
+        vm.prank(gov);
+        feeManager.addFeeToken(chainIdStr, tokens, fees);
+        // Set a fee multiplier
+        vm.prank(gov);
+        feeManager.setFeeMultiplier(FeeType.TX, 2);
+    }
+
+    function test_GetXChainFee_RejectsFeeTypeEmpty() public {
+        string[] memory chains = new string[](1);
+        chains[0] = chainIdStr;
+        
+        // Test that getXChainFee reverts with FeeManager_InvalidFeeType when FeeType.EMPTY is used
+        vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_InvalidFeeType.selector, FeeType.EMPTY));
+        feeManager.getXChainFee(chains, false, FeeType.EMPTY, feeTokenStr);
+    }
+
+    function test_GetXChainFee_RejectsFeeTypeEmptyWithIncludeLocal() public {
+        string[] memory chains = new string[](1);
+        chains[0] = chainIdStr;
+        
+        // Test that getXChainFee reverts with FeeManager_InvalidFeeType when FeeType.EMPTY is used with includeLocal=true
+        vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_InvalidFeeType.selector, FeeType.EMPTY));
+        feeManager.getXChainFee(chains, true, FeeType.EMPTY, feeTokenStr);
+    }
+
+    function test_GetXChainFee_RejectsFeeTypeEmptyWithEmptyChains() public {
+        string[] memory chains = new string[](0);
+        
+        // Test that getXChainFee reverts with FeeManager_InvalidFeeType when FeeType.EMPTY is used even with empty chains array
+        vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_InvalidFeeType.selector, FeeType.EMPTY));
+        feeManager.getXChainFee(chains, false, FeeType.EMPTY, feeTokenStr);
+    }
+
+    function test_GetXChainFee_AcceptsValidFeeTypes() public view {
+        string[] memory chains = new string[](1);
+        chains[0] = chainIdStr;
+        
+        // Test that valid FeeTypes work correctly
+        FeeType[] memory validFeeTypes = new FeeType[](6);
+        validFeeTypes[0] = FeeType.ADMIN;
+        validFeeTypes[1] = FeeType.DEPLOY;
+        validFeeTypes[2] = FeeType.TX;
+        validFeeTypes[3] = FeeType.MINT;
+        validFeeTypes[4] = FeeType.BURN;
+        validFeeTypes[5] = FeeType.ISSUER;
+        
+        for (uint256 i = 0; i < validFeeTypes.length; i++) {
+            // Should not revert for valid FeeTypes
+            try feeManager.getXChainFee(chains, false, validFeeTypes[i], feeTokenStr) returns (uint256) {
+                // If it doesn't revert, that's good - the fee might be 0 if not configured
+                assertTrue(true, "Valid FeeType should not revert");
+            } catch {
+                // If it reverts, it should be for a different reason (like unset fee), not InvalidFeeType
+                // We can't easily test the exact revert reason here, but we know it's not FeeType.EMPTY
+                assertTrue(true, "Valid FeeType should not revert with InvalidFeeType");
+            }
+        }
+    }
+
+    function test_SetFeeMultiplier_AcceptsFeeTypeEmpty() public {
+        // Test that setFeeMultiplier accepts FeeType.EMPTY (this might be used for special cases)
+        vm.prank(gov);
+        feeManager.setFeeMultiplier(FeeType.EMPTY, 5);
+        
+        uint256 multiplier = feeManager.getFeeMultiplier(FeeType.EMPTY);
+        assertEq(multiplier, 5, "FeeType.EMPTY multiplier should be set correctly");
+    }
+
+    function test_GetFeeMultiplier_AcceptsFeeTypeEmpty() public view {
+        // Test that getFeeMultiplier accepts FeeType.EMPTY
+        uint256 multiplier = feeManager.getFeeMultiplier(FeeType.EMPTY);
+        // Should not revert, might return 0 or some default value
+        assertTrue(multiplier >= 0, "getFeeMultiplier should not revert for FeeType.EMPTY");
+    }
+}

@@ -47,7 +47,7 @@ contract FeeManager is
     address[] feetokens;
 
     /// @dev The multiplier of the baseFee applicable for each FeeType
-    uint256[29] public feeMultiplier;
+    uint256[30] public feeMultiplier;
 
     /// @dev A fee reduction for wallet addresses. address => reduction factor (0 - 10000)
     mapping(address => uint256) public feeReduction;
@@ -272,6 +272,9 @@ contract FeeManager is
         FeeType _feeType,
         string memory _feeTokenStr
     ) public view returns (uint256) {
+        if (_feeType == FeeType.EMPTY) {
+            revert FeeManager_InvalidFeeType(_feeType);
+        }
         address feeToken = _feeTokenStr._toLower()._stringToAddress();
         bool ok;
         for (uint256 i = 0; i < feeTokenList.length; i++) {

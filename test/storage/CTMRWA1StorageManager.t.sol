@@ -389,4 +389,232 @@ contract TestStorageManager is Helpers {
         );
         vm.stopPrank();
     }
+
+    // ============ VALIDATION TESTS ============
+    function test_addURI_InvalidURICategory() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        
+        // First add the required ISSUER/CONTRACT URI
+        string memory issuerData = "issuer data";
+        bytes32 issuerHash = keccak256(abi.encode(issuerData));
+        storageManager.addURI(
+            ID,
+            VERSION,
+            "issuer",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Issuer Information",
+            0,
+            issuerHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        
+        string memory randomData = "invalid category test";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+
+        // Test with URICategory.EMPTY - should revert with CTMRWA1StorageManager_InvalidCategory
+        // Note: We can't test with truly invalid enum values in Solidity (like 99) because
+        // Solidity won't allow casting invalid values to enums. The validation logic is
+        // designed to catch EMPTY enum values which represent invalid states.
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidCategory.selector, URICategory.EMPTY));
+        storageManager.addURI(
+            ID,
+            VERSION,
+            "1",
+            URICategory.EMPTY, // This represents an invalid category state
+            URIType.CONTRACT,
+            "Invalid Category Test",
+            0,
+            junkHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        vm.stopPrank();
+    }
+
+    function test_addURI_InvalidURIType() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        
+        // First add the required ISSUER/CONTRACT URI
+        string memory issuerData = "issuer data";
+        bytes32 issuerHash = keccak256(abi.encode(issuerData));
+        storageManager.addURI(
+            ID,
+            VERSION,
+            "issuer",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Issuer Information",
+            0,
+            issuerHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        
+        string memory randomData = "invalid type test";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+
+        // Test with URIType.EMPTY - should revert with CTMRWA1StorageManager_InvalidType
+        // Note: We can't test with truly invalid enum values in Solidity (like 99) because
+        // Solidity won't allow casting invalid values to enums. The validation logic is
+        // designed to catch EMPTY enum values which represent invalid states.
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidType.selector, URIType.EMPTY));
+        storageManager.addURI(
+            ID,
+            VERSION,
+            "1",
+            URICategory.ISSUER,
+            URIType.EMPTY, // This represents an invalid type state
+            "Invalid Type Test",
+            0,
+            junkHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        vm.stopPrank();
+    }
+
+    function test_addURI_BothInvalidCategoryAndType() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        string memory feeTokenStr = _toLower((address(usdc).toHexString()));
+        
+        // First add the required ISSUER/CONTRACT URI
+        string memory issuerData = "issuer data";
+        bytes32 issuerHash = keccak256(abi.encode(issuerData));
+        storageManager.addURI(
+            ID,
+            VERSION,
+            "issuer",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Issuer Information",
+            0,
+            issuerHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        
+        string memory randomData = "both invalid test";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+
+        // Test with both URICategory.EMPTY and URIType.EMPTY - should revert with CTMRWA1StorageManager_InvalidCategory first
+        // Note: We can't test with truly invalid enum values in Solidity (like 99) because
+        // Solidity won't allow casting invalid values to enums. The validation logic is
+        // designed to catch EMPTY enum values which represent invalid states.
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidCategory.selector, URICategory.EMPTY));
+        storageManager.addURI(
+            ID,
+            VERSION,
+            "1",
+            URICategory.EMPTY, // This represents an invalid category state
+            URIType.EMPTY, // This represents an invalid type state
+            "Both Invalid Test",
+            0,
+            junkHash,
+            _stringToArray(cIdStr),
+            feeTokenStr
+        );
+        vm.stopPrank();
+    }
+
+    function test_addURIX_InvalidURICategory() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        vm.stopPrank();
+
+        // First add the required ISSUER/CONTRACT URI via addURIX
+        string memory issuerData = "issuer data";
+        bytes32 issuerHash = keccak256(abi.encode(issuerData));
+        
+        vm.startPrank(address(c3caller));
+        storageManager.addURIX(
+            ID,
+            VERSION,
+            1,
+            _stringToArray("issuer"),
+            _uint8ToArray(uint8(URICategory.ISSUER)),
+            _uint8ToArray(uint8(URIType.CONTRACT)),
+            _stringToArray("Issuer Information"),
+            _uint256ToArray(0),
+            _uint256ToArray(block.timestamp),
+            _bytes32ToArray(issuerHash)
+        );
+        vm.stopPrank();
+
+        string memory randomData = "invalid category urix test";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+
+        vm.startPrank(address(c3caller));
+        // Test with invalid URICategory (99) in addURIX - should revert with CTMRWA1StorageManager_InvalidCategory
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidCategory.selector, URICategory.EMPTY));
+        storageManager.addURIX(
+            ID,
+            VERSION,
+            2,
+            _stringToArray("1"),
+            _uint8ToArray(99), // Invalid category that converts to EMPTY
+            _uint8ToArray(uint8(URIType.CONTRACT)),
+            _stringToArray("Invalid Category URIX Test"),
+            _uint256ToArray(0),
+            _uint256ToArray(block.timestamp),
+            _bytes32ToArray(junkHash)
+        );
+        vm.stopPrank();
+    }
+
+    function test_addURIX_InvalidURIType() public {
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        vm.stopPrank();
+
+        // First add the required ISSUER/CONTRACT URI via addURIX
+        string memory issuerData = "issuer data";
+        bytes32 issuerHash = keccak256(abi.encode(issuerData));
+        
+        vm.startPrank(address(c3caller));
+        storageManager.addURIX(
+            ID,
+            VERSION,
+            1,
+            _stringToArray("issuer"),
+            _uint8ToArray(uint8(URICategory.ISSUER)),
+            _uint8ToArray(uint8(URIType.CONTRACT)),
+            _stringToArray("Issuer Information"),
+            _uint256ToArray(0),
+            _uint256ToArray(block.timestamp),
+            _bytes32ToArray(issuerHash)
+        );
+        vm.stopPrank();
+
+        string memory randomData = "invalid type urix test";
+        bytes32 junkHash = keccak256(abi.encode(randomData));
+
+        vm.startPrank(address(c3caller));
+        // Test with invalid URIType (99) in addURIX - should revert with CTMRWA1StorageManager_InvalidType
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidType.selector, URIType.EMPTY));
+        storageManager.addURIX(
+            ID,
+            VERSION,
+            2,
+            _stringToArray("1"),
+            _uint8ToArray(uint8(URICategory.ISSUER)),
+            _uint8ToArray(99), // Invalid type that converts to EMPTY
+            _stringToArray("Invalid Type URIX Test"),
+            _uint256ToArray(0),
+            _uint256ToArray(block.timestamp),
+            _bytes32ToArray(junkHash)
+        );
+        vm.stopPrank();
+    }
 }

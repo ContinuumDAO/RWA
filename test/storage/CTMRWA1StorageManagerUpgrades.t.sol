@@ -77,7 +77,6 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         address initialMap = storageManager.ctmRwa1Map();
         address initialUtils = storageManager.utilsAddr();
         uint256 initialRwaType = storageManager.RWA_TYPE();
-        uint256 initialLatestVersion = storageManager.LATEST_VERSION();
 
         // Upgrade the proxy
         vm.startPrank(gov);
@@ -214,7 +213,6 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
     function test_upgrade_proxy_preserves_constants() public {
         // Store initial constants
         uint256 initialRwaType = storageManager.RWA_TYPE();
-        uint256 initialVersion = 1; // CTMRWA1StorageManager VERSION
         // Upgrade the proxy
         vm.prank(gov);
         (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));

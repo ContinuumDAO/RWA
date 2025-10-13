@@ -10,6 +10,8 @@ interface ICTMRWA1StorageManager  {
     error CTMRWA1StorageManager_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
     error CTMRWA1StorageManager_IsZeroAddress(CTMRWAErrorParam);
     error CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam);
+    error CTMRWA1StorageManager_InvalidCategory(URICategory);
+    error CTMRWA1StorageManager_InvalidType(URIType);
     error CTMRWA1StorageManager_NoStorage();
     error CTMRWA1StorageManager_ObjectAlreadyExists();
     error CTMRWA1StorageManager_InvalidLength(CTMRWAErrorParam);
@@ -19,7 +21,7 @@ interface ICTMRWA1StorageManager  {
     error CTMRWA1StorageManager_InvalidVersion(uint256);
     error CTMRWA1StorageManager_InvalidID(uint256);
     error CTMRWA1StorageManager_InvalidRWAType(uint256);
-    
+
     function LATEST_VERSION() external view returns (uint256);
     function RWA_TYPE() external view returns (uint256);
     function updateLatestVersion(uint256 _newVersion) external;

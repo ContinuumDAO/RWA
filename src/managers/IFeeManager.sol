@@ -32,10 +32,12 @@ enum FeeType {
     ERC20,
     DEPLOYINVEST,
     OFFERING,
-    INVEST
+    INVEST,
+    EMPTY
 }
 
 interface IFeeManager {
+    error FeeManager_InvalidFeeType(FeeType);
     error FeeManager_InvalidLength(CTMRWAErrorParam);
     error FeeManager_NonExistentToken(address);
     error FeeManager_FailedTransfer();
