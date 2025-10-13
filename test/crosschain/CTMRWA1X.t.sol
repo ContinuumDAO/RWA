@@ -43,7 +43,7 @@ contract ReentrantContract {
     function attackMint(uint256 _ID, string memory _feeTokenStr) external {
         if (attackCount < 3) {
             attackCount++;
-            rwa1X.mintNewTokenValueLocal(address(this), 0, 5, 1000, _ID, rwa1X.VERSION(), _feeTokenStr);
+            rwa1X.mintNewTokenValueLocal(address(this), 0, 5, 1000, _ID, 1, _feeTokenStr);
         }
     }
 

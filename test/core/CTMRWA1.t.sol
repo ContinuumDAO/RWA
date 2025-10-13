@@ -922,6 +922,7 @@ contract TestCTMRWA1 is Helpers {
 
         storageManager.addURI(
             ID,
+            VERSION,
             "2",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -943,6 +944,7 @@ contract TestCTMRWA1 is Helpers {
 
         storageManager.addURI(
             ID,
+            VERSION,
             "1",
             URICategory.LICENSE,
             URIType.CONTRACT,

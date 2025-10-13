@@ -49,6 +49,7 @@ contract CTMRWA1StorageUtilsTest is Helpers {
 
         storageManager.addURI(
             ID,
+            VERSION,
             "test_document_001",
             URICategory.ISSUER,
             URIType.CONTRACT,

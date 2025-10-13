@@ -36,10 +36,10 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     uint256 public ID;
 
     /// @dev version is the single integer version of this RWA type
-    uint256 public constant VERSION = 1;
+    uint256 public immutable VERSION = 1;
 
     /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 public constant RWA_TYPE = 1;
+    uint256 public immutable RWA_TYPE = 1;
 
     /// @dev tokenAdmin is the address of the wallet controlling the RWA, also known as the Issuer
     address public tokenAdmin;

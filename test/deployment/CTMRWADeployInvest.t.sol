@@ -131,7 +131,7 @@ contract TestInvest is Helpers {
         vm.stopPrank();
         
         vm.startPrank(tokenAdmin);
-        address investAddr = deployer.deployNewInvestment(ID, RWA_TYPE, rwa1X.VERSION(), address(usdc));
+        address investAddr = deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
         vm.stopPrank();
 
         // Get the actual investment contract from the map
@@ -161,7 +161,7 @@ contract TestInvest is Helpers {
             slotId, // slot
             1000e18, // value (1000 tokens)
             ID, // ID
-            rwa1X.VERSION(), // version
+            VERSION, // version
             feeTokenStr // feeTokenStr
         );
         vm.stopPrank();

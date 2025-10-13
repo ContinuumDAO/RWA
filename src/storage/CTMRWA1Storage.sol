@@ -158,6 +158,7 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      */
     function addURILocal(
         uint256 _ID,
+        uint256 _version,
         string memory _objectName,
         URICategory _uriCategory,
         URIType _uriType,
@@ -175,7 +176,7 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         }
 
         if (_uriType == URIType.SLOT) {
-            (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+            (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, _version);
             if (!ok) {
                 revert CTMRWA1Storage_InvalidContract(CTMRWAErrorParam.Token);
             }

@@ -34,6 +34,7 @@ contract TestStorageManager is Helpers {
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Storage.CTMRWA1Storage_IssuerNotFirst.selector));
         storageManager.addURI(
             ID,
+            VERSION,
             "1",
             URICategory.IMAGE,
             URIType.CONTRACT,
@@ -46,6 +47,7 @@ contract TestStorageManager is Helpers {
 
         storageManager.addURI(
             ID,
+            VERSION,
             "1",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -101,6 +103,7 @@ contract TestStorageManager is Helpers {
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_StartNonce.selector));
         storageManager.addURIX(
             ID,
+            VERSION,
             2, // incorrect nonce
             _stringToArray("1"),
             _uint8ToArray(uint8(_uriCategory)),
@@ -113,6 +116,7 @@ contract TestStorageManager is Helpers {
 
         storageManager.addURIX(
             ID,
+            VERSION,
             1,
             _stringToArray("1"),
             _uint8ToArray(uint8(_uriCategory)),
@@ -148,6 +152,7 @@ contract TestStorageManager is Helpers {
         // Should succeed for tokenAdmin
         storageManager.addURI(
             ID,
+            VERSION,
             "1",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -164,6 +169,7 @@ contract TestStorageManager is Helpers {
         vm.expectRevert();
         storageManager.addURI(
             ID,
+            VERSION,
             "2",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -190,6 +196,7 @@ contract TestStorageManager is Helpers {
         vm.expectRevert();
         storageManager.addURIX(
             ID,
+            VERSION,
             1,
             _stringToArray("1"),
             _uint8ToArray(uint8(_uriCategory)),
@@ -204,6 +211,7 @@ contract TestStorageManager is Helpers {
         vm.startPrank(address(c3caller));
         storageManager.addURIX(
             ID,
+            VERSION,
             1,
             _stringToArray("1"),
             _uint8ToArray(uint8(_uriCategory)),
@@ -226,6 +234,7 @@ contract TestStorageManager is Helpers {
         bytes32 junkHash = keccak256(abi.encode(randomData));
         storageManager.addURI(
             ID,
+            VERSION,
             "1",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -241,6 +250,7 @@ contract TestStorageManager is Helpers {
         bytes32 newHash = keccak256(abi.encode("nonce2"));
         storageManager.addURI(
             ID,
+            VERSION,
             "2",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -264,6 +274,7 @@ contract TestStorageManager is Helpers {
         bytes32 junkHash = keccak256(abi.encode(randomData));
         storageManager.addURI(
             ID,
+            VERSION,
             "1",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -277,6 +288,7 @@ contract TestStorageManager is Helpers {
         vm.expectRevert();
         storageManager.addURI(
             ID,
+            VERSION,
             "1",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -300,6 +312,7 @@ contract TestStorageManager is Helpers {
         uint256 gasBefore = gasleft();
         storageManager.addURI(
             ID,
+            VERSION,
             "1",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -327,6 +340,7 @@ contract TestStorageManager is Helpers {
         uint256 gasBefore = gasleft();
         storageManager.addURIX(
             ID,
+            VERSION,
             1,
             _stringToArray("1"),
             _uint8ToArray(uint8(_uriCategory)),
@@ -350,6 +364,7 @@ contract TestStorageManager is Helpers {
         bytes32 fuzzHash = keccak256(abi.encode(fuzzVal));
         storageManager.addURI(
             ID,
+            VERSION,
             "fuzz",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -370,7 +385,7 @@ contract TestStorageManager is Helpers {
         vm.startPrank(address(0));
         vm.expectRevert();
         storageManager.addURI(
-            0, "zero", URICategory.ISSUER, URIType.CONTRACT, "Zero Address", 0, bytes32(0), _stringToArray(cIdStr), ""
+            0, VERSION, "zero", URICategory.ISSUER, URIType.CONTRACT, "Zero Address", 0, bytes32(0), _stringToArray(cIdStr), ""
         );
         vm.stopPrank();
     }

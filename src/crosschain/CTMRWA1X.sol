@@ -41,10 +41,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     address public gateway;
 
     /// @dev rwaType is the RWA type defining CTMRWA1. It CANNOT be changed with proxy upgrades
-    uint256 public immutable RWA_TYPE;
-
-    /// @dev version is the single integer version of this RWA type
-    uint256 public constant VERSION = 1;
+    uint256 public immutable RWA_TYPE = 1;
 
     /// @dev The address of the FeeManager contract
     address public feeManager;
@@ -73,9 +70,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      */
     mapping(address => address[]) public ownedCtmRwa1;
 
-    constructor() {
-        RWA_TYPE = 1;
-    }
 
     function initialize(
         address _gateway,
@@ -364,7 +358,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
         string memory toChainIdStr = _toChainIdStr._toLower();
 
-        (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
+        (, string memory toRwaXStr) = _getRWAX(toChainIdStr, _version);
 
         string memory funcCall = "deployCTMRWA1(uint256,string,uint256,string,string,uint8,string,uint256[],string[])";
         bytes memory callData = abi.encodeWithSignature(
@@ -471,7 +465,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             if (toChainIdStr.equal(cIdStr)) {
                 _changeAdmin(currentAdmin, newAdmin, _ID, _version);
             } else {
-                (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
+                (, string memory toRwaXStr) = _getRWAX(toChainIdStr, _version);
 
                 funcCall = "adminX(uint256,uint256,string,string)";
                 callData = abi.encodeWithSignature(funcCall, _ID, _version, currentAdminStr, _newAdminStr);
@@ -607,7 +601,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         for (uint256 i = 0; i < len; i++) {
             toChainIdStr = _toChainIdsStr[i]._toLower();
             if (!cIdStr.equal(toChainIdStr)) {
-                (fromAddressStr, toRwaXStr) = _getRWAX(toChainIdStr);
+                (fromAddressStr, toRwaXStr) = _getRWAX(toChainIdStr, _version);
                 string memory funcCall = "createNewSlotX(uint256,uint256,string,uint256,string)";
                 bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _version, fromAddressStr, _slot, _slotName);
 
@@ -696,7 +690,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
             return newTokenId;
         } else {
-            (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr);
+            (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr, _version);
 
             ICTMRWA1(ctmRwa1Addr).spendAllowance(msg.sender, _fromTokenId, _value);
 
@@ -751,7 +745,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             ICTMRWA1(ctmRwa1Addr).approveFromX(toAddr, _fromTokenId);
             _updateOwnedCtmRwa1(toAddr, ctmRwa1Addr);
         } else {
-            (, string memory toRwaXStr) = _getRWAX(toChainIdStr);
+            (, string memory toRwaXStr) = _getRWAX(toChainIdStr, _version);
 
             _payFee(FeeType.TX, _feeTokenStr, toChainIdStr._stringToArray(), false);
 
@@ -920,14 +914,14 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     /// @dev Get the corresponding CTMRWA1X address on another chain with chainId _toChainIdStr
     /// @return fromAddressStr The address of the CTMRWA1X contract on this chain
     /// @return toRwaXStr The address of the CTMRWA1X contract on the destination chain
-    function _getRWAX(string memory _toChainIdStr) internal view returns (string memory, string memory) {
+    function _getRWAX(string memory _toChainIdStr, uint256 _version) internal view returns (string memory, string memory) {
         if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1X_SameChain();
         }
 
         string memory fromAddressStr = msg.sender.toHexString()._toLower();
 
-        (bool ok, string memory toRwaXStr) = ICTMRWAGateway(gateway).getAttachedRWAX(RWA_TYPE, VERSION, _toChainIdStr);
+        (bool ok, string memory toRwaXStr) = ICTMRWAGateway(gateway).getAttachedRWAX(RWA_TYPE, _version, _toChainIdStr);
         if (!ok) {
             revert CTMRWA1X_InvalidAttachmentState();
         }

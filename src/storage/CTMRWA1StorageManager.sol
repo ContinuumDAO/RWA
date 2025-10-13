@@ -42,11 +42,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     /// @dev The address of the CTMRWA1StorageUtils contract on this chain
     address public utilsAddr;
 
-    /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 public constant RWA_TYPE = 1;
-
-    /// @dev version is the single integer version of this RWA type
-    uint256 public constant VERSION = 1;
+    /// @dev rwaType is the RWA type defining CTMRWA1. It CANNOT be changed with proxy upgrades
+    uint256 public immutable RWA_TYPE = 1;
 
     /// @dev The address of the CTMRWAGateway contract
     address public gateway;
@@ -69,6 +66,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         }
         _;
     }
+
 
     function initialize(
         address _gov,
@@ -192,6 +190,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      */
     function addURI(
         uint256 _ID,
+        uint256 _version,
         string memory _objectName,
         URICategory _uriCategory,
         URIType _uriType,
@@ -201,12 +200,12 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Storage);
         }
 
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         _checkTokenAdmin(ctmRwa1Addr);
 
         if (bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length == 0) {
@@ -236,16 +235,17 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
 
             if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Storage(storageAddr).addURILocal(
-                    _ID, _objectName, _uriCategory, _uriType, _title, _slot, block.timestamp, _uriDataHash
+                    _ID, _version, _objectName, _uriCategory, _uriType, _title, _slot, block.timestamp, _uriDataHash
                 );
             } else {
-                (, string memory toRwaSMStr) = _getSM(chainIdStr);
+                (, string memory toRwaSMStr) = _getSM(chainIdStr, _version);
 
                 string memory funcCall =
-                    "addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])";
+                    "addURIX(uint256,uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])";
                 bytes memory callData = abi.encodeWithSignature(
                     funcCall,
                     _ID,
+                    _version,
                     startNonce,
                     _objectName._stringToArray(),
                     uint8(_uriCategory)._uint8ToArray(),
@@ -275,13 +275,13 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * NOTE For EVM chains, the address of the fee token must be converted to a string
      */
-    function transferURI(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr) public {
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
+    function transferURI(uint256 _ID, uint256 _version, string[] memory _chainIdsStr, string memory _feeTokenStr) public {
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Storage);
         }
 
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         _checkTokenAdmin(ctmRwa1Addr);
 
         if (bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length == 0) {
@@ -320,12 +320,12 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
             if (chainIdStr.equal(cIdStr)) {
                 revert CTMRWA1StorageManager_SameChain();
             } else {
-                (, string memory toRwaSMStr) = _getSM(chainIdStr);
+                (, string memory toRwaSMStr) = _getSM(chainIdStr, _version);
 
                 string memory funcCall =
-                    "addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])";
+                    "addURIX(uint256,uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])";
                 bytes memory callData = abi.encodeWithSignature(
-                    funcCall, _ID, startNonce, objectName, uriCategory, uriType, title, slot, timestamp, uriDataHash
+                    funcCall, _ID, _version, startNonce, objectName, uriCategory, uriType, title, slot, timestamp, uriDataHash
                 );
 
                 _c3call(toRwaSMStr, chainIdStr, callData);
@@ -342,6 +342,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      */
     function addURIX(
         uint256 _ID,
+        uint256 _version,
         uint256 _startNonce,
         string[] memory _objectName,
         uint8[] memory _uriCategory,
@@ -351,7 +352,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         uint256[] memory _timestamp,
         bytes32[] memory _uriDataHash
     ) external onlyCaller returns (bool) {
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Storage);
         }
@@ -366,6 +367,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         for (uint256 i = 0; i < len; i++) {
             ICTMRWA1Storage(storageAddr).addURILocal(
                 _ID,
+                _version,
                 _objectName[i],
                 _uToCat(_uriCategory[i]),
                 _uToType(_uriType[i]),
@@ -382,10 +384,13 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     }
 
     /// @dev Get the address of the CTMRWA1 corresponding to the _ID
-    function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+    function _getTokenAddr(uint256 _ID, uint256 _version) internal view returns (address, string memory) {
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Token);
+        }
+        if (_version != ICTMRWA1(tokenAddr).VERSION()) {
+            revert CTMRWA1StorageManager_InvalidVersion(_version);
         }
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
@@ -396,7 +401,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      * @dev  Get the address of the corresponding CTMRWA1StorageManager contract on another chain
      * with chainID (converted to a string) of _toChainIdStr
      */
-    function _getSM(string memory _toChainIdStr) internal view returns (string memory, string memory) {
+    function _getSM(string memory _toChainIdStr, uint256 _version) internal view returns (string memory, string memory) {
         if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1StorageManager_SameChain();
         }
@@ -404,7 +409,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         string memory fromAddressStr = msg.sender.toHexString()._toLower();
 
         (bool ok, string memory toSMStr) =
-            ICTMRWAGateway(gateway).getAttachedStorageManager(RWA_TYPE, VERSION, _toChainIdStr);
+            ICTMRWAGateway(gateway).getAttachedStorageManager(RWA_TYPE, _version, _toChainIdStr);
         if (!ok) {
             revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Storage);
         }

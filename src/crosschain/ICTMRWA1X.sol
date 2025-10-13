@@ -6,7 +6,7 @@ import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { SlotData } from "../core/ICTMRWA1.sol";
 import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 
-interface ICTMRWA1X is ICTMRWA {
+interface ICTMRWA1X {
     /// @dev New c3call for CTMRWA1 deployment on destination chain toChainIdStr
     event DeployCTMRWA1(uint256 ID, string toChainIdStr);
 

@@ -80,6 +80,7 @@ interface ICTMRWA1Storage is ICTMRWA {
 
     function addURILocal(
         uint256 ID,
+        uint256 version,
         string memory objectName,
         URICategory uriCategory,
         URIType uriType,
