@@ -66,7 +66,6 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
         address initialMap = sentryManager.ctmRwaMap();
         address initialUtils = sentryManager.utilsAddr();
         uint256 initialRwaType = sentryManager.RWA_TYPE();
-        uint256 initialLatestVersion = sentryManager.LATEST_VERSION();
 
         // Upgrade the proxy
         vm.startPrank(gov);

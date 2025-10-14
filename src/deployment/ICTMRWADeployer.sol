@@ -6,18 +6,27 @@ import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
 import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWADeployer {
+    // Events
+    event CommissionRateChanged(uint256 commissionRate);
+
+    // Errors
     error CTMRWADeployer_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
     error CTMRWADeployer_InvalidContract(CTMRWAErrorParam);
     error CTMRWADeployer_IncompatibleRWA(CTMRWAErrorParam);
     error CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam);
+    error CTMRWADeployer_CommissionRateOutOfBounds(CTMRWAErrorParam);
+    error CTMRWADeployer_CommissionRateIncreasedTooMuch(CTMRWAErrorParam);
+    error CTMRWADeployer_CommissionRateChangeTooSoon(CTMRWAErrorParam);
 
+    // Public functions
     function gateway() external view returns (address);
     function feeManager() external view returns (address);
     function rwaX() external view returns (address);
     function ctmRwaMap() external view returns (address);
     function erc20Deployer() external view returns (address);
     function deployInvest() external view returns (address);
-
+    function lastCommissionRateChange() external view returns (uint256);
+    function getInvestCommissionRate() external view returns (uint256);
     function tokenFactory(uint256 rwaType, uint256 version) external returns (address);
     function dividendFactory(uint256 rwaType, uint256 version) external returns (address);
     function storageFactory(uint256 rwaType, uint256 version) external returns (address);

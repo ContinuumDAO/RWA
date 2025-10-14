@@ -53,6 +53,9 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
     /// @dev The address of the CTMRWADeployInvest contract
     address public deployInvest;
 
+    /// @dev The timestamp of the last commission rate change
+    uint256 public lastCommissionRateChange;
+
     /// @dev Storage for the addresses of the CTMRWA1TokenFactory contracts
     mapping(uint256 => address[1_000_000_000]) public tokenFactory;
 
@@ -89,6 +92,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         feeManager = _feeManager;
         rwaX = _rwaX;
         ctmRwaMap = _map;
+        lastCommissionRateChange = 0;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
@@ -241,8 +245,41 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
 
     /// @dev Governance function to set the commission rate on funds raised
     /// @param _commissionRate ia number between 0 and 10000, so in 0.01% increments
+    /// @dev the commission rate can only be increased by 100 or more (1%)
+    /// @dev the commission rate can only be increased every 30 days, but can be decreased at any time
     function setInvestCommissionRate(uint256 _commissionRate) external onlyGov {
+        if (deployInvest == address(0)) {
+            revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.DeployInvest);
+        }
+
+        uint256 commissionRate = ICTMRWADeployInvest(deployInvest).commissionRate();
+
+        if (_commissionRate > 10000) {
+            revert CTMRWADeployer_CommissionRateOutOfBounds(CTMRWAErrorParam.Commission);
+        } else if (_commissionRate > commissionRate + 100) {
+            revert CTMRWADeployer_CommissionRateIncreasedTooMuch(CTMRWAErrorParam.Commission);
+        } else if (_commissionRate > commissionRate && lastCommissionRateChange != 0 && block.timestamp - lastCommissionRateChange < 30 days) {
+            revert CTMRWADeployer_CommissionRateChangeTooSoon(CTMRWAErrorParam.Commission);
+        }
+
         ICTMRWADeployInvest(deployInvest).setCommissionRate(_commissionRate);
+
+        lastCommissionRateChange = block.timestamp;
+        emit CommissionRateChanged(_commissionRate);
+    }
+
+    /// @dev Get the commission rate on funds raised
+    function getInvestCommissionRate() external view returns (uint256) {
+        return ICTMRWADeployInvest(deployInvest).commissionRate();
+    }
+
+    /// @dev Get the timestamp of the last commission rate change
+    function getLastCommissionRateChange() external view returns (uint256) {
+        if (deployInvest == address(0)) {
+            revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.DeployInvest);
+        }
+
+        return lastCommissionRateChange;
     }
 
     /**
