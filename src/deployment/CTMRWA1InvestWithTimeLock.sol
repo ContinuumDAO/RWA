@@ -3,6 +3,7 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
+import { ICTMRWA1Receiver } from "../core/ICTMRWA1Receiver.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
 import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
 import { FeeType, IERC20Extended, IFeeManager } from "../managers/IFeeManager.sol";
@@ -29,7 +30,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * Issuers can create multiple simultaneous Offerings.
  *
  */
-contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuard {
+contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ICTMRWA1Receiver, ReentrancyGuard {
     using Strings for *;
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
@@ -123,6 +124,20 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ReentrancyGuar
         ctmRwa1X = ICTMRWA1(ctmRwaToken).ctmRwa1X();
 
         cIdStr = block.chainid.toString();
+    }
+
+    /**
+     * @notice Handle receipt of CTMRWA1 value when this contract holds escrowed tokenIds
+     * @dev Return the required magic value to accept transfers. No state changes here.
+     */
+    function onCTMRWA1Received(
+        address /*_operator*/,
+        uint256 /*_fromTokenId*/,
+        uint256 /*_toTokenId*/,
+        uint256 /*_value*/,
+        bytes calldata /*_data*/
+    ) external pure override returns (bytes4) {
+        return ICTMRWA1Receiver.onCTMRWA1Received.selector;
     }
 
     /**

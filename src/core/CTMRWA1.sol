@@ -562,6 +562,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         override
         onlyRwa1X
         whenNotPaused
+        nonReentrant
         returns (uint256 newTokenId)
     {
         spendAllowance(msg.sender, _fromTokenId, _value);
@@ -1350,7 +1351,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     }
 
 
-    /// @dev A function called when _toTokenId receives some 'value'. Designed to be overriden
+    /// @dev A function called when _toTokenId receives some 'value'. Implements proper receiver checks
     /// @param _fromTokenId The tokenId that is sending the value
     /// @param _toTokenId The tokenId that is receiving the value
     /// @param _value The value being transferred
@@ -1361,14 +1362,21 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         virtual
         returns (bool)
     {
-        // Unused variables
-        _fromTokenId;
-        _toTokenId;
-        _value;
-        _data;
-
-        // Placeholder
-        return (true);
+        address toOwner = ownerOf(_toTokenId);
+        
+        // If recipient is an EOA (no code), allow the transfer
+        if (toOwner.code.length == 0) {
+            return true;
+        }
+        
+        // If recipient is a contract, check if it implements the receiver interface
+        try ICTMRWA1Receiver(toOwner).onCTMRWA1Received(msg.sender, _fromTokenId, _toTokenId, _value, _data) returns (bytes4 retval) {
+            // Must return the exact magic value
+            return retval == ICTMRWA1Receiver.onCTMRWA1Received.selector;
+        } catch {
+            // Contract doesn't implement the interface or reverted
+            return false;
+        }
     }
 
     /// @dev Increments the tokenId counter (does NOT create a new tokenId)
