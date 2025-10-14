@@ -246,6 +246,20 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
         address _storageAddr,
         address _sentryAddr
     ) external onlyDeployer {
+
+        if (_tokenAddr == address(0)) {
+            revert CTMRWAMap_IsZeroAddress(CTMRWAErrorParam.Token);
+        }
+        if (_dividendAddr == address(0)) {
+            revert CTMRWAMap_IsZeroAddress(CTMRWAErrorParam.Dividend);
+        }
+        if (_storageAddr == address(0)) {
+            revert CTMRWAMap_IsZeroAddress(CTMRWAErrorParam.Storage);
+        }
+        if (_sentryAddr == address(0)) {
+            revert CTMRWAMap_IsZeroAddress(CTMRWAErrorParam.Sentry);
+        }
+
         bool ok = _attachCTMRWAID(_ID, _tokenAddr, _dividendAddr, _storageAddr, _sentryAddr);
         if (!ok) {
             revert CTMRWAMap_AlreadyAttached(_ID, _tokenAddr);
@@ -280,6 +294,10 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
         onlyDeployer
         returns (bool)
     {
+        if (_investAddr == address(0)) {
+            revert CTMRWAMap_IsZeroAddress(CTMRWAErrorParam.Invest);
+        }
+
         string memory investAddrStr = _investAddr.toHexString()._toLower();
 
         _checkRwaTypeVersion(investAddrStr, _rwaType, _version);
