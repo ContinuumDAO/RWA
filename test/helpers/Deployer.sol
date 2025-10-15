@@ -12,7 +12,7 @@ import { C3UUIDKeeperUpgradeable } from "@c3caller/upgradeable/uuid/C3UUIDKeeper
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 
 import { CTMRWA1X } from "../../src/crosschain/CTMRWA1X.sol";
-import { CTMRWA1XFallback } from "../../src/crosschain/CTMRWA1XFallback.sol";
+import { CTMRWA1XUtils } from "../../src/crosschain/CTMRWA1XUtils.sol";
 import { CTMRWAGateway } from "../../src/crosschain/CTMRWAGateway.sol";
 
 import { CTMRWA1TokenFactory } from "../../src/deployment/CTMRWA1TokenFactory.sol";
@@ -47,7 +47,7 @@ contract Deployer is Utils {
     CTMRWAGateway gateway;
 
     CTMRWA1X rwa1X;
-    CTMRWA1XFallback rwa1XFallback;
+    CTMRWA1XUtils rwa1XUtils;
 
     CTMRWAMap map;
 
@@ -155,9 +155,9 @@ contract Deployer is Utils {
             )
         );
 
-        rwa1XFallback = new CTMRWA1XFallback(address(rwa1X));
-
-        rwa1X.setFallback(address(rwa1XFallback));
+        // Ensure CTMRWA1X knows deployer and map BEFORE deploying utils (constructor caches addresses)
+        // Set deployer and map early to avoid stale ctmRwaMap in utils
+        // NOTE: utils is deployed in _deployCTMRWADeployer after setCtmRwaMap completes
 
         string[] memory chainIdsStr = new string[](2);
         string[] memory rwaXsStr = new string[](2);
@@ -217,6 +217,10 @@ contract Deployer is Utils {
         deployer.setErc20DeployerAddress(address(ctmRwaErc20Deployer));
         rwa1X.setCtmRwaDeployer(address(deployer));
         rwa1X.setCtmRwaMap(address(map));
+
+        // Now that CTMRWA1X is fully wired, deploy utils so it reads correct map/fees in constructor
+        rwa1XUtils = new CTMRWA1XUtils(address(rwa1X));
+        rwa1X.setFallback(address(rwa1XUtils));
     }
 
     function _deployTokenFactory() internal {
@@ -299,7 +303,8 @@ contract Deployer is Utils {
             address(ctmRwaErc20Deployer),
             address(0), // identity - will be set by individual tests
             address(sentryManager),
-            address(storageManager)
+            address(storageManager),
+            address(rwa1XUtils)
         );
     }
 

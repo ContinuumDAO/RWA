@@ -234,7 +234,7 @@ other protocols, such as DEXes and Lending platforms.
 
 #### CTMRWA1X & ICTMRWA1X
 
-#### CTMRWA1XFallback & ICTMRWA1XFallback
+#### CTMRWA1XUtils & ICTMRWA1XUtils
 
 #### CTMRWAGateway & ICTMRWAGateway
 

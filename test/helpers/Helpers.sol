@@ -26,8 +26,8 @@ contract Helpers is Test, Accounts, Deployer, RWA {
         vm.deal(tokenAdmin, 100 ether);
         vm.deal(tokenAdmin2, 100 ether);
 
-        _dealAllERC20(address(usdc), _100_000);
-        _dealAllERC20(address(ctm), _100_000);
+        _dealAllERC20(address(usdc), _100_000 * 10);
+        _dealAllERC20(address(ctm), _100_000 * 10);
 
         vm.startPrank(gov);
 
@@ -54,8 +54,8 @@ contract Helpers is Test, Accounts, Deployer, RWA {
         deal(address(usdc), address(rwa1X), _100_000 * 10 ** usdc.decimals() * 2);
         deal(address(ctm), address(rwa1X), _100_000 * 10 ** ctm.decimals() * 2);
 
-        _approveAllERC20(address(usdc), _100_000 * 10, feeContracts);
-        _approveAllERC20(address(ctm), _100_000 * 10, feeContracts);
+        _approveAllERC20(address(usdc), _100_000 * 100, feeContracts);
+        _approveAllERC20(address(ctm), _100_000 * 100, feeContracts);
 
         // Give rwa1X contract self-approvals to spend its own tokens for fees
         vm.startPrank(address(rwa1X));

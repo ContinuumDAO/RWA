@@ -90,6 +90,7 @@ contract Accounts is Utils {
         }
         token.approve(feeContracts.sentryManager, amount);
         token.approve(feeContracts.storageManager, amount);
+        token.approve(feeContracts.rwa1XUtils, amount);
 
         vm.stopPrank();
     }

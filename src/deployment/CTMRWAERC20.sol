@@ -5,6 +5,7 @@ pragma solidity 0.8.27;
 import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
+import { ICTMRWA1XUtils } from "../crosschain/ICTMRWA1XUtils.sol";
 import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWAERC20 } from "./ICTMRWAERC20.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -256,7 +257,8 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
             if (ICTMRWA1(ctmRwaToken).getApproved(tokenId) == address(this)) {
                 tokenIdBal = ICTMRWA1(ctmRwaToken).balanceOf(tokenId);
 
-                uint256 newTokenId = ICTMRWA1X(ICTMRWA1(ctmRwaToken).ctmRwa1X()).mintFromXForERC20(ID, VERSION, _to, slot, slotName, 0);
+                address fallbackAddr = ICTMRWA1X(ICTMRWA1(ctmRwaToken).ctmRwa1X()).fallbackAddr();
+                uint256 newTokenId = ICTMRWA1XUtils(fallbackAddr).mintFromXForERC20(ID, VERSION, _to, slot, slotName);
 
                 if (tokenIdBal >= valRemaining) {
                     ICTMRWA1(ctmRwaToken).transferFrom(tokenId, newTokenId, valRemaining);

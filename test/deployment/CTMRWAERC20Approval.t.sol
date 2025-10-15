@@ -40,9 +40,9 @@ contract TestERC20Approval is Helpers {
         
         // Mint some test tokens
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        rwa1X.mintNewTokenValueLocal(user1, 0, testSlot, 1000, ID, VERSION, feeTokenStr);
-        rwa1X.mintNewTokenValueLocal(user1, 0, testSlot, 2000, ID, VERSION, feeTokenStr);
-        rwa1X.mintNewTokenValueLocal(user1, 0, testSlot, 3000, ID, VERSION, feeTokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, testSlot, 1000, ID, VERSION, feeTokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, testSlot, 2000, ID, VERSION, feeTokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, testSlot, 3000, ID, VERSION, feeTokenStr);
         
         // Get the tokenIds that were minted
         uint256 balance = ICTMRWA1(address(token)).balanceOf(user1);
@@ -100,7 +100,7 @@ contract TestERC20Approval is Helpers {
         // Create a tokenId in a slot without an ERC20 using tokenAdmin
         vm.startPrank(tokenAdmin);
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        rwa1X.mintNewTokenValueLocal(user1, 0, 3, 1000, ID, VERSION, feeTokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 3, 1000, ID, VERSION, feeTokenStr);
         vm.stopPrank();
         
         // Get the newly created tokenId
@@ -361,7 +361,7 @@ contract TestERC20Approval is Helpers {
         // Mint tokens for user2
         vm.startPrank(tokenAdmin);
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        rwa1X.mintNewTokenValueLocal(user2, 0, testSlot, 5000, ID, VERSION, feeTokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user2, 0, testSlot, 5000, ID, VERSION, feeTokenStr);
         vm.stopPrank();
         
         // Get user2's tokenId

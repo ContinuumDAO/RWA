@@ -91,12 +91,14 @@ interface ICTMRWA1 is ICTMRWA {
     function tokenAdmin() external returns (address);
     function pause() external;
     function unpause() external;
-    function isPaused() external view returns (bool);
     function setOverrideWallet(address overrideWallet) external;
     function overrideWallet() external returns (address);
     function ctmRwa1X() external returns (address);
-    function changeAdmin(address _admin) external returns (bool);
+    function changeAdmin(address _admin) external;
     function attachId(uint256 nextID, address tokenAdmin) external returns (bool);
+    function attachDividend(address _dividendAddr) external returns (bool);
+    function attachStorage(address _storageAddr) external returns (bool);
+    function attachSentry(address _sentryAddr) external returns (bool);
 
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
@@ -106,7 +108,6 @@ interface ICTMRWA1 is ICTMRWA {
         external
         view
         returns (uint256 id, uint256 bal, address owner, uint256 slot, string memory slotName, address admin);
-    function idOf(uint256 tokenId) external view returns (uint256);
     function slotNameOf(uint256 _tokenId) external view returns (string memory);
     function balanceOf(uint256 _tokenId) external view returns (uint256);
     function balanceOf(address owner) external view returns (uint256);
@@ -121,7 +122,6 @@ interface ICTMRWA1 is ICTMRWA {
     function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);
     function tokenSupplyInSlot(uint256 slot) external view returns (uint256);
     function totalSupplyInSlotAt(uint256 slot, uint256 timestamp) external view returns (uint256);
-    function tokenByIndex(uint256 index_) external view returns (uint256);
     function exists(uint256 tokenId) external view returns (bool);
 
     function createSlotX(uint256 _slot, string memory _slotName) external;
@@ -153,6 +153,7 @@ interface ICTMRWA1 is ICTMRWA {
 
     function dividendAddr() external view returns (address);
     function storageAddr() external view returns (address);
+    function ctmRwaMap() external view returns (address);
     function allSlotsIndex(uint256 slot) external view returns (uint256);
 
     function clearApprovedValuesFromERC20(uint256 _tokenId) external;
@@ -175,5 +176,5 @@ interface ICTMRWA1 is ICTMRWA {
     function transferFrom(uint256 fromTokenId, address to, uint256 value) external returns (uint256);
 
     function transferFrom(address fromAddr, address toAddr, uint256 fromTokenId) external;
-    function forceTransfer(address from, address to, uint256 tokenId) external returns (bool);
+    function forceTransfer(address from, address to, uint256 tokenId) external;
 }

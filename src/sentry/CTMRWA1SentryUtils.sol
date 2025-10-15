@@ -24,7 +24,7 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
 
     uint256 public immutable RWA_TYPE;
     uint256 public immutable VERSION;
-    address public ctmRwa1Map;
+    address public ctmRwaMap;
     address public sentryManager;
 
     bytes4 public lastSelector;
@@ -41,7 +41,7 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
     constructor(uint256 _rwaType, uint256 _version, address _map, address _sentryManager) {
         RWA_TYPE = _rwaType;
         VERSION = _version;
-        ctmRwa1Map = _map;
+        ctmRwaMap = _map;
         sentryManager = _sentryManager;
     }
 
@@ -93,7 +93,7 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
     /// @return tokenAddr The address of the CTMRWA1 contract
     /// @return tokenAddrStr The string version of the CTMRWA1 contract address
     function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, RWA_TYPE, VERSION);
         if (!ok) {
             revert CTMRWA1SentryUtils_InvalidContract(CTMRWAErrorParam.Token);
         }

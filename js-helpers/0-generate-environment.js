@@ -103,7 +103,7 @@ filteredChainDirs.forEach((chainId, chainIdIndex) => {
                             environment += `RWA1X_${chainId}=${contractAddress}\n`
                         }
                         break
-                    case "CTMRWA1XFallback":
+                    case "CTMRWA1XUtils":
                         environment += `RWA1X_FALLBACK_${chainId}=${contractAddress}\n`
                         break
                     case "CTMRWAMap":

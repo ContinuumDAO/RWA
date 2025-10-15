@@ -85,8 +85,8 @@ contract TestCTMRWA1 is Helpers {
         testSlot = 1;
         string memory tokenStr = _toLower((address(usdc).toHexString()));
 
-        testTokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, testSlot, 1000, ID, VERSION, tokenStr);
-        testTokenId2 = rwa1X.mintNewTokenValueLocal(user2, 0, testSlot, 1000, ID, VERSION, tokenStr);
+        testTokenId1 = rwa1XUtils.mintNewTokenValueLocal(user1, 0, testSlot, 1000, ID, VERSION, tokenStr);
+        testTokenId2 = rwa1XUtils.mintNewTokenValueLocal(user2, 0, testSlot, 1000, ID, VERSION, tokenStr);
 
         vm.stopPrank();
 
@@ -162,11 +162,11 @@ contract TestCTMRWA1 is Helpers {
         // Tokens are already deployed in setup, just verify the lists
         vm.stopPrank();
 
-        address[] memory adminTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        address[] memory adminTokens = rwa1XUtils.getAllTokensByAdminAddress(tokenAdmin, VERSION);
         assertEq(adminTokens.length, 1); // only one CTMRWA1 token deployed
         assertEq(address(token), adminTokens[0]);
 
-        address[] memory nRWA1 = rwa1X.getAllTokensByOwnerAddress(user1); // List of CTMRWA1 tokens that user1 has or
+        address[] memory nRWA1 = rwa1XUtils.getAllTokensByOwnerAddress(user1, VERSION); // List of CTMRWA1 tokens that user1 has or
             // still has tokens in
         assertEq(nRWA1.length, 1);
 
@@ -909,9 +909,9 @@ contract TestCTMRWA1 is Helpers {
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
 
-        uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, VERSION, tokenStr);
+        uint256 tokenId1User1 = rwa1XUtils.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, VERSION, tokenStr);
 
-        uint256 tokenId2User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, VERSION, tokenStr);
+        uint256 tokenId2User1 = rwa1XUtils.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, VERSION, tokenStr);
 
         // Licensed Security override not set up
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, CTMRWAErrorParam.Override));
@@ -1035,7 +1035,7 @@ contract TestCTMRWA1 is Helpers {
         // Mint a token for user1 in slot 1 (setUp already minted 1000 for user1 and 1000 for user2)
         vm.startPrank(tokenAdmin);
         string memory tokenStr = address(usdc).toHexString();
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
+        uint256 tokenId = rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
         vm.stopPrank();
 
         uint48 t1 = nowTs;
@@ -1047,7 +1047,7 @@ contract TestCTMRWA1 is Helpers {
         nowTs += 10;
         vm.warp(nowTs);
         vm.startPrank(tokenAdmin);
-        rwa1X.mintNewTokenValueLocal(user1, 0, 1, 500, ID, VERSION, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, 500, ID, VERSION, tokenStr);
         vm.stopPrank();
         uint48 t2 = nowTs;
         assertEq(token.balanceOf(user1, 1), 2500);
@@ -1065,7 +1065,7 @@ contract TestCTMRWA1 is Helpers {
         // Mint a token for user1 in slot 1 (setUp already minted 1000 for user1 and 1000 for user2)
         vm.startPrank(tokenAdmin);
         string memory tokenStr = address(usdc).toHexString();
-        rwa1X.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
         vm.stopPrank();
         uint48 t1 = nowTs;
         // After setUp: slot 1 has 2000. After this mint: slot 1 has 3000.
@@ -1075,7 +1075,7 @@ contract TestCTMRWA1 is Helpers {
         nowTs += 10;
         vm.warp(nowTs);
         vm.startPrank(tokenAdmin);
-        rwa1X.mintNewTokenValueLocal(user2, 0, 1, 500, ID, VERSION, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user2, 0, 1, 500, ID, VERSION, tokenStr);
         vm.stopPrank();
         uint48 t2 = nowTs;
         assertEq(token.totalSupplyInSlot(1), 3500);

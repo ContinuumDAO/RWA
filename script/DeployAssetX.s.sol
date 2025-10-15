@@ -6,7 +6,7 @@ import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
 
 import { CTMRWA1X } from "../flattened/crosschain/CTMRWA1X.sol";
-import { CTMRWA1XFallback } from "../flattened/crosschain/CTMRWA1XFallback.sol";
+import { CTMRWA1XUtils } from "../flattened/crosschain/CTMRWA1XUtils.sol";
 import { CTMRWAGateway } from "../flattened/crosschain/CTMRWAGateway.sol";
 
 import { CTMRWA1TokenFactory } from "../flattened/deployment/CTMRWA1TokenFactory.sol";
@@ -91,7 +91,7 @@ contract DeployAssetX is Script {
             )
         );
 
-        rwa1XFallback = address(new CTMRWA1XFallback(rwa1X));
+        rwa1XFallback = address(new CTMRWA1XUtils(rwa1X));
     }
 
     function _deployMap(uint256 dappID, address gov, address c3caller, address mpc) internal {

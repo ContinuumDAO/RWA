@@ -19,6 +19,7 @@ contract Utils is Test {
         address identity;
         address sentryManager;
         address storageManager;
+        address rwa1XUtils;
     }
 
     uint256 constant RWA_TYPE = 1;

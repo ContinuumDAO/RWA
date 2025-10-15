@@ -21,7 +21,7 @@ forge flatten src/core/CTMRWA1.sol --output flattened/core/CTMRWA1.sol
 
 # crosschain
 forge flatten src/crosschain/CTMRWA1X.sol --output flattened/crosschain/CTMRWA1X.sol
-forge flatten src/crosschain/CTMRWA1XFallback.sol --output flattened/crosschain/CTMRWA1XFallback.sol
+forge flatten src/crosschain/CTMRWA1XUtils.sol --output flattened/crosschain/CTMRWA1XUtils.sol
 forge flatten src/crosschain/CTMRWAGateway.sol --output flattened/crosschain/CTMRWAGateway.sol
 
 # deployment

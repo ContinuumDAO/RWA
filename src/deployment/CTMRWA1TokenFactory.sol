@@ -3,8 +3,7 @@
 pragma solidity 0.8.27;
 
 import { CTMRWA1 } from "../core/CTMRWA1.sol";
-import { ICTMRWA1, SlotData } from "../core/ICTMRWA1.sol";
-import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
+import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
 import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
 
@@ -56,31 +55,20 @@ contract CTMRWA1TokenFactory is ICTMRWA1TokenFactory {
             address ctmRwa1X
         ) = abi.decode(_deployData, (uint256, address, string, string, uint8, string, uint256[], string[], address));
 
-        CTMRWA1 ctmRwa1Token =
-            new CTMRWA1{ salt: bytes32(ID) }(admin, ctmRwaMap, tokenName, symbol, decimals, baseURI, ctmRwa1X);
-
-        address ctmRwa1Addr = address(ctmRwa1Token);
+        address ctmRwa1Addr = address(new CTMRWA1{ salt: bytes32(ID) }(admin, ctmRwaMap, tokenName, symbol, decimals, baseURI, ctmRwa1X));
 
         // Verify that the deployed token contract is for the correct version and RWA type
-
-        if (_rwaType != ICTMRWA1(ctmRwa1Addr).RWA_TYPE()) {
+        if (_rwaType != RWA_TYPE || ICTMRWA1(ctmRwa1Addr).RWA_TYPE() != RWA_TYPE) {
             revert CTMRWA1TokenFactory_InvalidRWAType(_rwaType);
         }
-        if (RWA_TYPE != ICTMRWA1(ctmRwa1Addr).RWA_TYPE()) {
-            revert CTMRWA1TokenFactory_InvalidRWAType(RWA_TYPE);
-        }
-
-        if (_version != ICTMRWA1(ctmRwa1Addr).VERSION()) {
+        if (_version != VERSION || ICTMRWA1(ctmRwa1Addr).VERSION() != VERSION) {
             revert CTMRWA1TokenFactory_InvalidVersion(_version);
-        }
-        if (VERSION != ICTMRWA1(ctmRwa1Addr).VERSION()) {
-            revert CTMRWA1TokenFactory_InvalidVersion(VERSION);
         }
 
         if (slotNumbers.length > 0) {
             ICTMRWA1(ctmRwa1Addr).initializeSlotData(slotNumbers, slotNames);
         }
 
-        return (ctmRwa1Addr);
+        return ctmRwa1Addr;
     }
 }

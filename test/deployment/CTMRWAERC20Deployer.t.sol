@@ -71,12 +71,12 @@ contract TestERC20Deployer is Helpers {
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
         usdc.approve(address(ctmRwaErc20Deployer), 100_000_000);
         address newErc20 = ctmRwaErc20Deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
-        rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, VERSION, feeTokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, VERSION, feeTokenStr);
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 2000);
         assertEq(ICTMRWAERC20(newErc20).totalSupply(), 2000);
-        rwa1X.mintNewTokenValueLocal(user2, 0, slot, 3000, ID, VERSION, feeTokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user2, 0, slot, 3000, ID, VERSION, feeTokenStr);
         assertEq(ICTMRWAERC20(newErc20).totalSupply(), 5000);
-        rwa1X.mintNewTokenValueLocal(user2, 0, slot, 4000, ID, VERSION, feeTokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user2, 0, slot, 4000, ID, VERSION, feeTokenStr);
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user2), 7000);
         assertEq(ICTMRWAERC20(newErc20).totalSupply(), 9000);
         vm.stopPrank();
@@ -95,8 +95,8 @@ contract TestERC20Deployer is Helpers {
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
         usdc.approve(address(ctmRwaErc20Deployer), 100_000_000);
         address newErc20 = ctmRwaErc20Deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
-        rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, VERSION, feeTokenStr);
-        rwa1X.mintNewTokenValueLocal(user2, 0, slot, 2000, ID, VERSION, feeTokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, VERSION, feeTokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user2, 0, slot, 2000, ID, VERSION, feeTokenStr);
         uint256 total = ICTMRWAERC20(newErc20).balanceOf(user1) + ICTMRWAERC20(newErc20).balanceOf(user2);
         assertEq(ICTMRWAERC20(newErc20).totalSupply(), total);
         vm.stopPrank();

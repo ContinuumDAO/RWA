@@ -11,7 +11,7 @@ interface ICTMRWA1SentryUtils is ICTMRWA {
     error CTMRWA1SentryUtils_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
     error CTMRWA1SentryUtils_InvalidContract(CTMRWAErrorParam);
 
-    function ctmRwa1Map() external returns (address);
+    function ctmRwaMap() external returns (address);
     function lastSelector() external returns (bytes4);
     function lastData() external returns (bytes calldata);
 

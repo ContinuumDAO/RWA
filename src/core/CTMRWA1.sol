@@ -145,7 +145,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     mapping(address => mapping(uint256 => uint256[])) private _erc20Approvals;
 
     constructor(
-        address _tokenAdmin,
+        address _tokenAdmin, 
         address _map,
         string memory tokenName_,
         string memory symbol_,
@@ -182,9 +182,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _unpause();
     }
 
-    function isPaused() external view returns (bool) {
-        return paused();
-    }
 
     modifier onlyErc20Deployer() {
         if (msg.sender != erc20Deployer) {
@@ -206,6 +203,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         }
         _;
     }
+
 
     modifier onlyRwa1X() {
         if (msg.sender != ctmRwa1X && msg.sender != rwa1XFallback) {
@@ -243,12 +241,10 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @dev This function can be called by the cross-chain CTMRWA1X architecture
      * @dev The override wallet for forceTransfer is reset for safety, but can be set up by the new admin
      * @param _tokenAdmin The new tokenAdmin
-     * @return success True if the admin was changed, false otherwise
      */
-    function changeAdmin(address _tokenAdmin) public onlyRwa1X returns (bool) {
+    function changeAdmin(address _tokenAdmin) public onlyRwa1X {
         tokenAdmin = _tokenAdmin;
         overrideWallet = address(0);
-        return true;
     }
 
     /**
@@ -316,53 +312,39 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /**
      * @dev Connects the CTMRWA1Dividend contract to this CTMRWA1
      * @param _dividendAddr The new CTMRWA1Dividend contract address
-     * @return success True if the dividend contract was attached, false otherwise
      */
     function attachDividend(address _dividendAddr) external onlyCtmMap returns (bool) {
         if (dividendAddr != address(0)) {
             revert CTMRWA1_NotZeroAddress(CTMRWAErrorParam.Dividend);
         }
         dividendAddr = _dividendAddr;
-        return (true);
+        return true;
     }
 
     /**
      * @dev Connects the CTMRWA1Storage contract to this CTMRWA1
      * @param _storageAddr The new CTMRWA1Storage contract address
-     * @return success True if the storage contract was attached, false otherwise
      */
     function attachStorage(address _storageAddr) external onlyCtmMap returns (bool) {
         if (storageAddr != address(0)) {
             revert CTMRWA1_NotZeroAddress(CTMRWAErrorParam.Storage);
         }
         storageAddr = _storageAddr;
-        return (true);
+        return true;
     }
 
     /**
      * @dev Connects the CTMRWA1Sentry contract to this CTMRWA1
      * @param _sentryAddr The new CTMRWA1Sentry contract address
-     * @return success True if the sentry contract was attached, false otherwise
      */
     function attachSentry(address _sentryAddr) external onlyCtmMap returns (bool) {
         if (sentryAddr != address(0)) {
             revert CTMRWA1_NotZeroAddress(CTMRWAErrorParam.Sentry);
         }
         sentryAddr = _sentryAddr;
-        return (true);
+        return true;
     }
 
-    /**
-     * @notice Returns the id (NOT ID) of a user held token in this CTMRWA1
-     * @param _tokenId The unique tokenId (instance of TokenData)
-     * @return The id of the token
-     */
-    function idOf(uint256 _tokenId) public view virtual returns (uint256) {
-        if (!_exists(_tokenId)) {
-            revert CTMRWA1_IDNonExistent(_tokenId);
-        }
-        return _allTokens[_allTokensIndex[_tokenId]].id;
-    }
 
     /**
      * @notice Returns the fungible balance of a user held token in this CTMRWA1
@@ -452,8 +434,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @return The name of the slot of the token
      */
     function slotNameOf(uint256 _tokenId) public view virtual returns (string memory) {
-        uint256 thisSlot = slotOf(_tokenId);
-        return (slotName(thisSlot));
+        return slotName(slotOf(_tokenId));
     }
 
     /**
@@ -475,12 +456,13 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             revert CTMRWA1_IDNonExistent(_tokenId);
         }
 
-        uint256 slot = slotOf(_tokenId);
+        TokenData storage token = _allTokens[_allTokensIndex[_tokenId]];
+        uint256 slot = token.slot;
 
         return (
-            _allTokens[_allTokensIndex[_tokenId]].id,
-            _allTokens[_allTokensIndex[_tokenId]].balance,
-            _allTokens[_allTokensIndex[_tokenId]].owner,
+            token.id,
+            token.balance,
+            token.owner,
             slot,
             slotName(slot),
             tokenAdmin
@@ -514,7 +496,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @return The address of the ERC20 token representing the slot
      */
     function getErc20(uint256 _slot) public view returns (address) {
-        return (_erc20Slots[_slot]);
+        return _erc20Slots[_slot];
     }
 
     /**
@@ -625,9 +607,8 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _from The wallet address from which the tokenId is being fransferred from
      * @param _to The wallet adddress to which the tokenId is being transferred to
      * @param _tokenId The tokenId being transferred
-     * @return success True if the transfer was successful, false otherwise
      */
-    function forceTransfer(address _from, address _to, uint256 _tokenId) public returns (bool) {
+    function forceTransfer(address _from, address _to, uint256 _tokenId) public {
         if (overrideWallet == address(0)) {
             revert CTMRWA1_IsZeroAddress(CTMRWAErrorParam.Override);
         }
@@ -637,8 +618,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         }
 
         _transferTokenId(_from, _to, _tokenId);
-
-        return true;
     }
 
     /**
@@ -661,17 +640,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         return _allTokens.length;
     }
 
-    /**
-     * @notice Returns the id (NOT ID) of a tokenId at an index for this CTMRWA1
-     * @dev Deprecated
-     * @return The id of the tokenId at the index
-     */
-    function tokenByIndex(uint256 _index) public view virtual returns (uint256) {
-        if (_index >= this.totalSupply()) {
-            revert CTMRWA1_OutOfBounds();
-        }
-        return _allTokens[_index].id;
-    }
 
     /**
      * @notice Returns the tokenId for an index into an array of all tokenIds held by a wallet address
@@ -717,6 +685,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     function exists(uint256 _tokenId) external view virtual returns (bool) {
         return _exists(_tokenId);
     }
+
 
     /**
      * @notice The owner of a tokenId approves an another address to spend any 'value' from it
@@ -1357,7 +1326,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _value The value being transferred
     /// @param _data The data being transferred
     /// @return True if the transfer was successful, false otherwise
-    function _checkOnCTMRWA1Received(uint256 _fromTokenId, uint256 _toTokenId, uint256 _value, bytes memory _data)
+    function _checkOnCTMRWA1Received(uint256, uint256, uint256, bytes memory)
         internal
         virtual
         returns (bool)
@@ -1404,7 +1373,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @return The slot data for the index
      */
     function getSlotInfoByIndex(uint256 _indx) public view returns (SlotData memory) {
-        return (_allSlots[_indx]);
+        return _allSlots[_indx];
     }
 
     /// @dev Function is used to initialize the slot struct array on a newly deployed chain in this RWA
@@ -1436,7 +1405,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         if (!slotExists(_slot)) {
             revert CTMRWA1_InvalidSlot(_slot);
         }
-        return (_allSlots[allSlotsIndex[_slot]].slotName);
+        return _allSlots[allSlotsIndex[_slot]].slotName;
     }
 
     /**
@@ -1529,22 +1498,17 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /**
      * @dev Function that is always called before value is transferred. Checks that the address
      * being transferred to is whitelisted (if whitelisting is enabled). Also checks that the slot exists
-     * @param _from The wallet address from which the tokenId is being transferred from
      * @param _to The wallet address to which the tokenId is being transferred to
-     * @param _fromTokenId The tokenId that is being transferred from
-     * @param _toTokenId The tokenId that is being transferred to
      * @param _slot The slot number being examined
-     * @param _slotName The name of the slot
-     * @param _value The value being transferred
      */
     function _beforeValueTransfer(
-        address _from,
+        address,
         address _to,
-        uint256 _fromTokenId,
-        uint256 _toTokenId,
+        uint256,
+        uint256,
         uint256 _slot,
-        string memory _slotName,
-        uint256 _value
+        string memory,
+        uint256
     ) internal virtual {
         if (!slotExists(_slot)) {
             revert CTMRWA1_InvalidSlot(_slot);
@@ -1557,12 +1521,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             }
         }
 
-        // currently unused
-        _from;
-        _fromTokenId;
-        _toTokenId;
-        _slotName;
-        _value;
     }
 
     /**
@@ -1574,8 +1532,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _fromTokenId The tokenId that is being transferred from
      * @param _toTokenId The tokenId that is being transferred to
      * @param _slot The slot number being examined
-     * @param _slotName The name of the slot
-     * @param _value The value being transferred
      */
     function _afterValueTransfer(
         address _from,
@@ -1583,8 +1539,8 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         uint256 _fromTokenId,
         uint256 _toTokenId,
         uint256 _slot,
-        string memory _slotName,
-        uint256 _value
+        string memory,
+        uint256
     ) internal virtual {
         if (_from == address(0) && _fromTokenId == 0 && !_tokenExistsInSlot(_slot, _toTokenId)) {
             _addTokenToSlotEnumeration(_slot, _toTokenId);
@@ -1592,9 +1548,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             _removeTokenFromSlotEnumeration(_slot, _fromTokenId);
         }
 
-        //currently unused
-        _slotName;
-        _value;
     }
 
     /// @dev Low level function to add a slot struct to the slot array

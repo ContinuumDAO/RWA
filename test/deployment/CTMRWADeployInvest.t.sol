@@ -155,7 +155,7 @@ contract TestInvest is Helpers {
 
         // Mint a token first (needed for offering)
         vm.startPrank(tokenAdmin);
-        uint256 newTokenId = rwa1X.mintNewTokenValueLocal(
+        uint256 newTokenId = rwa1XUtils.mintNewTokenValueLocal(
             tokenAdmin, // toAddress
             0, // toTokenId (0 = create new token)
             slotId, // slot
@@ -581,7 +581,7 @@ contract TestInvest is Helpers {
     function test_gas_createOffering() public {
         // First mint a new token for this test
         vm.startPrank(tokenAdmin);
-        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, VERSION, feeTokenStr);
+        uint256 testTokenId = rwa1XUtils.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, VERSION, feeTokenStr);
 
         // Approve the investment contract to transfer the token
         token.approve(address(investContract), testTokenId);
@@ -1122,7 +1122,7 @@ contract TestInvest is Helpers {
     function test_removeRemainingTokenId_success() public {
         // First, create a new offering with a larger token for this specific test
         vm.startPrank(tokenAdmin);
-        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 2000e18, ID, VERSION, feeTokenStr);
+        uint256 testTokenId = rwa1XUtils.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 2000e18, ID, VERSION, feeTokenStr);
         token.approve(address(investContract), testTokenId);
         
         // Create a new offering with the test token
@@ -1186,7 +1186,7 @@ contract TestInvest is Helpers {
     function test_removeRemainingTokenId_noRemainingBalance() public {
         // First, create a new offering for this test
         vm.startPrank(tokenAdmin);
-        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, VERSION, feeTokenStr);
+        uint256 testTokenId = rwa1XUtils.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, VERSION, feeTokenStr);
         token.approve(address(investContract), testTokenId);
         
         investContract.createOffering(

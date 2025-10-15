@@ -7,6 +7,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Utils } from "../helpers/Utils.sol";
 
 import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
+import { CTMRWA1XUtils } from "../../src/crosschain/CTMRWA1XUtils.sol";
 
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 
@@ -17,11 +18,11 @@ contract RWA is Utils {
         string[] memory someChainIdsStr = _stringToArray(cIdStr);
         string memory tokenStr = _toLower(usdc.toHexString());
 
-        bool ok = ICTMRWA1X(rwa1X).createNewSlot(_ID, VERSION, 5, "slot 5 is the best RWA", someChainIdsStr, tokenStr);
+        ICTMRWA1X(rwa1X).createNewSlot(_ID, VERSION, 5, "slot 5 is the best RWA", someChainIdsStr, tokenStr);
 
-        ok = ICTMRWA1X(rwa1X).createNewSlot(_ID, VERSION, 3, "", someChainIdsStr, tokenStr);
+        ICTMRWA1X(rwa1X).createNewSlot(_ID, VERSION, 3, "", someChainIdsStr, tokenStr);
 
-        ok = ICTMRWA1X(rwa1X).createNewSlot(_ID, VERSION, 1, "this is a basic offering", someChainIdsStr, tokenStr);
+        ICTMRWA1X(rwa1X).createNewSlot(_ID, VERSION, 1, "this is a basic offering", someChainIdsStr, tokenStr);
     }
 
     function _createSlot(uint256 _ID, uint256 slot, address usdc, address rwa1X) internal {
@@ -30,7 +31,7 @@ contract RWA is Utils {
         ICTMRWA1X(rwa1X).createNewSlot(_ID, VERSION, slot, "this is a basic offering", someChainIdsStr, tokenStr);
     }
 
-    function _deployAFewTokensLocal(address _ctmRwaAddr, address usdc, address map, address rwa1X, address account)
+    function _deployAFewTokensLocal(address _ctmRwaAddr, address usdc, address map, address rwa1X, address rwa1XUtils, address account)
         internal
         returns (uint256, uint256, uint256)
     {
@@ -41,11 +42,11 @@ contract RWA is Utils {
 
         string memory tokenStr = _toLower(usdc.toHexString());
 
-        uint256 tokenId1 = ICTMRWA1X(rwa1X).mintNewTokenValueLocal(account, 0, 5, 2000, ID, VERSION, tokenStr);
+        uint256 tokenId1 = CTMRWA1XUtils(rwa1XUtils).mintNewTokenValueLocal(account, 0, 5, 2000, ID, VERSION, tokenStr);
 
-        uint256 tokenId2 = ICTMRWA1X(rwa1X).mintNewTokenValueLocal(account, 0, 3, 4000, ID, VERSION, tokenStr);
+        uint256 tokenId2 = CTMRWA1XUtils(rwa1XUtils).mintNewTokenValueLocal(account, 0, 3, 4000, ID, VERSION, tokenStr);
 
-        uint256 tokenId3 = ICTMRWA1X(rwa1X).mintNewTokenValueLocal(account, 0, 1, 6000, ID, VERSION, tokenStr);
+        uint256 tokenId3 = CTMRWA1XUtils(rwa1XUtils).mintNewTokenValueLocal(account, 0, 1, 6000, ID, VERSION, tokenStr);
 
         return (tokenId1, tokenId2, tokenId3);
     }

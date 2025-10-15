@@ -44,13 +44,13 @@ contract TestDividend is Helpers {
         string memory tokenStr = _toLower(address(usdc).toHexString());
         
         // Mint for user1 in slot 1
-        rwa1X.mintNewTokenValueLocal(user1, 0, 1, mintAmount1, ID, VERSION, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, mintAmount1, ID, VERSION, tokenStr);
         
         // Mint for user1 in slot 3
-        rwa1X.mintNewTokenValueLocal(user1, 0, 3, mintAmount2, ID, VERSION, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 3, mintAmount2, ID, VERSION, tokenStr);
         
         // Mint for user1 in slot 5
-        rwa1X.mintNewTokenValueLocal(user1, 0, 5, mintAmount3, ID, VERSION, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 5, mintAmount3, ID, VERSION, tokenStr);
         
         // Set dividend rates for different slots
         uint256 rate1 = 100 * 10**6; // 100 USDC per CTMRWA1 unit
@@ -166,7 +166,7 @@ contract TestDividend is Helpers {
         // Mint 20 * 10^18 wei in slot 5 for tokenAdmin2
         uint256 mintAmount = 20 * 10**18; // 20 CTMRWA1 units
         string memory tokenStr = _toLower(address(usdc).toHexString());
-        rwa1X.mintNewTokenValueLocal(tokenAdmin2, 0, 5, mintAmount, ID, VERSION, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(tokenAdmin2, 0, 5, mintAmount, ID, VERSION, tokenStr);
         
         // Set dividend scale to 12 (meaning per 1e12 wei instead of per 1e18 wei)
         // This means dividends are calculated per 1e-6 CTMRWA1 units instead of per 1 CTMRWA1 unit
@@ -245,7 +245,7 @@ contract TestDividend is Helpers {
         // Mint 20 * 10^18 wei in slot 5 for tokenAdmin2
         uint256 mintAmount = 20 * 10**18; // 20 CTMRWA1 units
         string memory tokenStr = _toLower(address(usdc).toHexString());
-        rwa1X.mintNewTokenValueLocal(tokenAdmin2, 0, 5, mintAmount, ID, VERSION, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(tokenAdmin2, 0, 5, mintAmount, ID, VERSION, tokenStr);
         
         // Set dividend scale to 12 (meaning per 1e12 wei instead of per 1e18 wei)
         // This means dividends are calculated per 1e-6 CTMRWA1 units instead of per 1 CTMRWA1 unit
@@ -310,7 +310,7 @@ contract TestDividend is Helpers {
         // Mint tokens for user1 in slot 1
         uint256 mintAmount = 1000 * 10**18; // 1000 CTMRWA1 units
         string memory tokenStr = _toLower(address(usdc).toHexString());
-        rwa1X.mintNewTokenValueLocal(user1, 0, 1, mintAmount, ID, VERSION, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, mintAmount, ID, VERSION, tokenStr);
         
         // Set dividend rate
         uint256 inputRate = 100; // 100 USDC per CTMRWA1 unit
