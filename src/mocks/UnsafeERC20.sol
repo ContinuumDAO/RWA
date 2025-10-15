@@ -17,18 +17,30 @@ contract UnsafeERC20 {
     }
     
     function transfer(address, uint256) external pure returns (bool) {
-        return false; // Always returns false
+        return false;
     }
     
     function transferFrom(address, address, uint256) external pure returns (bool) {
-        return false; // Always returns false
+        return false;
     }
     
     function approve(address, uint256) external pure returns (bool) {
-        return false; // Always returns false
+        return false;
     }
     
     function allowance(address, address) external pure returns (uint256) {
         return 0;
+    }
+    
+    function name() external pure returns (string memory) {
+        return "Unsafe Token";
+    }
+    
+    function symbol() external pure returns (string memory) {
+        return "UNSAFE";
+    }
+    
+    function decimals() external pure returns (uint8) {
+        return 18;
     }
 }

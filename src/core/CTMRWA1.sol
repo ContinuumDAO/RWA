@@ -1326,7 +1326,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _value The value being transferred
     /// @param _data The data being transferred
     /// @return True if the transfer was successful, false otherwise
-    function _checkOnCTMRWA1Received(uint256, uint256, uint256, bytes memory)
+    function _checkOnCTMRWA1Received(uint256 _fromTokenId, uint256 _toTokenId, uint256 _value, bytes memory _data)
         internal
         virtual
         returns (bool)
