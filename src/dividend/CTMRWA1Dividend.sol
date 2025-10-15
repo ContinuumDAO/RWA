@@ -417,7 +417,19 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
             revert CTMRWA1Dividend_InvalidDividend(CTMRWAErrorParam.Balance);
         }
 
+        // Record balance before transfer
+        uint256 balanceBefore = IERC20(dividendToken).balanceOf(address(this));
+        
         IERC20(dividendToken).safeTransfer(msg.sender, dividend);
+        
+        // Record balance after transfer and verify delta
+        uint256 balanceAfter = IERC20(dividendToken).balanceOf(address(this));
+        uint256 balanceDelta = balanceBefore - balanceAfter;
+        
+        if (balanceDelta != dividend) {
+            revert CTMRWA1Dividend_InvalidDividend(CTMRWAErrorParam.Balance);
+        }
+        
         totalDividendClaimed += dividend;
 
         emit ClaimDividend(msg.sender, dividend, dividendToken);

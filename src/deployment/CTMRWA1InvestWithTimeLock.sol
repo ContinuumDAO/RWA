@@ -700,8 +700,21 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ICTMRWA1Receiv
         // Set rewardAmount to 0 in both mappings
         holdingsByAddress[msg.sender][holdingIndex].rewardAmount = 0;
         offering.holdings[foundIndex].rewardAmount = 0;
+        
+        // Record balance before transfer
+        uint256 balanceBefore = IERC20(rewardToken).balanceOf(address(this));
+        
         // Transfer reward
         IERC20(rewardToken).safeTransfer(msg.sender, rewardAmount);
+        
+        // Record balance after transfer and verify delta
+        uint256 balanceAfter = IERC20(rewardToken).balanceOf(address(this));
+        uint256 balanceDelta = balanceBefore - balanceAfter;
+        
+        if (balanceDelta != rewardAmount) {
+            revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Balance);
+        }
+        
         emit RewardClaimed(msg.sender, offerIndex, holdingIndex, rewardAmount);
     }
 
