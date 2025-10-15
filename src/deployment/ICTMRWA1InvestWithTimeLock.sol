@@ -42,6 +42,7 @@ interface ICTMRWA1InvestWithTimeLock {
     event UnlockInvestmentToken(uint256 indexed ID, address holder, uint256 holdingIndx);
     event ClaimDividendInEscrow(uint256 indexed ID, address holder, uint256 unclaimed);
     event FundedRewardToken(uint256 indexed offeringIndex, uint256 fundAmount, uint256 rewardMultiplier);
+    event LateRewardFunding(uint256 indexed offeringIndex);
     event RewardClaimed(address indexed holder, uint256 indexed offerIndex, uint256 indexed holdingIndex, uint256 amount);
     event RemoveRemainingBalance(uint256 indexed ID, uint256 indexed indx, uint256 remainingBalance);
     
@@ -65,7 +66,7 @@ interface ICTMRWA1InvestWithTimeLock {
     error CTMRWA1InvestWithTimeLock_OfferingNotEnded();
     error CTMRWA1InvestWithTimeLock_NoRemainingBalance();
     error CTMRWA1InvestWithTimeLock_FailedTransfer();
-    
+    error CTMRWA1InvestWithTimeLock_OfferingEnded(uint256);
 
     // Public constants
     function RWA_TYPE() external view returns (uint256);

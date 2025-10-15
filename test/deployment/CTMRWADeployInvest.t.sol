@@ -1117,6 +1117,39 @@ contract TestInvest is Helpers {
         assertGt(rewardAmount, 0, "Holder should receive rewards when escrow time has not passed");
     }
 
+    function test_fundRewardTokenForOffering_afterOfferingEnded() public {
+        // Arrange: user1 invests
+        _approveForInvestment(user1, amount);
+        vm.startPrank(user1);
+        investContract.investInOffering(0, amount, address(usdc));
+        vm.stopPrank();
+
+        // Get the offering to check its end time
+        Offering memory offering = investContract.listOffering(0);
+        
+        // Fast forward past the offering end time
+        vm.warp(offering.endTime + 1);
+
+        // TokenAdmin tries to fund rewards after offering has ended
+        uint256 rewardMultiplier = 2;
+        uint256 rateDivisor = 1e6;
+        uint256 fundAmount = amount * rewardMultiplier;
+        deal(address(usdc), tokenAdmin, fundAmount);
+        
+        vm.startPrank(tokenAdmin);
+        usdc.approve(address(investContract), fundAmount);
+        
+        // Should revert with offering ended error
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_OfferingEnded.selector,
+                0
+            )
+        );
+        investContract.fundRewardTokenForOffering(0, fundAmount, rewardMultiplier, rateDivisor);
+        vm.stopPrank();
+    }
+
     // ============ REMAINING TOKEN ID TESTS ============
 
     function test_removeRemainingTokenId_success() public {

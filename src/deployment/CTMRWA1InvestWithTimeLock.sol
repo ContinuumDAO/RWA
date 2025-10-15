@@ -595,6 +595,7 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ICTMRWA1Receiv
      * @param _fundAmount The amount of rewardToken to transfer to the contract.
      * @param _rewardMultiplier The reward rate (reward tokens per 1 CTMRWA1, in smallest units).
      * @param _rateDivisor The scaling divisor to normalize decimals (e.g., 1e18 for 18 decimals).
+     * NOTE This function can only be called before the offering ends.
      */
     function fundRewardTokenForOffering(uint256 _offeringIndex, uint256 _fundAmount, uint256 _rewardMultiplier, uint256 _rateDivisor)
         external
@@ -604,6 +605,12 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ICTMRWA1Receiv
         if (_offeringIndex >= offerings.length) {
             revert CTMRWA1InvestWithTimeLock_InvalidOfferingIndex();
         }
+        if ( block.timestamp > offerings[_offeringIndex].endTime) {
+            emit LateRewardFunding(_offeringIndex);
+            revert CTMRWA1InvestWithTimeLock_OfferingEnded(_offeringIndex);
+        }
+
+        // Record balance before transfer
         Offering storage offering = offerings[_offeringIndex];
         address rewardToken = offering.rewardToken;
         if (rewardToken == address(0)) {
