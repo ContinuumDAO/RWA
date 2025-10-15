@@ -431,12 +431,23 @@ contract CTMRWA1InvestWithTimeLock is ICTMRWA1InvestWithTimeLock, ICTMRWA1Receiv
         if (investment > 0) {
             address currency = offerings[_indx].currency;
             uint256 funds = investment - commission;
-            offerings[_indx].investment = 0;
+            offerings[_indx].investment = 0; 
+            
+            // Record balance before transfers
+            uint256 balanceBefore = IERC20(currency).balanceOf(address(this));
             
             if (commission > 0) {
                 IERC20(currency).safeTransfer(feeManager, commission);
             }
             IERC20(currency).safeTransfer(msg.sender, funds);
+            
+            // Record balance after transfers and verify delta
+            uint256 balanceAfter = IERC20(currency).balanceOf(address(this));
+            uint256 balanceDelta = balanceBefore - balanceAfter;
+            
+            if (balanceDelta != investment) {
+                revert CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Balance);
+            }
 
             emit WithdrawFunds(ID, _indx, funds);
             return funds;
