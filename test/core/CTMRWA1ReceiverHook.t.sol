@@ -46,10 +46,10 @@ contract CTMRWA1ReceiverHookTest is Helpers {
         
         // Mint a token to user1 using proper pattern (slot 1 exists from _createSomeSlots)
         string memory tokenStr = _toLower((address(usdc).toHexString()));
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
+        uint256 tokenId = rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
         
         // Mint a token to user2 for receiving
-        uint256 tokenId2 = rwa1X.mintNewTokenValueLocal(user2, 0, 1, 0, ID, VERSION, tokenStr);
+        uint256 tokenId2 = rwa1XUtils.mintNewTokenValueLocal(user2, 0, 1, 0, ID, VERSION, tokenStr);
         
         vm.stopPrank();
         vm.startPrank(user1);
@@ -67,10 +67,10 @@ contract CTMRWA1ReceiverHookTest is Helpers {
         
         // Mint a token to user1 using proper pattern
         string memory tokenStr = _toLower((address(usdc).toHexString()));
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
+        uint256 tokenId = rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
         
         // Mint a token to the valid receiver contract
-        uint256 receiverTokenId = rwa1X.mintNewTokenValueLocal(address(validReceiver), 0, 1, 0, ID, VERSION, tokenStr);
+        uint256 receiverTokenId = rwa1XUtils.mintNewTokenValueLocal(address(validReceiver), 0, 1, 0, ID, VERSION, tokenStr);
         
         vm.stopPrank();
         vm.startPrank(user1);
@@ -88,10 +88,10 @@ contract CTMRWA1ReceiverHookTest is Helpers {
         
         // Mint a token to user1 using proper pattern
         string memory tokenStr = _toLower((address(usdc).toHexString()));
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
+        uint256 tokenId = rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
         
         // Mint a token to the invalid receiver contract
-        uint256 receiverTokenId = rwa1X.mintNewTokenValueLocal(address(invalidReceiver), 0, 1, 0, ID, VERSION, tokenStr);
+        uint256 receiverTokenId = rwa1XUtils.mintNewTokenValueLocal(address(invalidReceiver), 0, 1, 0, ID, VERSION, tokenStr);
         
         vm.stopPrank();
         vm.startPrank(user1);
@@ -108,10 +108,10 @@ contract CTMRWA1ReceiverHookTest is Helpers {
         
         // Mint a token to user1 using proper pattern
         string memory tokenStr = _toLower((address(usdc).toHexString()));
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
+        uint256 tokenId = rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
         
         // Mint a token to the reverting receiver contract
-        uint256 receiverTokenId = rwa1X.mintNewTokenValueLocal(address(revertingReceiver), 0, 1, 0, ID, VERSION, tokenStr);
+        uint256 receiverTokenId = rwa1XUtils.mintNewTokenValueLocal(address(revertingReceiver), 0, 1, 0, ID, VERSION, tokenStr);
         
         vm.stopPrank();
         vm.startPrank(user1);
@@ -128,10 +128,10 @@ contract CTMRWA1ReceiverHookTest is Helpers {
         
         // Mint a token to user1 using proper pattern
         string memory tokenStr = _toLower((address(usdc).toHexString()));
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
+        uint256 tokenId = rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
         
         // Mint a token to the reentrancy receiver contract
-        uint256 receiverTokenId = rwa1X.mintNewTokenValueLocal(address(reentrancyReceiver), 0, 1, 0, ID, VERSION, tokenStr);
+        uint256 receiverTokenId = rwa1XUtils.mintNewTokenValueLocal(address(reentrancyReceiver), 0, 1, 0, ID, VERSION, tokenStr);
         
         vm.stopPrank();
         vm.startPrank(user1);
