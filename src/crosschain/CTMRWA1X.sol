@@ -265,7 +265,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
                 revert CTMRWA1X_InvalidID(ID);
             }
 
-            emit CreateNewCTMRWA1(ID);
+            // emit CreateNewCTMRWA1(ID);
         } else {
             // a CTMRWA1 token must be deployed already, so use the existing ID
             ID = _existingID;

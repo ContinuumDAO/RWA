@@ -93,7 +93,7 @@ library CTMRWAUtils {
         return string(bLower);
     }
 
-    /// @dev Convert a string to an EVM address. Also checks the string length
+    /// @dev Convert a string to an EVM address. Also checks the string length and 0x prefix
     /// @param str The string to convert to an EVM address
     /// @return The EVM address
     function _stringToAddress(string memory str) internal pure returns (address) {
@@ -102,6 +102,12 @@ library CTMRWAUtils {
         if (strBytes.length != 42) {
             revert CTMRWAUtils_InvalidLength(CTMRWAErrorParam.Address);
         }
+        
+        // Validate 0x prefix
+        if (strBytes[0] != bytes1("0") || strBytes[1] != bytes1("x")) {
+            revert CTMRWAUtils_InvalidLength(CTMRWAErrorParam.Address);
+        }
+        
         bytes memory addrBytes = new bytes(20);
 
         for (uint256 i = 0; i < 20; i++) {

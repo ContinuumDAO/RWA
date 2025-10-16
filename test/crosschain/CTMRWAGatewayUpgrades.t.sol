@@ -322,12 +322,10 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         string[] memory contractAddrs = new string[](1);
         chainIds[0] = "3";
         contractAddrs[0] = address(0x789).toHexString();
-        (success, ) = address(gateway).call(abi.encodeWithSignature("addChainContract(string[],string[])", chainIds, contractAddrs));
-        assertTrue(success, "addChainContract failed");
+        gateway.addChainContract(chainIds, contractAddrs);
         vm.stopPrank();
         vm.startPrank(gov);
-        (success, ) = address(gateway).call(abi.encodeWithSignature("addChainContract(string[],string[])", chainIds, contractAddrs));
-        assertTrue(success, "addChainContract failed");
+        gateway.addChainContract(chainIds, contractAddrs);
         assertGt(gateway.getChainCount(), 0, "Governance should still work");
         vm.stopPrank();
     }

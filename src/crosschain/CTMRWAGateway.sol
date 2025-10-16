@@ -65,12 +65,10 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
     /**
      * @notice Governor function to add addresses of CTMRWAGateway contracts on other chains.
      * @dev All input address are arrays of strings
-     * @return success True if the addresses were added, false otherwise.
      */
     function addChainContract(string[] memory _newChainIdsStr, string[] memory _contractAddrsStr)
         external
         onlyGov
-        returns (bool)
     {
         if (_newChainIdsStr.length != _contractAddrsStr.length) {
             revert CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input);
@@ -96,8 +94,6 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
                 preExisted = false;
             }
         }
-
-        return (true);
     }
 
     /**
