@@ -265,7 +265,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
                 revert CTMRWA1X_InvalidID(ID);
             }
 
-            // emit CreateNewCTMRWA1(ID);
         } else {
             // a CTMRWA1 token must be deployed already, so use the existing ID
             ID = _existingID;
@@ -611,10 +610,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     }
 
     /**
-     * @notice Transfer part of the fungible balance of a tokenId to an address on another chain
+     * @notice Transfer part of the fungible balance of a tokenId to an address on the same chain or another chain
      * @param _fromTokenId The tokenId from which to transfer. The caller must own it or be approved
      * @param _toAddressStr The address AS A STRING to which to send the value on the destination chain
-     * @param _toChainIdStr The destination chainID AS A STRING
+     * @param _toChainIdStr The destination chainID AS A STRING. This can be the same chain as the source chain.
      * @param _value The fungible value to send. This is in wei if CTMRWA1().valueDecimals() == 18
      * @param _ID The ID of the RWA
      * @param _version The version of the RWA contract
@@ -671,10 +670,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     }
 
     /**
-     * @notice Transfer a whole tokenId to an address on another chain
+     * @notice Transfer a whole tokenId to an address on the same chain or another chain
      * @param _fromAddrStr The address from which to transfer the tokenId. The caller must have approval.
      * @param _toAddressStr The address AS A STRING to which to send the value on the destination chain
-     * @param _toChainIdStr The destination chainID AS A STRING
+     * @param _toChainIdStr The destination chainID AS A STRING. This can be the same chain as the source chain.
      * @param _fromTokenId The tokenId from which to transfer. The caller must own it or be approved
      * @param _ID The ID of the RWA
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
