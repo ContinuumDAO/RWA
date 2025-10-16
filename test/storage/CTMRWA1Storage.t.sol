@@ -397,4 +397,366 @@ contract CTMRWA1StorageTest is Helpers {
         assertEq(emptyData.uriHash, 0);
         assertEq(emptyData.timeStamp, 0);
     }
+
+    // ========== O(1) OPTIMIZATION TESTS ==========
+
+    function test_O1_optimization_basic() public {
+        // Add a few URIs to test basic O(1) functionality using storage manager
+        vm.startPrank(tokenAdmin);
+        
+        // Add first URI (ISSUER/CONTRACT - required)
+        storageManager.addURI(
+            ID, VERSION, "obj1", URICategory.ISSUER, URIType.CONTRACT, 
+            "This is a valid title for the first URI object", 0, keccak256("hash1"), _stringToArray(cIdStr), _toLower(address(usdc).toHexString())
+        );
+        
+        // Add second URI
+        storageManager.addURI(
+            ID, VERSION, "obj2", URICategory.LEGAL, URIType.CONTRACT, 
+            "This is a valid title for the second URI object", 0, keccak256("hash2"), _stringToArray(cIdStr), _toLower(address(usdc).toHexString())
+        );
+        
+        // Add third URI with SLOT type
+        storageManager.addURI(
+            ID, VERSION, "obj3", URICategory.FINANCIAL, URIType.SLOT, 
+            "This is a valid title for the third URI object", 1, keccak256("hash3"), _stringToArray(cIdStr), _toLower(address(usdc).toHexString())
+        );
+        
+        vm.stopPrank();
+
+        // Test O(1) existURIHash
+        uint256 gasBefore = gasleft();
+        bool exists = stor.existURIHash(keccak256("hash2"));
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        assertTrue(exists);
+        assertTrue(gasUsed < 5_000, string.concat("O(1) existURIHash gas too high: ", gasUsed.toString()));
+        
+        // Test O(1) getURIHash
+        gasBefore = gasleft();
+        URIData memory data = stor.getURIHash(keccak256("hash2"));
+        gasUsed = gasBefore - gasleft();
+        
+        assertEq(data.uriHash, keccak256("hash2"));
+        assertTrue(gasUsed < 8_000, string.concat("O(1) getURIHash gas too high: ", gasUsed.toString()));
+        
+        // Test O(1) getURIHashCount
+        gasBefore = gasleft();
+        uint256 count = stor.getURIHashCount(URICategory.LEGAL, URIType.CONTRACT);
+        gasUsed = gasBefore - gasleft();
+        
+        assertEq(count, 1);
+        assertTrue(gasUsed < 5_000, string.concat("O(1) getURIHashCount gas too high: ", gasUsed.toString()));
+        
+        // Test O(1) getURIHashByIndex
+        gasBefore = gasleft();
+        (bytes32 hash, string memory objName) = stor.getURIHashByIndex(URICategory.LEGAL, URIType.CONTRACT, 0);
+        gasUsed = gasBefore - gasleft();
+        
+        assertEq(hash, keccak256("hash2"));
+        assertEq(objName, "obj2");
+        assertTrue(gasUsed < 8_000, string.concat("O(1) getURIHashByIndex gas too high: ", gasUsed.toString()));
+    }
+
+    function test_gas_O1_existURIHash_largeDataset() public {
+        // Add 1000 URIs to test O(1) performance
+        vm.startPrank(address(storageManager));
+        for (uint256 i = 0; i < 1000; i++) {
+            string memory objectName = string(abi.encodePacked("obj", vm.toString(i)));
+            bytes32 hash = keccak256(abi.encodePacked("data", i));
+            stor.addURILocal(
+                ID, VERSION, objectName, URICategory.ISSUER, URIType.CONTRACT, 
+                string(abi.encodePacked("Title ", i)), 0, block.timestamp, hash
+            );
+        }
+        vm.stopPrank();
+
+        // Test O(1) lookup performance - should be constant gas regardless of dataset size
+        bytes32 testHash = keccak256(abi.encodePacked("data", 500.toString())); // Hash that exists
+        bytes32 nonExistentHash = keccak256("nonexistent");
+        
+        uint256 gasBefore = gasleft();
+        bool exists = stor.existURIHash(testHash);
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        assertTrue(exists);
+        // O(1) lookup should use minimal gas (around 2,100 gas)
+        assertTrue(gasUsed < 3_000, string.concat("O(1) existURIHash gas too high: ", vm.toString(gasUsed)));
+        
+        // Test non-existent hash
+        gasBefore = gasleft();
+        bool notExists = stor.existURIHash(nonExistentHash);
+        gasUsed = gasBefore - gasleft();
+        
+        assertFalse(notExists);
+        assertTrue(gasUsed < 3_000, string.concat("O(1) existURIHash gas too high: ", vm.toString(gasUsed)));
+    }
+
+    function test_gas_O1_getURIHash_largeDataset() public {
+        // Add 50 URIs to test O(1) performance using storage manager
+        vm.startPrank(tokenAdmin);
+        for (uint256 i = 0; i < 50; i++) {
+            string memory objectName = string(abi.encodePacked("obj", i.toString()));
+            bytes32 hash = keccak256(abi.encodePacked("data", i.toString()));
+            string memory title = string(abi.encodePacked("This is a valid title for URI object number ", i.toString()));
+            
+            storageManager.addURI(
+                ID, VERSION, objectName, URICategory.ISSUER, URIType.CONTRACT, 
+                title, 0, hash, _stringToArray(cIdStr), _toLower(address(usdc).toHexString())
+            );
+        }
+        vm.stopPrank();
+
+        // Test O(1) lookup performance
+        bytes32 testHash = keccak256(abi.encodePacked("data", "25")); // Hash that exists
+        
+        uint256 gasBefore = gasleft();
+        URIData memory data = stor.getURIHash(testHash);
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        assertEq(data.uriHash, testHash);
+        assertTrue(gasUsed < 10_000, string.concat("O(1) getURIHash gas too high: ", gasUsed.toString()));
+    }
+
+    function test_gas_O1_getURIHashCount_largeDataset() public {
+        // Add 1000 URIs with different categories/types
+        vm.startPrank(address(storageManager));
+        for (uint256 i = 0; i < 1000; i++) {
+            string memory objectName = string(abi.encodePacked("obj", vm.toString(i)));
+            bytes32 hash = keccak256(abi.encodePacked("data", i));
+            
+            URICategory category = URICategory(uint8(i % 5)); // Cycle through categories
+            URIType uriType = i % 2 == 0 ? URIType.CONTRACT : URIType.SLOT;
+            uint256 slot = 0;
+            if (uriType == URIType.SLOT) {
+                slot = (i % 3 == 0) ? 1 : (i % 3 == 1) ? 3 : 5; // Use slots 1, 3, 5
+            }
+            
+            stor.addURILocal(
+                ID, VERSION, objectName, category, uriType, 
+                string(abi.encodePacked("Title ", i)), slot, block.timestamp, hash
+            );
+        }
+        vm.stopPrank();
+
+        // Test O(1) count performance
+        uint256 gasBefore = gasleft();
+        uint256 count = stor.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT);
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        // Should be around 200 ISSUER/CONTRACT entries (1000/5 categories)
+        assertTrue(count > 0);
+        assertTrue(gasUsed < 3_000, string.concat("O(1) getURIHashCount gas too high: ", vm.toString(gasUsed)));
+    }
+
+    function test_gas_O1_getURIHashByIndex_largeDataset() public {
+        // Add 1000 URIs with different categories/types
+        vm.startPrank(address(storageManager));
+        for (uint256 i = 0; i < 1000; i++) {
+            string memory objectName = string(abi.encodePacked("obj", vm.toString(i)));
+            bytes32 hash = keccak256(abi.encodePacked("data", i));
+            
+            URICategory category = URICategory(uint8(i % 5)); // Cycle through categories
+            URIType uriType = i % 2 == 0 ? URIType.CONTRACT : URIType.SLOT;
+            uint256 slot = uriType == URIType.SLOT ? (i % 3) + 1 : 0; // Use valid slots 1, 3, 5 (but we only have 1,3,5 so use 1,3,5)
+            if (uriType == URIType.SLOT) {
+                slot = (i % 3 == 0) ? 1 : (i % 3 == 1) ? 3 : 5; // Use slots 1, 3, 5
+            }
+            
+            stor.addURILocal(
+                ID, VERSION, objectName, category, uriType, 
+                string(abi.encodePacked("Title ", i)), slot, block.timestamp, hash
+            );
+        }
+        vm.stopPrank();
+
+        // Test O(1) index lookup performance
+        uint256 gasBefore = gasleft();
+        (bytes32 hash, string memory objName) = stor.getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, 0);
+        uint256 gasUsed = gasBefore - gasleft();
+        
+        assertTrue(hash != bytes32(0));
+        assertTrue(gasUsed < 5_000, string.concat("O(1) getURIHashByIndex gas too high: ", vm.toString(gasUsed)));
+    }
+
+    function test_largeDataset_500_records() public {
+        // Add 500 URIs to test O(1) performance with larger dataset
+        vm.startPrank(tokenAdmin);
+        for (uint256 i = 0; i < 500; i++) {
+            string memory objectName = string(abi.encodePacked("obj", i.toString()));
+            bytes32 hash = keccak256(abi.encodePacked("data", i.toString()));
+            
+            URICategory category = URICategory(uint8(i % 5)); // Cycle through 5 categories
+            URIType uriType = i % 2 == 0 ? URIType.CONTRACT : URIType.SLOT;
+            uint256 slot = 0;
+            if (uriType == URIType.SLOT) {
+                slot = (i % 3 == 0) ? 1 : (i % 3 == 1) ? 3 : 5; // Use slots 1, 3, 5
+            }
+            
+            string memory title = string(abi.encodePacked("This is a valid title for URI object number ", i.toString()));
+            
+            storageManager.addURI(
+                ID, VERSION, objectName, category, uriType, 
+                title, slot, hash, _stringToArray(cIdStr), _toLower(address(usdc).toHexString())
+            );
+        }
+        vm.stopPrank();
+
+        // Test all O(1) functions with large dataset
+        console.log("Testing O(1) functions with 500 records:");
+        
+        // Test existURIHash
+        uint256 gasBefore = gasleft();
+        bool exists = stor.existURIHash(keccak256(abi.encodePacked("data", "250")));
+        uint256 gasUsed = gasBefore - gasleft();
+        assertTrue(exists);
+        console.log("existURIHash gas:", gasUsed);
+        assertTrue(gasUsed < 5_000, "existURIHash should be O(1)");
+        
+        // Test getURIHash
+        gasBefore = gasleft();
+        URIData memory data = stor.getURIHash(keccak256(abi.encodePacked("data", "375")));
+        gasUsed = gasBefore - gasleft();
+        assertEq(data.uriHash, keccak256(abi.encodePacked("data", "375")));
+        console.log("getURIHash gas:", gasUsed);
+        assertTrue(gasUsed < 8_000, "getURIHash should be O(1)");
+        
+        // Test getURIHashCount
+        gasBefore = gasleft();
+        uint256 count = stor.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT);
+        gasUsed = gasBefore - gasleft();
+        console.log("getURIHashCount gas:", gasUsed);
+        assertTrue(gasUsed < 5_000, "getURIHashCount should be O(1)");
+        
+        // Test getURIHashByIndex
+        gasBefore = gasleft();
+        (bytes32 hash, string memory objName) = stor.getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, 0);
+        gasUsed = gasBefore - gasleft();
+        assertTrue(hash != bytes32(0));
+        console.log("getURIHashByIndex gas:", gasUsed);
+        assertTrue(gasUsed < 8_000, "getURIHashByIndex should be O(1)");
+    }
+
+    function test_largeDataset_1000_records() public {
+        // Add 1000 URIs with various categories and types
+        vm.startPrank(address(storageManager));
+        for (uint256 i = 0; i < 1000; i++) {
+            string memory objectName = string(abi.encodePacked("obj", vm.toString(i)));
+            bytes32 hash = keccak256(abi.encodePacked("data", i));
+            
+            URICategory category = URICategory(uint8(i % 10)); // Cycle through 10 categories
+            URIType uriType = i % 3 == 0 ? URIType.CONTRACT : URIType.SLOT;
+            uint256 slot = 0;
+            if (uriType == URIType.SLOT) {
+                slot = (i % 3 == 0) ? 1 : (i % 3 == 1) ? 3 : 5; // Use slots 1, 3, 5
+            }
+            
+            stor.addURILocal(
+                ID, VERSION, objectName, category, uriType, 
+                string(abi.encodePacked("Title ", i)), slot, block.timestamp, hash
+            );
+        }
+        vm.stopPrank();
+
+        // Test all O(1) functions with large dataset
+        console.log("Testing O(1) functions with 1000 records:");
+        
+        // Test existURIHash
+        uint256 gasBefore = gasleft();
+        bool exists = stor.existURIHash(keccak256("data500"));
+        uint256 gasUsed = gasBefore - gasleft();
+        assertTrue(exists);
+        console.log("existURIHash gas:", gasUsed);
+        assertTrue(gasUsed < 3_000, "existURIHash should be O(1)");
+        
+        // Test getURIHash
+        gasBefore = gasleft();
+        URIData memory data = stor.getURIHash(keccak256("data750"));
+        gasUsed = gasBefore - gasleft();
+        assertEq(data.uriHash, keccak256("data750"));
+        console.log("getURIHash gas:", gasUsed);
+        assertTrue(gasUsed < 5_000, "getURIHash should be O(1)");
+        
+        // Test getURIHashCount
+        gasBefore = gasleft();
+        uint256 count = stor.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT);
+        gasUsed = gasBefore - gasleft();
+        console.log("getURIHashCount gas:", gasUsed);
+        assertTrue(gasUsed < 3_000, "getURIHashCount should be O(1)");
+        
+        // Test getURIHashByIndex
+        gasBefore = gasleft();
+        (bytes32 hash, string memory objName) = stor.getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, 0);
+        gasUsed = gasBefore - gasleft();
+        assertTrue(hash != bytes32(0));
+        console.log("getURIHashByIndex gas:", gasUsed);
+        assertTrue(gasUsed < 5_000, "getURIHashByIndex should be O(1)");
+    }
+
+    function test_veryLargeDataset_5000_records() public {
+        // Add 5000 URIs to test extreme scalability
+        vm.startPrank(address(storageManager));
+        for (uint256 i = 0; i < 5000; i++) {
+            string memory objectName = string(abi.encodePacked("obj", vm.toString(i)));
+            bytes32 hash = keccak256(abi.encodePacked("data", i));
+            
+            URICategory category = URICategory(uint8(i % 15)); // Cycle through 15 categories
+            URIType uriType = i % 2 == 0 ? URIType.CONTRACT : URIType.SLOT;
+            uint256 slot = 0;
+            if (uriType == URIType.SLOT) {
+                slot = (i % 3 == 0) ? 1 : (i % 3 == 1) ? 3 : 5; // Use slots 1, 3, 5
+            }
+            
+            stor.addURILocal(
+                ID, VERSION, objectName, category, uriType, 
+                string(abi.encodePacked("Title ", i)), slot, block.timestamp, hash
+            );
+        }
+        vm.stopPrank();
+
+        console.log("Testing O(1) functions with 5000 records:");
+        
+        // Test existURIHash - should still be O(1)
+        uint256 gasBefore = gasleft();
+        bool exists = stor.existURIHash(keccak256("data2500"));
+        uint256 gasUsed = gasBefore - gasleft();
+        assertTrue(exists);
+        console.log("existURIHash with 5000 records gas:", gasUsed);
+        assertTrue(gasUsed < 3_000, "existURIHash should remain O(1) even with 5000 records");
+        
+        // Test getURIHash - should still be O(1)
+        gasBefore = gasleft();
+        URIData memory data = stor.getURIHash(keccak256("data3750"));
+        gasUsed = gasBefore - gasleft();
+        assertEq(data.uriHash, keccak256("data3750"));
+        console.log("getURIHash with 5000 records gas:", gasUsed);
+        assertTrue(gasUsed < 5_000, "getURIHash should remain O(1) even with 5000 records");
+    }
+
+    function test_mappingConsistency_afterPopURILocal() public {
+        // Add 100 URIs
+        vm.startPrank(address(storageManager));
+        for (uint256 i = 0; i < 100; i++) {
+            string memory objectName = string(abi.encodePacked("obj", vm.toString(i)));
+            bytes32 hash = keccak256(abi.encodePacked("data", i));
+            stor.addURILocal(
+                ID, VERSION, objectName, URICategory.ISSUER, URIType.CONTRACT, 
+                string(abi.encodePacked("Title ", i)), 0, block.timestamp, hash
+            );
+        }
+        vm.stopPrank();
+
+        // Verify initial state
+        assertTrue(stor.existURIHash(keccak256("data50")));
+        assertEq(stor.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT), 100);
+
+        // Pop 10 URIs
+        vm.prank(address(storageManager));
+        stor.popURILocal(10);
+
+        // Verify mappings are cleaned up correctly
+        assertFalse(stor.existURIHash(keccak256("data95"))); // Last added should be gone
+        assertTrue(stor.existURIHash(keccak256("data50"))); // Earlier ones should still exist
+        assertEq(stor.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT), 90);
+    }
 }
