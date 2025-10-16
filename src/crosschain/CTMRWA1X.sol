@@ -308,7 +308,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     }
 
     /**
-     * @dev This function deploys a new RWA on the local chain. It is called ONLY by deployCTMRWA1
+     * @dev This function deploys a new RWA on the local chain. It is called ONLY by deployAllCTMRWA1X
+     * on the local chain or by deployCTMRWA1 on other chains.
      */
     function _deployCTMRWA1Local(
         uint256 _ID,

@@ -1141,10 +1141,10 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _tokenId The tokenId to clear the approvals for
     function _clearApprovedValues(uint256 _tokenId) internal {
         TokenData storage tokenData = _allTokens[_allTokensIndex[_tokenId]];
-        address[] memory valueApprovals = tokenData.valueApprovals; // Copy to memory for gas efficiency
+        address[] memory valueApprovals = tokenData.valueApprovals;
         uint256 length = valueApprovals.length;
         for (uint256 i = 0; i < length; i++) {
-            address approval = valueApprovals[i]; // Memory read - much cheaper than storage read
+            address approval = valueApprovals[i];
             delete _approvedValues[_tokenId][approval];
         }
         delete tokenData.valueApprovals;
