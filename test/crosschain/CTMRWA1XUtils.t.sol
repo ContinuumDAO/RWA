@@ -397,6 +397,8 @@ contract CTMRWA1XUtilsTest is Helpers {
         // Use uint208 limits to prevent overflow in balance calculations
         uint256 maxUint208 = 2**208 - 1;
         vm.assume(a <= maxUint208 && b <= maxUint208);
+        // Add constraint to prevent slot supply overflow
+        vm.assume(a + b <= maxUint208);
         string memory feeTokenStr = address(usdc).toHexString();
         // Mint with a
         vm.prank(tokenAdmin);
@@ -405,6 +407,20 @@ contract CTMRWA1XUtilsTest is Helpers {
         vm.prank(tokenAdmin);
         uint256 tokenId2 = rwa1XUtils.mintNewTokenValueLocal(user1, 0, 5, b, ID, VERSION, feeTokenStr);
         assertEq(token.balanceOf(tokenId2), b);
+    }
+
+    function test_overflowSlotSupplyMint() public {
+        string memory feeTokenStr = address(usdc).toHexString();
+        uint256 maxUint208 = 2**208 - 1;
+        
+        // Mint first token with maxUint208 - 1
+        vm.prank(tokenAdmin);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 5, maxUint208 - 1, ID, VERSION, feeTokenStr);
+        
+        // Try to mint second token with value 2 (should overflow slot supply)
+        vm.prank(tokenAdmin);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_ValueOverflow.selector, maxUint208 + 1, maxUint208));
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 5, 2, ID, VERSION, feeTokenStr);
     }
 
     function test_gasUsageMintNewTokenValueLocal() public {

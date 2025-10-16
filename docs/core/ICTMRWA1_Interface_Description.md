@@ -142,7 +142,6 @@ event SlotChanged(uint256 indexed tokenId, uint256 indexed oldSlot, uint256 inde
 - `slotNameOf(uint256 _tokenId)`: Returns the slot name of a token
 - `slotCount()`: Returns the total number of slots
 - `getAllSlots()`: Returns all slot numbers and names
-- `getSlotInfoByIndex(uint256 _indx)`: Returns slot information by index
 - `slotName(uint256 _slot)`: Returns the name of a slot
 - `slotByIndex(uint256 _index)`: Returns the slot number at a specific index
 - `slotExists(uint256 _slot)`: Checks if a slot exists

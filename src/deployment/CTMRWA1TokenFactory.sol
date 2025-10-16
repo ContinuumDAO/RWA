@@ -58,10 +58,10 @@ contract CTMRWA1TokenFactory is ICTMRWA1TokenFactory {
         address ctmRwa1Addr = address(new CTMRWA1{ salt: bytes32(ID) }(admin, ctmRwaMap, tokenName, symbol, decimals, baseURI, ctmRwa1X));
 
         // Verify that the deployed token contract is for the correct version and RWA type
-        if (_rwaType != RWA_TYPE || ICTMRWA1(ctmRwa1Addr).RWA_TYPE() != RWA_TYPE) {
+        if (_rwaType != RWA_TYPE) {
             revert CTMRWA1TokenFactory_InvalidRWAType(_rwaType);
         }
-        if (_version != VERSION || ICTMRWA1(ctmRwa1Addr).VERSION() != VERSION) {
+        if (_version != VERSION) {
             revert CTMRWA1TokenFactory_InvalidVersion(_version);
         }
 

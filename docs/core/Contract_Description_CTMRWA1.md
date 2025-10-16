@@ -231,7 +231,6 @@ struct SlotData {
 - **Purpose:** Returns arrays of all slot numbers and names
 - **Returns:** Arrays of slot numbers and slot names
 
-#### `getSlotInfoByIndex(uint256 _indx)`
 - **Purpose:** Returns slot data by index
 - **Returns:** SlotData struct for the specified index
 

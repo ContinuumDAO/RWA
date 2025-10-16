@@ -330,13 +330,6 @@ function getAllSlots() public view returns (uint256[] memory, string[] memory)
 **Description:** Returns all slot numbers and names.  
 **Returns:** Arrays of slot numbers and names  
 
-### getSlotInfoByIndex()
-```solidity
-function getSlotInfoByIndex(uint256 _indx) public view returns (SlotData memory)
-```
-**Description:** Returns slot information by index.  
-**Parameters:**
-- `_indx` (uint256): Slot index
 **Returns:** SlotData struct  
 
 ### initializeSlotData()
@@ -395,14 +388,6 @@ function totalSupply() external view virtual returns (uint256)
 **Description:** Returns the total supply of all tokens.  
 **Returns:** Total supply  
 
-### tokenByIndex()
-```solidity
-function tokenByIndex(uint256 _index) public view virtual returns (uint256)
-```
-**Description:** Returns the token ID at a specific index.  
-**Parameters:**
-- `_index` (uint256): Index
-**Returns:** Token ID  
 
 ### tokenOfOwnerByIndex()
 ```solidity
