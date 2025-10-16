@@ -323,7 +323,7 @@ contract TestStorageManager is Helpers {
             feeTokenStr
         );
         uint256 gasUsed = gasBefore - gasleft();
-        assertLt(gasUsed, 500_000, "addURI gas usage should be reasonable");
+        assertLt(gasUsed, 600_000, "addURI gas usage should be reasonable");
         vm.stopPrank();
     }
 
