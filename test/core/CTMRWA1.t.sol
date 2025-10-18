@@ -321,7 +321,7 @@ contract TestCTMRWA1 is Helpers {
             "This is a very long name that exceeds the maximum allowed length of 128 characters and should cause a revert when trying to deploy an ERC20 token";
 
         vm.expectRevert(abi.encodeWithSelector(ICTMRWAERC20Deployer.CTMRWAERC20Deployer_NameTooLong.selector));
-        ctmRwaErc20Deployer.deployERC20(ID, 1, 1, testSlot, longName, address(usdc));
+        deployer.deployERC20(ID, 1, 1, testSlot, longName, address(usdc));
 
         vm.stopPrank();
     }
@@ -593,8 +593,8 @@ contract TestCTMRWA1 is Helpers {
         vm.startPrank(tokenAdmin);
         
         // First deploy an ERC20 for the test slot
-        usdc.approve(address(ctmRwaErc20Deployer), 100_000_000);
-        ctmRwaErc20Deployer.deployERC20(ID, 1, 1, testSlot, "Test ERC20", address(usdc));
+        usdc.approve(address(deployer), 100_000_000);
+        deployer.deployERC20(ID, 1, 1, testSlot, "Test ERC20", address(usdc));
         vm.stopPrank();
         
         vm.startPrank(user1);

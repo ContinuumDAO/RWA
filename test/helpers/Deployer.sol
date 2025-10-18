@@ -211,7 +211,7 @@ contract Deployer is Utils {
             address(feeManager)
         );
 
-        ctmRwaErc20Deployer = new CTMRWAERC20Deployer(address(map), address(feeManager));
+        ctmRwaErc20Deployer = new CTMRWAERC20Deployer(address(map), address(deployer), address(feeManager));
 
         deployer.setDeployInvest(address(ctmRwaDeployInvest));
         deployer.setErc20DeployerAddress(address(ctmRwaErc20Deployer));

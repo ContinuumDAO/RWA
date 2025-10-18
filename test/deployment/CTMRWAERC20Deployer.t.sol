@@ -11,6 +11,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWAERC20 } from "../../src/deployment/ICTMRWAERC20.sol";
 import { ICTMRWAERC20Deployer } from "../../src/deployment/ICTMRWAERC20Deployer.sol";
+import { ICTMRWADeployer } from "../../src/deployment/ICTMRWADeployer.sol";
 import { IERC20Errors } from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import { FeeType } from "../../src/managers/IFeeManager.sol";
 import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
@@ -26,9 +27,9 @@ contract TestERC20Deployer is Helpers {
         (ID, token) = _deployCTMRWA1(address(usdc));
         uint256 nonExistentSlot = 42;
         string memory name = "No Slot";
-        usdc.approve(address(ctmRwaErc20Deployer), 100_000_000);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWAERC20.CTMRWAERC20_NonExistentSlot.selector, nonExistentSlot));
-        ctmRwaErc20Deployer.deployERC20(ID, 1, 1, nonExistentSlot, name, address(usdc));
+        usdc.approve(address(deployer), 100_000_000);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_InvalidContract.selector, CTMRWAErrorParam.SlotName));
+        deployer.deployERC20(ID, 1, 1, nonExistentSlot, name, address(usdc));
         vm.stopPrank();
     }
 
@@ -38,8 +39,8 @@ contract TestERC20Deployer is Helpers {
         _createSomeSlots(ID, address(usdc), address(rwa1X));
         uint256 slot = 1;
         string memory name = "Basic Stuff";
-        usdc.approve(address(ctmRwaErc20Deployer), 100_000_000);
-        address newErc20 = ctmRwaErc20Deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
+        usdc.approve(address(deployer), 100_000_000);
+        address newErc20 = deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
         assertEq(stringsEqual(ICTMRWAERC20(newErc20).name(), "slot 1| Basic Stuff"), true);
         assertEq(stringsEqual(ICTMRWAERC20(newErc20).symbol(), "SFTX1"), true);
         assertEq(ICTMRWAERC20(newErc20).decimals(), 18);
@@ -53,12 +54,12 @@ contract TestERC20Deployer is Helpers {
         _createSomeSlots(ID, address(usdc), address(rwa1X));
         uint256 slot = ICTMRWA1(address(token)).slotByIndex(0); // just use the first slot
         string memory name = "Basic Stuff";
-        usdc.approve(address(ctmRwaErc20Deployer), 100_000_000);
-        ctmRwaErc20Deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
-        vm.expectRevert(); // CREATE2 collision when trying to deploy for same slot
-        ctmRwaErc20Deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWAERC20.CTMRWAERC20_NonExistentSlot.selector, 99));
-        ctmRwaErc20Deployer.deployERC20(ID, 1, 1, 99, name, address(usdc));
+        usdc.approve(address(deployer), 100_000_000);
+        deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_InvalidContract.selector, CTMRWAErrorParam.RWAERC20)); // ERC20 already exists for this slot
+        deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_InvalidContract.selector, CTMRWAErrorParam.SlotName));
+        deployer.deployERC20(ID, 1, 1, 99, name, address(usdc));
         vm.stopPrank();
     }
 
@@ -69,8 +70,8 @@ contract TestERC20Deployer is Helpers {
         uint256 slot = 1;
         string memory name = "Basic Stuff";
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        usdc.approve(address(ctmRwaErc20Deployer), 100_000_000);
-        address newErc20 = ctmRwaErc20Deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
+        usdc.approve(address(deployer), 100_000_000);
+        address newErc20 = deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
         rwa1XUtils.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, VERSION, feeTokenStr);
         assertEq(ICTMRWAERC20(newErc20).balanceOf(user1), 2000);
         assertEq(ICTMRWAERC20(newErc20).totalSupply(), 2000);
@@ -93,8 +94,8 @@ contract TestERC20Deployer is Helpers {
         uint256 slot = 1;
         string memory name = "Basic Stuff";
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        usdc.approve(address(ctmRwaErc20Deployer), 100_000_000);
-        address newErc20 = ctmRwaErc20Deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
+        usdc.approve(address(deployer), 100_000_000);
+        address newErc20 = deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
         rwa1XUtils.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, VERSION, feeTokenStr);
         rwa1XUtils.mintNewTokenValueLocal(user2, 0, slot, 2000, ID, VERSION, feeTokenStr);
         uint256 total = ICTMRWAERC20(newErc20).balanceOf(user1) + ICTMRWAERC20(newErc20).balanceOf(user2);
@@ -142,7 +143,7 @@ contract TestERC20Deployer is Helpers {
         usdc.approve(address(ctmRwaErc20Deployer), expectedFee);
         
         // Deploy the ERC20
-        ctmRwaErc20Deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
+        deployer.deployERC20(ID, 1, 1, slot, name, address(usdc));
         
         // Verify the ERC20 was deployed
         address newErc20 = token.getErc20(slot);

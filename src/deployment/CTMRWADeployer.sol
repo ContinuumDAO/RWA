@@ -338,7 +338,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
             revert CTMRWADeployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
         }
         // Check if the slot exists in the CTMRWA contract
-        if (ICTMRWA1(tokenAddr).slotExists(_slot)) {
+        if (!ICTMRWA1(tokenAddr).slotExists(_slot)) {
             revert CTMRWADeployer_InvalidContract(CTMRWAErrorParam.SlotName);
         }
         // Check if the ERC20 contract already exists

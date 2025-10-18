@@ -35,8 +35,8 @@ contract TestERC20Approval is Helpers {
         _createSomeSlots(ID, address(usdc), address(rwa1X));
         
         // Deploy ERC20 for the test slot
-        usdc.approve(address(ctmRwaErc20Deployer), 100_000_000);
-        testErc20 = ctmRwaErc20Deployer.deployERC20(ID, 1, 1, testSlot, "Test ERC20", address(usdc));
+        usdc.approve(address(deployer), 100_000_000);
+        testErc20 = deployer.deployERC20(ID, 1, 1, testSlot, "Test ERC20", address(usdc));
         
         // Mint some test tokens
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
