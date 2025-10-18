@@ -23,9 +23,6 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * underlying CTMRWA1 token. It allows the tokenAdmin (Issuer) to deploy a unique ERC20 representing
  * a single Asset Class (slot).
  *
- * Whereas anyone could call deployERC20() in this contract, there is no point, since it has to be
- * called by CTMRWA1 to be valid and linked to the CTMRWA1.
- *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1Dividend contract
  * deployments.
  */
@@ -34,28 +31,32 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
     using CTMRWAUtils for string;
     using SafeERC20 for IERC20;
 
-    /// @dev CTMRWAErrorParam of the CTMRWAMap contract
+    /// @dev The address of the CTMRWAMap contract
     address public ctmRwaMap;
 
-    /// @dev CTMRWAErrorParam of the FeeManager contract
+    /// @dev The address of the deployer contract
+    address public deployer;
+
+    /// @dev The address of the FeeManager contract
     address public feeManager;
 
     /// @dev String representation of the local chainID
     string cIdStr;
 
-    constructor(address _ctmRwaMap, address _feeManager) {
-        if (_ctmRwaMap == address(0)) {
-            revert CTMRWAERC20Deployer_IsZeroAddress(CTMRWAErrorParam.Map);
-        }
-        if (_feeManager == address(0)) {
-            revert CTMRWAERC20Deployer_IsZeroAddress(CTMRWAErrorParam.FeeManager);
-        }
-
+    constructor(address _ctmRwaMap, address _deployer, address _feeManager) {
         ctmRwaMap = _ctmRwaMap;
+        deployer = _deployer;
         feeManager = _feeManager;
-
         cIdStr = block.chainid.toString();
     }
+
+    modifier onlyDeployer() {
+        if (msg.sender != deployer) {
+            revert CTMRWAERC20Deployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
+        }
+        _;
+    }
+    
 
     /**
      * @notice Deploy a new ERC20 contract linked to a CTMRWA1 with ID, for ONE slot
@@ -67,7 +68,8 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
      * the slot number
      * @param  _feeToken The fee token address to pay. The contract address must be
      * in the return from feeTokenList() in FeeManager
-     * @return newErc20 The address of the deployed ERC20 contract
+     * @param _originalCaller The address of the original caller who should pay the fee
+     * @return erc20Address The address of the deployed ERC20 contract
      */
     function deployERC20(
         uint256 _ID,
@@ -75,22 +77,19 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
         uint256 _version,
         uint256 _slot,
         string memory _name,
-        address _feeToken
-    ) external returns (address) {
+        address _feeToken,
+        address _originalCaller
+    ) external onlyDeployer returns (address) {
         (bool ok, address ctmRwaToken) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
         if (!ok) {
             revert CTMRWAERC20Deployer_InvalidContract(CTMRWAErrorParam.Token);
         }
-        address tokenAdmin = ICTMRWA1(ctmRwaToken).tokenAdmin();
-        if (msg.sender != tokenAdmin) {
-            revert CTMRWAERC20Deployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Token);
-        }
-
+        
         if (bytes(_name).length > 128) {
             revert CTMRWAERC20Deployer_NameTooLong();
         }
 
-        _payFee(FeeType.ERC20, _feeToken, msg.sender);
+        _payFee(FeeType.ERC20, _feeToken, _originalCaller);
 
         bytes32 salt = keccak256(abi.encode(_ID, _rwaType, _version, _slot));
 

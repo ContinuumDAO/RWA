@@ -18,7 +18,7 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.s
  * @author @Selqui ContinuumDAO
  *
  * @notice This contract is a helper contract for CTMRWA1X. It provides additional functionality to the CTMRWA1X contract.
- *
+ * It also has the c3Fallback function for the MintX function.
  * This contract is only deployed ONCE on each chain
  */
 contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {

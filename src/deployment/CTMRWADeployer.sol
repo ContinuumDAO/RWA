@@ -7,6 +7,7 @@ import { ICTMRWA1DividendFactory } from "../dividend/ICTMRWA1DividendFactory.sol
 import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
 import { ICTMRWA1StorageManager } from "../storage/ICTMRWA1StorageManager.sol";
+import { ICTMRWAERC20Deployer } from "./ICTMRWAERC20Deployer.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
 import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
@@ -21,14 +22,14 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
  * @author @Selqui ContinuumDAO
  *
- * @notice The deploy function in this contract is called by CTMRWA1X on each chain that an
- * CTMRWAErrorParam is deployed to. It calls other contracts that use CREATE2 to deploy the suite of contracts for the CTMRWAErrorParam.
- * These are CTMRWA1TokenFactory to deploy CTMRWA1, CTMRWA1StorageManager to deploy CTMRWA1Storage,
+ * @notice The deploy function in this contract is called by cross chain contracts such as CTMRWA1X on each chain that an
+ * CTMRWA is deployed to. It calls other contracts that use CREATE2 to deploy the suite of contracts for the CTMRWA.
+ * In the case of CTMRWA1, these are CTMRWA1TokenFactory to deploy CTMRWA1, CTMRWA1StorageManager to deploy CTMRWA1Storage,
  * CTMRWA1DividendFactory to deploy CTMRWA1Dividend and CTMRWA1SentryManager to deploy CTMRWA1Sentry.
  * This unique set of contracts is deployed for every ID and then the contract addresses are stored in CTMRWAMap.
  * The contracts that do the deployment can be updated by Governance, with different addresses dependent on
- * the rwaType and version. The data passed to CTMRWA1TokenFactory is abi encoded deployData for maximum
- * flexibility for future types of CTMRWAErrorParam.
+ * the rwaType and version. The data passed to the factory contracts is abi encoded deployData for maximum
+ * flexibility for future types of CTMRWA.
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
  */
@@ -283,13 +284,13 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
     }
 
     /**
-     * @notice Deploy a new CTMRWA1Invest contract. Anyone can call this, but only tokenAdmin
+     * @notice Deploy a new CTMRWA1Invest contract.
      * can create an offering and collect invested funds
-     * @param _ID The ID of the CTMRWAErrorParam token
-     * @param _rwaType The type of CTMRWAErrorParam (set to 1 for CTMRWA1)
-     * @param _version The version of CTMRWAErrorParam (set to 1 for current version)
-     * @param _feeToken CTMRWAErrorParam of a valid fee token. See getFeeTokenList in FeeManager.
-     * NOTE only one CTMRWA1Invest contract can be deployed on each chain.
+     * @param _ID The ID of the CTMRWA token
+     * @param _rwaType The type of CTMRWA (set to 1 for CTMRWA1)
+     * @param _version The version of CTMRWA (set to 1 for current version)
+     * @param _feeToken Address of a valid fee token. See getFeeTokenList in FeeManager.
+     * NOTE only one CTMRWAInvest contract can be deployed on each chain.
      */
     function deployNewInvestment(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken)
         public
@@ -310,7 +311,48 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         return investAddress;
     }
 
+    /**
+     * @notice Deploy a new ERC20 contract for a specific slot. Only callable by the tokenAdmin of the CTMRWA contract
+     * @param _ID The ID of the CTMRWA token
+     * @param _rwaType The type of CTMRWA
+     * @param _version The version of CTMRWA
+     * @param _slot The slot number for the ERC20
+     * @param _name The name for the ERC20
+     * @param _feeToken Address of a valid fee token. See getFeeTokenList in FeeManager.
+     * @return erc20Address The address of the deployed ERC20 contract
+     */
+    function deployERC20(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, string memory _name, address _feeToken)
+        public
+        returns (address)
+    {
+        if (erc20Deployer == address(0)) {
+            revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.ERC20Deployer);
+        }
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
+        if (!ok) {
+            revert CTMRWADeployer_InvalidContract(CTMRWAErrorParam.Token);
+        }
+        // Check if the caller is the tokenAdmin of the CTMRWA contract
+        address tokenAdmin = ICTMRWA1(tokenAddr).tokenAdmin();
+        if (msg.sender != tokenAdmin) {
+            revert CTMRWADeployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
+        }
+        // Check if the slot exists in the CTMRWA contract
+        if (ICTMRWA1(tokenAddr).slotExists(_slot)) {
+            revert CTMRWADeployer_InvalidContract(CTMRWAErrorParam.SlotName);
+        }
+        // Check if the ERC20 contract already exists
+        address erc20Addr;
+        (ok, erc20Addr) = ICTMRWAMap(ctmRwaMap).getErc20Contract(_ID, _rwaType, _version, _slot);
+        if (ok) {
+            revert CTMRWADeployer_InvalidContract(CTMRWAErrorParam.RWAERC20);
+        }
+        // Deploy the ERC20 contract
+        address erc20Address = ICTMRWAERC20Deployer(erc20Deployer).deployERC20(_ID, _rwaType, _version, _slot, _name, _feeToken, msg.sender);
+        ICTMRWAMap(ctmRwaMap).setErc20Contract(_ID, _rwaType, _version, _slot, erc20Address);
 
+        return erc20Address;
+    }
 
 
     function cID() internal view returns (uint256) {

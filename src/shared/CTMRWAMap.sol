@@ -74,6 +74,12 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
     /// @dev CTMRWADeployInvest contract as string => ID
     mapping(string => uint256) investToId;
 
+    /// @dev ID => slot => CTMRWAERC20 contract as string
+    mapping(uint256 => mapping(uint256 => string)) idToErc20;
+
+    /// @dev slot => CTMRWAERC20 contract as string => ID
+    mapping(uint256 => mapping(string => uint256)) erc20ToId;
+
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
     function initialize(
@@ -228,6 +234,12 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
         return ok ? (true, _investStr._stringToAddress()) : (false, address(0));
     }
 
+    function getErc20Contract(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot) public view returns (bool, address) {
+        string memory _erc20Str = idToErc20[_ID][_slot];
+        bool ok = _checkRwaTypeVersion(_erc20Str, _rwaType, _version);
+        return ok ? (true, _erc20Str._stringToAddress()) : (false, address(0));
+    }
+
     /**
      * @dev This function is called by CTMRWADeployer after the deployment of the
      * CTMRWA1, CTMRWA1Dividend, CTMRWA1Storage and CTMRWA1Sentry contracts on a chain.
@@ -308,6 +320,25 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
         } else {
             idToInvest[_ID] = investAddrStr;
             investToId[investAddrStr] = _ID;
+            return (true);
+        }
+    }
+
+    function setErc20Contract(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, address _erc20Addr) external onlyDeployer returns (bool) {
+        if (_erc20Addr == address(0)) {
+            revert CTMRWAMap_IsZeroAddress(CTMRWAErrorParam.RWAERC20);
+        }
+
+        string memory erc20AddrStr = _erc20Addr.toHexString()._toLower();
+        
+        _checkRwaTypeVersion(erc20AddrStr, _rwaType, _version);
+
+        // NOTE: Ensure that the contract has not been deployed yet
+        if (erc20ToId[_slot][erc20AddrStr] != 0) {
+            return (false);
+        } else {
+            idToErc20[_ID][_slot] = erc20AddrStr;
+            erc20ToId[_slot][erc20AddrStr] = _ID;
             return (true);
         }
     }

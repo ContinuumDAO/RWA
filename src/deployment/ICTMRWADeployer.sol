@@ -54,4 +54,5 @@ interface ICTMRWADeployer {
         returns (address);
 
     function setErc20DeployerAddress(address erc20Deployer) external;
+    function deployERC20(uint256 ID, uint256 rwaType, uint256 version, uint256 slot, string memory name, address feeToken) external returns (address);
 }

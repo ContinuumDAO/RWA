@@ -28,6 +28,8 @@ interface ICTMRWAMap {
     function setInvestmentContract(uint256 ID, uint256 rwaType, uint256 version, address investAddr)
         external
         returns (bool);
+        
+    function setErc20Contract(uint256 ID, uint256 rwaType, uint256 version, uint256 slot, address erc20Addr) external returns (bool);   
 
     function getTokenContract(uint256 ID, uint256 rwaType, uint256 version)
         external
@@ -46,6 +48,8 @@ interface ICTMRWAMap {
     function getSentryContract(uint256 ID, uint256 rwaType, uint256 version) external view returns (bool, address);
 
     function getInvestContract(uint256 ID, uint256 rwaType, uint256 version) external view returns (bool, address);
+
+    function getErc20Contract(uint256 ID, uint256 rwaType, uint256 version, uint256 slot) external view returns (bool, address);
 }
 
 interface ICTMRWAAttachment {
