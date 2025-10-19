@@ -144,6 +144,11 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
         return totalBalance;
     }
 
+    /**
+     * @notice Returns the balance of approved tokenIds for a specific account
+     * @param _account The wallet address of the balanceOf being sought
+     * @return approvedBalance The balance of the _account from approved tokenIds only
+     */
     function balanceOfApproved(address _account) public view returns (uint256) {
         // Get the array of approved tokenIds for this owner and slot
         uint256[] memory approvedTokenIds = ICTMRWA1(ctmRwaToken).getErc20Approvals(_account, slot);

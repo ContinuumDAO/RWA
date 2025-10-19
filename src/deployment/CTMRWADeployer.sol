@@ -25,13 +25,13 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * @notice The deploy function in this contract is called by cross chain contracts such as CTMRWA1X on each chain that an
  * CTMRWA is deployed to. It calls other contracts that use CREATE2 to deploy the suite of contracts for the CTMRWA.
  * In the case of CTMRWA1, these are CTMRWA1TokenFactory to deploy CTMRWA1, CTMRWA1StorageManager to deploy CTMRWA1Storage,
- * CTMRWA1DividendFactory to deploy CTMRWA1Dividend and CTMRWA1SentryManager to deploy CTMRWA1Sentry.
+ * CTMRWA1DividendFactory to deploy CTMRWA1Dividend and CTMRWA1SentryManager to deploy CTMRWA1Sentry. Optionally,
+ * CTMRWAERC20Deployer can be used to deploy Investment contracts andERC20 tokens that are interfaces to the underlying CTMRWA1 token.
  * This unique set of contracts is deployed for every ID and then the contract addresses are stored in CTMRWAMap.
  * The contracts that do the deployment can be updated by Governance, with different addresses dependent on
- * the rwaType and version. The data passed to the factory contracts is abi encoded deployData for maximum
- * flexibility for future types of CTMRWA.
+ * the rwaType and version. The data passed to the factory contracts is abi encoded deployData for maximum flexibility for future types of CTMRWA.
  *
- * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions
+ * This contract is only deployed ONCE on each chain and manages all CTMRWA contract interactions
  */
 contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgradeable {
     using Strings for *;
@@ -285,27 +285,43 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
 
     /**
      * @notice Deploy a new CTMRWA1Invest contract.
-     * can create an offering and collect invested funds
      * @param _ID The ID of the CTMRWA token
      * @param _rwaType The type of CTMRWA (set to 1 for CTMRWA1)
      * @param _version The version of CTMRWA (set to 1 for current version)
      * @param _feeToken Address of a valid fee token. See getFeeTokenList in FeeManager.
+     * NOTE Only the tokenAdmin of the CTMRWA contract can deploy a new investment contract.
      * NOTE only one CTMRWAInvest contract can be deployed on each chain.
      */
     function deployNewInvestment(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken)
         public
         returns (address)
     {
-        (bool ok,) = ICTMRWAMap(ctmRwaMap).getInvestContract(_ID, _rwaType, _version);
-        if (ok) {
-            revert CTMRWADeployer_InvalidContract(CTMRWAErrorParam.Invest);
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, _rwaType, _version);
+        if (!ok) {
+            revert CTMRWADeployer_InvalidContract(CTMRWAErrorParam.Token);
         }
 
+        // Check if the caller is the tokenAdmin of the CTMRWA contract
+        address tokenAdmin = ICTMRWA1(tokenAddr).tokenAdmin();
+        if (msg.sender != tokenAdmin) {
+            revert CTMRWADeployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
+        }
+
+        // Check if the deployInvest contract is set
         if (deployInvest == address(0)) {
             revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.DeployInvest);
         }
 
+        (ok,) = ICTMRWAMap(ctmRwaMap).getInvestContract(_ID, _rwaType, _version);
+        // If the investment contract already exists, revert, since only one per chainId can be deployed
+        if (ok) {
+            revert CTMRWADeployer_InvalidContract(CTMRWAErrorParam.Invest);
+        }
+
+        // Deploy the investment contract
         address investAddress = ICTMRWADeployInvest(deployInvest).deployInvest(_ID, _rwaType, _version, _feeToken, msg.sender);
+
+        // Set the investment contract in the CTMRWAMap
         ICTMRWAMap(ctmRwaMap).setInvestmentContract(_ID, _rwaType, _version, investAddress);
 
         return investAddress;

@@ -37,12 +37,11 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
     string public cIdStr;
 
 
-    /// @dev tokenAdmin address => version => array of CTMRWA1 contracts. CTMRWAErrorParam of contracts controlled by each tokenAdmin
+    /// @dev tokenAdmin address => version => array of CTMRWA1 contracts. Addresses of contracts controlled by each tokenAdmin
     mapping(address => mapping(uint256 => address[])) public adminTokens;
 
     /**
-     * @dev  owner address => version =>array of CTMRWA1 contracts.
-     * CTMRWAErrorParam  of CTMRWA1 contracts that an owner address has one or more tokenIds
+     * @dev  owner address => version =>array of CTMRWA1 contracts. Addresses of CTMRWA1 contracts that an owner address has one or more tokenIds
      */
     mapping(address => mapping(uint256 => address[])) public ownedCtmRwa1;
 
@@ -63,6 +62,27 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
         feeManager = ICTMRWA1X(rwa1X).feeManager();
 
         cIdStr = ICTMRWA1X(rwa1X).cIdStr();
+    }
+
+    function setRwa1X(address _rwa1X) external onlyRwa1X {
+        if (_rwa1X == address(0)) {
+            revert CTMRWA1XUtils_IsZeroAddress(CTMRWAErrorParam.RWAX);
+        }
+        rwa1X = _rwa1X;
+    }
+
+    function setCtmRwaMap(address _ctmRwaMap) external onlyRwa1X {
+        if (_ctmRwaMap == address(0)) {
+            revert CTMRWA1XUtils_IsZeroAddress(CTMRWAErrorParam.Map);
+        }
+        ctmRwaMap = _ctmRwaMap;
+    }
+
+    function setFeeManager(address _feeManager) external onlyRwa1X {
+        if (_feeManager == address(0)) {
+            revert CTMRWA1XUtils_IsZeroAddress(CTMRWAErrorParam.FeeManager);
+        }
+        feeManager = _feeManager;
     }
 
 
@@ -185,7 +205,7 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
 
     /**
      * @notice Mint new fungible value for an RWA with _ID to an Asset Class (slot).
-     * @param _toAddress CTMRWAErrorParam to mint new value for
+     * @param _toAddress Address to mint new value for
      * @param _toTokenId The tokenId to add the new value to. If set to 0, create a new tokenId
      * @param _slot The Asset Class (slot) for which to mint value if _toTokenId == 0, else must be zero.
      * @param _value The fungible value to create. This is in wei if CTMRWA1().valueDecimals() == 18

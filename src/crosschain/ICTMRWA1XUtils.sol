@@ -16,10 +16,18 @@ interface ICTMRWA1XUtils {
     error CTMRWA1XUtils_FailedTransfer();
     error CTMRWA1XUtils_NonZeroSlot(uint256 slot);
     error CTMRWA1XUtils_NonExistentSlot(uint256 slot);
+    error CTMRWA1XUtils_IsZeroAddress(CTMRWAErrorParam param);
 
     // Functions
     function rwa1X() external returns (address);
     function ctmRwaMap() external returns (address);
+    function feeManager() external returns (address);
+    function cIdStr() external returns (string memory);
+    
+    // Setter functions
+    function setRwa1X(address _rwa1X) external;
+    function setCtmRwaMap(address _ctmRwaMap) external;
+    function setFeeManager(address _feeManager) external;
     function updateOwnedCtmRwa1(address _ownerAddr, address _tokenAddr, uint256 _version) external returns (bool);
     function isOwnedToken(address _owner, address _ctmRwa1Addr) external view returns (bool);
     function addAdminToken(address _admin, address _tokenAddr, uint256 _version) external;
@@ -33,6 +41,16 @@ interface ICTMRWA1XUtils {
         address to,
         uint256 slot,
         string memory slotName
+    ) external returns (uint256);
+
+    function mintNewTokenValueLocal(
+        address _toAddress,
+        uint256 _toTokenId,
+        uint256 _slot,
+        uint256 _value,
+        uint256 _ID,
+        uint256 _version,
+        string memory _feeTokenStr
     ) external returns (uint256);
    
     function lastSelector() external returns (bytes4);

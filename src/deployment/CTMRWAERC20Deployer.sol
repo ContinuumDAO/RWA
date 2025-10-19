@@ -19,11 +19,11 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
  * @author @Selqui ContinuumDAO
  *
- * @notice This contract manages the deployment of an ERC20 token that is an interface to the
- * underlying CTMRWA1 token. It allows the tokenAdmin (Issuer) to deploy a unique ERC20 representing
+ * @notice This contract manages the deployment of an ERC20 token from CTMRWADeployer that is an interface to the
+ * underlying CTMRWA1 token. It allows the tokenAdmin of the CTMRWA contract to deploy a unique ERC20 representing
  * a single Asset Class (slot).
  *
- * This contract is only deployed ONCE on each chain and manages all CTMRWA1Dividend contract
+ * This contract is only deployed ONCE on each chain and manages all CTMRWAERC20 contract
  * deployments.
  */
 contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
@@ -70,6 +70,7 @@ contract CTMRWAERC20Deployer is ICTMRWAERC20Deployer, ReentrancyGuard {
      * in the return from feeTokenList() in FeeManager
      * @param _originalCaller The address of the original caller who should pay the fee
      * @return erc20Address The address of the deployed ERC20 contract
+     * NOTE The public function to deploy the ERC20 is deployERC20 in CTMRWADeployer.
      */
     function deployERC20(
         uint256 _ID,

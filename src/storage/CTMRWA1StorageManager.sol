@@ -184,17 +184,17 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     }
 
     /**
-     * @notice Add a data storage record to the RWA's CTMRWA1Storage contract on this chain and
-     * identically on every other chain that the RWA is deployed to. The bulk of the data is stored
+     * @notice Add a data storage record to the CTMRWA token's CTMRWA1Storage contract on this chain and
+     * identically on every other chain that the CTMRWA token is deployed to. The bulk of the data is stored
      * in an object in decentralized storage (e.g. BNB Greenfield) in an object with name _objectName.
      * Also stored in the CTMRWA1Storage are the title of the record, the type of information, the
      * Asset Class (slot) and a hash of the checksum of the stored data.
-     * @param _ID The ID of the RWA token
+     * @param _ID The ID of the CTMRWA token
      * @param _objectName The name of the object stored in decentralized storage (e.g. BNB Greenfield)
-     * It should be identical to the string version of the nonce() in the RWA's CTMRWA1Storage contract.
+     * It should be identical to the string version of the nonce() in the CTMRWA token's CTMRWA1Storage contract.
      * @param _uriCategory The category type of the data being stored. The allowable values are the enums
      * in URICategory defined in ICTMRWA1Storage
-     * @param _uriType The type of storage information. It can either relate the the entire RWA
+     * @param _uriType The type of storage information. It can either relate the the entire CTMRWA token
      * (URIType.CONTRACT), or to an individual Asset Class (URIType.SLOT)
      * @param _title The title of this storage record. It has to be between 10 and 256 charcters in length.
      * @param _slot The Asset Class (slot) for this storage record if URIType.SLOT, otherwise set to zero.
@@ -207,8 +207,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      * NOTE For EVM chains, the address of the fee token must be converted to a string
      *
      * NOTE The very first storage object MUST be URICategory.ISSUER and URIType.CONTRACT describing the
-     * Issuer of the RWA
-     * NOTE The tokenAdmin (Issuer) of the RWA must register the RWA as a Security and add a
+     * Issuer of the CTMRWA token
+     * NOTE The tokenAdmin (Issuer) of the CTMRWA token must register the CTMRWA token as a Security and add a
      * URICategory.LICENSE record before they can create a wallet address able to forceTransfer value
      * in CTMRWA1.
      */
@@ -297,9 +297,9 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     /**
      * @notice When new chains are added to the RWA with _ID, this function transfers all the existing storage
      * data from the CTMRWA1Storage contract for the ID on the local chain to the newly added chains.
-     * In this way, the storage data is synced on all chains of the RWA for this ID, all pointing to the same
+     * In this way, the storage data is synced on all chains of the CTMRWA token for this ID, all pointing to the same
      * decentralized storage objects on e.g. BNB Greenfield.
-     * @param _ID The ID of this RWA
+     * @param _ID The ID of this CTMRWA token
      * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
      * NOTE For EVM chains, you must convert the integer chainID values to strings. Do not include the local chainID.
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay

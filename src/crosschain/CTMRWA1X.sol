@@ -37,7 +37,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
 
-    /// @dev The latest version of RWA type
+    /// @dev The latest version of RWA type. New versions of RWA are only allowed to be deployed on the latest version of the RWA.
     uint256 public LATEST_VERSION;
 
     /// @dev The address of the CTMRWAGateway contract
@@ -55,7 +55,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     /// @dev The address of the CTMRWAMap contract
     address public ctmRwaMap;
 
-    /// @dev The address of the CTMRWA1XUtils contract
+    /// @dev The address of the CTMRWA1XUtils contract, which extenda CTMRWA1X functionality
     address public ctmRwa1XUtilsAddr;
 
     /// @dev string representation of the chainID
@@ -444,7 +444,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     }
 
     /**
-     * @notice Change the tokenAdmin address of a deployed CTMRWA1. Only the current tokenAdmin can call.
+     * @notice Change the tokenAdmin address of a deployed CTMRWA1. Only the current tokenAdmin can call this function.
      * @param _newAdminStr The new tokenAdmin. NOTE This is a string, not an address.
      * @param _toChainIdsStr An array of chainID strings for which to change to tokenAdmin address.
      * NOTE This INCLUDES the local chain

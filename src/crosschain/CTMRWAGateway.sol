@@ -13,9 +13,10 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * @author @Selqui ContinuumDAO
  *
  * @notice This contract is the gateway between any blockchain that can have an RWA deployed
- * to it. It stores the contract addresses of CTMRWAGateway contracts on other chains, as well
- * as, in the case of rwaType 1, the contract addresses of CTMRWA1X, CTMRWA1StorageManager and CTMRWA1SentryMananager
- * contracts. This enables c3calls to be made between all the c3Caller DApps that make up AssetX
+ * to it. It stores the contract addresses of CTMRWAGateway contracts on other chains, as well.
+ * In the case of rwaType 1, the contract addresses of CTMRWA1X, CTMRWA1StorageManager and CTMRWA1SentryMananager
+ * contracts are stored, but other rwaTypes are also supported. 
+ * This enables c3calls to be made between all the c3Caller DApps that make up AssetX
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA contract interactions
  */
@@ -159,7 +160,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _indx The index position to return data from
      * @return chainIdStr The chainId of the CTMRWA1X contract at the index
-     * @return (chainIdStr, contractStr) The chainId and address string for a CTMRWA1X contract at the index
+     * @return tuple (chainIdStr, contractStr) The chainId and address string for a CTMRWA1X contract at the index
      * NOTE The local chainId is at index 0.
      */
     function getAttachedRWAX(uint256 _rwaType, uint256 _version, uint256 _indx)
@@ -185,7 +186,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
      * @param _rwaType The type of RWA. CTMRWA1 is 1
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdStr The chainId (as a string) being examined
-     * @return (success, contractStr) success True if the chainId exists, false otherwise. contractStr is the address string for a CTMRWA1X contract at the index
+     * @return tuple (success, contractStr) success True if the chainId exists, false otherwise. contractStr is the address string for a CTMRWA1X contract at the index
      * NOTE The local chainId is at index 0.
      */
     function getAttachedRWAX(uint256 _rwaType, uint256 _version, string memory _chainIdStr)
@@ -210,7 +211,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _indx The index position to return data from
      * @return chainIdStr The chainId of the CTMRWA1StorageManager contract at the index
-     * @return (chainIdStr, contractStr) The chainId and address string for a CTMRWA1StorageManager contract at the index
+     * @return tuple (chainIdStr, contractStr) The chainId and address string for a CTMRWA1StorageManager contract at the index
      * NOTE The local chainId is at index 0.
      */
     function getAttachedStorageManager(uint256 _rwaType, uint256 _version, uint256 _indx)
@@ -241,7 +242,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdStr The chainId (as a string) being examined
      * @return success True if the chainId exists, false otherwise.
-     * @return (chainIdStr, contractStr) The chainId and address string for a CTMRWA1StorageManager contract at the index
+     * @return tuple (chainIdStr, contractStr) The chainId and address string for a CTMRWA1StorageManager contract at the index
      */
     function getAttachedStorageManager(uint256 _rwaType, uint256 _version, string memory _chainIdStr)
         public
@@ -264,7 +265,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _indx The index position to return data from
      * @return chainIdStr The chainId of the CTMRWA1SentryManager contract at the index
-     * @return (chainIdStr, contractStr) The chainId and address string for a CTMRWA1SentryManager contract at the index
+     * @return tuple (chainIdStr, contractStr) The chainId and address string for a CTMRWA1SentryManager contract at the index
      * NOTE The local chainId is at index 0.
      */
     function getAttachedSentryManager(uint256 _rwaType, uint256 _version, uint256 _indx)
@@ -294,7 +295,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdStr The chainId (as a string) being examined
      * @return success True if the chainId exists, false otherwise.
-     * @return (chainIdStr, contractStr) The chainId and address string for a CTMRWA1SentryManager contract at the index
+     * @return tuple (chainIdStr, contractStr) The chainId and address string for a CTMRWA1SentryManager contract at the index
      * NOTE The local chainId is at index 0.
      */
     function getAttachedSentryManager(uint256 _rwaType, uint256 _version, string memory _chainIdStr)
@@ -317,7 +318,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
      * @param _version The version of this RWA type. Currently only 1 is in use
      * @param _chainIdsStr Array of chainIds converted to strings
      * @param _rwaXAddrsStr Array of the CTMRWA1X contract addresses converted to strings
-     * @return success True if the addresses were added, false otherwise.
+     * @return success True if the addresses were added successfully.
      * NOTE The local chainId is at index 0.
      */
     function attachRWAX(uint256 _rwaType, uint256 _version, string[] memory _chainIdsStr, string[] memory _rwaXAddrsStr)
@@ -370,7 +371,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
      * @param _chainIdsStr Array of chainIds converted to strings
      * @param _storageManagerAddrsStr Array of the CTMRWA1StorageManager contract addresses
      * converted to strings
-     * @return success True if the addresses were added, false otherwise.
+     * @return success True if the addresses were added successfully.
      * NOTE The local chainId is at index 0.
      */
     function attachStorageManager(
@@ -419,7 +420,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
      * @param _chainIdsStr Array of chainIds converted to strings
      * @param _sentryManagerAddrsStr Array of the CTMRWA1SentryManager contract addresses
      * converted to strings
-     * @return success True if the addresses were added, false otherwise.
+     * @return success True if the addresses were added successfully.
      * NOTE The local chainId is at index 0.
      */
     function attachSentryManager(
