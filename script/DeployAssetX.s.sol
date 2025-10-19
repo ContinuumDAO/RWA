@@ -29,6 +29,7 @@ import { CTMRWA1StorageUtils } from "../flattened/storage/CTMRWA1StorageUtils.so
 
 import { CTMRWAProxy } from "../flattened/utils/CTMRWAProxy.sol";
 
+
 import { DeployedContracts } from "./Utils.s.sol";
 
 contract DeployAssetX is Script {
@@ -125,7 +126,7 @@ contract DeployAssetX is Script {
             )
         );
 
-        erc20Deployer = address(new CTMRWAERC20Deployer(map, feeManager));
+        erc20Deployer = address(new CTMRWAERC20Deployer(map, deployer, feeManager));
     }
 
     function _deployTokenFactory() internal {
