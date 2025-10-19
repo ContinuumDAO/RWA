@@ -75,12 +75,12 @@ interface ICTMRWA1X {
 
     function changeFeeManager(address feeManager) external;
     function setGateway(address gateway) external;
-    function setFallback(address fallbackAddr) external;
+    function setFallback(address ctmRwa1XUtilsAddr) external;
     function setCtmRwaMap(address ctmRwaMap) external;
     function setCtmRwaDeployer(address deployer) external;
     function gateway() external returns (address);
     function ctmRwaDeployer() external returns (address);
-    function fallbackAddr() external returns (address);
+    function ctmRwa1XUtilsAddr() external returns (address);
 
     function deployAllCTMRWA1X(
         bool includeLocal,

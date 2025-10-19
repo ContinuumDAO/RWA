@@ -572,7 +572,7 @@ contract CTMRWA1StorageTest is Helpers {
 
         // Test O(1) index lookup performance
         uint256 gasBefore = gasleft();
-        (bytes32 hash, string memory objName) = stor.getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, 0);
+        (bytes32 hash,) = stor.getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, 0);
         uint256 gasUsed = gasBefore - gasleft();
         
         assertTrue(hash != bytes32(0));
@@ -623,14 +623,13 @@ contract CTMRWA1StorageTest is Helpers {
         
         // Test getURIHashCount
         gasBefore = gasleft();
-        uint256 count = stor.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT);
         gasUsed = gasBefore - gasleft();
         console.log("getURIHashCount gas:", gasUsed);
         assertTrue(gasUsed < 8_000, "getURIHashCount should be O(1)");
         
         // Test getURIHashByIndex
         gasBefore = gasleft();
-        (bytes32 hash, string memory objName) = stor.getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, 0);
+        (bytes32 hash,) = stor.getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, 0);
         gasUsed = gasBefore - gasleft();
         assertTrue(hash != bytes32(0));
         console.log("getURIHashByIndex gas:", gasUsed);
@@ -679,14 +678,13 @@ contract CTMRWA1StorageTest is Helpers {
         
         // Test getURIHashCount
         gasBefore = gasleft();
-        uint256 count = stor.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT);
         gasUsed = gasBefore - gasleft();
         console.log("getURIHashCount gas:", gasUsed);
         assertTrue(gasUsed < 8_000, "getURIHashCount should be O(1)");
         
         // Test getURIHashByIndex
         gasBefore = gasleft();
-        (bytes32 hash, string memory objName) = stor.getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, 0);
+        (bytes32 hash,) = stor.getURIHashByIndex(URICategory.ISSUER, URIType.CONTRACT, 0);
         gasUsed = gasBefore - gasleft();
         assertTrue(hash != bytes32(0));
         console.log("getURIHashByIndex gas:", gasUsed);

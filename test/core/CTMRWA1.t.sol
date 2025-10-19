@@ -716,13 +716,17 @@ contract TestCTMRWA1 is Helpers {
         // Test overflow protection (though Solidity 0.8+ has built-in protection)
         vm.startPrank(address(rwa1X));
 
+        // Get current supply in slot (should be 2000 from both testTokenId1 and testTokenId2)
+        uint256 currentSupplyInSlot = token.totalSupplyInSlot(testSlot);
+        
         // Try to mint maximum value (checkpoints use uint208 for the value)
-        // Current balance should be 1000 from setup
-        token.mintValueX(testTokenId1, type(uint208).max - 1000);
+        // Current balance should be 1000 from setup, but we need to account for total supply in slot
+        uint256 maxUint208 = 2**208 - 1;
+        uint256 maxMintable = maxUint208 - currentSupplyInSlot;
+        token.mintValueX(testTokenId1, maxMintable);
 
         // Try to mint more (should fail due to overflow)
-        // The current balance is now type(uint208).max, so minting any amount should fail
-        uint256 maxUint208 = 2**208 - 1;
+        // The current supply in slot is now type(uint208).max, so minting any amount should fail
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_ValueOverflow.selector, maxUint208 + 1, maxUint208));
         token.mintValueX(testTokenId1, 1);
 

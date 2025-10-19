@@ -58,8 +58,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// CTMRWA1 and its components
     address public ctmRwa1X;
 
-    /// @dev rwa1XFallback is the contract responsible for dealing with failed cross-chain calls from ctmRwa1X
-    address public rwa1XFallback;
 
     /// @dev dividendAddr is the contract managing dividend payments to CTMRWA1 holders
     address public dividendAddr;
@@ -137,10 +135,10 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
 
     mapping(address => AddressData) private _addressData;
 
-    // /// @dev defines which address can deploy or mint slot specific ERC20 tokens
-    // mapping(address => bool) private _erc20s;
+
     /// @dev slot number => address of the slot specific ERC20
     mapping(uint256 => address) private _erc20Slots;
+
     /// @dev array of tokenIds approved for spending by ERC20 contracts. owner => slot => tokenId[]
     mapping(address => mapping(uint256 => uint256[])) private _erc20Approvals;
 
@@ -161,7 +159,6 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _decimals = decimals_;
         baseURI = baseURI_;
         ctmRwa1X = _ctmRwa1X;
-        rwa1XFallback = ICTMRWA1X(ctmRwa1X).fallbackAddr();
         ctmRwaDeployer = ICTMRWA1X(ctmRwa1X).ctmRwaDeployer();
         tokenFactory = ICTMRWADeployer(ctmRwaDeployer).tokenFactory(RWA_TYPE, VERSION);
         erc20Deployer = ICTMRWADeployer(ctmRwaDeployer).erc20Deployer();
@@ -182,7 +179,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _unpause();
     }
 
-
+    /// @dev modifier to only allow the erc20Deployer to call the function to set the ERC20 contract for a slot
     modifier onlyErc20Deployer() {
         if (msg.sender != erc20Deployer) {
             revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.ERC20Deployer);
@@ -190,6 +187,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _;
     }
 
+    /// @dev modifier to only allow the tokenFactory to call the function to initialize slot data
     modifier onlyTokenFactory() {
         if (msg.sender != tokenFactory) {
             revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Factory);
@@ -197,6 +195,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _;
     }
 
+    /// @dev modifier to only allow the ctmRwaMap to call the functions to attach the dividend, storage, and sentry contracts
     modifier onlyCtmMap() {
         if (msg.sender != ctmRwaMap) {
             revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Map);
@@ -204,9 +203,9 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         _;
     }
 
-
+    /// @dev modifier to only allow the ctmRwa1X to call the functions
     modifier onlyRwa1X() {
-        if (msg.sender != ctmRwa1X && msg.sender != rwa1XFallback) {
+        if (msg.sender != ctmRwa1X) {
             revert CTMRWA1_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX);
         }
         _;
@@ -925,11 +924,20 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             revert CTMRWA1_ValueOverflow(currentBalance + _value, maxUint208);
         }
         
+        // Check for overflow when adding to existing supply in slot
+        uint208 currentSupplyInSlot = _supplyInSlot[slot].latest();
+        if (currentSupplyInSlot > maxUint208 - _value) {
+            revert CTMRWA1_ValueOverflow(currentSupplyInSlot + _value, maxUint208);
+        }
+        
         _beforeValueTransfer(address(0), owner, 0, _tokenId, slot, "", _value);
         __mintValue(_tokenId, _value);
         uint256 newBalance256 = uint256(currentBalance) + _value;
         uint208 newBalance = uint208(newBalance256);
         _balance[owner][slot].push(uint48(block.timestamp), newBalance);
+        uint256 newSupplyInSlot256 = uint256(currentSupplyInSlot) + _value;
+        uint208 newSupplyInSlot = uint208(newSupplyInSlot256);
+        _supplyInSlot[slot].push(uint48(block.timestamp), newSupplyInSlot);
         _afterValueTransfer(address(0), owner, 0, _tokenId, slot, "", _value);
     }
 
@@ -1103,7 +1111,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
     /// @param _tokenId The tokenId to approve
     function approveFromX(address _to, uint256 _tokenId) external {
         // Allow both RWA1X and ERC20 contracts to approve
-        if (msg.sender != ctmRwa1X && msg.sender != rwa1XFallback) {
+        if (msg.sender != ctmRwa1X) {
             // Check if the caller is an authorized ERC20 contract
             bool isAuthorizedERC20 = false;
             for (uint256 i = 0; i < _allSlots.length; i++) {

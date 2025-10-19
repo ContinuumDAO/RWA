@@ -1306,8 +1306,8 @@ contract TestCTMRWA1X is Helpers {
         bytes memory data = abi.encode(ID, user1.toHexString(), user2.toHexString(), 3, 1000);
         bytes memory reason = "mintX failed"; // A dummy revert string from the destination contract
 
-        assertEq(rwa1X.fallbackAddr(), address(rwa1XUtils));
-        assertEq(ICTMRWA1XUtils(rwa1X.fallbackAddr()).rwa1X(), address(rwa1X));
+        assertEq(rwa1X.ctmRwa1XUtilsAddr(), address(rwa1XUtils));
+        assertEq(ICTMRWA1XUtils(rwa1X.ctmRwa1XUtilsAddr()).rwa1X(), address(rwa1X));
 
         vm.prank(address(rwa1X));
         rwa1XUtils.rwa1XC3Fallback(selector, data, reason, address(map));

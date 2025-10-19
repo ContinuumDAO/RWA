@@ -39,7 +39,7 @@ contract MaliciousCTMRWA1X is CTMRWA1X {
         feeManager = address(0xdead);
         ctmRwaDeployer = address(0xdead);
         ctmRwaMap = address(0xdead);
-        fallbackAddr = address(0xdead);
+        ctmRwa1XUtilsAddr = address(0xdead);
     }
 }
 
@@ -64,7 +64,7 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Store initial state
         address initialGateway = rwa1X.gateway();
         address initialFeeManager = rwa1X.feeManager();
-        address initialFallback = rwa1X.fallbackAddr();
+        address initialFallback = rwa1X.ctmRwa1XUtilsAddr();
         bool initialMinterStatus = rwa1X.isMinter(address(this));
 
         // Upgrade the proxy
@@ -76,7 +76,7 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Verify state is preserved
         assertEq(rwa1X.gateway(), initialGateway, "Gateway should be preserved");
         assertEq(rwa1X.feeManager(), initialFeeManager, "FeeManager should be preserved");
-        assertEq(rwa1X.fallbackAddr(), initialFallback, "Fallback should be preserved");
+        assertEq(rwa1X.ctmRwa1XUtilsAddr(), initialFallback, "Fallback should be preserved");
         assertEq(rwa1X.isMinter(address(this)), initialMinterStatus, "Minter status should be preserved");
 
         // Verify new functionality works
@@ -219,7 +219,7 @@ contract CTMRWA1XUpgradesTest is Helpers {
 
     function test_upgrade_proxy_preserves_fallback_address() public {
         // Store initial fallback address
-        address initialFallback = rwa1X.fallbackAddr();
+        address initialFallback = rwa1X.ctmRwa1XUtilsAddr();
         assertTrue(initialFallback != address(0), "Should have fallback address");
         // Upgrade the proxy
         vm.startPrank(gov);
@@ -227,7 +227,7 @@ contract CTMRWA1XUpgradesTest is Helpers {
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify fallback address is preserved
-        assertEq(rwa1X.fallbackAddr(), initialFallback, "Fallback address should be preserved");
+        assertEq(rwa1X.ctmRwa1XUtilsAddr(), initialFallback, "Fallback address should be preserved");
     }
 
     function test_upgrade_proxy_preserves_deployer_and_map_addresses() public {
@@ -411,8 +411,8 @@ contract CTMRWA1XUpgradesTest is Helpers {
 
     function test_upgrade_proxy_preserves_fallback_minter_status() public {
         // Store initial fallback minter status
-        address fallbackAddr = rwa1X.fallbackAddr();
-        bool fallbackMinterStatus = rwa1X.isMinter(fallbackAddr);
+        address ctmRwa1XUtilsAddr = rwa1X.ctmRwa1XUtilsAddr();
+        bool fallbackMinterStatus = rwa1X.isMinter(ctmRwa1XUtilsAddr);
         // Deploy new implementation and upgrade
         MockCTMRWA1XV2 newImpl = new MockCTMRWA1XV2();
         vm.startPrank(gov);
@@ -420,7 +420,7 @@ contract CTMRWA1XUpgradesTest is Helpers {
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Verify fallback minter status is preserved
-        assertEq(rwa1X.isMinter(fallbackAddr), fallbackMinterStatus, "Fallback minter status should be preserved");
+        assertEq(rwa1X.isMinter(ctmRwa1XUtilsAddr), fallbackMinterStatus, "Fallback minter status should be preserved");
     }
 
     function test_updateLatestVersion_basic_functionality() public {
@@ -476,7 +476,7 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Store initial state
         address initialGateway = rwa1X.gateway();
         address initialFeeManager = rwa1X.feeManager();
-        address initialFallback = rwa1X.fallbackAddr();
+        address initialFallback = rwa1X.ctmRwa1XUtilsAddr();
 
         // Update version
         vm.prank(gov);
@@ -485,7 +485,7 @@ contract CTMRWA1XUpgradesTest is Helpers {
         // Verify other state is preserved
         assertEq(rwa1X.gateway(), initialGateway, "Gateway should be preserved");
         assertEq(rwa1X.feeManager(), initialFeeManager, "FeeManager should be preserved");
-        assertEq(rwa1X.fallbackAddr(), initialFallback, "Fallback should be preserved");
+        assertEq(rwa1X.ctmRwa1XUtilsAddr(), initialFallback, "Fallback should be preserved");
         assertEq(rwa1X.RWA_TYPE(), 1, "RWA_TYPE should be preserved");
     }
 

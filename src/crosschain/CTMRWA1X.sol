@@ -56,7 +56,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     address public ctmRwaMap;
 
     /// @dev The address of the CTMRWA1XUtils contract
-    address public fallbackAddr;
+    address public ctmRwa1XUtilsAddr;
 
     /// @dev string representation of the chainID
     string public cIdStr;
@@ -103,7 +103,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * @param _set Boolean setting or un-setting minter
      */
     function changeMinterStatus(address _minter, bool _set) external onlyGov {
-        if (_minter == address(this) || _minter == fallbackAddr) {
+        if (_minter == address(this) || _minter == ctmRwa1XUtilsAddr) {
             revert CTMRWA1X_InvalidAddress(CTMRWAErrorParam.Minter);
         }
         isMinter[_minter] = _set;
@@ -158,18 +158,18 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
     /**
      * @notice Governance can change to a new CTMRWA1XUtils contract
-     * @param _fallbackAddr address of the new CTMRWA1XUtils contract
+     * @param _ctmRwa1XUtilsAddr address of the new CTMRWA1XUtils contract
      */
-    function setFallback(address _fallbackAddr) external onlyGov {
-        if (_fallbackAddr == address(this)) {
+    function setFallback(address _ctmRwa1XUtilsAddr) external onlyGov {
+        if (_ctmRwa1XUtilsAddr == address(this)) {
             revert CTMRWA1X_InvalidAddress(CTMRWAErrorParam.Fallback);
         }
-        if (_fallbackAddr == address(0)) {
+        if (_ctmRwa1XUtilsAddr == address(0)) {
             revert CTMRWA1X_IsZeroAddress(CTMRWAErrorParam.Fallback);
         }
-        isMinter[fallbackAddr] = false;
-        isMinter[_fallbackAddr] = true;
-        fallbackAddr = _fallbackAddr;
+        isMinter[ctmRwa1XUtilsAddr] = false;
+        isMinter[_ctmRwa1XUtilsAddr] = true;
+        ctmRwa1XUtilsAddr = _ctmRwa1XUtilsAddr;
     }
 
     /**
@@ -340,7 +340,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             revert CTMRWA1X_InvalidAttachmentState();
         }
 
-        ICTMRWA1XUtils(fallbackAddr).addAdminToken(_tokenAdmin, ctmRwa1Token, _version);
+        ICTMRWA1XUtils(ctmRwa1XUtilsAddr).addAdminToken(_tokenAdmin, ctmRwa1Token, _version);
 
         emit CreateNewCTMRWA1(_ID);
 
@@ -440,7 +440,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
         ICTMRWA1(ctmRwa1Addr).changeAdmin(_newAdmin);
 
-        ICTMRWA1XUtils(fallbackAddr).swapAdminAddress(_currentAdmin, _newAdmin, ctmRwa1Addr, _version);
+        ICTMRWA1XUtils(ctmRwa1XUtilsAddr).swapAdminAddress(_currentAdmin, _newAdmin, ctmRwa1Addr, _version);
     }
 
     /**
@@ -646,7 +646,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(this), _fromTokenId);
             uint256 newTokenId = ICTMRWA1(ctmRwa1Addr).transferFrom(_fromTokenId, toAddr, _value);
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(0), _fromTokenId);
-            ICTMRWA1XUtils(fallbackAddr).updateOwnedCtmRwa1(toAddr, ctmRwa1Addr, _version);
+            ICTMRWA1XUtils(ctmRwa1XUtilsAddr).updateOwnedCtmRwa1(toAddr, ctmRwa1Addr, _version);
 
             return newTokenId;
         } else {
@@ -703,7 +703,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(this), _fromTokenId);
             ICTMRWA1(ctmRwa1Addr).transferFrom(fromAddr, toAddr, _fromTokenId);
             ICTMRWA1(ctmRwa1Addr).approveFromX(toAddr, _fromTokenId);
-            ICTMRWA1XUtils(fallbackAddr).updateOwnedCtmRwa1(toAddr, ctmRwa1Addr, _version);
+            ICTMRWA1XUtils(ctmRwa1XUtilsAddr).updateOwnedCtmRwa1(toAddr, ctmRwa1Addr, _version);
         } else {
             (, string memory toRwaXStr) = _getRWAX(toChainIdStr, _version);
 
@@ -757,7 +757,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
         ICTMRWA1(ctmRwa1Addr).mintFromX(toAddr, _slot, thisSlotName, _balance);
 
-        ICTMRWA1XUtils(fallbackAddr).updateOwnedCtmRwa1(toAddr, ctmRwa1Addr, _version);
+        ICTMRWA1XUtils(ctmRwa1XUtilsAddr).updateOwnedCtmRwa1(toAddr, ctmRwa1Addr, _version);
 
         emit Minted(_ID, fromChainIdStr, _fromAddressStr);
 
@@ -865,7 +865,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         override
         returns (bool)
     {
-        bool ok = ICTMRWA1XUtils(fallbackAddr).rwa1XC3Fallback(_selector, _data, _reason, ctmRwaMap);
+        bool ok = ICTMRWA1XUtils(ctmRwa1XUtilsAddr).rwa1XC3Fallback(_selector, _data, _reason, ctmRwaMap);
 
         return ok;
     }
