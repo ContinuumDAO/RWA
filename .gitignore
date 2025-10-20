@@ -21,7 +21,7 @@ Greenfield/node_modules/
 /broadcast/**/dry-run/
 
 # External Solidity files
-flattened/
+build/
 saved/
 CTMRWA001/
 

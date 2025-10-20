@@ -5,8 +5,8 @@ pragma solidity 0.8.27;
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
 
-import { CTMRWA1Identity, ICTMRWA1Identity } from "../flattened/identity/CTMRWA1Identity.sol";
-import { ICTMRWA1SentryManager } from "../flattened/sentry/CTMRWA1SentryManager.sol";
+import { CTMRWA1Identity, ICTMRWA1Identity } from "../build/identity/CTMRWA1Identity.sol";
+import { ICTMRWA1SentryManager } from "../build/sentry/CTMRWA1SentryManager.sol";
 
 contract DeployIdentity is Script {
     uint256 rwaType = 1;
