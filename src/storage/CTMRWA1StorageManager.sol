@@ -7,7 +7,7 @@ import { ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAGateway } from "../crosschain/ICTMRWAGateway.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
 import { ICTMRWA1StorageUtils } from "./ICTMRWA1StorageUtils.sol";
@@ -33,6 +33,9 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     using SafeERC20 for IERC20;
     using CTMRWAUtils for *;
 
+    /// @dev The latest version of RWA type
+    uint256 public LATEST_VERSION;
+
     /// @dev The address of the CTMRWADeployer contract on this chain
     address public ctmRwaDeployer;
 
@@ -42,11 +45,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     /// @dev The address of the CTMRWA1StorageUtils contract on this chain
     address public utilsAddr;
 
-    /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 public constant RWA_TYPE = 1;
-
-    /// @dev version is the single integer version of this RWA type
-    uint256 public constant VERSION = 1;
+    /// @dev rwaType is the RWA type defining CTMRWA1. It CANNOT be changed with proxy upgrades
+    uint256 public immutable RWA_TYPE = 1;
 
     /// @dev The address of the CTMRWAGateway contract
     address public gateway;
@@ -65,11 +65,12 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWA1StorageManager_OnlyAuthorized(Address.Sender, Address.Deployer);
+            revert CTMRWA1StorageManager_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
         }
         _;
     }
 
+    /// @dev Initialize the contract
     function initialize(
         address _gov,
         address _c3callerProxy,
@@ -80,6 +81,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         address _feeManager
     ) external initializer {
         __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        LATEST_VERSION = 1;
         ctmRwaDeployer = _ctmRwaDeployer;
         gateway = _gateway;
         feeManager = _feeManager;
@@ -89,10 +91,25 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     /**
+     * @notice Governance can update the latest version
+     * @param _newVersion The new latest version
+     */
+    function updateLatestVersion(uint256 _newVersion) external onlyGov {
+        if (_newVersion == 0) {
+            revert CTMRWA1StorageManager_InvalidVersion(_newVersion);
+        }
+        LATEST_VERSION = _newVersion;
+    }
+
+    /**
      * @notice Governance can change to a new CTMRWAGateway contract
      * @param _gateway address of the new CTMRWAGateway contract
      */
     function setGateway(address _gateway) external onlyGov {
+        if (_gateway == address(0)) {
+            revert CTMRWA1StorageManager_IsZeroAddress(CTMRWAErrorParam.Gateway);
+        }
+
         gateway = _gateway;
     }
 
@@ -101,6 +118,9 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      * @param _feeManager address of the new FeeManager contract
      */
     function setFeeManager(address _feeManager) external onlyGov {
+        if (_feeManager == address(0)) {
+            revert CTMRWA1StorageManager_IsZeroAddress(CTMRWAErrorParam.FeeManager);
+        }
         feeManager = _feeManager;
     }
 
@@ -109,6 +129,10 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      * @param _deployer address of the new CTMRWADeployer contract
      */
     function setCtmRwaDeployer(address _deployer) external onlyGov {
+        if (_deployer == address(0)) {
+            revert CTMRWA1StorageManager_IsZeroAddress(CTMRWAErrorParam.Deployer);
+        }
+
         ctmRwaDeployer = _deployer;
     }
 
@@ -117,6 +141,10 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      * @param _map address of the new CTMRWAMap contract
      */
     function setCtmRwaMap(address _map) external onlyGov {
+        if (_map == address(0)) {
+            revert CTMRWA1StorageManager_IsZeroAddress(CTMRWAErrorParam.Map);
+        }
+
         ctmRwa1Map = _map;
     }
 
@@ -125,6 +153,10 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      * @param _utilsAddr address of the new CTMRWA1StorageUtils contract
      */
     function setStorageUtils(address _utilsAddr) external onlyGov {
+        if (_utilsAddr == address(0)) {
+            revert CTMRWA1StorageManager_IsZeroAddress(CTMRWAErrorParam.Utils);
+        }
+
         utilsAddr = _utilsAddr;
     }
 
@@ -138,22 +170,31 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         returns (address)
     {
         address storageAddr = ICTMRWA1StorageUtils(utilsAddr).deployStorage(_ID, _tokenAddr, _rwaType, _version, _map);
+        
+        // Verify that the deployed storage contract is for the correct version, RWA type
+        if (_version != ICTMRWA1Storage(storageAddr).VERSION()) {
+            revert CTMRWA1StorageManager_InvalidVersion(_version);
+        }
+
+        if (_rwaType != ICTMRWA1Storage(storageAddr).RWA_TYPE()) {
+            revert CTMRWA1StorageManager_InvalidRWAType(_rwaType);
+        }
 
         return (storageAddr);
     }
 
     /**
-     * @notice Add a data storage record to the RWA's CTMRWA1Storage contract on this chain and
-     * identically on every other chain that the RWA is deployed to. The bulk of the data is stored
+     * @notice Add a data storage record to the CTMRWA token's CTMRWA1Storage contract on this chain and
+     * identically on every other chain that the CTMRWA token is deployed to. The bulk of the data is stored
      * in an object in decentralized storage (e.g. BNB Greenfield) in an object with name _objectName.
      * Also stored in the CTMRWA1Storage are the title of the record, the type of information, the
      * Asset Class (slot) and a hash of the checksum of the stored data.
-     * @param _ID The ID of the RWA token
+     * @param _ID The ID of the CTMRWA token
      * @param _objectName The name of the object stored in decentralized storage (e.g. BNB Greenfield)
-     * It should be identical to the string version of the nonce() in the RWA's CTMRWA1Storage contract.
+     * It should be identical to the string version of the nonce() in the CTMRWA token's CTMRWA1Storage contract.
      * @param _uriCategory The category type of the data being stored. The allowable values are the enums
      * in URICategory defined in ICTMRWA1Storage
-     * @param _uriType The type of storage information. It can either relate the the entire RWA
+     * @param _uriType The type of storage information. It can either relate the the entire CTMRWA token
      * (URIType.CONTRACT), or to an individual Asset Class (URIType.SLOT)
      * @param _title The title of this storage record. It has to be between 10 and 256 charcters in length.
      * @param _slot The Asset Class (slot) for this storage record if URIType.SLOT, otherwise set to zero.
@@ -166,13 +207,14 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      * NOTE For EVM chains, the address of the fee token must be converted to a string
      *
      * NOTE The very first storage object MUST be URICategory.ISSUER and URIType.CONTRACT describing the
-     * Issuer of the RWA
-     * NOTE The tokenAdmin (Issuer) of the RWA must register the RWA as a Security and add a
+     * Issuer of the CTMRWA token
+     * NOTE The tokenAdmin (Issuer) of the CTMRWA token must register the CTMRWA token as a Security and add a
      * URICategory.LICENSE record before they can create a wallet address able to forceTransfer value
      * in CTMRWA1.
      */
     function addURI(
         uint256 _ID,
+        uint256 _version,
         string memory _objectName,
         URICategory _uriCategory,
         URIType _uriType,
@@ -182,16 +224,23 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, _version);
         if (!ok) {
-            revert CTMRWA1StorageManager_InvalidContract(Address.Storage);
+            revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Storage);
         }
 
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         _checkTokenAdmin(ctmRwa1Addr);
 
         if (bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length == 0) {
             revert CTMRWA1StorageManager_NoStorage();
+        }
+
+        if (_uToCat(uint8(_uriCategory)) == URICategory.EMPTY) {
+            revert CTMRWA1StorageManager_InvalidCategory(_uriCategory);
+        }
+        if (_uToType(uint8(_uriType)) == URIType.EMPTY) {
+            revert CTMRWA1StorageManager_InvalidType(_uriType);
         }
 
         uint256 fee;
@@ -203,7 +252,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         }
 
         if (titleLength < 10 || titleLength > 256) {
-            revert CTMRWA1StorageManager_InvalidLength(Uint.Title);
+            revert CTMRWA1StorageManager_InvalidLength(CTMRWAErrorParam.Title);
         }
 
         fee = _individualFee(_uriCategory, _feeTokenStr, _chainIdsStr, false);
@@ -217,16 +266,17 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
 
             if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Storage(storageAddr).addURILocal(
-                    _ID, _objectName, _uriCategory, _uriType, _title, _slot, block.timestamp, _uriDataHash
+                    _ID, _version, _objectName, _uriCategory, _uriType, _title, _slot, block.timestamp, _uriDataHash
                 );
             } else {
-                (, string memory toRwaSMStr) = _getSM(chainIdStr);
+                (, string memory toRwaSMStr) = _getSM(chainIdStr, _version);
 
                 string memory funcCall =
-                    "addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])";
+                    "addURIX(uint256,uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])";
                 bytes memory callData = abi.encodeWithSignature(
                     funcCall,
                     _ID,
+                    _version,
                     startNonce,
                     _objectName._stringToArray(),
                     uint8(_uriCategory)._uint8ToArray(),
@@ -247,22 +297,22 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     /**
      * @notice When new chains are added to the RWA with _ID, this function transfers all the existing storage
      * data from the CTMRWA1Storage contract for the ID on the local chain to the newly added chains.
-     * In this way, the storage data is synced on all chains of the RWA for this ID, all pointing to the same
+     * In this way, the storage data is synced on all chains of the CTMRWA token for this ID, all pointing to the same
      * decentralized storage objects on e.g. BNB Greenfield.
-     * @param _ID The ID of this RWA
+     * @param _ID The ID of this CTMRWA token
      * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
      * NOTE For EVM chains, you must convert the integer chainID values to strings. Do not include the local chainID.
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * NOTE For EVM chains, the address of the fee token must be converted to a string
      */
-    function transferURI(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr) public {
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
+    function transferURI(uint256 _ID, uint256 _version, string[] memory _chainIdsStr, string memory _feeTokenStr) public {
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, _version);
         if (!ok) {
-            revert CTMRWA1StorageManager_InvalidContract(Address.Storage);
+            revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Storage);
         }
 
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         _checkTokenAdmin(ctmRwa1Addr);
 
         if (bytes(ICTMRWA1(ctmRwa1Addr).baseURI()).length == 0) {
@@ -282,7 +332,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         uint256 len = objectName.length;
 
         if (len < 1) {
-            revert CTMRWA1StorageManager_InvalidLength(Uint.URI);
+            revert CTMRWA1StorageManager_InvalidLength(CTMRWAErrorParam.URI);
         }
 
         uint256 fee;
@@ -301,12 +351,12 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
             if (chainIdStr.equal(cIdStr)) {
                 revert CTMRWA1StorageManager_SameChain();
             } else {
-                (, string memory toRwaSMStr) = _getSM(chainIdStr);
+                (, string memory toRwaSMStr) = _getSM(chainIdStr, _version);
 
                 string memory funcCall =
-                    "addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])";
+                    "addURIX(uint256,uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])";
                 bytes memory callData = abi.encodeWithSignature(
-                    funcCall, _ID, startNonce, objectName, uriCategory, uriType, title, slot, timestamp, uriDataHash
+                    funcCall, _ID, _version, startNonce, objectName, uriCategory, uriType, title, slot, timestamp, uriDataHash
                 );
 
                 _c3call(toRwaSMStr, chainIdStr, callData);
@@ -323,6 +373,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      */
     function addURIX(
         uint256 _ID,
+        uint256 _version,
         uint256 _startNonce,
         string[] memory _objectName,
         uint8[] memory _uriCategory,
@@ -332,9 +383,9 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         uint256[] memory _timestamp,
         bytes32[] memory _uriDataHash
     ) external onlyCaller returns (bool) {
-        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, _version);
         if (!ok) {
-            revert CTMRWA1StorageManager_InvalidContract(Address.Storage);
+            revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Storage);
         }
 
         uint256 currentNonce = ICTMRWA1Storage(storageAddr).nonce();
@@ -345,8 +396,17 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         uint256 len = _objectName.length;
 
         for (uint256 i = 0; i < len; i++) {
+            // Validate that the converted enum values are not EMPTY (invalid)
+            if (_uToCat(_uriCategory[i]) == URICategory.EMPTY) {
+                revert CTMRWA1StorageManager_InvalidCategory(URICategory.EMPTY);
+            }
+            if (_uToType(_uriType[i]) == URIType.EMPTY) {
+                revert CTMRWA1StorageManager_InvalidType(URIType.EMPTY);
+            }
+            
             ICTMRWA1Storage(storageAddr).addURILocal(
                 _ID,
+                _version,
                 _objectName[i],
                 _uToCat(_uriCategory[i]),
                 _uToType(_uriType[i]),
@@ -363,10 +423,13 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     }
 
     /// @dev Get the address of the CTMRWA1 corresponding to the _ID
-    function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+    function _getTokenAddr(uint256 _ID, uint256 _version) internal view returns (address, string memory) {
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, _version);
         if (!ok) {
-            revert CTMRWA1StorageManager_InvalidContract(Address.Token);
+            revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Token);
+        }
+        if (_version > LATEST_VERSION || _version != ICTMRWA1(tokenAddr).VERSION()) {
+            revert CTMRWA1StorageManager_InvalidVersion(_version);
         }
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
 
@@ -377,7 +440,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      * @dev  Get the address of the corresponding CTMRWA1StorageManager contract on another chain
      * with chainID (converted to a string) of _toChainIdStr
      */
-    function _getSM(string memory _toChainIdStr) internal view returns (string memory, string memory) {
+    function _getSM(string memory _toChainIdStr, uint256 _version) internal view returns (string memory, string memory) {
         if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1StorageManager_SameChain();
         }
@@ -385,9 +448,9 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         string memory fromAddressStr = msg.sender.toHexString()._toLower();
 
         (bool ok, string memory toSMStr) =
-            ICTMRWAGateway(gateway).getAttachedStorageManager(RWA_TYPE, VERSION, _toChainIdStr);
+            ICTMRWAGateway(gateway).getAttachedStorageManager(RWA_TYPE, _version, _toChainIdStr);
         if (!ok) {
-            revert CTMRWA1StorageManager_InvalidContract(Address.Storage);
+            revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Storage);
         }
 
         return (fromAddressStr, toSMStr);
@@ -402,7 +465,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         string memory currentAdminStr = currentAdmin.toHexString()._toLower();
 
         if (msg.sender != currentAdmin) {
-            revert CTMRWA1StorageManager_OnlyAuthorized(Address.Sender, Address.Admin);
+            revert CTMRWA1StorageManager_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Admin);
         }
 
         return (currentAdmin, currentAdminStr);
@@ -452,9 +515,12 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
             feeType = FeeType.VIDEO;
         } else if (_uriCategory == URICategory.ICON) {
             feeType = FeeType.ICON;
+        } else {
+            feeType = FeeType.EMPTY;
         }
 
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, _includeLocal, feeType, _feeTokenStr);
+        fee = fee * (10000 - IFeeManager(feeManager).getFeeReduction(msg.sender)) / 10000;
 
         return (fee);
     }
@@ -495,6 +561,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
             uriCategory = URICategory.VIDEO;
         } else if (_cat == 15) {
             uriCategory = URICategory.ICON;
+        } else {
+            uriCategory = URICategory.EMPTY;
         }
 
         return uriCategory;
@@ -508,6 +576,8 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
             uriType = URIType.CONTRACT;
         } else if (_type == 1) {
             uriType = URIType.SLOT;
+        } else {
+            uriType = URIType.EMPTY;
         }
 
         return uriType;
@@ -518,9 +588,18 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         if (_feeWei > 0) {
             address feeToken = _feeTokenStr._stringToAddress();
 
-            IERC20(feeToken).transferFrom(msg.sender, address(this), _feeWei);
+            // Record spender balance before transfer
+            uint256 senderBalanceBefore = IERC20(feeToken).balanceOf(msg.sender);
 
-            IERC20(feeToken).approve(feeManager, _feeWei);
+            IERC20(feeToken).safeTransferFrom(msg.sender, address(this), _feeWei);
+
+            // Assert spender balance change
+            uint256 senderBalanceAfter = IERC20(feeToken).balanceOf(msg.sender);
+            if (senderBalanceBefore - senderBalanceAfter != _feeWei) {
+                revert CTMRWA1StorageManager_FailedTransfer();
+            }
+
+            IERC20(feeToken).forceApprove(feeManager, _feeWei);
             IFeeManager(feeManager).payFee(_feeWei, _feeTokenStr);
         }
         return (true);

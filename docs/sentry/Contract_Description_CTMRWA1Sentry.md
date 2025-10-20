@@ -1,399 +1,465 @@
-# CTMRWA1Sentry Contract Documentation
+# Contract Description: CTMRWA1Sentry
 
 ## Overview
 
-**Contract Name:** CTMRWA1Sentry  
-**Author:** @Selqui ContinuumDAO  
-**License:** BSL-1.1  
-**Solidity Version:** 0.8.27
+The `CTMRWA1Sentry` contract serves as the access control and compliance enforcement mechanism for Real-World Asset (RWA) tokens. It manages whitelists, KYC/KYB requirements, country restrictions, and other compliance features to ensure regulatory compliance for RWA token transfers.
 
-The CTMRWA1Sentry contract acts as a security sentry for CTMRWA1 tokens, managing access control, whitelisting, and compliance features. It enforces various security switches including whitelist controls, KYC/KYB requirements, country restrictions, and age verification.
+## Contract Description
 
-This contract is deployed once for every CTMRWA1 contract and holds the whitelist state for that specific RWA token. It integrates with CTMRWA1SentryManager for cross-chain coordination and works with zkMe for KYC verification.
+The CTMRWA1Sentry is a compliance contract that enforces access control rules for RWA token transfers. It maintains whitelists of approved addresses, manages KYC/KYB verification requirements, handles country-based restrictions, and ensures that only compliant users can receive RWA tokens.
 
 ## Key Features
 
-- **Access Control:** Manages whitelist of permitted wallet addresses
-- **Compliance Switches:** Configurable KYC, KYB, country, and age verification
-- **zkMe Integration:** Stores zkMe KYC service parameters
-- **Cross-chain Coordination:** Works with SentryManager for multi-chain operations
-- **TokenAdmin Management:** Handles tokenAdmin updates and protection
-- **Country Restrictions:** Supports country whitelist and blacklist
-- **Transfer Validation:** Validates transfers before they occur
-- **Security Enforcement:** Enforces various security policies
+- **Access Control**: Enforces whitelist-based access control for token transfers
+- **KYC/KYB Integration**: Supports Know Your Customer and Know Your Business verification
+- **Country Restrictions**: Manages country whitelist and blacklist functionality
+- **Accredited Investor Controls**: Enforces accredited investor requirements
+- **Age Verification**: Manages over-18 age requirements
+- **Compliance Enforcement**: Ensures regulatory compliance for RWA tokens
+- **Cross-chain Synchronization**: Maintains consistent compliance across chains
 
 ## Public Variables
 
-### Contract Identification
-- **`tokenAddr`** (address): Address of the CTMRWA1 contract
-- **`ID`** (uint256): ID of the RWA token
-- **`RWA_TYPE`** (uint256, immutable): RWA type defining CTMRWA1
-- **`VERSION`** (uint256, immutable): Version of this RWA type
+### tokenAddr
+```solidity
+address public tokenAddr
+```
+The address of the associated CTMRWA1 token contract
 
-### Contract Addresses
-- **`sentryManagerAddr`** (address): Address of the CTMRWA1SentryManager contract
-- **`tokenAdmin`** (address): TokenAdmin address (same as in CTMRWA1)
-- **`ctmRwa1X`** (address): Address of the CTMRWA1X contract
-- **`ctmRwa1Map`** (address): CTMRWAMap contract address
+### ID
+```solidity
+uint256 public ID
+```
+The unique identifier of the RWA token
 
-### zkMe Configuration
-- **`appId`** (string): zkMe KYC service appId (same as Merchant No)
-- **`programNo`** (string): zkMe KYC service programNo
-- **`cooperator`** (address): zkMe KYC service cooperator address
+### RWA_TYPE
+```solidity
+uint256 public immutable RWA_TYPE
+```
+The RWA type identifier (immutable)
 
-### Configuration Status
-- **`sentryOptionsSet`** (bool): Whether sentry options have been configured
+### VERSION
+```solidity
+uint256 public immutable VERSION
+```
+The version of the RWA token (immutable)
 
-### Whitelist Management
-- **`ctmWhitelist`** (string[]): Array of whitelisted wallet addresses
-- **`whitelistIndx`** (mapping(string => uint256), private): Index mapping for whitelist addresses
+### tokenAdmin
+```solidity
+address public tokenAdmin
+```
+The address of the token administrator
 
-### Country Management
-- **`countryList`** (string[]): Array of countries for KYC restrictions
-- **`countryIndx`** (mapping(string => uint256), private): Index mapping for countries
+### ctmRwa1X
+```solidity
+address public ctmRwa1X
+```
+The address of the CTMRWA1X contract
 
-### Security Switches
-- **`whitelistSwitch`** (bool): Enable/disable whitelist enforcement
-- **`kycSwitch`** (bool): Enable/disable KYC requirements
-- **`kybSwitch`** (bool): Enable/disable KYB requirements
-- **`countryWLSwitch`** (bool): Enable/disable country whitelist
-- **`countryBLSwitch`** (bool): Enable/disable country blacklist
-- **`accreditedSwitch`** (bool): Enable/disable accredited investor requirements
-- **`age18Switch`** (bool): Enable/disable age 18+ requirements
+### ctmRwa1Map
+```solidity
+address public ctmRwa1Map
+```
+The address of the CTMRWAMap contract
 
-## Core Functions
+### sentryOptionsSet
+```solidity
+bool public sentryOptionsSet
+```
+Flag indicating if sentry options have been set
+
+### ctmWhitelist
+```solidity
+string[] public ctmWhitelist
+```
+Array of whitelisted wallet addresses
+
+### countryList
+```solidity
+string[] public countryList
+```
+Array of countries for KYC (white OR black listed, depending on flag)
+
+### whitelistSwitch
+```solidity
+bool public whitelistSwitch
+```
+Switch to enable/disable whitelist functionality
+
+### kycSwitch
+```solidity
+bool public kycSwitch
+```
+Switch to enable/disable KYC functionality
+
+### kybSwitch
+```solidity
+bool public kybSwitch
+```
+Switch to enable/disable KYB functionality
+
+### countryWLSwitch
+```solidity
+bool public countryWLSwitch
+```
+Switch to enable/disable country whitelist functionality
+
+### countryBLSwitch
+```solidity
+bool public countryBLSwitch
+```
+Switch to enable/disable country blacklist functionality
+
+### accreditedSwitch
+```solidity
+bool public accreditedSwitch
+```
+Switch to enable/disable accredited investor requirements
+
+### age18Switch
+```solidity
+bool public age18Switch
+```
+Switch to enable/disable over-18 age requirements
+
+## Constructor
 
 ### Constructor
+```solidity
+constructor(
+    uint256 _ID,
+    address _tokenAddr,
+    uint256 _rwaType,
+    uint256 _version,
+    address _sentryManager,
+    address _map
+)
+```
+Initialize the sentry contract with required parameters
 
-#### `constructor(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _sentryManager, address _map)`
-- **Purpose:** Initializes a new CTMRWA1Sentry contract instance
-- **Parameters:**
-  - `_ID`: ID of the RWA token
-  - `_tokenAddr`: Address of the CTMRWA1 contract
-  - `_rwaType`: RWA type defining CTMRWA1
-  - `_version`: Version of this RWA type
-  - `_sentryManager`: Address of the CTMRWA1SentryManager contract
-  - `_map`: CTMRWAMap contract address
-- **Initialization:**
-  - Sets contract identification parameters
-  - Retrieves tokenAdmin and ctmRwa1X from CTMRWA1
-  - Sets sentry manager address
-  - Initializes whitelist with "no go" address and tokenAdmin
-  - Initializes country list with "NOGO" entry
+**Parameters:**
+- `_ID`: The unique identifier of the RWA token
+- `_tokenAddr`: The address of the CTMRWA1 token contract
+- `_rwaType`: The RWA type identifier
+- `_version`: The version of the RWA token
+- `_sentryManager`: The address of the sentry manager contract
+- `_map`: The address of the CTMRWAMap contract
 
-### Administrative Functions
+## Administrative Functions
 
-#### `setTokenAdmin(address _tokenAdmin)`
-- **Access:** Only callable by current tokenAdmin or CTMRWA1X
-- **Purpose:** Set a new tokenAdmin address
-- **Parameters:** `_tokenAdmin` - New tokenAdmin address
-- **Logic:**
-  - Updates tokenAdmin address
-  - Adds new tokenAdmin to whitelist if not zero address
-  - Prevents leaving stranded tokens by old tokenAdmin
-- **Returns:** True if successful
-- **Use Case:** Called by CTMRWA1X for cross-chain tokenAdmin updates
+### setTokenAdmin()
+```solidity
+function setTokenAdmin(address _tokenAdmin) external onlyTokenAdmin returns (bool)
+```
+This function is normally called by CTMRWA1X to set a new tokenAdmin. It can also be called by the current tokenAdmin, but this should not normally be required and would only happen to clean up in the event of a cross-chain failure to reset the tokenAdmin
 
-#### `setZkMeParams(string memory _appId, string memory _programNo, address _cooperator)`
-- **Access:** Only callable by SentryManager
-- **Purpose:** Set zkMe KYC service parameters
-- **Parameters:**
-  - `_appId`: zkMe KYC service appId
-  - `_programNo`: zkMe KYC service programNo
-  - `_cooperator`: zkMe KYC service cooperator address
-- **Use Case:** Configure zkMe integration for KYC verification
+**Parameters:**
+- `_tokenAdmin`: The new tokenAdmin address
 
-#### `getZkMeParams()`
-- **Purpose:** Retrieve current zkMe KYC service parameters
-- **Returns:** Tuple of (appId, programNo, cooperator)
-- **Use Case:** Query zkMe configuration for KYC operations
+**Returns:** success True if the tokenAdmin was set, false otherwise
 
-### Sentry Configuration
+### setZkMeParams()
+```solidity
+function setZkMeParams(string memory _appId, string memory _programNo, address _cooperator) external onlySentryManager
+```
+This function is called by SentryManager to set zkMe KYC service parameters
 
-#### `setSentryOptionsLocal(uint256 _ID, bool _whitelist, bool _kyc, bool _kyb, bool _over18, bool _accredited, bool _countryWL, bool _countryBL)`
-- **Access:** Only callable by SentryManager
-- **Purpose:** Set sentry options on the local chain
-- **Parameters:**
-  - `_ID`: ID of the RWA token (must match contract ID)
-  - `_whitelist`: Enable whitelist switch
-  - `_kyc`: Enable KYC switch
-  - `_kyb`: Enable KYB switch (requires KYC)
-  - `_over18`: Enable age 18+ switch (requires KYC)
-  - `_accredited`: Enable accredited investor switch
-  - `_countryWL`: Enable country whitelist (requires KYC)
-  - `_countryBL`: Enable country blacklist (requires KYC)
-- **Validation:** Ensures ID matches contract ID
-- **Logic:** Sets switches based on parameters and dependencies
-- **Use Case:** Configure security policies for the RWA token
+**Parameters:**
+- `_appId`: The appId for the zkMe KYC service
+- `_programNo`: The programNo for the zkMe KYC service
+- `_cooperator`: The cooperator address for the zkMe KYC service
 
-### Whitelist Management
+### getZkMeParams()
+```solidity
+function getZkMeParams() public view returns (string memory, string memory, address)
+```
+Recover the currently stored parameters for the zkMe KYC service
 
-#### `setWhitelistSentry(uint256 _ID, string[] memory _wallets, bool[] memory _choices)`
-- **Access:** Only callable by SentryManager
-- **Purpose:** Set whitelist status for multiple wallets
-- **Parameters:**
-  - `_ID`: ID of the RWA token (must match contract ID)
-  - `_wallets`: Array of wallet addresses as strings
-  - `_choices`: Array of boolean choices for each wallet
-- **Validation:** Ensures ID matches contract ID
-- **Logic:** Calls internal _setWhitelist function
-- **Use Case:** Update whitelist across multiple wallets
+**Returns:**
+- `appId`: The appId for the zkMe KYC service
+- `programNo`: The programNo for the zkMe KYC service
+- `cooperator`: The cooperator address for the zkMe KYC service
 
-#### `_setWhitelist(string[] memory _wallets, bool[] memory _choices)`
-- **Access:** Internal function
-- **Purpose:** Internal whitelist management logic
-- **Logic:**
-  - Processes each wallet in the array
-  - Prevents removal of tokenAdmin from whitelist
-  - Handles addition and removal of wallet addresses
-  - Maintains index mapping for efficient lookups
-  - Optimizes array operations for gas efficiency
+## Sentry Options Management
 
-### Country List Management
+### setSentryOptionsLocal()
+```solidity
+function setSentryOptionsLocal(
+    uint256 _ID,
+    uint256 _version,
+    bool _whitelist,
+    bool _kyc,
+    bool _kyb,
+    bool _over18,
+    bool _accredited,
+    bool _countryWL,
+    bool _countryBL
+) external onlySentryManager
+```
+Set the sentry options on the local chain. This function is called by CTMRWA1SentryManager
 
-#### `setCountryListLocal(uint256 _ID, string[] memory _countryList, bool[] memory _choices)`
-- **Access:** Only callable by SentryManager
-- **Purpose:** Set country whitelist or blacklist
-- **Parameters:**
-  - `_ID`: ID of the RWA token (must match contract ID)
-  - `_countryList`: Array of country codes
-  - `_choices`: Array of boolean choices for each country
-- **Validation:** Ensures ID matches contract ID
-- **Logic:** Calls internal _setCountryList function
-- **Use Case:** Update country restrictions
+**Parameters:**
+- `_ID`: The ID of the RWA token
+- `_version`: The version of the RWA token
+- `_whitelist`: The whitelist switch
+- `_kyc`: The KYC switch
+- `_kyb`: The KYB switch
+- `_over18`: The over 18 switch
+- `_accredited`: The accredited investor switch
+- `_countryWL`: The country whitelist switch
+- `_countryBL`: The country blacklist switch
 
-#### `_setCountryList(string[] memory _countries, bool[] memory _choices)`
-- **Access:** Internal function
-- **Purpose:** Internal country list management logic
-- **Logic:**
-  - Processes each country in the array
-  - Handles addition and removal of countries
-  - Maintains index mapping for efficient lookups
-  - Optimizes array operations for gas efficiency
+## Whitelist Management
 
-### Transfer Validation
+### setWhitelistSentry()
+```solidity
+function setWhitelistSentry(
+    uint256 _ID,
+    uint256 _version,
+    string[] memory _wallets,
+    bool[] memory _choices
+) external onlySentryManager
+```
+Set the Whitelist status on this chain. This contract holds the Whitelist state. This contract is called by CTMRWA1SentryManager
 
-#### `isAllowableTransfer(string memory _user)`
-- **Purpose:** Check if an address is allowed to receive value
-- **Parameters:** `_user` - Address as string to check
-- **Logic:**
-  - Checks if whitelist is enabled
-  - Allows zero address transfers
-  - Allows dividend and investment contract transfers
-  - Checks whitelist status for other addresses
-- **Returns:** True if transfer is allowed, false otherwise
-- **Use Case:** Called by CTMRWA1 before transfers
+**Parameters:**
+- `_ID`: The ID of the RWA token
+- `_version`: The version of the RWA token
+- `_wallets`: The list of wallets to set the state for
+- `_choices`: The list of choices for the wallets
 
-### Query Functions
+### getWhitelistLength()
+```solidity
+function getWhitelistLength() public view returns (uint256)
+```
+Get the number of Whitelisted wallet addresses (excluding the unused first one)
 
-#### `getWhitelistLength()`
-- **Purpose:** Get number of whitelisted wallet addresses
-- **Returns:** Length of whitelist (excluding unused first entry)
-- **Use Case:** Query whitelist size
+**Returns:** The length of the whitelist array minus 1
 
-#### `getWhitelistAddressAtIndx(uint256 _indx)`
-- **Purpose:** Get whitelist address at specific index
-- **Parameters:** `_indx` - Index to query
-- **Returns:** Wallet address as string at the index
-- **Validation:** Ensures index is within bounds
-- **Use Case:** Iterate through whitelist
+### getWhitelistAddressAtIndx()
+```solidity
+function getWhitelistAddressAtIndx(uint256 _indx) public view returns (string memory)
+```
+Get the Whitelist wallet address at an index as string
 
-#### `_isWhitelisted(string memory _walletStr)`
-- **Access:** Internal view function
-- **Purpose:** Check if wallet is whitelisted
-- **Parameters:** `_walletStr` - Wallet address as string
-- **Returns:** True if whitelisted, false otherwise
-- **Logic:** Checks index mapping for wallet address
+**Parameters:**
+- `_indx`: The index of into the Whitelist to check
+
+**Returns:** The whitelist address at the specified index
+
+## Country List Management
+
+### setCountryListLocal()
+```solidity
+function setCountryListLocal(
+    uint256 _ID,
+    uint256 _version,
+    string[] memory _countryList,
+    bool[] memory _choices
+) external onlySentryManager
+```
+Set the country Whitelist or Blacklist on this chain. This contract holds the state. This contract is called by CTMRWA1SentryManager
+
+**Parameters:**
+- `_ID`: The ID of the RWA token
+- `_version`: The version of the RWA token
+- `_countryList`: The list of countries to set the state for
+- `_choices`: The list of choices for the countries
+
+## Access Control Functions
+
+### isAllowableTransfer()
+```solidity
+function isAllowableTransfer(string memory _user) public view returns (bool)
+```
+This function checks if an address is allowed to receive value. It is called by _beforeValueTransfer in CTMRWA1 before any transfers. The contracts CTMRWA1Dividend and CTMRWA1Storage are allowed to pass.
+
+**Parameters:**
+- `_user`: address as a string that is being checked
+
+**Returns:** True if the transfer is allowable, false otherwise
 
 ## Internal Functions
 
-### Utility Functions
-- **`cID()`**: Returns current chain ID
-  - Used for chain identification in cross-chain operations
+### _setWhitelist()
+```solidity
+function _setWhitelist(string[] memory _wallets, bool[] memory _choices) internal
+```
+Internal function to manage the wallet Whitelist on this chain. This contract holds the state. This contract is called by CTMRWA1SentryManager
+
+**Parameters:**
+- `_wallets`: The list of wallets to set the state for
+- `_choices`: The list of choices for the wallets
+
+### _setCountryList()
+```solidity
+function _setCountryList(string[] memory _countries, bool[] memory _choices) internal
+```
+Internal function to manage the state for a stored country Whitelist or Blacklist on this chain
+
+**Parameters:**
+- `_countries`: The list of countries to set the state for
+- `_choices`: The list of choices for the countries
+
+### _isWhitelisted()
+```solidity
+function _isWhitelisted(string memory _walletStr) internal view returns (bool)
+```
+Check if a particular address (as a string) is Whitelisted
+
+**Parameters:**
+- `_walletStr`: The address (as a string) to check
+
+**Returns:** True if the address is whitelisted, false otherwise
+
+### cID()
+```solidity
+function cID() internal view returns (uint256)
+```
+Get the current chain ID
+
+**Returns:** The current chain ID
 
 ## Access Control Modifiers
 
-- **`onlyTokenAdmin`**: Restricts access to tokenAdmin or CTMRWA1X
-  - Ensures only authorized parties can perform admin functions
-  - Allows CTMRWA1X to update tokenAdmin across contracts
+### onlyTokenAdmin
+```solidity
+modifier onlyTokenAdmin()
+```
+Restricts access to the token admin and CTMRWA1X contract only
 
-- **`onlySentryManager`**: Restricts access to only SentryManager
-  - Ensures only authorized manager can update sentry configuration
-  - Maintains system security and control
-
-## Events
-
-The contract does not emit custom events, as it focuses on state management and validation operations.
+### onlySentryManager
+```solidity
+modifier onlySentryManager()
+```
+Restricts access to the sentry manager only
 
 ## Security Features
 
-1. **Access Control:** Multiple levels of access control for different operations
-2. **TokenAdmin Protection:** Prevents removal of tokenAdmin from whitelist
-3. **Transfer Validation:** Validates all transfers before execution
-4. **Contract Allowance:** Allows dividend and investment contracts to pass validation
-5. **Configuration Validation:** Validates sentry options and dependencies
-6. **Cross-chain Security:** Secure integration with SentryManager
-7. **Index Management:** Efficient whitelist and country list management
-8. **Zero Address Handling:** Proper handling of zero address transfers
+- **Access Control**: Multi-layer access control with role-based permissions
+- **Whitelist Protection**: Prevents removal of token admin from whitelist
+- **Input Validation**: Comprehensive input validation for all parameters
+- **Version Control**: Version checking to ensure compatibility
+- **ID Validation**: ID validation for all operations
+- **Contract Integration**: Secure integration with other contracts
+- **State Management**: Secure state management for whitelists and country lists
 
 ## Integration Points
 
-- **CTMRWA1**: Core token contract that calls transfer validation
-- **CTMRWA1SentryManager**: Manager for cross-chain sentry operations
-- **CTMRWAMap**: Contract address registry for dividend and investment contracts
-- **CTMRWA1X**: Cross-chain coordination contract for tokenAdmin updates
-- **zkMe**: KYC verification service integration
-- **CTMRWA1Dividend**: Dividend contract (allowed to pass validation)
-- **CTMRWA1Invest**: Investment contract (allowed to pass validation)
+- **CTMRWA1**: Core RWA token contract integration
+- **CTMRWA1X**: Cross-chain token contract integration
+- **CTMRWA1SentryManager**: Sentry manager for configuration
+- **CTMRWAMap**: Contract address mapping
+- **CTMRWA1Dividend**: Dividend contract integration
+- **CTMRWA1Storage**: Storage contract integration
 
 ## Error Handling
 
-The contract uses custom error types for efficient gas usage:
+The contract uses custom error types for gas efficiency:
 
-- **`CTMRWA1Sentry_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin)`**: Thrown when unauthorized address tries to perform admin functions
-- **`CTMRWA1Sentry_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.SentryManager)`**: Thrown when unauthorized address tries to update sentry
-- **`CTMRWA1Sentry_InvalidID(uint256 expected, uint256 provided)`**: Thrown when ID doesn't match contract ID
-- **`CTMRWA1Sentry_Unauthorized(CTMRWAErrorParam.Wallet, CTMRWAErrorParam.TokenAdmin)`**: Thrown when trying to remove tokenAdmin from whitelist
-- **`CTMRWA1Sentry_OutofBounds()`**: Thrown when accessing whitelist with invalid index
+- `CTMRWA1Sentry_OnlyAuthorized`: Thrown when unauthorized access is attempted
+- `CTMRWA1Sentry_InvalidID`: Thrown when invalid ID is provided
+- `CTMRWA1Sentry_InvalidVersion`: Thrown when invalid version is provided
+- `CTMRWA1Sentry_Unauthorized`: Thrown when unauthorized operation is attempted
+- `CTMRWA1Sentry_OutofBounds`: Thrown when index is out of bounds
 
-## Transfer Validation Process
+## Access Control Process
 
-### 1. Whitelist Check
-- **Step:** Check if whitelist is enabled
-- **Result:** If disabled, allow all transfers
+### 1. Initialization
+- Set up contract with required parameters
+- Initialize whitelist with token admin
+- Configure country list with default values
 
-### 2. Special Address Check
-- **Step:** Check if address is zero address
-- **Result:** Allow zero address transfers
+### 2. Options Configuration
+- Set sentry options through sentry manager
+- Configure whitelist, KYC, KYB switches
+- Set country restrictions and age requirements
 
-### 3. Contract Allowance Check
-- **Step:** Check if address is dividend or investment contract
-- **Result:** Allow contract transfers
+### 3. Whitelist Management
+- Add/remove addresses from whitelist
+- Maintain whitelist state
+- Protect token admin from removal
 
-### 4. Whitelist Validation
-- **Step:** Check if address is in whitelist
-- **Result:** Allow only whitelisted addresses
+### 4. Country List Management
+- Configure country whitelist or blacklist
+- Manage country restrictions
+- Maintain country list state
+
+### 5. Transfer Validation
+- Check if transfer is allowable
+- Validate whitelist status
+- Enforce compliance requirements
 
 ## Use Cases
 
-### Access Control
-- **Scenario:** Restrict token transfers to authorized addresses
-- **Process:** Enable whitelist, add authorized addresses
-- **Benefit:** Prevents unauthorized token transfers
-
-### KYC Compliance
-- **Scenario:** Enforce KYC requirements for token holders
-- **Process:** Enable KYC switch, integrate with zkMe
-- **Benefit:** Regulatory compliance with privacy preservation
-
-### Country Restrictions
-- **Scenario:** Restrict token access by country
-- **Process:** Enable country whitelist/blacklist, add countries
-- **Benefit:** Geographic compliance and restrictions
-
-### Cross-chain Security
-- **Scenario:** Maintain consistent security across chains
-- **Process:** Use SentryManager for cross-chain coordination
-- **Benefit:** Unified security policy across all chains
+1. **RWA Token Compliance**: Enforce regulatory compliance for RWA tokens
+2. **Access Control**: Manage who can receive RWA tokens
+3. **KYC/KYB Integration**: Integrate with identity verification systems
+4. **Country Restrictions**: Enforce geographic trading restrictions
+5. **Accredited Investor Controls**: Manage sophisticated investor requirements
+6. **Age Verification**: Enforce age requirements for trading
+7. **Whitelist Management**: Maintain approved investor lists
 
 ## Best Practices
 
-1. **Whitelist Management:** Carefully manage whitelist additions and removals
-2. **Configuration Planning:** Plan sentry options before enabling
-3. **Cross-chain Coordination:** Coordinate sentry configuration across chains
-4. **TokenAdmin Protection:** Never remove tokenAdmin from whitelist
-5. **Contract Integration:** Ensure dividend and investment contracts are allowed
+1. **Compliance Planning**: Plan compliance requirements before token deployment
+2. **Whitelist Management**: Regularly update whitelist as needed
+3. **Country Compliance**: Stay updated with regulatory requirements
+4. **Access Control**: Maintain proper access control for sensitive operations
+5. **State Management**: Properly manage whitelist and country list state
+6. **Integration**: Ensure proper integration with other contracts
+7. **Security**: Implement robust security measures
 
 ## Limitations
 
-- **Single Instance:** Only one sentry per RWA per chain
-- **SentryManager Dependency:** Requires SentryManager for cross-chain operations
-- **Configuration Dependencies:** Some switches require KYC to be enabled
-- **Chain Specific:** Each sentry operates on a single chain
-- **Index Management:** Whitelist indices may change when addresses are removed
+- **Single Token**: Each sentry contract is tied to a single RWA token
+- **Manager Dependency**: Requires sentry manager for configuration
+- **Cross-chain Dependency**: Depends on cross-chain communication
+- **State Management**: Complex state management for whitelists and country lists
+- **Compliance Dependency**: Depends on external compliance systems
 
 ## Future Enhancements
 
-Potential improvements to the sentry system:
+- **Additional Compliance**: Support for more compliance requirements
+- **Advanced Analytics**: Compliance analytics and reporting
+- **Automated Updates**: Automated compliance rule updates
+- **Multi-signature Support**: Enhanced security for sensitive operations
+- **Integration Improvements**: Better integration with external systems
 
-1. **Enhanced Compliance:** Add more compliance verification types
-2. **Dynamic Policies:** Implement dynamic security policy updates
-3. **Analytics Integration:** Add security analytics and reporting
-4. **Multi-provider Support:** Extend to support additional KYC providers
-5. **Automated Validation:** Implement automated compliance validation
+## Cross-chain Architecture
 
-## Whitelist Architecture
+### Sentry Role
+- Access control enforcement for RWA tokens
+- Compliance requirement management
+- Whitelist and country list management
+- Transfer validation and enforcement
 
-### Storage Structure
-- **Array Storage:** ctmWhitelist array stores wallet addresses
-- **Index Mapping:** whitelistIndx provides O(1) lookup
-- **Optimized Operations:** Efficient addition and removal operations
-- **TokenAdmin Protection:** Special protection for tokenAdmin address
+### State Management
+- Whitelist state management
+- Country list state management
+- Compliance switch management
+- Token admin management
 
-### Management Operations
-- **Addition:** Add new addresses to whitelist
-- **Removal:** Remove addresses from whitelist
-- **Validation:** Check if address is whitelisted
-- **Enumeration:** Iterate through whitelist addresses
-
-## Country List Architecture
-
-### Storage Structure
-- **Array Storage:** countryList array stores country codes
-- **Index Mapping:** countryIndx provides O(1) lookup
-- **Optimized Operations:** Efficient addition and removal operations
-- **Flexible Policy:** Support for both whitelist and blacklist
-
-### Management Operations
-- **Addition:** Add new countries to list
-- **Removal:** Remove countries from list
-- **Validation:** Check if country is in list
-- **Enumeration:** Iterate through country list
-
-## Security Policy Management
-
-### Switch Dependencies
-- **KYC Base:** KYC switch enables other compliance switches
-- **KYB Dependency:** KYB requires KYC to be enabled
-- **Age Dependency:** Age 18+ requires KYC to be enabled
-- **Country Dependency:** Country restrictions require KYC to be enabled
-
-### Policy Enforcement
-- **Transfer Validation:** All transfers validated against policies
-- **Contract Allowance:** System contracts allowed to pass validation
-- **TokenAdmin Protection:** TokenAdmin always allowed
-- **Cross-chain Consistency:** Policies synchronized across chains
+### Integration Management
+- CTMRWA1 token integration
+- CTMRWA1X cross-chain integration
+- Sentry manager integration
+- Map contract integration
 
 ## Gas Optimization
 
-### Validation Costs
-- **Whitelist Check:** ~2600 gas for mapping lookup
-- **Contract Check:** ~5000 gas for contract address lookup
-- **Transfer Validation:** ~8000-15000 gas per validation
-- **Total Estimate:** ~10000-20000 gas per transfer validation
-
-### Optimization Strategies
-- **Efficient Storage:** Use mappings for O(1) lookups
-- **Batch Operations:** Consider batch whitelist updates
-- **Gas Estimation:** Always estimate gas before operations
-- **Storage Optimization:** Minimize storage operations
+- **Efficient Storage**: Optimized storage layout for gas efficiency
+- **Batch Operations**: Batch operations to reduce gas costs
+- **Event Optimization**: Efficient event emission
+- **Function Optimization**: Optimized function implementations
+- **State Optimization**: Efficient state management
 
 ## Security Considerations
 
-### Access Control
-- **TokenAdmin Authorization:** Only authorized parties can perform admin functions
-- **SentryManager Authorization:** Only SentryManager can update configuration
-- **Function Validation:** Validate all function parameters
-- **Cross-chain Security:** Secure integration with SentryManager
-
-### Transfer Security
-- **Pre-transfer Validation:** Validate transfers before execution
-- **Contract Allowance:** Allow system contracts to pass validation
-- **TokenAdmin Protection:** Protect tokenAdmin from removal
-- **Zero Address Handling:** Proper handling of zero address transfers
-
-### Configuration Security
-- **ID Validation:** Validate RWA ID matches contract ID
-- **Switch Dependencies:** Enforce proper switch dependencies
-- **Parameter Validation:** Validate all configuration parameters
-- **Cross-chain Consistency:** Ensure consistent configuration across chains
+- **Access Control**: Multi-layer access control system
+- **Whitelist Security**: Secure whitelist management
+- **State Security**: Secure state management
+- **Input Validation**: Comprehensive input validation
+- **Version Control**: Version compatibility checking
+- **Admin Security**: Secure admin function access
+- **Integration Security**: Secure contract integration

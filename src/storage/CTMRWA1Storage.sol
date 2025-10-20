@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Storage } from "./ICTMRWA1Storage.sol";
 import { URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
 import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
@@ -92,19 +92,31 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      */
     URIData[] public uriData;
 
+    /// @dev Hash existence tracking for O(1) lookups
+    mapping(bytes32 => bool) public hashExists;
+
+    /// @dev Hash to array index mapping for O(1) lookups
+    mapping(bytes32 => uint256) public hashToIndex;
+
+    /// @dev Category/Type counters for O(1) count lookups
+    mapping(URICategory => mapping(URIType => uint256)) public categoryTypeCount;
+
+    /// @dev Category/Type to array index mapping for O(1) index lookups
+    mapping(URICategory => mapping(URIType => mapping(uint256 => uint256))) public categoryTypeIndex;
+
     /// @dev A new object has been added to the stored data in this contract
     event NewURI(URICategory uriCategory, URIType uriType, uint256 slot, bytes32 uriDataHash);
 
     modifier onlyTokenAdmin() {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1Storage_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+            revert CTMRWA1Storage_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
         }
         _;
     }
 
     modifier onlyStorageManager() {
         if (msg.sender != storageManagerAddr && msg.sender != storageUtilsAddr) {
-            revert CTMRWA1Storage_OnlyAuthorized(Address.Sender, Address.StorageManager);
+            revert CTMRWA1Storage_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.StorageManager);
         }
         _;
     }
@@ -158,6 +170,7 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      */
     function addURILocal(
         uint256 _ID,
+        uint256 _version,
         string memory _objectName,
         URICategory _uriCategory,
         URIType _uriType,
@@ -175,9 +188,9 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         }
 
         if (_uriType == URIType.SLOT) {
-            (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, VERSION);
+            (bool ok,) = ICTMRWAMap(ctmRwa1Map).getTokenContract(_ID, RWA_TYPE, _version);
             if (!ok) {
-                revert CTMRWA1Storage_InvalidContract(Address.Token);
+                revert CTMRWA1Storage_InvalidContract(CTMRWAErrorParam.Token);
             }
             if (!ICTMRWA1(tokenAddr).slotExists(_slot)) {
                 revert CTMRWA1Storage_InvalidSlot(_slot);
@@ -193,6 +206,13 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         uriData.push(URIData(_uriCategory, _uriType, _title, _slot, _objectName, _uriDataHash, _timestamp));
         uriDataIndex[_objectName] = nonce;
 
+        // Update O(1) lookup mappings
+        uint256 newIndex = uriData.length - 1;
+        hashExists[_uriDataHash] = true;
+        hashToIndex[_uriDataHash] = newIndex;
+        categoryTypeCount[_uriCategory][_uriType]++;
+        categoryTypeIndex[_uriCategory][_uriType][categoryTypeCount[_uriCategory][_uriType] - 1] = newIndex;
+
         nonce++;
 
         emit NewURI(_uriCategory, _uriType, _slot, _uriDataHash);
@@ -204,6 +224,24 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
             revert CTMRWA1Storage_OutOfBounds();
         }
 
+        // Clean up mappings for the items being removed
+        for (uint256 i = 0; i < _toPop; i++) {
+            uint256 indexToRemove = uriData.length - 1 - i;
+            URIData memory itemToRemove = uriData[indexToRemove];
+            
+            // Remove from hash mappings
+            hashExists[itemToRemove.uriHash] = false;
+            delete hashToIndex[itemToRemove.uriHash];
+            
+            // Decrease category/type counters
+            categoryTypeCount[itemToRemove.uriCategory][itemToRemove.uriType]--;
+            
+            // Remove from category/type index mapping (set to 0 to indicate removed)
+            // Note: This is a simplified cleanup - in production, you might want more sophisticated cleanup
+            delete categoryTypeIndex[itemToRemove.uriCategory][itemToRemove.uriType][categoryTypeCount[itemToRemove.uriCategory][itemToRemove.uriType]];
+        }
+
+        // Remove items from array
         for (uint256 i = 0; i < _toPop; i++) {
             uriData.pop();
         }
@@ -308,19 +346,11 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         view
         returns (bytes32, string memory)
     {
-        uint256 currentIndx;
-
-        for (uint256 i = 0; i < uriData.length; i++) {
-            if (uriData[i].uriType == _uriTyp && uriData[i].uriCategory == _uriCat) {
-                if (_index == currentIndx) {
-                    return (uriData[i].uriHash, uriData[i].objectName);
-                } else {
-                    currentIndx++;
-                }
-            }
+        if (_index >= categoryTypeCount[_uriCat][_uriTyp]) {
+            return (bytes32(0), "");
         }
-
-        return (bytes32(0), "");
+        uint256 arrayIndex = categoryTypeIndex[_uriCat][_uriTyp][_index];
+        return (uriData[arrayIndex].uriHash, uriData[arrayIndex].objectName);
     }
 
     /**
@@ -329,13 +359,7 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      * @param _uriTyp The URIType (either URIType.CONTRACT, or URIType.SLOT)
      */
     function getURIHashCount(URICategory _uriCat, URIType _uriTyp) external view returns (uint256) {
-        uint256 count;
-        for (uint256 i = 0; i < uriData.length; i++) {
-            if (uriData[i].uriType == _uriTyp && uriData[i].uriCategory == _uriCat) {
-                count++;
-            }
-        }
-        return (count);
+        return categoryTypeCount[_uriCat][_uriTyp];
     }
 
     /**
@@ -344,12 +368,10 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      * NOTE This function returns an EMPTY record if the hash is not found
      */
     function getURIHash(bytes32 _hash) public view returns (URIData memory) {
-        for (uint256 i = 0; i < uriData.length; i++) {
-            if (uriData[i].uriHash == _hash) {
-                return (uriData[i]);
-            }
+        if (!hashExists[_hash]) {
+            return (URIData(URICategory.EMPTY, URIType.EMPTY, "", 0, "", 0, 0));
         }
-        return (URIData(URICategory.EMPTY, URIType.EMPTY, "", 0, "", 0, 0));
+        return uriData[hashToIndex[_hash]];
     }
 
     /**
@@ -357,12 +379,7 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
      * @param _uriHash The requested hash of a checksum
      */
     function existURIHash(bytes32 _uriHash) public view returns (bool) {
-        for (uint256 i = 0; i < uriData.length; i++) {
-            if (uriData[i].uriHash == _uriHash) {
-                return (true);
-            }
-        }
-        return (false);
+        return hashExists[_uriHash];
     }
 
     /**

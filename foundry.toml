@@ -18,6 +18,9 @@ remappings = [
     "@c3caller/=lib/c3caller/src/"
 ]
 
+[lint]
+lint_on_build = false
+
 [rpc_endpoints]
  arbitrum-sepolia-rpc-url = "${ARBITRUM_SEPOLIA_RPC_URL}"
  sepolia-rpc-url = "${SEPOLIA_RPC_URL}"

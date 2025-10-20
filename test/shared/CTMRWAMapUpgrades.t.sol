@@ -11,7 +11,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 import { FeeManager } from "../../src/managers/FeeManager.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 // Mock implementation for testing upgrades
 contract MockCTMRWAMapV2 is CTMRWAMap {
@@ -101,7 +101,11 @@ contract TestCTMRWAMapUpgrades is Helpers {
     }
 
     function test_upgrade_proxy_preserves_mappings() public {
+        // Call deployNewInvestment as tokenAdmin (who has token balances and approvals)
+        vm.startPrank(tokenAdmin);
         deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
+        vm.stopPrank();
+        
         (bool ok, address investmentContractAddr) = map.getInvestContract(ID, 1, 1);
         assertTrue(ok, "Invest contract should be deployed");
         assertNotEq(investmentContractAddr, address(0), "Invest contract should be deployed");
@@ -124,7 +128,6 @@ contract TestCTMRWAMapUpgrades is Helpers {
         rwa1X.deployAllCTMRWA1X(
             true, // includeLocal
             0, // existingID
-            1, // rwaType
             1, // version
             "Test Token",
             "TEST",
@@ -136,7 +139,7 @@ contract TestCTMRWAMapUpgrades is Helpers {
         vm.stopPrank();
 
         // Get admin tokens before upgrade
-        address[] memory adminTokensBefore = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        address[] memory adminTokensBefore = rwa1XUtils.getAllTokensByAdminAddress(tokenAdmin, VERSION);
         assertGt(adminTokensBefore.length, 0, "Should have admin tokens before upgrade");
 
         // Upgrade the proxy
@@ -146,7 +149,7 @@ contract TestCTMRWAMapUpgrades is Helpers {
         vm.stopPrank();
 
         // Get admin tokens after upgrade
-        address[] memory adminTokensAfter = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        address[] memory adminTokensAfter = rwa1XUtils.getAllTokensByAdminAddress(tokenAdmin, VERSION);
 
         // Verify admin tokens mapping is preserved
         assertEq(adminTokensAfter.length, adminTokensBefore.length, "Admin tokens count should be preserved");
@@ -163,7 +166,6 @@ contract TestCTMRWAMapUpgrades is Helpers {
         rwa1X.deployAllCTMRWA1X(
             true, // includeLocal
             0, // existingID
-            1, // rwaType
             1, // version
             "Test Token",
             "TEST",
@@ -175,7 +177,7 @@ contract TestCTMRWAMapUpgrades is Helpers {
         vm.stopPrank();
 
         // Get owned tokens before upgrade
-        address[] memory ownedTokensBefore = rwa1X.getAllTokensByOwnerAddress(tokenAdmin);
+        address[] memory ownedTokensBefore = rwa1XUtils.getAllTokensByOwnerAddress(tokenAdmin, VERSION);
 
         // Upgrade the proxy
         vm.startPrank(gov);
@@ -184,7 +186,7 @@ contract TestCTMRWAMapUpgrades is Helpers {
         vm.stopPrank();
 
         // Get owned tokens after upgrade
-        address[] memory ownedTokensAfter = rwa1X.getAllTokensByOwnerAddress(tokenAdmin);
+        address[] memory ownedTokensAfter = rwa1XUtils.getAllTokensByOwnerAddress(tokenAdmin, VERSION);
         // Verify owned tokens mapping is preserved
         assertEq(ownedTokensAfter.length, ownedTokensBefore.length, "Owned tokens count should be preserved");
         for (uint256 i = 0; i < ownedTokensBefore.length; i++) {

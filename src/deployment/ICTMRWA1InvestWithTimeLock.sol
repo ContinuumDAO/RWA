@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { Address, Time, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 
 struct Offering {
     uint256 tokenId;
@@ -42,19 +42,20 @@ interface ICTMRWA1InvestWithTimeLock {
     event UnlockInvestmentToken(uint256 indexed ID, address holder, uint256 holdingIndx);
     event ClaimDividendInEscrow(uint256 indexed ID, address holder, uint256 unclaimed);
     event FundedRewardToken(uint256 indexed offeringIndex, uint256 fundAmount, uint256 rewardMultiplier);
+    event LateRewardFunding(uint256 indexed offeringIndex);
     event RewardClaimed(address indexed holder, uint256 indexed offerIndex, uint256 indexed holdingIndex, uint256 amount);
     event RemoveRemainingBalance(uint256 indexed ID, uint256 indexed indx, uint256 remainingBalance);
-
+    
     // Errors
-    error CTMRWA1InvestWithTimeLock_OnlyAuthorized(Address, Address);
-    error CTMRWA1InvestWithTimeLock_InvalidContract(Address);
+    error CTMRWA1InvestWithTimeLock_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
+    error CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam);
     error CTMRWA1InvestWithTimeLock_OutOfBounds();
     error CTMRWA1InvestWithTimeLock_NonExistentToken(uint256);
     error CTMRWA1InvestWithTimeLock_MaxOfferings();
-    error CTMRWA1InvestWithTimeLock_InvalidLength(Uint);
+    error CTMRWA1InvestWithTimeLock_InvalidLength(CTMRWAErrorParam);
     error CTMRWA1InvestWithTimeLock_Paused();
-    error CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time);
-    error CTMRWA1InvestWithTimeLock_InvalidAmount(Uint);
+    error CTMRWA1InvestWithTimeLock_InvalidTimestamp(CTMRWAErrorParam);
+    error CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam);
     error CTMRWA1InvestWithTimeLock_NotWhiteListed(address);
     error CTMRWA1InvestWithTimeLock_AlreadyWithdrawn(uint256);
     error CTMRWA1InvestWithTimeLock_InvalidOfferingIndex();
@@ -64,6 +65,8 @@ interface ICTMRWA1InvestWithTimeLock {
     error CTMRWA1InvestWithTimeLock_HoldingNotFound();
     error CTMRWA1InvestWithTimeLock_OfferingNotEnded();
     error CTMRWA1InvestWithTimeLock_NoRemainingBalance();
+    error CTMRWA1InvestWithTimeLock_FailedTransfer();
+    error CTMRWA1InvestWithTimeLock_OfferingEnded(uint256);
 
     // Public constants
     function RWA_TYPE() external view returns (uint256);

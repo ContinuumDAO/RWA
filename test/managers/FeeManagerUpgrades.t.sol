@@ -3,6 +3,7 @@
 pragma solidity 0.8.27;
 
 import { Test } from "forge-std/Test.sol";
+import { console } from "forge-std/console.sol";
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -15,7 +16,8 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { FeeManager } from "../../src/managers/FeeManager.sol";
 import { IFeeManager, FeeType } from "../../src/managers/IFeeManager.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
+import { TestERC20 } from "../../src/mocks/TestERC20.sol";
 
 // Mock implementation for testing upgrades
 contract MockFeeManagerV2 is FeeManager {
@@ -98,14 +100,17 @@ contract TestFeeManagerUpgrades is Helpers {
     }
 
     function test_upgrade_proxy_preserves_mappings() public {
+        // Create a test token for the upgrade test
+        TestERC20 testToken = new TestERC20("Test Token", "TEST", 18);
+        
         // Set up some state in mappings
         vm.startPrank(gov);
-        feeManager.addFeeToken(address(0x123).toHexString());
+        feeManager.addFeeToken(address(testToken).toHexString());
         feeManager.setFeeMultiplier(FeeType.OFFERING, 100);
         vm.stopPrank();
 
         // Verify initial state
-        assertTrue(feeManager.feeTokenIndexMap(address(0x123)) > 0, "Fee token should be added");
+        assertTrue(feeManager.feeTokenIndexMap(address(testToken)) > 0, "Fee token should be added");
         assertEq(feeManager.feeMultiplier(uint8(FeeType.OFFERING)), 100, "Fee multiplier should be set");
 
         // Upgrade the proxy
@@ -115,7 +120,7 @@ contract TestFeeManagerUpgrades is Helpers {
         vm.stopPrank();
 
         // Verify mappings are preserved
-        assertTrue(feeManager.feeTokenIndexMap(address(0x123)) > 0, "Fee token should still be added after upgrade");
+        assertTrue(feeManager.feeTokenIndexMap(address(testToken)) > 0, "Fee token should still be added after upgrade");
         assertEq(feeManager.feeMultiplier(uint8(FeeType.OFFERING)), 100, "Fee multiplier should still be set after upgrade");
     }
 
@@ -127,7 +132,6 @@ contract TestFeeManagerUpgrades is Helpers {
         rwa1X.deployAllCTMRWA1X(
             true, // includeLocal
             0, // existingID
-            1, // rwaType
             1, // version
             "Test Token",
             "TEST",
@@ -139,7 +143,7 @@ contract TestFeeManagerUpgrades is Helpers {
         vm.stopPrank();
 
         // Get admin tokens before upgrade
-        address[] memory adminTokensBefore = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        address[] memory adminTokensBefore = rwa1XUtils.getAllTokensByAdminAddress(tokenAdmin, VERSION);
         assertGt(adminTokensBefore.length, 0, "Should have admin tokens before upgrade");
 
         // Upgrade the proxy
@@ -149,7 +153,7 @@ contract TestFeeManagerUpgrades is Helpers {
         vm.stopPrank();
 
         // Get admin tokens after upgrade
-        address[] memory adminTokensAfter = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        address[] memory adminTokensAfter = rwa1XUtils.getAllTokensByAdminAddress(tokenAdmin, VERSION);
 
         // Verify admin tokens mapping is preserved
         assertEq(adminTokensAfter.length, adminTokensBefore.length, "Admin tokens count should be preserved");
@@ -166,7 +170,6 @@ contract TestFeeManagerUpgrades is Helpers {
         rwa1X.deployAllCTMRWA1X(
             true, // includeLocal
             0, // existingID
-            1, // rwaType
             1, // version
             "Test Token",
             "TEST",
@@ -178,7 +181,7 @@ contract TestFeeManagerUpgrades is Helpers {
         vm.stopPrank();
 
         // Get owned tokens before upgrade
-        address[] memory ownedTokensBefore = rwa1X.getAllTokensByOwnerAddress(tokenAdmin);
+        address[] memory ownedTokensBefore = rwa1XUtils.getAllTokensByOwnerAddress(tokenAdmin, VERSION);
 
         // Upgrade the proxy
         vm.startPrank(gov);
@@ -187,7 +190,7 @@ contract TestFeeManagerUpgrades is Helpers {
         vm.stopPrank();
 
         // Get owned tokens after upgrade
-        address[] memory ownedTokensAfter = rwa1X.getAllTokensByOwnerAddress(tokenAdmin);
+        address[] memory ownedTokensAfter = rwa1XUtils.getAllTokensByOwnerAddress(tokenAdmin, VERSION);
         // Verify owned tokens mapping is preserved
         assertEq(ownedTokensAfter.length, ownedTokensBefore.length, "Owned tokens count should be preserved");
         for (uint256 i = 0; i < ownedTokensBefore.length; i++) {
@@ -245,9 +248,10 @@ contract TestFeeManagerUpgrades is Helpers {
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         // Test that governance functions still work
+        TestERC20 testToken = new TestERC20("Test Token", "TEST", 18);
         vm.startPrank(gov);
-        feeManager.addFeeToken(address(0x123).toHexString());
-        assertTrue(feeManager.feeTokenIndexMap(address(0x123)) > 0, "Fee token should be added");
+        feeManager.addFeeToken(address(testToken).toHexString());
+        assertTrue(feeManager.feeTokenIndexMap(address(testToken)) > 0, "Fee token should be added");
         feeManager.setFeeMultiplier(FeeType.OFFERING, 200);
         assertEq(feeManager.feeMultiplier(uint8(FeeType.OFFERING)), 200, "Fee multiplier should be set");
         vm.stopPrank();
@@ -321,13 +325,30 @@ contract TestFeeManagerUpgrades is Helpers {
     }
 
     function test_upgrade_proxy_preserves_c3govern_dapp_functionality() public {
+        // Verify that user1 and gov are different addresses
+        assertTrue(user1 != gov, "user1 should not be the same as gov");
+        
+        // First, test that governance works before upgrade
+        // Create the test token first (outside of expectRevert)
+        TestERC20 testToken = new TestERC20("Test Token", "TEST", 18);
+        
+        vm.startPrank(user1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
+        feeManager.addFeeToken(address(testToken).toHexString());
+        vm.stopPrank();
+        
         // Deploy new implementation and upgrade
         MockFeeManagerV2 newImpl = new MockFeeManagerV2();
         vm.startPrank(gov);
         (bool success, ) = address(feeManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockFeeManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
-        // Test that C3GovernDApp functionality is preserved
+        
+        // Test that C3GovernDApp functionality is preserved after upgrade
         // The contract should still have governance controls
         vm.startPrank(user1);
         vm.expectRevert(
@@ -335,13 +356,13 @@ contract TestFeeManagerUpgrades is Helpers {
                 IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
             )
         );
-        success = feeManager.addFeeToken(address(0x123).toHexString());
+        success = feeManager.addFeeToken(address(testToken).toHexString());
         assertFalse(success, "addFeeToken did not fail");
         vm.stopPrank();
         vm.startPrank(gov);
-        success = feeManager.addFeeToken(address(0x123).toHexString());
+        success = feeManager.addFeeToken(address(testToken).toHexString());
         assertTrue(success, "addFeeToken failed");
-        assertTrue(feeManager.feeTokenIndexMap(address(0x123)) > 0, "Governance should still work");
+        assertTrue(feeManager.feeTokenIndexMap(address(testToken)) > 0, "Governance should still work");
         vm.stopPrank();
     }
 }

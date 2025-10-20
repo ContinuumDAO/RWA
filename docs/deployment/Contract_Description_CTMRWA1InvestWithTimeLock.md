@@ -1,143 +1,94 @@
 # CTMRWA1InvestWithTimeLock Contract Documentation
 
-## Table of Contents
-1. [Overview](#overview)
-2. [Contract Specifications](#contract-specifications)
-3. [Architecture & Design](#architecture--design)
-4. [Core Functions](#core-functions)
-5. [Data Structures](#data-structures)
-6. [Security & Access Control](#security--access-control)
-7. [Integration Points](#integration-points)
-8. [Investment Workflow](#investment-workflow)
-9. [Error Handling](#error-handling)
-10. [Best Practices & Limitations](#best-practices--limitations)
-
 ## Overview
 
 **Contract Name:** CTMRWA1InvestWithTimeLock  
-**Author:** @Selqui ContinuumDAO  
+**File:** `src/deployment/CTMRWA1InvestWithTimeLock.sol`  
 **License:** BSL-1.1  
-**Solidity Version:** 0.8.27  
-**Contract Type:** Investment & Escrow Management
+**Author:** @Selqui ContinuumDAO
 
-The CTMRWA1InvestWithTimeLock contract is a sophisticated investment platform that enables Real World Asset (RWA) token issuers to raise capital through structured offerings with time-locked escrow functionality. This contract serves as a bridge between issuers seeking capital and investors looking for RWA opportunities.
+## Contract Description
 
-### Key Capabilities
-- **Investment Offerings:** Create and manage multiple simultaneous investment opportunities
-- **Time-locked Escrow:** Secure token holding with configurable lockup periods
-- **Reward Distribution:** Distribute rewards to investors during lockup periods
-- **Cross-chain Integration:** Seamless integration with the CTMRWA cross-chain ecosystem
-- **Fee Management:** Integrated fee system for sustainable operations
-- **Access Control:** Comprehensive permission system with role-based security
-- **BNB Greenfield Integration:** Support for BNB Greenfield storage object references
+This is a contract to allow an Issuer (tokenAdmin) to raise finance from investors. It can be deployed once on each chain that the RWA token is deployed to. The Issuer can create Offerings with start and end dates, min and max amounts to invest and with a lock up escrow period. The investors can still claim rewards, sent to them by the Issuer, whilst their investments are locked up. Once the lockup period is over, the investors can withdraw their tokenIds.
 
-## Contract Specifications
+Issuers can create multiple simultaneous Offerings.
 
-### Core Identifiers
-| Variable | Type | Value | Description |
-|----------|------|-------|-------------|
-| `ID` | `uint256` | Dynamic | Unique identifier of the CTMRWA token contract |
-| `RWA_TYPE` | `uint256` | `1` | RWA type defining CTMRWA1 (constant) |
-| `VERSION` | `uint256` | `1` | Version of this RWA type (constant) |
+### Key Features
+- Investment platform for RWA token issuers to raise capital
+- Time-locked escrow system for investor tokens
+- Reward distribution during lockup periods
+- Multiple simultaneous offerings support
+- Cross-chain integration with CTMRWA ecosystem
+- Fee management and commission system
+- BNB Greenfield storage object references
+- Comprehensive access control and whitelisting
 
-### Contract Addresses
-| Variable | Type | Description |
-|----------|------|-------------|
-| `ctmRwaToken` | `address` | Main RWA token contract address |
-| `ctmRwaDividend` | `address` | Dividend distribution contract address |
-| `ctmRwaSentry` | `address` | Access control and whitelisting contract |
-| `ctmRwa1X` | `address` | Cross-chain coordinator contract |
-| `ctmRwaMap` | `address` | Multi-chain address mapping contract |
-| `feeManager` | `address` | Fee calculation and collection contract |
-| `tokenAdmin` | `address` | Administrative account for this contract |
+## State Variables
 
-### Configuration Parameters
-| Variable | Type | Description |
-|----------|------|-------------|
-| `decimalsRwa` | `uint8` | Decimal precision of the RWA token |
-| `commissionRate` | `uint256` | Fee commission rate (0-10000, representing 0.01% increments) |
-| `cIdStr` | `string` | String representation of the local chain ID |
-| `MAX_OFFERINGS` | `uint256` | Maximum number of simultaneous offerings (100) |
+- `ID (uint256)`: Unique ID of the CTMRWA token contract
+- `RWA_TYPE (uint256, constant = 1)`: RWA type defining CTMRWA1
+- `VERSION (uint256, constant = 1)`: Version of this RWA type
+- `offerings (Offering[])`: A list of offerings to investors
+- `MAX_OFFERINGS (uint256, constant = 100)`: Limit the number of Offerings to stop DDoS attacks
+- `holdingsByAddress (mapping(address => Holding[]))`: Mapping of address to holdings
+- `ctmRwaToken (address)`: The token contract address corresponding to this ID
+- `decimalsRwa (uint8)`: The decimals of the CTMRWA1
+- `ctmRwaDividend (address)`: The Dividend contract address corresponding to this ID
+- `ctmRwaSentry (address)`: The Sentry contract address corresponding to this ID
+- `ctmRwa1X (address)`: The CTMRWA1X contract address corresponding to this ID
+- `ctmRwaMap (address)`: Address of the CTMRWAMap contract
+- `commissionRate (uint256)`: The commission rate payable to FeeManager 0-10000 (0.01%)
+- `feeManager (address)`: Address of the FeeManager contract
+- `tokenAdmin (address)`: The Token Admin of this CTMRWA
+- `cIdStr (string)`: String representation of the local chainID
+- `tokensInEscrow (uint256[])`: Arrays of tokenIds in escrow
+- `ownersInEscrow (address[])`: Arrays of owners in escrow
 
-## Architecture & Design
+## Constructor
 
-### Core Components
-```
-CTMRWA1InvestWithTimeLock
-├── Offering Management
-│   ├── Creation & Configuration
-│   ├── Investment Processing
-│   └── Pause/Resume Controls
-├── Escrow System
-│   ├── Token Locking
-│   ├── Time-based Unlocking
-│   └── Security Validation
-├── Reward Distribution
-│   ├── Funding Mechanisms
-│   ├── Distribution Logic
-│   └── Claim Processing
-├── BNB Greenfield Integration
-│   ├── Object Reference Storage
-│   └── Metadata Management
-└── Access Control
-    ├── Role-based Permissions
-    ├── Whitelist Integration
-    └── Security Modifiers
-```
-
-### State Management
-- **Offerings Array:** Dynamic array of investment opportunities
-- **Holdings Mapping:** Address-based holding records
-- **Escrow Arrays:** Parallel arrays for token and owner tracking
-- **Pause States:** Individual offering pause controls
-
-## Core Functions
-
-### Constructor
 ```solidity
-constructor(
-    uint256 _ID,
-    address _ctmRwaMap,
-    uint256 _commissionRate,
-    address _feeManager
-)
+constructor(uint256 _ID, address _ctmRwaMap, uint256 _commissionRate, address _feeManager)
 ```
+- Initializes the contract with essential parameters and validates dependencies
+- Sets contract identifiers and addresses
+- Retrieves related contract addresses from CTMRWAMap
+- Validates contract existence and permissions
+- Sets configuration parameters
 
-**Purpose:** Initializes the contract with essential parameters and validates dependencies.
+## Access Control
 
-**Initialization Flow:**
-1. Sets contract identifiers and addresses
-2. Retrieves related contract addresses from CTMRWAMap
-3. Validates contract existence and permissions
-4. Sets configuration parameters
+- `onlyTokenAdmin(address _ctmRwaToken)`: Restricts access to authorized administrators
+- `nonReentrant`: Prevents reentrancy attacks using OpenZeppelin's ReentrancyGuard
 
-### Administrative Functions
+## Administrative Functions
 
-#### Token Admin Management
+### setTokenAdmin()
 ```solidity
-function setTokenAdmin(address _tokenAdmin, bool _force) external returns (bool)
+function setTokenAdmin(address _tokenAdmin, bool _force) public onlyTokenAdmin(ctmRwaToken) returns (bool)
 ```
+Change the tokenAdmin address. This function can only be called by CTMRWA1X, or the existing tokenAdmin. If the CTMRWA1 is being locked and there are Offerings, DO NOT change tokenAdmin for this Investment contract. The tokenAdmin can manually set to address(0) with the override _force == true.
 
-**Security Features:**
-- Prevents admin changes during active offerings (unless forced)
-- Only callable by current tokenAdmin or CTMRWA1X
-- Emits events for transparency
-
-#### Offering Controls
+### pauseOffering()
 ```solidity
-function pauseOffering(uint256 _indx) external
-function unpauseOffering(uint256 _indx) external
-function isOfferingPaused(uint256 _indx) external view returns (bool)
+function pauseOffering(uint256 _indx) public onlyTokenAdmin(ctmRwaToken)
 ```
+Pause a specific offering (only tokenAdmin).
 
-**Use Cases:**
-- Emergency pause for security incidents
-- Regulatory compliance requirements
-- Market condition adjustments
+### unpauseOffering()
+```solidity
+function unpauseOffering(uint256 _indx) public onlyTokenAdmin(ctmRwaToken)
+```
+Unpause a specific offering (only tokenAdmin).
 
-### Investment Management
+### isOfferingPaused()
+```solidity
+function isOfferingPaused(uint256 _indx) public view returns (bool)
+```
+Check if a specific offering is paused.
 
-#### Offering Creation
+## Investment Management
+
+### createOffering()
 ```solidity
 function createOffering(
     uint256 _tokenId,
@@ -154,130 +105,182 @@ function createOffering(
     uint256 _lockDuration,
     address _rewardToken,
     address _feeToken
-) external
+) public onlyTokenAdmin(ctmRwaToken)
 ```
+Allow an Issuer(tokenAdmin) to create a new investment Offering, with all parameters. One of the tokenAdmin's tokenIds is transferred to the contract and then when an investor invests, they get a tokenId, which is held by this contract for an escrow period, after which they can withdraw it.
 
 **Parameters:**
-- `_tokenId`: Token ID of the tokenAdmin that is transferred to this contract
-- `_price`: Price of 1 unit of value in the tokenId
-- `_currency`: ERC20 address of the token required for investment
-- `_minInvestment`: Minimum allowable investment amount
-- `_maxInvestment`: Maximum allowable investment amount
-- `_regulatorCountry`: 2-letter country code of the regulator (max 2 characters)
-- `_regulatorAcronym`: Acronym of the regulator
-- `_offeringType`: Short description of the offering (max 128 characters)
-- `_bnbGreenfieldObjectName`: Name of the object describing the offering in BNB Greenfield Storage
-- `_startTime`: Time after which offers will be accepted
-- `_endTime`: End time after which offers will no longer be allowed
-- `_lockDuration`: Time for which investors' tokenIds will be held in escrow
-- `_rewardToken`: Address of ERC20 token used for rewards (address(0) for no rewards)
-- `_feeToken`: Address of ERC20 token used to pay fees
+- `_tokenId`: This is the tokenId of the tokenAdmin that is transferred to this contract. Its balance is the amount of the Offering and its Asset Class(slot) defines what is being offered
+- `_price`: The price of 1 unit of value in the tokenId
+- `_currency`: The ERC20 address of the token required to be invested
+- `_minInvestment`: The minimum allowable investment
+- `_maxInvestment`: The maximum allowable investment
+- `_regulatorCountry`: The 2 letter Country Code of the Regulator
+- `_regulatorAcronym`: The acronym of the Regulator
+- `_offeringType`: The short AssetX description of the offering
+- `_bnbGreenfieldObjectName`: The name of the object describing the offering in the BNB Greenfield Storage
+- `_startTime`: The time after which offers will be accepted
+- `_endTime`: The end time, after which offers will no longer be allowed
+- `_lockDuration`: The time for which the investors tokenId will be held in escrow for. After this time they may unlock their tokenId into their own wallet. They may claim rewards during the escrow period
+- `_rewardToken`: The address of the ERC20 token used for rewards. address(0) means no rewards
+- `_feeToken`: The address of the ERC20 token used to pay fees to AssetX. See getFeeTokenList in the FeeManager contract for allowable fee addresses
 
-**Validation Requirements:**
-- Token ID existence verification
-- Maximum offerings limit check
-- Parameter length validation (regulatorCountry ≤ 2 chars, offeringType ≤ 128 chars)
-- Investment amount validation
-- Fee payment verification
-- Reward token contract validation (if not address(0))
-
-#### Investment Processing
+### investInOffering()
 ```solidity
-function investInOffering(
-    uint256 _indx,
-    uint256 _investment,
-    address _feeToken
-) external returns (uint256)
+function investInOffering(uint256 _indx, uint256 _investment, address _feeToken) public nonReentrant returns (uint256)
 ```
+An investor makes an investment for an Offering and is given a tokenId with a value corresponding to their investment and with the same Asset Class (slot). This is held in escrow in the contract for a period, during which they may still receive dividends.
 
-**Investment Flow:**
-1. **Validation:** Offering existence, timing, and investor eligibility
-2. **Fee Payment:** Investment fee collection
-3. **Token Creation:** New token ID generation for investor
-4. **Escrow Setup:** Token placement in time-locked escrow
-5. **Record Creation:** Holding record establishment
-
-### Escrow Management
-
-#### Token Unlocking
+### withdrawInvested()
 ```solidity
-function unlockTokenId(uint256 _myIndx, address _feeToken) external returns (uint256)
+function withdrawInvested(uint256 _indx) public onlyTokenAdmin(ctmRwaToken) nonReentrant returns (uint256)
 ```
+Allow an Issuer (tokenAdmin) to withdraw funds that have been invested in an Offering. The tokenAdmin can withdraw funds whenever there are funds to withdraw. No need to wait until after the Offering is over.
 
-**Unlocking Process:**
-1. **Time Validation:** Ensures escrow period has elapsed
-2. **Escrow Verification:** Confirms token is still in escrow
-3. **Token Transfer:** Moves token from escrow to investor
-4. **State Update:** Removes token from escrow arrays
-
-### Reward System
-
-#### Reward Funding
+### unlockTokenId()
 ```solidity
-function fundRewardTokenForOffering(
-    uint256 _offeringIndex,
-    uint256 _fundAmount,
-    uint256 _rewardMultiplier,
-    uint256 _rateDivisor
-) external
+function unlockTokenId(uint256 _myIndx, address _feeToken) public nonReentrant returns (uint256)
 ```
+A holder of an investment can withdraw their tokenId from escrow into their possession.
 
-**Distribution Logic:**
-- Transfers reward tokens from tokenAdmin
-- Calculates rewards based on holding amounts
-- Updates reward amounts in holdings
-- Supports dynamic reward rates
+## Reward System
 
-#### Reward Claiming
+### fundRewardTokenForOffering()
 ```solidity
-function claimReward(uint256 offerIndex, uint256 holdingIndex) external
+function fundRewardTokenForOffering(uint256 _offeringIndex, uint256 _fundAmount, uint256 _rewardMultiplier, uint256 _rateDivisor) external nonReentrant onlyTokenAdmin(ctmRwaToken)
 ```
+Allows the tokenAdmin to fund the ERC20 rewardToken for an offering and distribute rewards to all current holders. This function can only be called before the offering ends.
 
-**Claim Process:**
-1. **Validation:** Holding existence and reward amount verification
-2. **Reward Transfer:** Token transfer to holder
-3. **State Reset:** Reward amount reset to zero
-4. **Event Emission:** Claim confirmation event
-
-### New Functions
-
-#### Remaining Balance Management
+### getRewardInfo()
 ```solidity
-function removeRemainingTokenId(uint256 _indx, address _feeToken) external returns (uint256)
+function getRewardInfo(address holder, uint256 offerIndex, uint256 holdingIndex) external view returns (address rewardToken, uint256 rewardAmount)
 ```
+Returns the rewardToken contract address for an offering and the rewardAmount for a specific Holding of a holder.
 
-**Purpose:** Allows tokenAdmin to remove remaining balance after offering ends
+### claimReward()
+```solidity
+function claimReward(uint256 offerIndex, uint256 holdingIndex) external nonReentrant
+```
+Allows a holder to claim their reward for a specific holding.
 
-**Requirements:**
-- Offering must have ended
-- Must have remaining balance
-- Fee payment required
+**Restrictions for Claiming Rewards:**
+- **Valid Offering Index**: The `offerIndex` must be less than the total number of offerings
+- **Valid Holding Index**: The `holdingIndex` must be less than the holder's total holdings
+- **Reward Token Required**: The offering must have a reward token set (not address(0))
+- **Holding Must Exist**: The holding must exist in both the offering's holdings array and the holder's holdings mapping
+- **Token ID Match**: The token ID in the offering's holdings must match the token ID in the holder's holdings
+- **Reward Amount Available**: The holding must have a reward amount greater than 0
+- **One-Time Claim**: Each reward can only be claimed once - the reward amount is set to 0 after claiming
+- **Reentrancy Protection**: Function is protected against reentrancy attacks
+- **Balance Validation**: The contract validates that the reward transfer was successful by checking balance changes
 
-**Process:**
-1. Validates offering has ended
-2. Checks for remaining balance
-3. Pays removal fee
-4. Creates new token ID for remaining balance
-5. Transfers to tokenAdmin
-6. Sets remaining balance to zero
+**Timing for Reward Operations:**
+- **Reward Funding**: Can only be done BEFORE the offering ends (during the offering period)
+- **Reward Claiming**: Can be done at ANY TIME after rewards have been funded (even after the offering ends)
+- **No Time Restrictions**: Unlike funding, there are no timestamp restrictions on when rewards can be claimed
+- **Persistent Rewards**: Once funded, rewards remain claimable indefinitely until claimed
+
+## Remaining Balance Management
+
+### removeRemainingTokenId()
+```solidity
+function removeRemainingTokenId(uint256 _indx, address _feeToken) public onlyTokenAdmin(ctmRwaToken) nonReentrant returns (uint256)
+```
+Allows the tokenAdmin to remove the remaining balance of a tokenId in an Offering after the end time. This function can only be called after the offering has ended and only if there is remaining balance.
+
+## View Functions
+
+### getTokenIdsInEscrow()
+```solidity
+function getTokenIdsInEscrow() public view returns (uint256[] memory, address[] memory)
+```
+Get the tokenIds and owners in escrow.
+
+### offeringCount()
+```solidity
+function offeringCount() public view returns (uint256)
+```
+Get the total number of Offerings generated by the Issuer (tokenAdmin).
+
+### listOfferings()
+```solidity
+function listOfferings() public view returns (Offering[] memory)
+```
+Return all the Offerings generated by the Issuer (tokenAdmin).
+
+### listOffering()
+```solidity
+function listOffering(uint256 _offerIndx) public view returns (Offering memory)
+```
+Return the Offering made by the Issuer (tokenAdmin) at an index.
+
+### escrowHoldingCount()
+```solidity
+function escrowHoldingCount(address _holder) public view returns (uint256)
+```
+Return the number of Holdings held by an address in this contract.
+
+### listEscrowHoldings()
+```solidity
+function listEscrowHoldings(address _holder) public view returns (Holding[] memory)
+```
+Return all the Holding records held by an address.
+
+### listEscrowHolding()
+```solidity
+function listEscrowHolding(address _holder, uint256 _myIndx) public view returns (Holding memory)
+```
+Return a Holding record of an address at an index.
+
+## Internal Functions
+
+### onCTMRWA1Received()
+```solidity
+function onCTMRWA1Received(address, uint256, uint256, uint256, bytes calldata) external pure override returns (bytes4)
+```
+Handle receipt of CTMRWA1 value when this contract holds escrowed tokenIds. Return the required magic value to accept transfers. No state changes here.
+
+### _addTokenIdInEscrow()
+```solidity
+function _addTokenIdInEscrow(uint256 _tokenId, address _owner) internal
+```
+Add a tokenId and owner to the escrow arrays.
+
+### _removeTokenIdInEscrow()
+```solidity
+function _removeTokenIdInEscrow(uint256 _tokenId) internal
+```
+Remove a tokenId and owner from the escrow arrays.
+
+### _checkTokenAdmin()
+```solidity
+function _checkTokenAdmin(address _ctmRwaToken) internal
+```
+Check that msg.sender is the tokenAdmin of a CTMRWA1 address.
+
+### _payFee()
+```solidity
+function _payFee(FeeType _feeType, address _feeToken) internal returns (bool)
+```
+Pay offering fees.
 
 ## Data Structures
 
-### Offering Structure
+### Offering
 ```solidity
 struct Offering {
     uint256 tokenId;              // Token ID for the offering
-    uint256 offerAmount;          // Total amount offered (NEW: renamed from balTotal)
+    uint256 offerAmount;          // Total amount offered
     uint256 balRemaining;         // Remaining balance
     uint256 price;                // Price per unit
     address currency;             // Investment currency (ERC20)
     uint256 minInvestment;        // Minimum investment amount
     uint256 maxInvestment;        // Maximum investment amount
-    uint256 investment;           // Total investment received
+    uint256 investment;            // Total investment received
     string regulatorCountry;      // 2-letter country code
     string regulatorAcronym;      // Regulator identifier
     string offeringType;          // Offering description
-    string bnbGreenfieldObjectName; // BNB Greenfield object name (NEW)
+    string bnbGreenfieldObjectName; // BNB Greenfield object name
     uint256 startTime;            // Investment start time
     uint256 endTime;              // Investment end time
     uint256 lockDuration;         // Escrow lock duration
@@ -286,8 +289,7 @@ struct Offering {
 }
 ```
 
-
-### Holding Structure
+### Holding
 ```solidity
 struct Holding {
     uint256 offerIndex;           // Offering index reference
@@ -298,224 +300,102 @@ struct Holding {
 }
 ```
 
-## Security & Access Control
+## Events
 
-### Access Control Modifiers
-- **`onlyTokenAdmin(address _ctmRwaToken)`**: Restricts access to authorized administrators
-- **`nonReentrant`**: Prevents reentrancy attacks using OpenZeppelin's ReentrancyGuard
+- `CreateOffering(uint256 ID, uint256 indx, uint256 slot, uint256 offer)`: New offering creation
+- `OfferingPaused(uint256 ID, uint256 indx, address account)`: Offering pause action
+- `OfferingUnpaused(uint256 ID, uint256 indx, address account)`: Offering resume action
+- `InvestInOffering(uint256 ID, uint256 indx, uint256 holdingIndx, uint256 investment)`: Investment completion
+- `WithdrawFunds(uint256 ID, uint256 indx, uint256 funds)`: Fund withdrawal
+- `UnlockInvestmentToken(uint256 ID, address holder, uint256 holdingIndx)`: Token unlocking
+- `FundedRewardToken(uint256 offeringIndex, uint256 fundAmount, uint256 rewardMultiplier)`: Reward funding
+- `RewardClaimed(address holder, uint256 offerIndex, uint256 holdingIndex, uint256 amount)`: Reward claiming
+- `RemoveRemainingBalance(uint256 ID, uint256 indx, uint256 remainingBalance)`: Remaining balance removal
+- `LateRewardFunding(uint256 offeringIndex)`: Late reward funding attempt
 
-### Security Features
-1. **Reentrancy Protection:** Comprehensive guard against reentrancy attacks
-2. **Input Validation:** Extensive parameter validation and sanitization
-3. **Access Restrictions:** Role-based permission system
-4. **Escrow Security:** Time-based token locking with validation
-5. **Fee Integration:** Secure fee collection and distribution
-6. **Whitelist Support:** Integration with Sentry contract for access control
+## Security Features
 
-### Pause Functionality
-- **Individual Offering Control:** Each offering can be paused independently
-- **Emergency Response:** Quick response to security incidents
-- **Selective Operation:** Maintains functionality for other offerings
+- ReentrancyGuard for state-changing flows
+- Comprehensive input validation and parameter checks
+- Access control via onlyTokenAdmin modifier
+- Escrow security with time-based token locking
+- Fee payment validation with balance checks
+- Whitelist integration via Sentry contract
+- Commission rate management
+- Pause functionality for individual offerings
 
 ## Integration Points
 
-### Core System Integration
-```
-CTMRWA1InvestWithTimeLock
-├── CTMRWA1 (Main Token)
-├── CTMRWA1X (Cross-chain)
-├── CTMRWA1Dividend (Rewards)
-├── CTMRWA1Sentry (Security)
-├── CTMRWAMap (Addresses)
-├── FeeManager (Fees)
-├── C3Caller (Cross-chain)
-└── BNB Greenfield (Storage)
-```
-
-### Integration Benefits
-- **Seamless Token Operations:** Direct integration with main token contract
-- **Cross-chain Capabilities:** Support for multi-chain deployments
-- **Unified Fee System:** Consistent fee management across ecosystem
-- **Security Integration:** Comprehensive access control and whitelisting
-- **Storage Integration:** BNB Greenfield object reference support
-
-## Investment Workflow
-
-### 1. Offering Creation Phase
-```
-TokenAdmin → Create Offering → Set Parameters → Pay Fees → Activate
-```
-
-**Key Parameters:**
-- Investment terms and conditions
-- Regulatory compliance information
-- Timing and lockup specifications
-- Reward token configuration
-- BNB Greenfield object reference
-
-### 2. Investment Phase
-```
-Investor → Validate Eligibility → Invest → Receive Tokens → Escrow Lock
-```
-
-**Eligibility Checks:**
-- Whitelist verification
-- Balance sufficiency
-- Investment amount validation
-- Timing compliance
-
-### 3. Reward Distribution Phase
-```
-TokenAdmin → Fund Rewards → Calculate Distribution → Update Balances
-```
-
-**Distribution Logic:**
-- Proportional to holding amounts
-- Dynamic reward rate support
-- Automatic balance updates
-
-### 4. Token Unlocking Phase
-```
-Investor → Wait Lockup → Pay Unlock Fee → Receive Tokens
-```
-
-**Unlocking Requirements:**
-- Escrow period completion
-- Fee payment verification
-- State validation
-
-### 5. Post-Offering Management Phase
-```
-TokenAdmin → Remove Remaining Balance → Create New Token → Cleanup
-```
-
-**Management Process:**
-- Wait for offering to end
-- Remove remaining balance
-- Create new token for remaining amount
-- Clean up offering state
+- `CTMRWA1`: Main token contract for operations
+- `CTMRWA1X`: Cross-chain coordinator for token transfers
+- `CTMRWA1Dividend`: Dividend distribution system
+- `CTMRWA1Sentry`: Access control and whitelisting
+- `CTMRWAMap`: Multi-chain address mapping
+- `FeeManager`: Fee calculation and collection
+- `C3Caller`: Cross-chain communication system
+- `BNB Greenfield`: Storage object references
 
 ## Error Handling
 
-### Custom Error Types
-The contract uses custom errors for efficient gas usage and clear error messages:
+The contract uses custom error types for efficient gas usage:
 
-```solidity
-error CTMRWA1InvestWithTimeLock_OnlyAuthorized(Address, Address);
-error CTMRWA1InvestWithTimeLock_InvalidContract(Address);
-error CTMRWA1InvestWithTimeLock_OutOfBounds();
-error CTMRWA1InvestWithTimeLock_NonExistentToken(uint256);
-error CTMRWA1InvestWithTimeLock_MaxOfferings();
-error CTMRWA1InvestWithTimeLock_InvalidLength(Uint);
-error CTMRWA1InvestWithTimeLock_Paused();
-error CTMRWA1InvestWithTimeLock_InvalidTimestamp(Time);
-error CTMRWA1InvestWithTimeLock_InvalidAmount(Uint);
-error CTMRWA1InvestWithTimeLock_NotWhiteListed(address);
-error CTMRWA1InvestWithTimeLock_AlreadyWithdrawn(uint256);
-error CTMRWA1InvestWithTimeLock_InvalidOfferingIndex();
-error CTMRWA1InvestWithTimeLock_InvalidHoldingIndex();
-error CTMRWA1InvestWithTimeLock_NoRewardToken();
-error CTMRWA1InvestWithTimeLock_NoRewardsToClaim();
-error CTMRWA1InvestWithTimeLock_HoldingNotFound();
-error CTMRWA1InvestWithTimeLock_OfferingNotEnded();
-error CTMRWA1InvestWithTimeLock_NoRemainingBalance();
-```
+- `CTMRWA1InvestWithTimeLock_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin)`: Thrown when unauthorized address tries to perform action
+- `CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam.Token/Dividend/Sentry)`: Thrown when contract validation fails
+- `CTMRWA1InvestWithTimeLock_OutOfBounds()`: Thrown when index is out of bounds
+- `CTMRWA1InvestWithTimeLock_NonExistentToken(uint256 _tokenId)`: Thrown when token doesn't exist
+- `CTMRWA1InvestWithTimeLock_MaxOfferings()`: Thrown when maximum offerings limit reached
+- `CTMRWA1InvestWithTimeLock_InvalidLength(CTMRWAErrorParam.CountryCode/Offering/MinInvestment)`: Thrown when parameter length is invalid
+- `CTMRWA1InvestWithTimeLock_Paused()`: Thrown when offering is paused
+- `CTMRWA1InvestWithTimeLock_InvalidTimestamp(CTMRWAErrorParam.Early/Late)`: Thrown when timestamp is invalid
+- `CTMRWA1InvestWithTimeLock_InvalidAmount(CTMRWAErrorParam.Value/Balance/InvestmentLow/InvestmentHigh/Commission)`: Thrown when amount is invalid
+- `CTMRWA1InvestWithTimeLock_NotWhiteListed(address)`: Thrown when address is not whitelisted
+- `CTMRWA1InvestWithTimeLock_AlreadyWithdrawn(uint256)`: Thrown when token already withdrawn
+- `CTMRWA1InvestWithTimeLock_InvalidOfferingIndex()`: Thrown when offering index is invalid
+- `CTMRWA1InvestWithTimeLock_InvalidHoldingIndex()`: Thrown when holding index is invalid
+- `CTMRWA1InvestWithTimeLock_NoRewardToken()`: Thrown when no reward token set
+- `CTMRWA1InvestWithTimeLock_NoRewardsToClaim()`: Thrown when no rewards to claim
+- `CTMRWA1InvestWithTimeLock_HoldingNotFound()`: Thrown when holding not found
+- `CTMRWA1InvestWithTimeLock_OfferingNotEnded()`: Thrown when offering hasn't ended
+- `CTMRWA1InvestWithTimeLock_NoRemainingBalance()`: Thrown when no remaining balance
+- `CTMRWA1InvestWithTimeLock_OfferingEnded(uint256)`: Thrown when offering has ended
+- `CTMRWA1InvestWithTimeLock_FailedTransfer()`: Thrown when transfer fails
 
-### Error Categories
-1. **Authorization Errors:** Access control violations
-2. **Validation Errors:** Parameter and state validation failures
-3. **Business Logic Errors:** Investment and escrow rule violations
-4. **System Errors:** Contract integration and state issues
+## Use Cases
 
-## Best Practices & Limitations
+### Investment Platform Setup
+- Setting up investment capabilities for RWA tokens
+- Creating structured investment offerings
+- Managing multiple simultaneous offerings
 
-### Best Practices
+### Capital Raising
+- Raising capital through tokenized RWA offerings
+- Managing investor relationships and holdings
+- Processing investments with escrow protection
 
-#### For Issuers
-1. **Due Diligence:** Thoroughly validate all offering parameters
-2. **Timing Management:** Carefully plan offering start/end times
-3. **Reward Planning:** Design sustainable reward distribution models
-4. **Regulatory Compliance:** Ensure all regulatory requirements are met
-5. **Storage Management:** Properly reference BNB Greenfield objects
+### Reward Distribution
+- Distributing rewards to investors during lockup
+- Managing reward token funding and distribution
+- Enabling ongoing investor engagement
 
-#### For Investors
-1. **Investment Analysis:** Review offering terms and conditions
-2. **Escrow Awareness:** Understand lockup periods and implications
-3. **Reward Monitoring:** Track reward accumulation during lockup
-4. **Fee Planning:** Account for all applicable fees in calculations
+### Post-Offering Management
+- Removing remaining balances after offerings end
+- Managing offering lifecycle and cleanup
+- Handling post-investment operations
 
-### Current Limitations
+## Best Practices
 
-1. **Single Chain Operation:** Each contract operates on a single blockchain
-2. **Manual Management:** Requires manual offering creation and management
-3. **Fixed Terms:** Offering terms cannot be modified after creation
-4. **Gas Costs:** Cross-chain operations incur additional gas expenses
-5. **Market Liquidity:** No secondary market for locked tokens
-6. **Storage Dependency:** BNB Greenfield object references required
+1. **Offering Planning**: Carefully plan offering parameters and timing
+2. **Reward Management**: Design sustainable reward distribution models
+3. **Fee Planning**: Account for all applicable fees in calculations
+4. **Escrow Awareness**: Understand lockup periods and implications
+5. **Regulatory Compliance**: Ensure all regulatory requirements are met
+6. **Storage Management**: Properly reference BNB Greenfield objects
 
-### Future Enhancement Opportunities
+## Limitations
 
-1. **Automated Offerings:** Implement automated offering creation mechanisms
-2. **Dynamic Terms:** Allow modification of offering terms under certain conditions
-3. **Enhanced Rewards:** Implement more sophisticated reward distribution models
-4. **Liquidity Features:** Add secondary market for locked tokens
-5. **Analytics Integration:** Add comprehensive analytics and reporting features
-6. **Multi-token Support:** Extend to support multiple investment currencies
-7. **Advanced Escrow:** Implement more flexible escrow mechanisms
-8. **Storage Flexibility:** Support for multiple storage providers
-
-## Events
-
-### Core Events
-| Event | Parameters | Description |
-|-------|------------|-------------|
-| `CreateOffering` | `ID, indx, slot, offer` | New offering creation |
-| `OfferingPaused` | `ID, indx, account` | Offering pause action |
-| `OfferingUnpaused` | `ID, indx, account` | Offering resume action |
-| `InvestInOffering` | `ID, indx, holdingIndx, investment` | Investment completion |
-| `WithdrawFunds` | `ID, indx, funds` | Fund withdrawal |
-| `UnlockInvestmentToken` | `ID, holder, holdingIndx` | Token unlocking |
-| `FundedRewardToken` | `offeringIndex, fundAmount, rewardMultiplier` | Reward funding |
-| `RewardClaimed` | `holder, offerIndex, holdingIndex, amount` | Reward claiming |
-| `RemoveRemainingBalance` | `ID, indx, remainingBalance` | Remaining balance removal (NEW) |
-
-### Event Benefits
-- **Transparency:** Complete audit trail of all operations
-- **Monitoring:** Real-time tracking of contract activities
-- **Compliance:** Regulatory and audit requirement fulfillment
-- **Debugging:** Enhanced troubleshooting and issue resolution
-
-## Function Summary
-
-### Public Functions
-- `setTokenAdmin(address _tokenAdmin, bool _force)` - Change token admin
-- `pauseOffering(uint256 _indx)` - Pause specific offering
-- `unpauseOffering(uint256 _indx)` - Unpause specific offering
-- `isOfferingPaused(uint256 _indx)` - Check offering pause status
-- `createOffering(...)` - Create new investment offering
-- `withdrawInvested(uint256 _indx)` - Withdraw invested funds
-- `unlockTokenId(uint256 _myIndx, address _feeToken)` - Unlock escrowed token
-- `removeRemainingTokenId(uint256 _indx, address _feeToken)` - Remove remaining balance (NEW)
-- `getTokenIdsInEscrow()` - Get escrow information
-- `offeringCount()` - Get total offerings count
-- `listOfferings()` - Get all offerings
-- `listOffering(uint256 _offerIndx)` - Get specific offering
-- `escrowHoldingCount(address _holder)` - Get holder's escrow count
-- `listEscrowHoldings(address _holder)` - Get holder's escrow holdings
-- `listEscrowHolding(address _holder, uint256 _myIndx)` - Get specific holding
-
-### External Functions
-- `investInOffering(uint256 indx, uint256 investment, address feeToken)` - Make investment
-- `getRewardInfo(address holder, uint256 offerIndex, uint256 holdingIndex)` - Get reward info
-- `claimReward(uint256 offerIndex, uint256 holdingIndex)` - Claim rewards
-- `fundRewardTokenForOffering(uint256 _offeringIndex, uint256 _fundAmount, uint256 _rewardMultiplier, uint256 _rateDivisor)` - Fund rewards
-
-### Internal Functions
-- `_addTokenIdInEscrow(uint256 _tokenId, address _owner)` - Add token to escrow
-- `_removeTokenIdInEscrow(uint256 _tokenId)` - Remove token from escrow
-- `_checkTokenAdmin(address _ctmRwaToken)` - Validate token admin
-- `_payFee(FeeType _feeType, address _feeToken)` - Pay operation fees
-
----
-
-*This documentation is maintained by the ContinuumDAO team and should be updated as the contract evolves. For technical support or questions, please refer to the official documentation or contact the development team.*
+- Single Chain Operation: Each contract operates on a single blockchain
+- Manual Management: Requires manual offering creation and management
+- Fixed Terms: Offering terms cannot be modified after creation
+- Gas Costs: Cross-chain operations incur additional gas expenses
+- Market Liquidity: No secondary market for locked tokens
+- Storage Dependency: BNB Greenfield object references required

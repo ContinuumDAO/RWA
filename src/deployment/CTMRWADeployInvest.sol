@@ -4,10 +4,12 @@ pragma solidity 0.8.27;
 
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address, CTMRWAUtils } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
+import { ICTMRWA1InvestWithTimeLock } from "./ICTMRWA1InvestWithTimeLock.sol";
 import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
@@ -21,17 +23,18 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 contract CTMRWADeployInvest is ICTMRWADeployInvest {
     using Strings for *;
     using CTMRWAUtils for string;
+    using SafeERC20 for IERC20;
 
-    /// @dev Address of the CTMRWAMap contract
+    /// @dev CTMRWAErrorParam of the CTMRWAMap contract
     address public ctmRwaMap;
 
-    /// @dev Address of the CTMRWADeployer contract
+    /// @dev CTMRWAErrorParam of the CTMRWADeployer contract
     address public ctmRwaDeployer;
 
     /// @dev The commission rate payable to FeeManager is a number from 0 to 10000 (%0.01)
     uint256 public commissionRate;
 
-    /// @dev Address of the FeeManager contract
+    /// @dev CTMRWAErrorParam of the FeeManager contract
     address public feeManager;
 
     /// @dev String representation of the local chainID
@@ -39,7 +42,7 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWADeployInvest_OnlyAuthorized(Address.Sender, Address.Deployer);
+            revert CTMRWADeployInvest_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
         }
         _;
     }
@@ -58,6 +61,16 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     /// @param _ctmRwaMap The address of the CTMRWAMap contract
     /// @param _feeManager The address of the FeeManager contract
     function setDeployerMapFee(address _deployer, address _ctmRwaMap, address _feeManager) external onlyDeployer {
+        if (_deployer == address(0)) {
+            revert CTMRWADeployInvest_IsZeroAddress(CTMRWAErrorParam.Deployer);
+        }
+        if (_ctmRwaMap == address(0)) {
+            revert CTMRWADeployInvest_IsZeroAddress(CTMRWAErrorParam.Map);
+        }
+        if (_feeManager == address(0)) {
+            revert CTMRWADeployInvest_IsZeroAddress(CTMRWAErrorParam.FeeManager);
+        }
+
         ctmRwaDeployer = _deployer;
         ctmRwaMap = _ctmRwaMap;
         feeManager = _feeManager;
@@ -88,6 +101,14 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
         CTMRWA1InvestWithTimeLock newInvest =
             new CTMRWA1InvestWithTimeLock{ salt: salt }(_ID, ctmRwaMap, commissionRate, feeManager);
 
+        if (_version != ICTMRWA1InvestWithTimeLock(newInvest).VERSION()) {
+            revert CTMRWADeployInvest_InvalidVersion(_version);
+        }
+        if (_rwaType != ICTMRWA1InvestWithTimeLock(newInvest).RWA_TYPE()) {
+            revert CTMRWADeployInvest_InvalidRWAType(_rwaType);
+        }
+       
+
         return (address(newInvest));
     }
 
@@ -98,12 +119,22 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
     function _payFee(FeeType _feeType, address _feeToken, address _originalCaller) internal returns (bool) {
         string memory feeTokenStr = _feeToken.toHexString();
         uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), false, _feeType, feeTokenStr);
+        feeWei = feeWei * (10000 - IFeeManager(feeManager).getFeeReduction(_originalCaller)) / 10000;
 
         if (feeWei > 0) {
-            // Transfer the fee from the original caller to this contract
-            IERC20(_feeToken).transferFrom(_originalCaller, address(this), feeWei);
+            // Record spender balance before transfer
+            uint256 senderBalanceBefore = IERC20(_feeToken).balanceOf(_originalCaller);
 
-            IERC20(_feeToken).approve(feeManager, feeWei);
+            // Transfer the fee from the original caller to this contract
+            IERC20(_feeToken).safeTransferFrom(_originalCaller, address(this), feeWei);
+
+            // Assert spender balance change
+            uint256 senderBalanceAfter = IERC20(_feeToken).balanceOf(_originalCaller);
+            if (senderBalanceBefore - senderBalanceAfter != feeWei) {
+                revert CTMRWADeployInvest_FailedTransfer();
+            }
+
+            IERC20(_feeToken).forceApprove(feeManager, feeWei);
             IFeeManager(feeManager).payFee(feeWei, feeTokenStr);
         }
         return (true);

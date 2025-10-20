@@ -3,406 +3,303 @@
 ## Overview
 
 **Contract Name:** CTMRWADeployer  
-**Author:** @Selqui ContinuumDAO  
+**File:** `src/deployment/CTMRWADeployer.sol`  
 **License:** BSL-1.1  
-**Solidity Version:** 0.8.27
+**Author:** @Selqui ContinuumDAO
 
-The CTMRWADeployer contract is the central deployment coordinator for the CTMRWA ecosystem. The deploy function in this contract is called by CTMRWA1X on each chain that an RWA is deployed to. It calls other contracts that use CREATE2 to deploy the suite of contracts for the RWA.
+## Contract Description
 
-These include CTMRWA1TokenFactory to deploy CTMRWA1, CTMRWA1StorageManager to deploy CTMRWA1Storage, CTMRWA1DividendFactory to deploy CTMRWA1Dividend, and CTMRWA1SentryManager to deploy CTMRWA1Sentry. This unique set of contracts is deployed for every ID and then the contract addresses are stored in CTMRWAMap.
+The deploy function in this contract is called by cross chain contracts such as CTMRWA1X on each chain that an CTMRWA is deployed to. It calls other contracts that use CREATE2 to deploy the suite of contracts for the CTMRWA.
 
-The contracts that do the deployment can be updated by Governance, with different addresses dependent on the rwaType and version. The data passed to CTMRWA1TokenFactory is abi encoded deployData for maximum flexibility for future types of RWA.
+In the case of CTMRWA1, these are CTMRWA1TokenFactory to deploy CTMRWA1, CTMRWA1StorageManager to deploy CTMRWA1Storage, CTMRWA1DividendFactory to deploy CTMRWA1Dividend and CTMRWA1SentryManager to deploy CTMRWA1Sentry. Optionally, CTMRWAERC20Deployer can be used to deploy Investment contracts and ERC20 tokens that are interfaces to the underlying CTMRWA1 token.
 
-This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions.
+This unique set of contracts is deployed for every ID and then the contract addresses are stored in CTMRWAMap.
 
-## Key Features
+The contracts that do the deployment can be updated by Governance, with different addresses dependent on the rwaType and version. The data passed to the factory contracts is abi encoded deployData for maximum flexibility for future types of CTMRWA.
 
-- **Centralized Deployment:** Coordinates deployment of all RWA contract components
-- **Multi-contract Suite:** Deploys token, storage, dividend, and sentry contracts
-- **Governance Control:** Factory addresses can be updated by governance
-- **Cross-chain Integration:** Works with CTMRWA1X for cross-chain deployments
-- **CREATE2 Integration:** Uses CREATE2 for deterministic contract addresses
-- **Upgradeable:** Uses UUPS upgradeable pattern for future improvements
-- **Investment Support:** Can deploy investment contracts for capital raising
-- **Factory Management:** Flexible factory system for different RWA types and versions
-- **Address Validation:** Comprehensive validation of all contract addresses
-- **Commission Management:** Configurable commission rates for investment contracts
+This contract is only deployed ONCE on each chain and manages all CTMRWA contract interactions.
 
-## Public Variables
+### Key Features
+- Centralized deployment coordination for RWA contract components
+- Multi-contract suite deployment (token, storage, dividend, sentry)
+- Governance-controlled factory management
+- Cross-chain integration with CTMRWA1X
+- CREATE2 integration for deterministic addresses
+- Investment contract deployment capabilities
+- ERC20 token deployment for slot interfaces
+- UUPS upgradeable pattern for future improvements
 
-### Contract Addresses
-- **`gateway`** (address): Address of the CTMRWAGateway contract
-- **`feeManager`** (address): Address of the FeeManager contract
-- **`rwaX`** (address): Address of the CTMRWA1X contract
-- **`ctmRwaMap`** (address): Address of the CTMRWAMap contract
-- **`erc20Deployer`** (address): Address of the CTMRWAERC20Deployer contract
-- **`deployInvest`** (address): Address of the CTMRWADeployInvest contract
+## State Variables
 
-### Factory Mappings
-- **`tokenFactory`** (mapping(uint256 => address[1_000_000_000])): Storage for CTMRWA1TokenFactory contract addresses by RWA type and version
-- **`dividendFactory`** (mapping(uint256 => address[1_000_000_000])): Storage for CTMRWA1DividendFactory addresses by RWA type and version
-- **`storageFactory`** (mapping(uint256 => address[1_000_000_000])): Storage for CTMRWA1StorageManager addresses by RWA type and version
-- **`sentryFactory`** (mapping(uint256 => address[1_000_000_000])): Storage for CTMRWA1SentryManager addresses by RWA type and version
+- `gateway (address)`: The address of the CTMRWAGateway contract
+- `feeManager (address)`: The address the FeeManager contract
+- `rwaX (address)`: The address of the CTMRWA1X contract
+- `ctmRwaMap (address)`: The address of the CTMRWAMap contract
+- `erc20Deployer (address)`: The address of the CTMRWAERC20Deployer contract
+- `deployInvest (address)`: The address of the CTMRWADeployInvest contract
+- `lastCommissionRateChange (uint256)`: The timestamp of the last commission rate change
+- `tokenFactory (mapping(uint256 => address[1_000_000_000]))`: Storage for the addresses of the CTMRWA1TokenFactory contracts
+- `dividendFactory (mapping(uint256 => address[1_000_000_000]))`: Storage for the addresses of the CTMRWA1DividendFactory addresses
+- `storageFactory (mapping(uint256 => address[1_000_000_000]))`: Storage for the addresses of the CTMRWA1StorageManager addresses
+- `sentryFactory (mapping(uint256 => address[1_000_000_000]))`: Storage for the addresses of the CTMRWA1SentryManager addresses
 
-## Core Functions
+## Constructor
 
-### Initialization
+```solidity
+function initialize(
+    address _gov,
+    address _gateway,
+    address _feeManager,
+    address _rwaX,
+    address _map,
+    address _c3callerProxy,
+    address _txSender,
+    uint256 _dappID
+) external initializer
+```
+- Initializes the CTMRWADeployer contract instance
+- Sets all core contract addresses
+- Establishes integration with the broader CTMRWA ecosystem
 
-#### `initialize(address _gov, address _gateway, address _feeManager, address _rwaX, address _map, address _c3callerProxy, address _txSender, uint256 _dappID)`
-- **Purpose:** Initializes the CTMRWADeployer contract instance
-- **Parameters:**
-  - `_gov`: Address of the governance contract
-  - `_gateway`: Address of the CTMRWAGateway contract
-  - `_feeManager`: Address of the FeeManager contract
-  - `_rwaX`: Address of the CTMRWA1X contract
-  - `_map`: Address of the CTMRWAMap contract
-  - `_c3callerProxy`: Address of the C3 caller proxy
-  - `_txSender`: Address of the transaction sender
-  - `_dappID`: ID of the dapp
-- **Initialization:**
-  - Initializes C3GovernDapp with governance parameters
-  - Sets all core contract addresses
-  - Establishes integration with the broader CTMRWA ecosystem
-- **Access:** Can only be called once during contract deployment
+## Access Control
 
-### Governance Functions
+- `onlyRwaX`: Restricts access to only the CTMRWA1X contract
+- `onlyGov`: Restricts access to governance functions
+- `initializer`: Ensures function can only be called once during initialization
 
-#### Core Contract Address Updates
-- **`setGateway(address _gateway)`**: Updates CTMRWAGateway contract address
-- **`setFeeManager(address _feeManager)`**: Updates FeeManager contract address
-- **`setRwaX(address _rwaX)`**: Updates CTMRWA1X contract address
-- **`setMap(address _ctmRwaMap)`**: Updates CTMRWAMap contract address
+## Governance Functions
 
-**Access:** Only callable by governance  
-**Validation:** Ensures address is not zero  
-**Use Case:** Allows governance to update core contract addresses
+### Core Contract Address Updates
 
-#### Deployer Contract Address Updates
-- **`setErc20DeployerAddress(address _erc20Deployer)`**: Updates CTMRWAERC20Deployer contract address
-- **`setDeployInvest(address _deployInvest)`**: Updates CTMRWADeployInvest contract address
+#### setGateway()
+```solidity
+function setGateway(address _gateway) external onlyGov
+```
+Governance function to change the CTMRWAGateway contract address.
 
-**Access:** Only callable by governance  
-**Validation:** Ensures address is not zero  
-**Use Case:** Allows governance to update deployer contract addresses
+#### setFeeManager()
+```solidity
+function setFeeManager(address _feeManager) external onlyGov
+```
+Governance function to change the FeeManager contract address.
 
-#### `setDeployerMapFee()`
-- **Access:** Only callable by governance
-- **Purpose:** Sets deployer, map, and fee addresses in CTMRWADeployInvest
-- **Logic:** Calls setDeployerMapFee on the deployInvest contract
-- **Use Case:** Synchronizes addresses across related contracts
+#### setRwaX()
+```solidity
+function setRwaX(address _rwaX) external onlyGov
+```
+Governance function to change the CTMRWA1X contract address.
 
-### Factory Management Functions
+#### setMap()
+```solidity
+function setMap(address _ctmRwaMap) external onlyGov
+```
+Governance function to change the CTMRWAMap contract address.
 
-#### `setTokenFactory(uint256 _rwaType, uint256 _version, address _tokenFactory)`
-- **Access:** Only callable by governance
-- **Purpose:** Sets a new CTMRWA1TokenFactory for specific RWA type and version
-- **Parameters:**
-  - `_rwaType`: RWA type (1 for CTMRWA1)
-  - `_version`: RWA version (1 for current)
-  - `_tokenFactory`: Address of the new token factory
-- **Use Case:** Enables deployment of new RWA token types
+### Deployer Contract Address Updates
 
-#### `setDividendFactory(uint256 _rwaType, uint256 _version, address _dividendFactory)`
-- **Access:** Only callable by governance
-- **Purpose:** Sets a new CTMRWA1DividendFactory for specific RWA type and version
-- **Parameters:**
-  - `_rwaType`: RWA type (1 for CTMRWA1)
-  - `_version`: RWA version (1 for current)
-  - `_dividendFactory`: Address of the new dividend factory
-- **Use Case:** Enables deployment of new dividend contract types
+#### setErc20DeployerAddress()
+```solidity
+function setErc20DeployerAddress(address _erc20Deployer) external onlyGov
+```
+Governance can change to a new CTMRWAERC20Deployer contract.
 
-#### `setStorageFactory(uint256 _rwaType, uint256 _version, address _storageFactory)`
-- **Access:** Only callable by governance
-- **Purpose:** Sets a new CTMRWA1StorageManager for specific RWA type and version
-- **Parameters:**
-  - `_rwaType`: RWA type (1 for CTMRWA1)
-  - `_version`: RWA version (1 for current)
-  - `_storageFactory`: Address of the new storage factory
-- **Use Case:** Enables deployment of new storage contract types
+#### setDeployInvest()
+```solidity
+function setDeployInvest(address _deployInvest) external onlyGov
+```
+Governance function to change the CTMRWADeployInvest contract address.
 
-#### `setSentryFactory(uint256 _rwaType, uint256 _version, address _sentryFactory)`
-- **Access:** Only callable by governance
-- **Purpose:** Sets a new CTMRWA1SentryManager for specific RWA type and version
-- **Parameters:**
-  - `_rwaType`: RWA type (1 for CTMRWA1)
-  - `_version`: RWA version (1 for current)
-  - `_sentryFactory`: Address of the new sentry factory
-- **Use Case:** Enables deployment of new sentry contract types
+#### setDeployerMapFee()
+```solidity
+function setDeployerMapFee() external onlyGov
+```
+Governance function to set the CTMRWADeployInvest contract addresses for this contract (CTMRWADeployer), CTMRWAMap and FeeManager.
 
-### Deployment Functions
+### Factory Management
 
-#### `deploy(uint256 _ID, uint256 _rwaType, uint256 _version, bytes memory deployData)`
-- **Access:** Only callable by CTMRWA1X
-- **Purpose:** Main deployment function that coordinates deployment of all RWA contract components
-- **Parameters:**
-  - `_ID`: Unique RWA ID
-  - `_rwaType`: RWA type (1 for CTMRWA1)
-  - `_version`: RWA version (1 for current)
-  - `deployData`: ABI encoded deployment data for token factory
-- **Logic:**
-  - Deploys CTMRWA1 token contract using token factory
-  - Validates RWA type and version compatibility
-  - Deploys dividend contract (if factory exists)
-  - Deploys storage contract (if factory exists)
-  - Deploys sentry contract (if factory exists)
-  - Attaches all contracts to CTMRWAMap
-- **Returns:** Tuple of (tokenAddr, dividendAddr, storageAddr, sentryAddr)
-- **Integration:** Coordinates with CTMRWAMap for address registration
-- **Security:** Validates RWA type and version compatibility
+#### setTokenFactory()
+```solidity
+function setTokenFactory(uint256 _rwaType, uint256 _version, address _tokenFactory) external onlyGov
+```
+Governance function to set a new CTMRWA1TokenFactory.
 
-### Investment Functions
+#### setDividendFactory()
+```solidity
+function setDividendFactory(uint256 _rwaType, uint256 _version, address _dividendFactory) external onlyGov
+```
+Governance function to set a new CTMRWA1DividendFactory.
 
-#### `setInvestCommissionRate(uint256 _commissionRate)`
-- **Access:** Only callable by governance
-- **Purpose:** Sets the commission rate on funds raised
-- **Parameters:**
-  - `_commissionRate`: Number between 0 and 10000 (0.01% increments)
-- **Logic:** Calls setCommissionRate on the deployInvest contract
-- **Use Case:** Configures investment contract commission structure
+#### setStorageFactory()
+```solidity
+function setStorageFactory(uint256 _rwaType, uint256 _version, address _storageFactory) external onlyGov
+```
+Governance function to set a new CTMRWA1StorageManager.
 
-#### `deployNewInvestment(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken)`
-- **Purpose:** Deploys a new CTMRWA1Invest contract
-- **Parameters:**
-  - `_ID`: ID of the RWA token
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA (1 for current)
-  - `_feeToken`: Address of valid fee token
-- **Requirements:**
-  - Only one CTMRWA1Invest contract can be deployed per chain per RWA
-  - deployInvest address must be set
-- **Logic:**
-  - Checks if investment contract already exists
-  - Deploys new investment contract
-  - Registers contract in CTMRWAMap
-- **Returns:** Address of the deployed investment contract
-- **Note:** Anyone can call this, but only tokenAdmin can create offerings
+#### setSentryFactory()
+```solidity
+function setSentryFactory(uint256 _rwaType, uint256 _version, address _sentryFactory) external onlyGov
+```
+Governance function to set a new CTMRWA1SentryManager.
+
+### Investment Management
+
+#### setInvestCommissionRate()
+```solidity
+function setInvestCommissionRate(uint256 _commissionRate) external onlyGov
+```
+Governance function to set the commission rate on funds raised. The commission rate is a number between 0 and 10000, so in 0.01% increments. The commission rate can only be increased by 100 or more (1%). The commission rate can only be increased every 30 days, but can be decreased at any time.
+
+#### getInvestCommissionRate()
+```solidity
+function getInvestCommissionRate() external view returns (uint256)
+```
+Get the commission rate on funds raised.
+
+#### getLastCommissionRateChange()
+```solidity
+function getLastCommissionRateChange() external view returns (uint256)
+```
+Get the timestamp of the last commission rate change.
+
+## Deployment Functions
+
+### deploy()
+```solidity
+function deploy(uint256 _ID, uint256 _rwaType, uint256 _version, bytes memory deployData) external onlyRwaX returns (address, address, address, address)
+```
+The main deploy function that calls the various deploy functions that call CREATE2 for this ID.
+
+### deployNewInvestment()
+```solidity
+function deployNewInvestment(uint256 _ID, uint256 _rwaType, uint256 _version, address _feeToken) public returns (address)
+```
+Deploy a new CTMRWA1Invest contract. Only the tokenAdmin of the CTMRWA contract can deploy a new investment contract. Only one CTMRWAInvest contract can be deployed on each chain.
+
+### deployERC20()
+```solidity
+function deployERC20(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, string memory _name, address _feeToken) public returns (address)
+```
+Deploy a new ERC20 contract for a specific slot. Only callable by the tokenAdmin of the CTMRWA contract.
 
 ## Internal Functions
 
-### Deployment Coordination
-- **`dividendDeployer(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)`**: 
-  - Deploys CTMRWA1Dividend contract if factory exists
-  - Returns dividend contract address or address(0) if no factory
-- **`storageDeployer(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)`**: 
-  - Deploys CTMRWA1Storage contract if factory exists
-  - Returns storage contract address or address(0) if no factory
-- **`sentryDeployer(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version)`**: 
-  - Deploys CTMRWA1Sentry contract if factory exists
-  - Returns sentry contract address or address(0) if no factory
+### dividendDeployer()
+```solidity
+function dividendDeployer(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version) internal returns (address)
+```
+Calls the contract function to deploy the CTMRWA1Dividend for this _ID.
 
-### Utility Functions
-- **`cID()`**: Returns current chain ID
-- **`_c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)`**: 
-  - Handles failed cross-chain calls
-  - Emits LogFallback event with failure details
-  - Returns true to indicate successful fallback handling
+### storageDeployer()
+```solidity
+function storageDeployer(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version) internal returns (address)
+```
+Calls the contract function to deploy the CTMRWA1Storage for this _ID.
 
-### Upgrade Functions
-- **`_authorizeUpgrade(address newImplementation)`**: 
-  - Internal function for UUPS upgrade authorization
-  - Only callable by governance
-  - Enables contract upgrades
+### sentryDeployer()
+```solidity
+function sentryDeployer(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version) internal returns (address)
+```
+Governance function to change the CTMRWA1Sentry contract address.
 
-## Access Control Modifiers
+### cID()
+```solidity
+function cID() internal view returns (uint256)
+```
+Returns current chain ID.
 
-- **`onlyRwaX`**: Restricts access to only the CTMRWA1X contract
-  - Ensures that only the authorized cross-chain coordinator can trigger deployments
-  - Prevents unauthorized contract deployments
-- **`onlyGov`**: Restricts access to governance functions
-  - Inherited from C3GovernDappUpgradeable
-  - Ensures only governance can perform administrative functions
-- **`initializer`**: Ensures function can only be called once during initialization
-  - Prevents re-initialization attacks
+### _c3Fallback()
+```solidity
+function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason) internal override returns (bool)
+```
+Fallback function for failed c3call cross-chain. Only emits an event at present.
 
 ## Events
 
-The contract emits events for tracking operations:
-
-- **`LogFallback(bytes4 indexed selector, bytes data, bytes reason)`**: Emitted when a cross-chain call fails
-  - `selector`: Function selector that failed
-  - `data`: ABI encoded data that was sent
-  - `reason`: Revert reason from the failed operation
+- `LogFallback(bytes4 selector, bytes data, bytes reason)`: Emitted when a cross-chain call fails
+- `CommissionRateChanged(uint256 commissionRate)`: Emitted when commission rate is changed
 
 ## Security Features
 
-1. **Governance Integration:** Built-in governance through C3GovernDappUpgradeable
-2. **Access Control:** Comprehensive modifier system for different roles
-3. **Upgradeable:** UUPS upgradeable pattern for future improvements
-4. **Address Validation:** Validates all contract addresses are not zero
-5. **Compatibility Checks:** Validates RWA type and version compatibility
-6. **Integration Safety:** Works within established deployment architecture
-7. **Factory Validation:** Ensures factory contracts exist before deployment
-8. **Investment Uniqueness:** Prevents duplicate investment contracts
-9. **Cross-chain Security:** Secure fallback handling for failed operations
+- Governance integration through C3GovernDAppUpgradeable
+- Access control via onlyRwaX and onlyGov modifiers
+- UUPS upgradeable pattern for future improvements
+- Address validation for all contract addresses
+- RWA type and version compatibility validation
+- Investment contract uniqueness enforcement
+- Commission rate change restrictions
+- TokenAdmin authorization for investment and ERC20 deployment
 
 ## Integration Points
 
-- **CTMRWA1X**: Cross-chain coordinator that triggers deployments
-- **CTMRWAMap**: Contract address mapping and registration
-- **CTMRWA1TokenFactory**: Token contract deployment
-- **CTMRWA1DividendFactory**: Dividend contract deployment
-- **CTMRWA1StorageManager**: Storage contract deployment
-- **CTMRWA1SentryManager**: Sentry contract deployment
-- **CTMRWADeployInvest**: Investment contract deployment
-- **CTMRWAGateway**: Cross-chain communication gateway
-- **FeeManager**: Fee calculation and payment management
-- **C3GovernDapp**: Governance and upgrade management
+- `CTMRWA1X`: Cross-chain coordinator that triggers deployments
+- `CTMRWAMap`: Contract address mapping and registration
+- `CTMRWA1TokenFactory`: Token contract deployment
+- `CTMRWA1DividendFactory`: Dividend contract deployment
+- `CTMRWA1StorageManager`: Storage contract deployment
+- `CTMRWA1SentryManager`: Sentry contract deployment
+- `CTMRWADeployInvest`: Investment contract deployment
+- `CTMRWAERC20Deployer`: ERC20 contract deployment
+- `CTMRWAGateway`: Cross-chain communication gateway
+- `FeeManager`: Fee calculation and payment management
 
 ## Error Handling
 
-The contract uses custom error types for efficient gas usage and clear error messages:
+The contract uses custom error types for efficient gas usage:
 
-- **`CTMRWADeployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX)`**: Thrown when unauthorized address tries to deploy
-- **`CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.Gateway/FeeManager/RWAX/Map/ERC20Deployer/DeployInvest)`**: Thrown when zero address is provided
-- **`CTMRWADeployer_IncompatibleRWA(CTMRWAErrorParam.Type/Version)`**: Thrown when RWA type or version is incompatible
-- **`CTMRWADeployer_InvalidContract(CTMRWAErrorParam.Invest)`**: Thrown when investment contract already exists
+- `CTMRWADeployer_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX/TokenAdmin)`: Thrown when unauthorized address tries to perform action
+- `CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.Gateway/FeeManager/RWAX/Map/ERC20Deployer/DeployInvest)`: Thrown when zero address is provided
+- `CTMRWADeployer_IncompatibleRWA(CTMRWAErrorParam.Type/Version)`: Thrown when RWA type or version is incompatible
+- `CTMRWADeployer_InvalidContract(CTMRWAErrorParam.Token/SlotName/RWAERC20/Invest)`: Thrown when contract validation fails
+- `CTMRWADeployer_CommissionRateOutOfBounds(CTMRWAErrorParam.Commission)`: Thrown when commission rate is out of bounds
+- `CTMRWADeployer_CommissionRateIncreasedTooMuch(CTMRWAErrorParam.Commission)`: Thrown when commission rate increase is too large
+- `CTMRWADeployer_CommissionRateChangeTooSoon(CTMRWAErrorParam.Commission)`: Thrown when commission rate change is too soon
 
 ## Deployment Process
 
-### 1. Deployment Request
-- **Step:** CTMRWA1X calls deploy function with RWA parameters
-- **Requirements:** Valid RWA ID, type, version, and deployment data
-- **Result:** Deployment process initiated
+### 1. Token Deployment
+- CTMRWA1TokenFactory deploys CTMRWA1 contract using CREATE2
+- Validates RWA type and version compatibility
+- Returns token contract address
 
-### 2. Token Contract Deployment
-- **Step:** CTMRWA1TokenFactory deploys CTMRWA1 contract
-- **Requirements:** Valid deployment data and factory address
-- **Result:** Token contract deployed with deterministic address
+### 2. Component Deployment
+- Deploys dividend contract (if factory exists)
+- Deploys storage contract (if factory exists)  
+- Deploys sentry contract (if factory exists)
+- Returns component contract addresses
 
-### 3. Compatibility Validation
-- **Step:** Validate deployed token contract RWA type and version
-- **Requirements:** Token contract must match expected parameters
-- **Result:** Compatibility confirmed or deployment reverted
-
-### 4. Component Deployment
-- **Step:** Deploy dividend, storage, and sentry contracts
-- **Requirements:** Factory addresses must be set (optional)
-- **Result:** All available component contracts deployed
-
-### 5. Address Registration
-- **Step:** All contract addresses registered in CTMRWAMap
-- **Requirements:** Successful deployment of all components
-- **Result:** Complete RWA ecosystem ready for use
+### 3. Address Registration
+- All contract addresses registered in CTMRWAMap
+- Complete RWA ecosystem ready for operations
 
 ## Use Cases
 
 ### New RWA Deployment
-- **Scenario:** Deploying a new RWA across multiple chains
-- **Process:** Deployer coordinates deployment of all contract components
-- **Benefit:** Standardized deployment process with full ecosystem
-
-### Cross-chain Coordination
-- **Scenario:** Coordinating deployments across multiple chains
-- **Process:** CTMRWA1X triggers deployments on each chain
-- **Benefit:** Consistent RWA deployment across all chains
+- Deploying a new RWA across multiple chains
+- Coordinated deployment of all contract components
+- Standardized deployment process with full ecosystem
 
 ### Investment Platform Setup
-- **Scenario:** Setting up investment capabilities for RWA
-- **Process:** Deploy investment contract for capital raising
-- **Benefit:** Enables structured investment opportunities
+- Setting up investment capabilities for RWA
+- Deploy investment contract for capital raising
+- Enables structured investment opportunities
 
-### Factory Updates
-- **Scenario:** Updating deployment factories for new RWA types
-- **Process:** Governance updates factory addresses
-- **Benefit:** Enables deployment of new RWA contract types
+### ERC20 Interface Deployment
+- Creating ERC20 interfaces for specific slots
+- Enabling traditional ERC20 interactions with RWA tokens
+- Slot-specific token interfaces
 
-### Contract Address Management
-- **Scenario:** Updating core contract addresses
-- **Process:** Governance updates contract addresses
-- **Benefit:** Maintains system integration and functionality
+### Factory Management
+- Updating deployment factories for new RWA types
+- Governance-controlled factory address updates
+- Enables deployment of new RWA contract types
 
 ## Best Practices
 
-1. **Factory Management:** Keep factory addresses up to date for new RWA types
-2. **Address Validation:** Always validate contract addresses before use
-3. **Compatibility Checks:** Ensure RWA type and version compatibility
-4. **Cross-chain Coordination:** Coordinate deployments across all chains
-5. **Investment Planning:** Plan investment contract deployment carefully
-6. **Governance Updates:** Regular review and updates of factory addresses
-7. **Address Synchronization:** Use setDeployerMapFee for address consistency
-8. **Commission Planning:** Set appropriate commission rates for investment contracts
-
-## Limitations
-
-- **Single Investment Contract:** Only one investment contract per chain per RWA
-- **Factory Dependency:** Requires factory addresses to be set for deployment
-- **Governance Control:** All factory updates require governance approval
-- **Chain Specific:** Each deployer operates on a single chain
-- **Initialization Restriction:** Can only be initialized once
-- **Factory Optionality:** Component contracts are optional if factories not set
-
-## Future Enhancements
-
-Potential improvements to the deployment system:
-
-1. **Batch Deployment:** Implement batch deployment for multiple RWAs
-2. **Deployment Templates:** Add support for deployment templates
-3. **Automated Validation:** Add post-deployment validation mechanisms
-4. **Deployment Analytics:** Add deployment tracking and analytics
-5. **Multi-version Support:** Enhanced support for multiple RWA versions
-6. **Dynamic Factory Updates:** Automated factory address updates
-7. **Deployment Verification:** On-chain deployment verification
-8. **Gas Optimization:** Enhanced gas optimization for deployments
-
-## Deployment Architecture
-
-### Role in CTMRWA System
-- **Deployment Layer:** Coordinates all contract deployments
-- **Factory Layer:** Manages deployment factories
-- **Map Layer:** Tracks deployed contract addresses
-- **Integration Layer:** Connects with cross-chain infrastructure
-- **Governance Layer:** Manages system configuration
-
-### Integration Flow
-1. **CTMRWA1X** receives deployment request
-2. **CTMRWADeployer** coordinates deployment
-3. **Factory Contracts** deploy individual components
-4. **CTMRWAMap** registers all addresses
-5. **RWA Ecosystem** ready for operations
-
-### Factory System Design
-- **Type-based Mapping:** Different factories for different RWA types
-- **Version-based Mapping:** Different factories for different versions
-- **Flexible Deployment:** Optional component deployment
-- **Governance Control:** Centralized factory management
-
-## Gas Optimization
-
-### Deployment Costs
-- **Token Deployment:** ~250000-300000 gas
-- **Component Deployment:** ~100000-150000 gas each
-- **Address Registration:** ~50000 gas
-- **Total Estimate:** ~500000-700000 gas per RWA
-
-### Optimization Strategies
-- **Factory Updates:** Update factories efficiently
-- **Batch Operations:** Consider batch deployments
-- **Gas Estimation:** Always estimate gas before deployment
-- **Network Selection:** Choose appropriate networks for deployment
-- **Optional Components:** Deploy only necessary components
-
-## Security Considerations
-
-### Access Control
-- **Deployer Authorization:** Only CTMRWA1X can trigger deployments
-- **Governance Control:** Factory updates require governance approval
-- **Address Validation:** Validate all contract addresses
-- **Upgrade Authorization:** Only governance can authorize upgrades
-
-### Deployment Security
-- **Factory Security:** Ensure factory contracts are secure and audited
-- **Compatibility Validation:** Validate RWA type and version compatibility
-- **Address Registration:** Ensure proper registration in CTMRWAMap
-- **Investment Uniqueness:** Prevent duplicate investment contracts
-
-### Integration Security
-- **Cross-chain Coordination:** Coordinate deployments across chains properly
-- **Contract Verification:** Verify deployed contracts on block explorers
-- **Address Tracking:** Track all deployed contract addresses
-- **Fallback Handling:** Secure handling of failed cross-chain operations
-
-### Upgrade Security
-- **UUPS Pattern:** Secure upgrade mechanism
-- **Governance Authorization:** Only governance can authorize upgrades
-- **Implementation Validation:** Validate new implementation addresses
-- **Rollback Capability:** Maintain ability to rollback if needed
+1. **Factory Management**: Keep factory addresses up to date for new RWA types
+2. **Address Validation**: Always validate contract addresses before use
+3. **Compatibility Checks**: Ensure RWA type and version compatibility
+4. **Investment Planning**: Plan investment contract deployment carefully
+5. **Commission Planning**: Set appropriate commission rates for investment contracts
+6. **TokenAdmin Authorization**: Ensure proper authorization for investment and ERC20 deployment
+7. **Cross-chain Coordination**: Coordinate deployments across all chains
+8. **Address Synchronization**: Use setDeployerMapFee for address consistency

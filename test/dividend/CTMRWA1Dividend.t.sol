@@ -10,7 +10,7 @@ import { ICTMRWA1Dividend } from "../../src/dividend/ICTMRWA1Dividend.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 import { CTMRWA1 } from "src/core/CTMRWA1.sol";
-import { Address, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 import { Helpers } from "../helpers/Helpers.sol";
 
@@ -44,13 +44,13 @@ contract TestDividend is Helpers {
         string memory tokenStr = _toLower(address(usdc).toHexString());
         
         // Mint for user1 in slot 1
-        rwa1X.mintNewTokenValueLocal(user1, 0, 1, mintAmount1, ID, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, mintAmount1, ID, VERSION, tokenStr);
         
         // Mint for user1 in slot 3
-        rwa1X.mintNewTokenValueLocal(user1, 0, 3, mintAmount2, ID, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 3, mintAmount2, ID, VERSION, tokenStr);
         
         // Mint for user1 in slot 5
-        rwa1X.mintNewTokenValueLocal(user1, 0, 5, mintAmount3, ID, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 5, mintAmount3, ID, VERSION, tokenStr);
         
         // Set dividend rates for different slots
         uint256 rate1 = 100 * 10**6; // 100 USDC per CTMRWA1 unit
@@ -115,7 +115,7 @@ contract TestDividend is Helpers {
         
         // Try to fund as non-admin
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Dividend.CTMRWA1Dividend_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Dividend.CTMRWA1Dividend_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin));
         ICTMRWA1Dividend(dividendContract).fundDividend(1, 1 days, "test-funding");
         vm.stopPrank();
     }
@@ -166,7 +166,7 @@ contract TestDividend is Helpers {
         // Mint 20 * 10^18 wei in slot 5 for tokenAdmin2
         uint256 mintAmount = 20 * 10**18; // 20 CTMRWA1 units
         string memory tokenStr = _toLower(address(usdc).toHexString());
-        uint256 newTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin2, 0, 5, mintAmount, ID, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(tokenAdmin2, 0, 5, mintAmount, ID, VERSION, tokenStr);
         
         // Set dividend scale to 12 (meaning per 1e12 wei instead of per 1e18 wei)
         // This means dividends are calculated per 1e-6 CTMRWA1 units instead of per 1 CTMRWA1 unit
@@ -179,7 +179,7 @@ contract TestDividend is Helpers {
         ICTMRWA1Dividend(dividendContract).changeDividendRate(5, inputRate);
         
         // Check tokenAdmin2's balance in slot 5
-        uint256 userBalance = CTMRWA1(token).balanceOf(tokenAdmin2, 5);
+        CTMRWA1(token).balanceOf(tokenAdmin2, 5);
         
         // Use a funding time that results in midnight = 1 day (86400 seconds)
         uint256 fundingTime = 1 days + 12 hours; // This will give us midnight = 1 day
@@ -245,7 +245,7 @@ contract TestDividend is Helpers {
         // Mint 20 * 10^18 wei in slot 5 for tokenAdmin2
         uint256 mintAmount = 20 * 10**18; // 20 CTMRWA1 units
         string memory tokenStr = _toLower(address(usdc).toHexString());
-        uint256 newTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin2, 0, 5, mintAmount, ID, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(tokenAdmin2, 0, 5, mintAmount, ID, VERSION, tokenStr);
         
         // Set dividend scale to 12 (meaning per 1e12 wei instead of per 1e18 wei)
         // This means dividends are calculated per 1e-6 CTMRWA1 units instead of per 1 CTMRWA1 unit
@@ -258,7 +258,7 @@ contract TestDividend is Helpers {
         ICTMRWA1Dividend(dividendContract).changeDividendRate(5, inputRate);
         
         // Check tokenAdmin2's balance in slot 5
-        uint256 userBalance = CTMRWA1(token).balanceOf(tokenAdmin2, 5);
+        CTMRWA1(token).balanceOf(tokenAdmin2, 5);
         
         // Use a funding time that results in midnight = 1 day (86400 seconds)
         uint256 fundingTime = 1 days + 12 hours; // This will give us midnight = 1 day
@@ -310,7 +310,7 @@ contract TestDividend is Helpers {
         // Mint tokens for user1 in slot 1
         uint256 mintAmount = 1000 * 10**18; // 1000 CTMRWA1 units
         string memory tokenStr = _toLower(address(usdc).toHexString());
-        rwa1X.mintNewTokenValueLocal(user1, 0, 1, mintAmount, ID, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, mintAmount, ID, VERSION, tokenStr);
         
         // Set dividend rate
         uint256 inputRate = 100; // 100 USDC per CTMRWA1 unit

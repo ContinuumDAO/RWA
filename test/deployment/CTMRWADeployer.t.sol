@@ -14,12 +14,12 @@ import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.so
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
 
-import { Address, RWA, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { console } from "forge-std/console.sol";
 
-error CTMRWA1X_InvalidLength(Uint);
+error CTMRWA1X_InvalidLength(CTMRWAErrorParam);
 
 contract TestCTMRWADeployer is Helpers {
     using Strings for *;
@@ -64,6 +64,10 @@ contract TestCTMRWADeployer is Helpers {
             testID, tokenAdmin, "TestToken2", "TTK2", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
         deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
+        vm.stopPrank();
+        
+        // Call deployNewInvestment as tokenAdmin (who has token balances and approvals)
+        vm.startPrank(tokenAdmin);
         address investAddr = deployer.deployNewInvestment(testID, RWA_TYPE, VERSION, address(usdc));
         assertTrue(investAddr != address(0), "Investment not deployed");
         vm.stopPrank();
@@ -117,14 +121,14 @@ contract TestCTMRWADeployer is Helpers {
         bytes memory deployData = abi.encode(
             testID, tokenAdmin, "TestToken6", "TTK6", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX));
         deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
     }
 
     function test_revertIfZeroAddress() public {
         vm.startPrank(gov); // Run as governor
         // Try to set a zero address for a critical dependency
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Gateway));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.Gateway));
         deployer.setGateway(address(0));
         vm.stopPrank();
     }
@@ -182,13 +186,17 @@ contract TestCTMRWADeployer is Helpers {
             testID, tokenAdmin, "DoubleInvest", "DBL", 18, "GFLD", new uint256[](0), new string[](0), address(rwa1X)
         );
         deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
+        vm.stopPrank();
+        
+        // Call deployNewInvestment as tokenAdmin (who has token balances and approvals)
+        vm.startPrank(tokenAdmin);
         deployer.deployNewInvestment(testID, RWA_TYPE, VERSION, address(usdc));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_InvalidContract.selector, Address.Invest));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_InvalidContract.selector, CTMRWAErrorParam.Invest));
         deployer.deployNewInvestment(testID, RWA_TYPE, VERSION, address(usdc));
         vm.stopPrank();
     }
 
-    // Incompatible RWA Type/Version
+    // Incompatible CTMRWAErrorParam Type/Version
     function test_revertOnIncompatibleRWATypeOrVersion() public {
         vm.startPrank(address(rwa1X));
         uint256 testID = 99_999;
@@ -223,25 +231,25 @@ contract TestCTMRWADeployer is Helpers {
         vm.stopPrank();
     }
 
-    // Setter Zero Address Revert (all setters)
+    // Setter Zero CTMRWAErrorParam Revert (all setters)
     function test_revertIfZeroAddressSetters() public {
         vm.startPrank(gov);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Gateway));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.Gateway));
         deployer.setGateway(address(0));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.FeeManager)
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.FeeManager)
         );
         deployer.setFeeManager(address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.RWAX));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.RWAX));
         deployer.setRwaX(address(0));
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.Map));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.Map));
         deployer.setMap(address(0));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.ERC20Deployer)
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.ERC20Deployer)
         );
         deployer.setErc20DeployerAddress(address(0));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, Address.DeployInvest)
+            abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.DeployInvest)
         );
         deployer.setDeployInvest(address(0));
         vm.stopPrank();
@@ -289,6 +297,192 @@ contract TestCTMRWADeployer is Helpers {
         );
         vm.expectRevert();
         deployer.deploy(testID, RWA_TYPE, VERSION, deployData);
+        vm.stopPrank();
+    }
+
+    // Commission Rate Tests
+    function test_setInvestCommissionRate_success() public {
+        // Warp time forward to avoid the "change too soon" error
+        vm.warp(block.timestamp + 30 days + 1);
+        
+        vm.startPrank(gov);
+        uint256 newCommissionRate = 100; // 1% - within the 100 limit from 0
+        deployer.setInvestCommissionRate(newCommissionRate);
+        assertEq(deployer.getInvestCommissionRate(), newCommissionRate, "Commission rate should be updated");
+        vm.stopPrank();
+    }
+
+    function test_setInvestCommissionRate_onlyGovernor() public {
+        vm.startPrank(user1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+            )
+        );
+        deployer.setInvestCommissionRate(100);
+        vm.stopPrank();
+    }
+
+    function test_setInvestCommissionRate_outOfBounds() public {
+        vm.startPrank(gov);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_CommissionRateOutOfBounds.selector, CTMRWAErrorParam.Commission));
+        deployer.setInvestCommissionRate(10001); // > 10000 (100%)
+        vm.stopPrank();
+    }
+
+    function test_setInvestCommissionRate_increaseTooMuch() public {
+        // Warp time forward to avoid the "change too soon" error
+        vm.warp(block.timestamp + 30 days + 1);
+        
+        vm.startPrank(gov);
+        // Set initial commission rate
+        deployer.setInvestCommissionRate(100); // 1%
+        
+        // Try to increase by more than 100 (1%)
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_CommissionRateIncreasedTooMuch.selector, CTMRWAErrorParam.Commission));
+        deployer.setInvestCommissionRate(250); // 2.5% - increase of 1.5%
+        vm.stopPrank();
+    }
+
+    function test_setInvestCommissionRate_changeTooSoon() public {
+        // Warp time forward to avoid the "change too soon" error for initial set
+        vm.warp(block.timestamp + 30 days + 1);
+        
+        vm.startPrank(gov);
+        // Set initial commission rate
+        deployer.setInvestCommissionRate(100); // 1%
+        
+        // Try to increase within 30 days (don't warp time)
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_CommissionRateChangeTooSoon.selector, CTMRWAErrorParam.Commission));
+        deployer.setInvestCommissionRate(150); // 1.5% - increase of 0.5%
+        vm.stopPrank();
+    }
+
+    function test_setInvestCommissionRate_decreaseAllowed() public {
+        // Warp time forward to avoid the "change too soon" error
+        vm.warp(block.timestamp + 30 days + 1);
+        
+        vm.startPrank(gov);
+        // Set initial commission rate (within 100 limit from 0)
+        deployer.setInvestCommissionRate(100); // 1%
+        
+        // Decrease should be allowed immediately
+        deployer.setInvestCommissionRate(50); // 0.5%
+        assertEq(deployer.getInvestCommissionRate(), 50, "Commission rate should be decreased");
+        vm.stopPrank();
+    }
+
+    function test_setInvestCommissionRate_increaseAfter30Days() public {
+        // Warp time forward to avoid the "change too soon" error for initial set
+        uint256 firstTime = 30 days + 1;
+        vm.warp(firstTime);
+        
+        vm.startPrank(gov);
+        // Set initial commission rate
+        deployer.setInvestCommissionRate(100); // 1%
+        vm.stopPrank();
+        
+        // Warp to 60 days + 2 seconds from start (30 days after first set)
+        vm.warp(firstTime + 30 days + 1);
+        
+        vm.startPrank(gov);
+        // Now increase should be allowed
+        deployer.setInvestCommissionRate(150); // 1.5% - increase of 0.5%
+        assertEq(deployer.getInvestCommissionRate(), 150, "Commission rate should be increased after 30 days");
+        vm.stopPrank();
+    }
+
+    function test_setInvestCommissionRate_maximumIncrease() public {
+        // Warp time forward to avoid the "change too soon" error for initial set
+        uint256 firstTime = 30 days + 1;
+        vm.warp(firstTime);
+        
+        vm.startPrank(gov);
+        // Set initial commission rate
+        deployer.setInvestCommissionRate(100); // 1%
+        vm.stopPrank();
+        
+        // Warp to 60 days + 2 seconds from start (30 days after first set)
+        vm.warp(firstTime + 30 days + 1);
+        
+        vm.startPrank(gov);
+        // Maximum increase of 100 (1%)
+        deployer.setInvestCommissionRate(200); // 2% - increase of exactly 1%
+        assertEq(deployer.getInvestCommissionRate(), 200, "Commission rate should be increased by maximum allowed");
+        vm.stopPrank();
+    }
+
+    function test_getInvestCommissionRate() public {
+        // Warp time forward to avoid the "change too soon" error
+        vm.warp(block.timestamp + 30 days + 1);
+        
+        vm.startPrank(gov);
+        uint256 commissionRate = 100; // 1% - within the 100 limit from 0
+        deployer.setInvestCommissionRate(commissionRate);
+        assertEq(deployer.getInvestCommissionRate(), commissionRate, "Should return correct commission rate");
+        vm.stopPrank();
+    }
+
+    function test_getLastCommissionRateChange() public {
+        // Warp time forward to avoid the "change too soon" error
+        vm.warp(block.timestamp + 30 days + 1);
+        
+        vm.startPrank(gov);
+        uint256 initialTime = block.timestamp;
+        deployer.setInvestCommissionRate(100);
+        
+        uint256 lastChange = deployer.getLastCommissionRateChange();
+        assertEq(lastChange, initialTime, "Should return correct last change timestamp");
+        vm.stopPrank();
+    }
+
+    function test_getLastCommissionRateChange_zeroAddress() public {
+        // Try to set deployInvest to zero address - this should fail
+        vm.startPrank(gov);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.DeployInvest));
+        deployer.setDeployInvest(address(0));
+        vm.stopPrank();
+    }
+
+    function test_setInvestCommissionRate_zeroAddress() public {
+        // Try to set deployInvest to zero address - this should fail
+        vm.startPrank(gov);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_IsZeroAddress.selector, CTMRWAErrorParam.DeployInvest));
+        deployer.setDeployInvest(address(0));
+        vm.stopPrank();
+    }
+
+    function test_commissionRateEvent() public {
+        // Warp time forward to avoid the "change too soon" error
+        vm.warp(block.timestamp + 30 days + 1);
+        
+        vm.startPrank(gov);
+        uint256 newRate = 100; // 1% - within the 100 limit from 0
+        
+        vm.expectEmit(true, true, true, true);
+        emit ICTMRWADeployer.CommissionRateChanged(newRate);
+        deployer.setInvestCommissionRate(newRate);
+        vm.stopPrank();
+    }
+
+    function test_fuzz_setInvestCommissionRate_validRange(uint256 rate) public {
+        vm.assume(rate <= 100); // Valid range: 0 to 100 (0% to 1%) - within increase limit from 0
+        
+        // Warp time forward to avoid the "change too soon" error
+        vm.warp(block.timestamp + 30 days + 1);
+        
+        vm.startPrank(gov);
+        deployer.setInvestCommissionRate(rate);
+        assertEq(deployer.getInvestCommissionRate(), rate, "Commission rate should be set correctly");
+        vm.stopPrank();
+    }
+
+    function test_fuzz_setInvestCommissionRate_invalidRange(uint256 rate) public {
+        vm.assume(rate > 10000); // Invalid range: > 10000 (100%)
+        
+        vm.startPrank(gov);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWADeployer.CTMRWADeployer_CommissionRateOutOfBounds.selector, CTMRWAErrorParam.Commission));
+        deployer.setInvestCommissionRate(rate);
         vm.stopPrank();
     }
 }

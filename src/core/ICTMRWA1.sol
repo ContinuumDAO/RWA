@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { Address, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA } from "./ICTMRWA.sol";
 
 /**
@@ -30,6 +30,7 @@ interface ICTMRWA1 is ICTMRWA {
     event Approval(address from, address to, uint256 tokenId);
     event ApprovalForAll(address owner, address operator, bool approved);
     event Transfer(address from, address to, uint256 tokenId);
+    event RevokeApproval(uint256 tokenId);
 
     /**
      * @dev MUST emit when value of a token is transferred to another token with the same slot,
@@ -58,17 +59,17 @@ interface ICTMRWA1 is ICTMRWA {
     event SlotChanged(uint256 indexed tokenId, uint256 indexed oldSlot, uint256 indexed newSlot);
 
     /// @dev Auth errors
-    error CTMRWA1_Unauthorized(Address addr, Address unauth); // `addr` cannot be `unauth`
-    error CTMRWA1_OnlyAuthorized(Address addr, Address auth); // `addr` must be `auth`
+    error CTMRWA1_Unauthorized(CTMRWAErrorParam addr, CTMRWAErrorParam unauth); // `addr` cannot be `unauth`
+    error CTMRWA1_OnlyAuthorized(CTMRWAErrorParam addr, CTMRWAErrorParam auth); // `addr` must be `auth`
 
-    /// @dev Address errors
-    error CTMRWA1_IsZeroAddress(Address);
-    error CTMRWA1_NotZeroAddress(Address);
+    /// @dev CTMRWAErrorParam errors
+    error CTMRWA1_IsZeroAddress(CTMRWAErrorParam);
+    error CTMRWA1_NotZeroAddress(CTMRWAErrorParam);
 
-    /// @dev Uint errors
-    error CTMRWA1_IsZeroUint(Uint);
-    error CTMRWA1_NonZeroUint(Uint);
-    error CTMRWA1_LengthMismatch(Uint);
+    /// @dev CTMRWAErrorParam errors
+    error CTMRWA1_IsZeroUint(CTMRWAErrorParam);
+    error CTMRWA1_NonZeroUint(CTMRWAErrorParam);
+    error CTMRWA1_LengthMismatch(CTMRWAErrorParam);
     error CTMRWA1_ValueOverflow(uint256 value, uint256 maxValue);
     error CTMRWA1_InsufficientBalance();
     error CTMRWA1_InsufficientAllowance();
@@ -79,6 +80,8 @@ interface ICTMRWA1 is ICTMRWA {
     error CTMRWA1_IDNonExistent(uint256 tokenId);
     error CTMRWA1_IDExists(uint256 _tokenId);
     error CTMRWA1_InvalidSlot(uint256 _slot);
+    error CTMRWA1_ERC20NonExistent(uint256 slot);
+    error CTMRWA1_ERC20AlreadyApproved(uint256 tokenId);
 
     /// @dev Transfer errors
     error CTMRWA1_ReceiverRejected();
@@ -88,12 +91,14 @@ interface ICTMRWA1 is ICTMRWA {
     function tokenAdmin() external returns (address);
     function pause() external;
     function unpause() external;
-    function isPaused() external view returns (bool);
     function setOverrideWallet(address overrideWallet) external;
     function overrideWallet() external returns (address);
     function ctmRwa1X() external returns (address);
-    function changeAdmin(address _admin) external returns (bool);
+    function changeAdmin(address _admin) external;
     function attachId(uint256 nextID, address tokenAdmin) external returns (bool);
+    function attachDividend(address _dividendAddr) external returns (bool);
+    function attachStorage(address _storageAddr) external returns (bool);
+    function attachSentry(address _sentryAddr) external returns (bool);
 
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
@@ -117,12 +122,10 @@ interface ICTMRWA1 is ICTMRWA {
     function tokenInSlotByIndex(uint256 slot, uint256 index_) external view returns (uint256);
     function tokenSupplyInSlot(uint256 slot) external view returns (uint256);
     function totalSupplyInSlotAt(uint256 slot, uint256 timestamp) external view returns (uint256);
-    function tokenByIndex(uint256 index_) external view returns (uint256);
     function exists(uint256 tokenId) external view returns (bool);
 
     function createSlotX(uint256 _slot, string memory _slotName) external;
     function getAllSlots() external view returns (uint256[] memory, string[] memory);
-    function getSlotInfoByIndex(uint256 _indx) external view returns (SlotData memory);
     function slotCount() external view returns (uint256);
     function slotExists(uint256 slot_) external view returns (bool);
     function slotName(uint256 _slot) external view returns (string memory);
@@ -132,13 +135,12 @@ interface ICTMRWA1 is ICTMRWA {
 
     function approveFromX(address to_, uint256 tokenId_) external;
     function clearApprovedValues(uint256 tokenId_) external;
-    function clearApprovedValuesErc20(uint256 tokenId_) external;
     function removeTokenFromOwnerEnumeration(address from, uint256 tokenId) external;
 
     function burn(uint256 tokenId) external;
 
-    function burnValueX(uint256 fromTokenId, uint256 value) external returns (bool);
-    function mintValueX(uint256 toTokenId, uint256 slot, uint256 value) external returns (bool);
+    function burnValueX(uint256 fromTokenId, uint256 value) external;
+    function mintValueX(uint256 toTokenId, uint256 value) external;
     function mintFromX(address to, uint256 slot, string memory slotName, uint256 value)
         external
         returns (uint256 tokenId);
@@ -150,17 +152,21 @@ interface ICTMRWA1 is ICTMRWA {
 
     function dividendAddr() external view returns (address);
     function storageAddr() external view returns (address);
+    function ctmRwaMap() external view returns (address);
     function allSlotsIndex(uint256 slot) external view returns (uint256);
 
-    function createOriginalTokenId() external returns (uint256);
+    function clearApprovedValuesFromERC20(uint256 _tokenId) external;
 
-    function deployErc20(uint256 _slot, string memory _erc20Name, address _feeToken) external;
+    function setErc20(address erc20, uint256 slot) external;
 
     function slotOf(uint256 tokenId) external view returns (uint256);
 
     function approve(uint256 tokenId, address operator, uint256 value) external payable;
 
     function approve(address to, uint256 tokenId) external;
+    function approveErc20(uint256 tokenId) external;
+    function revokeApproval(uint256 tokenId) external;
+    function getErc20Approvals(address owner, uint256 slot) external view returns (uint256[] memory);
 
     function allowance(uint256 tokenId, address operator) external view returns (uint256);
 
@@ -169,5 +175,5 @@ interface ICTMRWA1 is ICTMRWA {
     function transferFrom(uint256 fromTokenId, address to, uint256 value) external returns (uint256);
 
     function transferFrom(address fromAddr, address toAddr, uint256 fromTokenId) external;
-    function forceTransfer(address from, address to, uint256 tokenId) external returns (bool);
+    function forceTransfer(address from, address to, uint256 tokenId) external;
 }

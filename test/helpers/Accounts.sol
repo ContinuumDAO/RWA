@@ -85,9 +85,12 @@ contract Accounts is Utils {
         token.approve(feeContracts.rwa1X, amount);
         token.approve(feeContracts.ctmRwaDeployInvest, amount);
         token.approve(feeContracts.ctmRwaERC20Deployer, amount);
-        // token.approve(feeContracts.identity, amount);
+        if (feeContracts.identity != address(0)) {
+            token.approve(feeContracts.identity, amount);
+        }
         token.approve(feeContracts.sentryManager, amount);
         token.approve(feeContracts.storageManager, amount);
+        token.approve(feeContracts.rwa1XUtils, amount);
 
         vm.stopPrank();
     }

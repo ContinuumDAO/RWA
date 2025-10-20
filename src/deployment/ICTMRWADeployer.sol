@@ -3,21 +3,30 @@
 pragma solidity 0.8.27;
 
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address, RWA } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWADeployer {
-    error CTMRWADeployer_OnlyAuthorized(Address, Address);
-    error CTMRWADeployer_InvalidContract(Address);
-    error CTMRWADeployer_IncompatibleRWA(RWA);
-    error CTMRWADeployer_IsZeroAddress(Address);
+    // Events
+    event CommissionRateChanged(uint256 commissionRate);
 
+    // Errors
+    error CTMRWADeployer_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
+    error CTMRWADeployer_InvalidContract(CTMRWAErrorParam);
+    error CTMRWADeployer_IncompatibleRWA(CTMRWAErrorParam);
+    error CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam);
+    error CTMRWADeployer_CommissionRateOutOfBounds(CTMRWAErrorParam);
+    error CTMRWADeployer_CommissionRateIncreasedTooMuch(CTMRWAErrorParam);
+    error CTMRWADeployer_CommissionRateChangeTooSoon(CTMRWAErrorParam);
+
+    // Public functions
     function gateway() external view returns (address);
     function feeManager() external view returns (address);
     function rwaX() external view returns (address);
     function ctmRwaMap() external view returns (address);
     function erc20Deployer() external view returns (address);
     function deployInvest() external view returns (address);
-
+    function lastCommissionRateChange() external view returns (uint256);
+    function getInvestCommissionRate() external view returns (uint256);
     function tokenFactory(uint256 rwaType, uint256 version) external returns (address);
     function dividendFactory(uint256 rwaType, uint256 version) external returns (address);
     function storageFactory(uint256 rwaType, uint256 version) external returns (address);
@@ -45,4 +54,5 @@ interface ICTMRWADeployer {
         returns (address);
 
     function setErc20DeployerAddress(address erc20Deployer) external;
+    function deployERC20(uint256 ID, uint256 rwaType, uint256 version, uint256 slot, string memory name, address feeToken) external returns (address);
 }

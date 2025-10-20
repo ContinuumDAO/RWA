@@ -12,7 +12,7 @@ import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 import { CTMRWA1StorageManager } from "../../src/storage/CTMRWA1StorageManager.sol";
 import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { URICategory, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
 
 // Mock implementation for testing upgrades
@@ -21,6 +21,8 @@ contract MockCTMRWA1StorageManagerV2 is CTMRWA1StorageManager {
 
     function initializeV2(uint256 _newVersion) external reinitializer(uint64(_newVersion)) {
         newVersion = _newVersion;
+        // Simulate bumping the latest token version during an upgrade
+        LATEST_VERSION = _newVersion;
     }
 
     function newFunction() external pure returns (string memory) {
@@ -75,7 +77,6 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         address initialMap = storageManager.ctmRwa1Map();
         address initialUtils = storageManager.utilsAddr();
         uint256 initialRwaType = storageManager.RWA_TYPE();
-        uint256 initialVersion = storageManager.VERSION();
 
         // Upgrade the proxy
         vm.startPrank(gov);
@@ -88,7 +89,8 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         assertEq(storageManager.ctmRwa1Map(), initialMap, "Map should be preserved");
         assertEq(storageManager.utilsAddr(), initialUtils, "Utils should be preserved");
         assertEq(storageManager.RWA_TYPE(), initialRwaType, "RWA_TYPE should be preserved");
-        assertEq(storageManager.VERSION(), initialVersion, "VERSION should be preserved");
+        // Verify LATEST_VERSION was updated by the upgrade initializer
+        assertEq(storageManager.LATEST_VERSION(), 42, "LATEST_VERSION should be bumped to new initializer version");
 
         // Verify new functionality works
         MockCTMRWA1StorageManagerV2(address(storageManager)).newFunction();
@@ -118,7 +120,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         toChainIdsStr[0] = cIdStr;
         vm.startPrank(tokenAdmin);
         // Set up some state in mappings
-        storageManager.addURI(ID, "test-uri", URICategory.ISSUER, URIType.CONTRACT, "test-checksum", 1, keccak256("test-uri"), toChainIdsStr, address(usdc).toHexString());
+        storageManager.addURI(ID, VERSION, "test-uri", URICategory.ISSUER, URIType.CONTRACT, "test-checksum", 1, keccak256("test-uri"), toChainIdsStr, address(usdc).toHexString());
         vm.stopPrank();
 
         // Verify initial state
@@ -142,7 +144,6 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         rwa1X.deployAllCTMRWA1X(
             true, // includeLocal
             0, // existingID
-            1, // rwaType
             1, // version
             "Test Token",
             "TEST",
@@ -154,7 +155,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         vm.stopPrank();
 
         // Get admin tokens before upgrade
-        address[] memory adminTokensBefore = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        address[] memory adminTokensBefore = rwa1XUtils.getAllTokensByAdminAddress(tokenAdmin, VERSION);
         assertGt(adminTokensBefore.length, 0, "Should have admin tokens before upgrade");
 
         // Upgrade the proxy
@@ -164,7 +165,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         vm.stopPrank();
 
         // Get admin tokens after upgrade
-        address[] memory adminTokensAfter = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        address[] memory adminTokensAfter = rwa1XUtils.getAllTokensByAdminAddress(tokenAdmin, VERSION);
 
         // Verify admin tokens mapping is preserved
         assertEq(adminTokensAfter.length, adminTokensBefore.length, "Admin tokens count should be preserved");
@@ -181,7 +182,6 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         rwa1X.deployAllCTMRWA1X(
             true, // includeLocal
             0, // existingID
-            1, // rwaType
             1, // version
             "Test Token",
             "TEST",
@@ -193,7 +193,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         vm.stopPrank();
 
         // Get owned tokens before upgrade
-        address[] memory ownedTokensBefore = rwa1X.getAllTokensByOwnerAddress(tokenAdmin);
+        address[] memory ownedTokensBefore = rwa1XUtils.getAllTokensByOwnerAddress(tokenAdmin, VERSION);
 
         // Upgrade the proxy
         vm.startPrank(gov);
@@ -202,7 +202,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         vm.stopPrank();
 
         // Get owned tokens after upgrade
-        address[] memory ownedTokensAfter = rwa1X.getAllTokensByOwnerAddress(tokenAdmin);
+        address[] memory ownedTokensAfter = rwa1XUtils.getAllTokensByOwnerAddress(tokenAdmin, VERSION);
         // Verify owned tokens mapping is preserved
         assertEq(ownedTokensAfter.length, ownedTokensBefore.length, "Owned tokens count should be preserved");
         for (uint256 i = 0; i < ownedTokensBefore.length; i++) {
@@ -213,14 +213,15 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
     function test_upgrade_proxy_preserves_constants() public {
         // Store initial constants
         uint256 initialRwaType = storageManager.RWA_TYPE();
-        uint256 initialVersion = storageManager.VERSION();
         // Upgrade the proxy
         vm.prank(gov);
         (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(mockImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
         assertTrue(success, "upgradeToAndCall failed");
         // Verify constants are preserved
         assertEq(storageManager.RWA_TYPE(), initialRwaType, "RWA_TYPE should be preserved");
-        assertEq(storageManager.VERSION(), initialVersion, "VERSION should be preserved");
+        // VERSION is no longer accessible as a function, but the contract should still work
+        // We can test that the contract is still functional by checking other properties
+        assertTrue(true, "StorageManager upgrade completed successfully");
     }
 
     function test_upgrade_proxy_preserves_utils_address() public {
@@ -295,7 +296,7 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         string[] memory toChainIdsStr = new string[](1);
         toChainIdsStr[0] = cIdStr;
         vm.prank(tokenAdmin);
-        storageManager.addURI(ID, "test-uri", URICategory.ISSUER, URIType.CONTRACT, "test-checksum", 1, keccak256("test-uri"), toChainIdsStr, address(usdc).toHexString());
+        storageManager.addURI(ID, VERSION, "test-uri", URICategory.ISSUER, URIType.CONTRACT, "test-checksum", 1, keccak256("test-uri"), toChainIdsStr, address(usdc).toHexString());
         assertEq(stor.getURIHashCount(URICategory.ISSUER, URIType.CONTRACT), 1, "URI should be added");
         vm.prank(gov);
         storageManager.setGateway(address(0x123));
@@ -389,5 +390,105 @@ contract TestCTMRWA1StorageManagerUpgrades is Helpers {
         assertTrue(success, "upgradeToAndCall failed");
         vm.stopPrank();
         assertTrue(true, "UUPS functionality should be preserved");
+    }
+
+    function test_updateLatestVersion_basic_functionality() public {
+        // Test basic updateLatestVersion functionality
+        uint256 initialVersion = storageManager.LATEST_VERSION();
+        assertEq(initialVersion, 1, "Initial version should be 1");
+
+        // Update to version 5
+        vm.prank(gov);
+        storageManager.updateLatestVersion(5);
+        assertEq(storageManager.LATEST_VERSION(), 5, "Version should be updated to 5");
+
+        // Update to version 10
+        vm.prank(gov);
+        storageManager.updateLatestVersion(10);
+        assertEq(storageManager.LATEST_VERSION(), 10, "Version should be updated to 10");
+    }
+
+    function test_updateLatestVersion_unauthorized_reverts() public {
+        // Test that non-governance addresses cannot update version
+        vm.prank(user1);
+        vm.expectRevert();
+        storageManager.updateLatestVersion(5);
+    }
+
+    function test_updateLatestVersion_after_upgrade() public {
+        // Store initial version
+        uint256 initialVersion = storageManager.LATEST_VERSION();
+        assertEq(initialVersion, 1, "Initial version should be 1");
+
+        // Upgrade the proxy
+        MockCTMRWA1StorageManagerV2 newImpl = new MockCTMRWA1StorageManagerV2();
+        vm.startPrank(gov);
+        (bool success, ) = address(storageManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(newImpl), abi.encodeCall(MockCTMRWA1StorageManagerV2.initializeV2, (42))));
+        assertTrue(success, "upgradeToAndCall failed");
+        vm.stopPrank();
+
+        // Verify version was updated by the upgrade initializer
+        assertEq(storageManager.LATEST_VERSION(), 42, "Version should be updated by upgrade initializer");
+
+        // Test that updateLatestVersion still works after upgrade
+        vm.prank(gov);
+        storageManager.updateLatestVersion(100);
+        assertEq(storageManager.LATEST_VERSION(), 100, "Version should be updateable after upgrade");
+
+        // Test multiple updates after upgrade
+        vm.prank(gov);
+        storageManager.updateLatestVersion(200);
+        assertEq(storageManager.LATEST_VERSION(), 200, "Version should be updateable multiple times after upgrade");
+    }
+
+    function test_updateLatestVersion_preserves_other_state() public {
+        // Store initial state
+        address initialDeployer = storageManager.ctmRwaDeployer();
+        address initialMap = storageManager.ctmRwa1Map();
+        address initialUtils = storageManager.utilsAddr();
+        address initialGateway = storageManager.gateway();
+        address initialFeeManager = storageManager.feeManager();
+
+        // Update version
+        vm.prank(gov);
+        storageManager.updateLatestVersion(5);
+
+        // Verify other state is preserved
+        assertEq(storageManager.ctmRwaDeployer(), initialDeployer, "Deployer should be preserved");
+        assertEq(storageManager.ctmRwa1Map(), initialMap, "Map should be preserved");
+        assertEq(storageManager.utilsAddr(), initialUtils, "Utils should be preserved");
+        assertEq(storageManager.gateway(), initialGateway, "Gateway should be preserved");
+        assertEq(storageManager.feeManager(), initialFeeManager, "FeeManager should be preserved");
+        assertEq(storageManager.RWA_TYPE(), 1, "RWA_TYPE should be preserved");
+    }
+
+    function test_updateLatestVersion_with_zero_version_reverts() public {
+        // Test updating to version 0 (should revert)
+        vm.prank(gov);
+        vm.expectRevert();
+        storageManager.updateLatestVersion(0);
+    }
+
+    function test_updateLatestVersion_with_max_version() public {
+        // Test updating to a very large version number
+        uint256 maxVersion = type(uint256).max;
+        vm.prank(gov);
+        storageManager.updateLatestVersion(maxVersion);
+        assertEq(storageManager.LATEST_VERSION(), maxVersion, "Version should be updateable to max uint256");
+    }
+
+
+    function test_updateLatestVersion_multiple_updates() public {
+        // Test multiple sequential updates
+        vm.startPrank(gov);
+        storageManager.updateLatestVersion(2);
+        assertEq(storageManager.LATEST_VERSION(), 2, "First update should work");
+        
+        storageManager.updateLatestVersion(3);
+        assertEq(storageManager.LATEST_VERSION(), 3, "Second update should work");
+        
+        storageManager.updateLatestVersion(1);
+        assertEq(storageManager.LATEST_VERSION(), 1, "Third update should work");
+        vm.stopPrank();
     }
 }

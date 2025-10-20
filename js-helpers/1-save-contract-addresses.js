@@ -71,7 +71,7 @@ chainDirs.forEach(chainId => {
                         list[chainId].rwa1XProxy = rwa1XProxyTx.contractAddress
                         list[chainId].rwa1XImpl = contractAddress
                         break
-                    case "CTMRWA1XFallback":
+                    case "CTMRWA1XUtils":
                         list[chainId].rwa1XFallback = contractAddress
                         break
                     case "CTMRWAMap":

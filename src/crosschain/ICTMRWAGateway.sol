@@ -15,9 +15,7 @@ interface ICTMRWAGateway is IC3GovernDApp {
     error CTMRWAGateway_InvalidLength(CTMRWAErrorParam);
 
     function getChainCount() external view returns (uint256);
-    function addChainContract(string[] memory chainIdsStr, string[] memory contractsAddressStr)
-        external
-        returns (bool);
+    function addChainContract(string[] memory chainIdsStr, string[] memory contractsAddressStr) external;
     function getChainContract(uint256 pos) external view returns (string memory, string memory);
     function getChainContract(string memory chainIdStr) external view returns (string memory);
     function getAllRwaXChains(uint256 rwaType, uint256 version) external view returns (string[] memory);

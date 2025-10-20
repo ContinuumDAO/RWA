@@ -2,11 +2,16 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA } from "../core/ICTMRWA.sol";
+// import { ICTMRWA } from "../core/ICTMRWA.sol";
 import { SlotData } from "../core/ICTMRWA1.sol";
-import { Address, List, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 
-interface ICTMRWA1X is ICTMRWA {
+interface ICTMRWA1X {
+
+    function LATEST_VERSION() external view returns (uint256);
+    function RWA_TYPE() external view returns (uint256);
+
+
     /// @dev New c3call for CTMRWA1 deployment on destination chain toChainIdStr
     event DeployCTMRWA1(uint256 ID, string toChainIdStr);
 
@@ -31,26 +36,32 @@ interface ICTMRWA1X is ICTMRWA {
     /// @dev New token admin set on the local chain
     event AdminChanged(uint256 ID, string newAdmin);
 
-    // Address
-    error CTMRWA1X_OnlyAuthorized(Address addr, Address auth); // `addr` must be `auth`
-    error CTMRWA1X_IsZeroAddress(Address);
-    error CTMRWA1X_InvalidContract(Address);
-    error CTMRWA1X_InvalidAddress(Address);
+    // CTMRWAErrorParam
+    error CTMRWA1X_OnlyAuthorized(CTMRWAErrorParam addr, CTMRWAErrorParam auth); // `addr` must be `auth`
+    error CTMRWA1X_IsZeroAddress(CTMRWAErrorParam);
+    error CTMRWA1X_InvalidContract(CTMRWAErrorParam);
+    error CTMRWA1X_InvalidAddress(CTMRWAErrorParam);
+    error CTMRWA1X_InvalidVersion(uint256);
+    error CTMRWA1X_FailedTransfer();
 
     // Input Validation
     error CTMRWA1X_SlotExists(uint256);
     error CTMRWA1X_NonExistentSlot(uint256);
-    error CTMRWA1X_InvalidLength(Uint);
+    error CTMRWA1X_InvalidLength(CTMRWAErrorParam);
     error CTMRWA1X_InvalidCallLogic();
     error CTMRWA1X_InvalidAttachmentState();
     error CTMRWA1X_SameChain();
 
     // Permissions
-    error CTMRWA1X_InvalidList(List);
+    error CTMRWA1X_InvalidID(uint256);
+    error CTMRWA1X_InvalidList(CTMRWAErrorParam);
     error CTMRWA1X_KYCEnabled();
 
+    function updateLatestVersion(uint256 _newVersion) external;
     function isMinter(address) external returns (bool);
     function changeMinterStatus(address minter, bool set) external;
+    function ctmRwaMap() external returns (address);
+    function feeManager() external returns (address);
 
     function cIdStr() external view returns (string memory);
 
@@ -58,23 +69,22 @@ interface ICTMRWA1X is ICTMRWA {
         string memory newAdminStr,
         string[] memory toChainIdsStr,
         uint256 ID,
+        uint256 version,
         string memory feeTokenStr
-    ) external returns (bool);
+    ) external;
 
     function changeFeeManager(address feeManager) external;
     function setGateway(address gateway) external;
-    function setFallback(address fallbackAddr) external;
+    function setFallback(address ctmRwa1XUtilsAddr) external;
     function setCtmRwaMap(address ctmRwaMap) external;
     function setCtmRwaDeployer(address deployer) external;
-    function fallbackAddr() external returns (address);
     function gateway() external returns (address);
-    function feeManager() external returns (address);
     function ctmRwaDeployer() external returns (address);
+    function ctmRwa1XUtilsAddr() external returns (address);
 
     function deployAllCTMRWA1X(
         bool includeLocal,
         uint256 existingID,
-        uint256 rwaType,
         uint256 version,
         string memory tokenName,
         string memory symbol,
@@ -85,6 +95,7 @@ interface ICTMRWA1X is ICTMRWA {
     ) external returns (uint256);
 
     function deployCTMRWA1(
+        uint256 version,
         string memory newAdminStr,
         uint256 ID,
         string memory tokenName,
@@ -93,29 +104,19 @@ interface ICTMRWA1X is ICTMRWA {
         string memory baseURI,
         uint256[] memory slotNumbers,
         string[] memory slotNames
-    ) external returns (bool); // onlyCaller function (added for DEBUG purposes)
+    ) external returns(bool); // onlyCaller function (added for DEBUG purposes)
 
-    function adminX(uint256 ID, string memory oldAdminStr, string memory newAdminStr) external returns (bool); // onlyCaller
+    function adminX(uint256 ID, uint256 version, string memory oldAdminStr, string memory newAdminStr) external returns (bool); // onlyCaller
 
-    function getAllTokensByAdminAddress(address admin) external view returns (address[] memory);
-    function getAllTokensByOwnerAddress(address owner) external view returns (address[] memory);
-
-    function mintNewTokenValueLocal(
-        address toAddress,
-        uint256 toTokenId, // Set to 0 to create a newTokenId
-        uint256 slot,
-        uint256 value,
-        uint256 ID,
-        string memory feeTokenStr
-    ) external returns (uint256);
-
+  
     function createNewSlot(
         uint256 ID,
+        uint256 version,
         uint256 slot,
         string memory slotName,
         string[] memory toChainIdsStr,
         string memory feeTokenStr
-    ) external returns (bool);
+    ) external;
 
     function transferPartialTokenX( // transfer from/to same tokenid with value
         uint256 fromTokenId,
@@ -123,6 +124,7 @@ interface ICTMRWA1X is ICTMRWA {
         string memory toChainIdStr,
         uint256 value,
         uint256 ID,
+        uint256 version,
         string memory feeTokenStr
     ) external returns (uint256);
 
@@ -132,14 +134,17 @@ interface ICTMRWA1X is ICTMRWA {
         string memory toChainIdStr,
         uint256 fromTokenId,
         uint256 ID,
+        uint256 version,
         string memory feeTokenStr
     ) external;
 
     function mintX(
         uint256 _ID,
+        uint256 _version,
         string memory _fromAddressStr,
         string memory _toAddressStr,
         uint256 _slot,
         uint256 _balance
-    ) external returns (bool); // onlyCaller
+    ) external returns(bool); // onlyCaller
+
 }

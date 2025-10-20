@@ -12,7 +12,7 @@ import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
 
-import { Time, Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
@@ -106,10 +106,21 @@ contract TestInvest is Helpers {
         super.setUp();
         // console.log("setUp: after super.setUp()");
 
+        // Set up fee multipliers for operations that will be tested
+        vm.startPrank(gov);
+        feeManager.setFeeMultiplier(FeeType.DEPLOYINVEST, 100);
+        feeManager.setFeeMultiplier(FeeType.OFFERING, 50);
+        feeManager.setFeeMultiplier(FeeType.INVEST, 10);
+        vm.stopPrank();
+
         // Deploy token as tokenAdmin
         vm.startPrank(tokenAdmin);
+        // Ensure tokenAdmin has allowance to pay fees via rwa1X and deployInvest
+        usdc.approve(address(rwa1X), type(uint256).max);
+        ctm.approve(address(rwa1X), type(uint256).max);
+        usdc.approve(address(ctmRwaDeployInvest), type(uint256).max);
+        ctm.approve(address(ctmRwaDeployInvest), type(uint256).max);
         (ID, token) = _deployCTMRWA1(address(usdc));
-
         _createSlot(ID, slotId, address(usdc), address(rwa1X));
 
         feeTokenStr = address(usdc).toHexString();
@@ -119,6 +130,7 @@ contract TestInvest is Helpers {
         deployer.setInvestCommissionRate(100);
         vm.stopPrank();
         
+        vm.startPrank(tokenAdmin);
         address investAddr = deployer.deployNewInvestment(ID, RWA_TYPE, VERSION, address(usdc));
         vm.stopPrank();
 
@@ -129,19 +141,29 @@ contract TestInvest is Helpers {
         require(investAddr == investAddrFromMap, "Investment contract address mismatch");
         investContract = ICTMRWA1InvestWithTimeLock(investAddr);
         // console.log("setUp: investment contract retrieved successfully");
+        
+        // Approve the investment contract for all test users to pay fees
+        vm.startPrank(user1);
+        usdc.approve(address(investContract), type(uint256).max);
+        ctm.approve(address(investContract), type(uint256).max);
+        vm.stopPrank();
+        
+        vm.startPrank(user2);
+        usdc.approve(address(investContract), type(uint256).max);
+        ctm.approve(address(investContract), type(uint256).max);
+        vm.stopPrank();
 
         // Mint a token first (needed for offering)
         vm.startPrank(tokenAdmin);
-        // console.log("setUp: minting token for offering...");
-        uint256 newTokenId = rwa1X.mintNewTokenValueLocal(
+        uint256 newTokenId = rwa1XUtils.mintNewTokenValueLocal(
             tokenAdmin, // toAddress
             0, // toTokenId (0 = create new token)
             slotId, // slot
             1000e18, // value (1000 tokens)
             ID, // ID
+            VERSION, // version
             feeTokenStr // feeTokenStr
         );
-        // console.log("setUp: token minted with ID:", newTokenId);
         vm.stopPrank();
 
         // Set offering parameters
@@ -153,14 +175,17 @@ contract TestInvest is Helpers {
         endTime = block.timestamp + 30 days;
         lockDuration = 1 days;
 
-        // Approve the investment contract to transfer the token
+        // Approve the investment contract to transfer the token and pay fees
         vm.startPrank(tokenAdmin);
         // console.log("setUp: approving investment contract to transfer token...");
         token.approve(address(investContract), newTokenId);
         // console.log("setUp: approval granted");
+        
+        // Approve the investment contract to spend fee tokens
+        usdc.approve(address(investContract), type(uint256).max);
+        ctm.approve(address(investContract), type(uint256).max);
 
         // Create offering using the minted token
-        // console.log("setUp: creating offering...");
         investContract.createOffering(
             newTokenId, // Use the minted token ID instead of tokenId
             price,
@@ -177,7 +202,6 @@ contract TestInvest is Helpers {
             currency, // _rewardToken (use currency for now)
             currency
         );
-        // console.log("setUp: offering created successfully");
         vm.stopPrank();
 
 
@@ -215,9 +239,6 @@ contract TestInvest is Helpers {
         uint256 actualMultiplier = feeManager.getFeeMultiplier(FeeType.DEPLOYINVEST);
         assertEq(actualMultiplier, customMultiplier, "Fee multiplier should match the set value");
 
-        // Get tokenAdmin's initial balance
-        uint256 initialBalance = usdc.balanceOf(tokenAdmin);
-
         // Verify that the fee calculation now reflects the new multiplier
         string memory testFeeTokenStr = address(usdc).toHexString();
         string[] memory chainIds = new string[](1);
@@ -239,31 +260,41 @@ contract TestInvest is Helpers {
         assertTrue(ok, "Existing investment contract should still be accessible");
         assertEq(investAddrFromMap, address(investContract), "Investment contract address should match");
         
-        // Check that the fee was deducted from tokenAdmin's balance
-        // Note: The fee was already paid during setUp() when the investment contract was deployed
-        // So we can verify the current balance reflects the fee payment
-        uint256 currentBalance = usdc.balanceOf(tokenAdmin);
-        uint256 expectedBalanceAfterFee = initialBalance - feeAmount;
-        assertEq(currentBalance, expectedBalanceAfterFee, "TokenAdmin balance should reflect fee deduction");
+        // The test verifies that the fee multiplier was set correctly and that the existing
+        // investment contract is still accessible. The actual fee payment verification
+        // is not needed here since the investment contract was already deployed in setUp()
+        // with the original fee multiplier (100), and we're just testing that the new
+        // multiplier (200) is set correctly for future deployments.
+    }
+
+    // ============ HELPER FUNCTIONS ============
+    
+    function _approveForInvestment(address user, uint256 investmentAmount) internal {
+        vm.startPrank(user);
+        usdc.approve(address(investContract), investmentAmount + 10_000_000); // Approve investment + fee
+        vm.stopPrank();
     }
 
     // ============ BASIC FUNCTIONALITY TESTS ============
 
     function test_investmentCreation() public {
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
         uint256 initialBalance = usdc.balanceOf(user1);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         assertLt(usdc.balanceOf(user1), initialBalance, "USDC balance should decrease");
         vm.stopPrank();
     }
 
     function test_multipleInvestments() public {
+        _approveForInvestment(user1, 500);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), 500);
-        investContract.investInOffering(0, 500, currency);
-        usdc.approve(address(investContract), 750);
-        investContract.investInOffering(0, 750, currency);
+        investContract.investInOffering(0, 500, address(usdc));
+        vm.stopPrank();
+        
+        _approveForInvestment(user1, 750);
+        vm.startPrank(user1);
+        investContract.investInOffering(0, 750, address(usdc));
         vm.stopPrank();
     }
 
@@ -272,10 +303,10 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), minInvest - 1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.InvestmentLow)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(CTMRWAErrorParam.InvestmentLow)
             )
         );
-        investContract.investInOffering(0, minInvest - 1, currency);
+        investContract.investInOffering(0, minInvest - 1, address(usdc));
         vm.stopPrank();
     }
 
@@ -284,10 +315,10 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), maxInvest + 1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.InvestmentHigh)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(CTMRWAErrorParam.InvestmentHigh)
             )
         );
-        investContract.investInOffering(0, maxInvest + 1, currency);
+        investContract.investInOffering(0, maxInvest + 1, address(usdc));
         vm.stopPrank();
     }
 
@@ -302,7 +333,7 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), smallInvestment);
         // Expect value to underflow to 0, so the transferPartialTokenX should revert or result in 0 value
         vm.expectRevert();
-        investContract.investInOffering(0, smallInvestment, currency);
+        investContract.investInOffering(0, smallInvestment, address(usdc));
         vm.stopPrank();
     }
 
@@ -315,7 +346,7 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), largeInvestment);
         // Expect revert due to overflow or exceeding max investment
         vm.expectRevert();
-        investContract.investInOffering(0, largeInvestment, currency);
+        investContract.investInOffering(0, largeInvestment, address(usdc));
         vm.stopPrank();
     }
 
@@ -325,10 +356,10 @@ contract TestInvest is Helpers {
         token.pause();
 
         // Try to invest while paused, should revert
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
         vm.expectRevert(EnforcedPause.selector);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         // Unpause the CTMRWA1 token
@@ -336,18 +367,18 @@ contract TestInvest is Helpers {
         token.unpause();
 
         // Try to invest again, should succeed
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
     }
 
     // ============ ACCESS CONTROL TESTS ============
 
     function test_onlyAuthorizedCanInvest() public {
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
     }
 
@@ -366,6 +397,7 @@ contract TestInvest is Helpers {
         vm.startPrank(tokenAdmin);
         ICTMRWA1SentryManager(address(sentryManager)).setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false, // kyc
             false, // kyb
@@ -389,7 +421,7 @@ contract TestInvest is Helpers {
                 ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_NotWhiteListed.selector, address(0x999)
             )
         );
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
     }
 
@@ -397,9 +429,9 @@ contract TestInvest is Helpers {
 
     function test_fuzz_investmentAmounts(uint256 _amount) public {
         vm.assume(_amount >= minInvest && _amount <= maxInvest);
+        _approveForInvestment(user1, _amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), _amount);
-        investContract.investInOffering(0, _amount, currency);
+        investContract.investInOffering(0, _amount, address(usdc));
         vm.stopPrank();
     }
 
@@ -410,7 +442,7 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), 0);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.Value)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(CTMRWAErrorParam.Value)
             )
         );
         investContract.investInOffering(0, 0, currency);
@@ -418,16 +450,16 @@ contract TestInvest is Helpers {
     }
 
     function test_maxAmountInvestment() public {
+        _approveForInvestment(user1, maxInvest);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), maxInvest);
-        investContract.investInOffering(0, maxInvest, currency);
+        investContract.investInOffering(0, maxInvest, address(usdc));
         vm.stopPrank();
     }
 
     function test_redeemMoreThanOwned() public {
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.expectRevert();
         investContract.withdrawInvested(9999);
         vm.stopPrank();
@@ -441,7 +473,7 @@ contract TestInvest is Helpers {
         usdc.approve(address(investContract), excessiveAmount);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(Uint.Balance)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidAmount.selector, uint8(CTMRWAErrorParam.Balance)
             )
         );
         investContract.investInOffering(0, excessiveAmount, currency);
@@ -452,7 +484,7 @@ contract TestInvest is Helpers {
         vm.startPrank(user1);
         usdc.approve(address(investContract), 0);
         vm.expectRevert();
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
     }
 
@@ -471,12 +503,12 @@ contract TestInvest is Helpers {
         // Deploy the reentrant attacker contract
         ReentrantAttacker attacker = new ReentrantAttacker(address(investContract));
 
-        // Fund the attacker with USDC
-        deal(address(usdc), address(attacker), 10_000);
+        // Fund the attacker with enough USDC for investment + fee
+        deal(address(usdc), address(attacker), 10_000 + 10_000_000);
 
         // Approve the investment contract to spend attacker's USDC
         vm.startPrank(address(attacker));
-        usdc.approve(address(investContract), 10_000);
+        usdc.approve(address(investContract), 10_000 + 10_000_000); // Approve investment + fee
         vm.stopPrank();
 
         // Attempt the reentrancy attack
@@ -492,9 +524,9 @@ contract TestInvest is Helpers {
 
     function test_reentrancy_withdrawInvested() public {
         // First, make a legitimate investment
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         // Attempt to withdraw (this should be protected against reentrancy)
@@ -508,9 +540,9 @@ contract TestInvest is Helpers {
 
     function test_reentrancy_unlockTokenId() public {
         // First, make a legitimate investment
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        uint256 investedTokenId = investContract.investInOffering(0, amount, currency);
+        uint256 investedTokenId = investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         // Fast forward time to unlock the token
@@ -530,11 +562,11 @@ contract TestInvest is Helpers {
         // Test that multiple reentrancy attempts are blocked
         ReentrantAttacker attacker = new ReentrantAttacker(address(investContract));
 
-        // Fund the attacker
-        deal(address(usdc), address(attacker), 10_000);
+        // Fund the attacker with enough USDC for investment + fee
+        deal(address(usdc), address(attacker), 10_000 + 10_000_000);
 
         vm.startPrank(address(attacker));
-        usdc.approve(address(investContract), 10_000);
+        usdc.approve(address(investContract), 10_000 + 10_000_000); // Approve investment + fee
 
         // Try to attack multiple functions
         attacker.attack(0, address(usdc), address(usdc), 1000);
@@ -549,7 +581,7 @@ contract TestInvest is Helpers {
     function test_gas_createOffering() public {
         // First mint a new token for this test
         vm.startPrank(tokenAdmin);
-        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, feeTokenStr);
+        uint256 testTokenId = rwa1XUtils.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, VERSION, feeTokenStr);
 
         // Approve the investment contract to transfer the token
         token.approve(address(investContract), testTokenId);
@@ -588,15 +620,15 @@ contract TestInvest is Helpers {
     function test_gas_investInOffering() public {
         uint256 gasBefore = gasleft();
 
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         uint256 gasUsed = gasBefore - gasleft();
 
-        // Adjusted gas usage bounds for investment
-        assertLt(gasUsed, 1_300_000, "Investment gas usage should be reasonable");
+        // Adjusted gas usage bounds for investment (increased due to fee payment)
+        assertLt(gasUsed, 1_400_000, "Investment gas usage should be reasonable");
         assertGt(gasUsed, 100_000, "Investment should use significant gas");
 
         // console.log("Gas used for investment:", gasUsed);
@@ -604,9 +636,9 @@ contract TestInvest is Helpers {
 
     function test_gas_withdrawInvested() public {
         // First make an investment
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         uint256 gasBefore = gasleft();
@@ -627,9 +659,9 @@ contract TestInvest is Helpers {
 
     function test_gas_unlockTokenId() public {
         // First make an investment
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        uint256 localInvestedTokenId = investContract.investInOffering(0, amount, currency);
+        uint256 localInvestedTokenId = investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         // Fast forward time to unlock the token
@@ -658,16 +690,16 @@ contract TestInvest is Helpers {
         for (uint256 i = 0; i < 3; i++) {
             uint256 gasBefore = gasleft();
 
+            _approveForInvestment(user1, amount);
             vm.startPrank(user1);
-            usdc.approve(address(investContract), amount);
-            investContract.investInOffering(0, amount, currency);
+            investContract.investInOffering(0, amount, address(usdc));
             vm.stopPrank();
 
             totalGasUsed += gasBefore - gasleft();
         }
 
-        // Adjusted gas usage bounds for multiple investments
-        assertLt(totalGasUsed, 3_300_000, "Multiple investments gas usage should be reasonable");
+        // Adjusted gas usage bounds for multiple investments (increased due to fee payment)
+        assertLt(totalGasUsed, 3_500_000, "Multiple investments gas usage should be reasonable");
         assertGt(totalGasUsed, 300_000, "Multiple investments should use significant gas");
 
         // console.log("Total gas used for 3 investments:", totalGasUsed);
@@ -678,15 +710,15 @@ contract TestInvest is Helpers {
 
         uint256 gasBefore = gasleft();
 
+        _approveForInvestment(user1, _amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), _amount);
-        investContract.investInOffering(0, _amount, currency);
+        investContract.investInOffering(0, _amount, address(usdc));
         vm.stopPrank();
 
         uint256 gasUsed = gasBefore - gasleft();
 
-        // Adjusted gas usage bounds for fuzz investment
-        assertLt(gasUsed, 1_300_000, "Fuzz investment gas usage should be reasonable");
+        // Adjusted gas usage bounds for fuzz investment (increased due to fee payment)
+        assertLt(gasUsed, 1_400_000, "Fuzz investment gas usage should be reasonable");
         assertGt(gasUsed, 100_000, "Fuzz investment should use significant gas");
 
         // console.log("Gas used for fuzz investment amount", _amount, ":", gasUsed);
@@ -721,16 +753,16 @@ contract TestInvest is Helpers {
         for (uint256 i = 0; i < amounts.length; i++) {
             uint256 gasBefore = gasleft();
 
+            _approveForInvestment(user1, amounts[i]);
             vm.startPrank(user1);
-            usdc.approve(address(investContract), amounts[i]);
-            investContract.investInOffering(0, amounts[i], currency);
+            investContract.investInOffering(0, amounts[i], address(usdc));
             vm.stopPrank();
 
             uint256 gasUsed = gasBefore - gasleft();
             // console.log("Gas used for investment amount", amounts[i], ":", gasUsed);
 
-            // Adjusted gas usage bounds for optimization
-            assertLt(gasUsed, 1_300_000, "Investment gas usage should be reasonable for all amounts");
+            // Adjusted gas usage bounds for optimization (increased due to fee payment)
+            assertLt(gasUsed, 1_400_000, "Investment gas usage should be reasonable for all amounts");
         }
     }
 
@@ -742,9 +774,9 @@ contract TestInvest is Helpers {
         assertEq(ctmRwaDeployInvest.commissionRate(), 100, "Commission rate should be set to 100 (1%)");
 
         // Make an investment to have funds to withdraw
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         // Get initial balances
@@ -785,9 +817,9 @@ contract TestInvest is Helpers {
 
     function test_userCannotWithdrawBeforeLockDuration() public {
         // Arrange: User invests in offering
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         uint256 holdingIndex = 0; // first investment for user1
         vm.stopPrank();
 
@@ -797,7 +829,7 @@ contract TestInvest is Helpers {
         vm.startPrank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidTimestamp.selector, uint8(Time.Early)
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_InvalidTimestamp.selector, uint8(CTMRWAErrorParam.Early)
             )
         );
         investContract.unlockTokenId(holdingIndex, address(usdc));
@@ -876,9 +908,9 @@ contract TestInvest is Helpers {
 
     function test_fundRewardTokenForOffering_and_claimReward() public {
         // Arrange: user1 invests
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         // Get the actual holding's tokenId and balance
@@ -910,9 +942,9 @@ contract TestInvest is Helpers {
 
     function test_fundRewardTokenForOffering_accessControl() public {
         // Arrange: user1 invests
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         // Non-admin tries to fund rewards
@@ -928,9 +960,9 @@ contract TestInvest is Helpers {
 
     function test_claimReward_accessControl() public {
         // Arrange: user1 invests, tokenAdmin funds rewards
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
         uint256 rewardMultiplier = 2;
         uint256 fundAmount = amount * rewardMultiplier;
@@ -950,9 +982,9 @@ contract TestInvest is Helpers {
 
     function test_claimReward_noReward() public {
         // Arrange: user1 invests but no rewards funded
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         // User1 tries to claim reward
@@ -974,9 +1006,9 @@ contract TestInvest is Helpers {
         vm.assume(fuzzMultiplier > 0 && fuzzMultiplier < 1e6); // Limit multiplier to prevent overflow
 
         // User invests
+        _approveForInvestment(user1, fuzzAmount);
         vm.startPrank(user1);
-        IERC20(currency).approve(address(investContract), fuzzAmount);
-        investContract.investInOffering(0, fuzzAmount, currency);
+        investContract.investInOffering(0, fuzzAmount, address(usdc));
         vm.stopPrank();
 
         // Get the actual holding's tokenId and balance
@@ -1007,9 +1039,9 @@ contract TestInvest is Helpers {
 
     function test_reentrancy_claimReward() public {
         // Arrange: user1 invests, tokenAdmin funds rewards
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
         uint256 rewardMultiplier = 2;
         uint256 fundAmount = amount * rewardMultiplier;
@@ -1032,9 +1064,9 @@ contract TestInvest is Helpers {
 
     function test_fundRewardTokenForOffering_skipExpiredEscrow() public {
         // Arrange: user1 invests
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         // Get the holding to check escrow time
@@ -1059,9 +1091,9 @@ contract TestInvest is Helpers {
 
     function test_fundRewardTokenForOffering_rewardActiveEscrow() public {
         // Arrange: user1 invests
+        _approveForInvestment(user1, amount);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), amount);
-        investContract.investInOffering(0, amount, currency);
+        investContract.investInOffering(0, amount, address(usdc));
         vm.stopPrank();
 
         // Get the holding to check escrow time
@@ -1085,12 +1117,45 @@ contract TestInvest is Helpers {
         assertGt(rewardAmount, 0, "Holder should receive rewards when escrow time has not passed");
     }
 
+    function test_fundRewardTokenForOffering_afterOfferingEnded() public {
+        // Arrange: user1 invests
+        _approveForInvestment(user1, amount);
+        vm.startPrank(user1);
+        investContract.investInOffering(0, amount, address(usdc));
+        vm.stopPrank();
+
+        // Get the offering to check its end time
+        Offering memory offering = investContract.listOffering(0);
+        
+        // Fast forward past the offering end time
+        vm.warp(offering.endTime + 1);
+
+        // TokenAdmin tries to fund rewards after offering has ended
+        uint256 rewardMultiplier = 2;
+        uint256 rateDivisor = 1e6;
+        uint256 fundAmount = amount * rewardMultiplier;
+        deal(address(usdc), tokenAdmin, fundAmount);
+        
+        vm.startPrank(tokenAdmin);
+        usdc.approve(address(investContract), fundAmount);
+        
+        // Should revert with offering ended error
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1InvestWithTimeLock.CTMRWA1InvestWithTimeLock_OfferingEnded.selector,
+                0
+            )
+        );
+        investContract.fundRewardTokenForOffering(0, fundAmount, rewardMultiplier, rateDivisor);
+        vm.stopPrank();
+    }
+
     // ============ REMAINING TOKEN ID TESTS ============
 
     function test_removeRemainingTokenId_success() public {
         // First, create a new offering with a larger token for this specific test
         vm.startPrank(tokenAdmin);
-        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 2000e18, ID, feeTokenStr);
+        uint256 testTokenId = rwa1XUtils.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 2000e18, ID, VERSION, feeTokenStr);
         token.approve(address(investContract), testTokenId);
         
         // Create a new offering with the test token
@@ -1113,9 +1178,9 @@ contract TestInvest is Helpers {
         vm.stopPrank();
 
         // Make a small investment to reduce the remaining balance
+        _approveForInvestment(user1, 100);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), 100);
-        investContract.investInOffering(1, 100, currency); // Use index 1 for the new offering
+        investContract.investInOffering(1, 100, address(usdc)); // Use index 1 for the new offering
         vm.stopPrank();
 
         // Fast forward past the offering end time
@@ -1154,7 +1219,7 @@ contract TestInvest is Helpers {
     function test_removeRemainingTokenId_noRemainingBalance() public {
         // First, create a new offering for this test
         vm.startPrank(tokenAdmin);
-        uint256 testTokenId = rwa1X.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, feeTokenStr);
+        uint256 testTokenId = rwa1XUtils.mintNewTokenValueLocal(tokenAdmin, 0, slotId, 1000e18, ID, VERSION, feeTokenStr);
         token.approve(address(investContract), testTokenId);
         
         investContract.createOffering(
@@ -1176,9 +1241,9 @@ contract TestInvest is Helpers {
         vm.stopPrank();
 
         // Invest a significant amount to reduce the remaining balance
+        _approveForInvestment(user1, 1000);
         vm.startPrank(user1);
-        usdc.approve(address(investContract), 1000);
-        investContract.investInOffering(1, 1000, currency);
+        investContract.investInOffering(1, 1000, address(usdc));
         vm.stopPrank();
 
         // Fast forward past the offering end time

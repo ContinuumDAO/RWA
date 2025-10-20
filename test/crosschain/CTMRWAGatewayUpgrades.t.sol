@@ -11,7 +11,7 @@ import { Helpers } from "../helpers/Helpers.sol";
 import { CTMRWAGateway } from "../../src/crosschain/CTMRWAGateway.sol";
 import { ICTMRWAGateway } from "../../src/crosschain/ICTMRWAGateway.sol";
 import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
-import { Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 // Mock implementation for testing upgrades
 contract MockCTMRWAGatewayV2 is CTMRWAGateway {
@@ -123,7 +123,6 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         rwa1X.deployAllCTMRWA1X(
             true, // includeLocal
             0, // existingID
-            1, // rwaType
             1, // version
             "Test Token",
             "TEST",
@@ -135,7 +134,7 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         vm.stopPrank();
 
         // Get admin tokens before upgrade
-        address[] memory adminTokensBefore = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        address[] memory adminTokensBefore = rwa1XUtils.getAllTokensByAdminAddress(tokenAdmin, VERSION);
         assertGt(adminTokensBefore.length, 0, "Should have admin tokens before upgrade");
 
         // Upgrade the proxy
@@ -145,7 +144,7 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         vm.stopPrank();
 
         // Get admin tokens after upgrade
-        address[] memory adminTokensAfter = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        address[] memory adminTokensAfter = rwa1XUtils.getAllTokensByAdminAddress(tokenAdmin, VERSION);
 
         // Verify admin tokens mapping is preserved
         assertEq(adminTokensAfter.length, adminTokensBefore.length, "Admin tokens count should be preserved");
@@ -162,7 +161,6 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         rwa1X.deployAllCTMRWA1X(
             true, // includeLocal
             0, // existingID
-            1, // rwaType
             1, // version
             "Test Token",
             "TEST",
@@ -174,7 +172,7 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         vm.stopPrank();
 
         // Get owned tokens before upgrade
-        address[] memory ownedTokensBefore = rwa1X.getAllTokensByOwnerAddress(tokenAdmin);
+        address[] memory ownedTokensBefore = rwa1XUtils.getAllTokensByOwnerAddress(tokenAdmin, VERSION);
 
         // Upgrade the proxy
         vm.startPrank(gov);
@@ -183,7 +181,7 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         vm.stopPrank();
 
         // Get owned tokens after upgrade
-        address[] memory ownedTokensAfter = rwa1X.getAllTokensByOwnerAddress(tokenAdmin);
+        address[] memory ownedTokensAfter = rwa1XUtils.getAllTokensByOwnerAddress(tokenAdmin, VERSION);
         // Verify owned tokens mapping is preserved
         assertEq(ownedTokensAfter.length, ownedTokensBefore.length, "Owned tokens count should be preserved");
         for (uint256 i = 0; i < ownedTokensBefore.length; i++) {
@@ -324,12 +322,10 @@ contract TestCTMRWAGatewayUpgrades is Helpers {
         string[] memory contractAddrs = new string[](1);
         chainIds[0] = "3";
         contractAddrs[0] = address(0x789).toHexString();
-        (success, ) = address(gateway).call(abi.encodeWithSignature("addChainContract(string[],string[])", chainIds, contractAddrs));
-        assertTrue(success, "addChainContract failed");
+        gateway.addChainContract(chainIds, contractAddrs);
         vm.stopPrank();
         vm.startPrank(gov);
-        (success, ) = address(gateway).call(abi.encodeWithSignature("addChainContract(string[],string[])", chainIds, contractAddrs));
-        assertTrue(success, "addChainContract failed");
+        gateway.addChainContract(chainIds, contractAddrs);
         assertGt(gateway.getChainCount(), 0, "Governance should still work");
         vm.stopPrank();
     }

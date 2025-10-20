@@ -12,7 +12,7 @@ import { C3UUIDKeeperUpgradeable } from "@c3caller/upgradeable/uuid/C3UUIDKeeper
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 
 import { CTMRWA1X } from "../../src/crosschain/CTMRWA1X.sol";
-import { CTMRWA1XFallback } from "../../src/crosschain/CTMRWA1XFallback.sol";
+import { CTMRWA1XUtils } from "../../src/crosschain/CTMRWA1XUtils.sol";
 import { CTMRWAGateway } from "../../src/crosschain/CTMRWAGateway.sol";
 
 import { CTMRWA1TokenFactory } from "../../src/deployment/CTMRWA1TokenFactory.sol";
@@ -47,7 +47,7 @@ contract Deployer is Utils {
     CTMRWAGateway gateway;
 
     CTMRWA1X rwa1X;
-    CTMRWA1XFallback rwa1XFallback;
+    CTMRWA1XUtils rwa1XUtils;
 
     CTMRWAMap map;
 
@@ -94,6 +94,26 @@ contract Deployer is Utils {
         feeManager.setFeeMultiplier(FeeType.WHITELIST, 1);
         feeManager.setFeeMultiplier(FeeType.COUNTRY, 1);
         feeManager.setFeeMultiplier(FeeType.KYC, 1);
+        feeManager.setFeeMultiplier(FeeType.ERC20, 50);
+        feeManager.setFeeMultiplier(FeeType.DEPLOYINVEST, 100);
+        feeManager.setFeeMultiplier(FeeType.OFFERING, 50);
+        feeManager.setFeeMultiplier(FeeType.INVEST, 10);
+        feeManager.setFeeMultiplier(FeeType.PROVENANCE, 10);
+        feeManager.setFeeMultiplier(FeeType.ISSUER, 5);
+        feeManager.setFeeMultiplier(FeeType.LICENSE, 5);
+        feeManager.setFeeMultiplier(FeeType.VALUATION, 10);
+        feeManager.setFeeMultiplier(FeeType.PROSPECTUS, 10);
+        feeManager.setFeeMultiplier(FeeType.RATING, 10);
+        feeManager.setFeeMultiplier(FeeType.LEGAL, 10);
+        feeManager.setFeeMultiplier(FeeType.FINANCIAL, 10);
+        feeManager.setFeeMultiplier(FeeType.DUEDILIGENCE, 10);
+        feeManager.setFeeMultiplier(FeeType.NOTICE, 10);
+        feeManager.setFeeMultiplier(FeeType.DIVIDEND, 10);
+        feeManager.setFeeMultiplier(FeeType.REDEMPTION, 10);
+        feeManager.setFeeMultiplier(FeeType.WHOCANINVEST, 10);
+        feeManager.setFeeMultiplier(FeeType.IMAGE, 5);
+        feeManager.setFeeMultiplier(FeeType.VIDEO, 5);
+        feeManager.setFeeMultiplier(FeeType.ICON, 5);
 
         string memory destChain = "1";
         string memory ctmAddrStr = _toLower(address(ctm).toHexString());
@@ -102,10 +122,15 @@ contract Deployer is Utils {
         tokensStr.push(ctmAddrStr);
         tokensStr.push(usdcAddrStr);
 
-        fees.push(10 ** 18); // 1 CTM baseFee
-        fees.push(10 ** 6); // 1 USDC baseFee
+        fees.push(10 ** 18); // 1 CTM baseFee (18 decimals)
+        fees.push(10 ** 18); // 1 USDC baseFee (stored in 18 decimals, corrected to 6 decimals)
 
         feeManager.addFeeToken(destChain, tokensStr, fees);
+        
+        // Also set up fees for the current chain ID (local fees)
+        // This is needed because _includeLocal was changed to true in mintNewTokenValueLocal
+        string memory currentChainId = vm.toString(block.chainid);
+        feeManager.addFeeToken(currentChainId, tokensStr, fees);
     }
 
     function _deployGateway(address gov, address admin) internal {
@@ -130,9 +155,9 @@ contract Deployer is Utils {
             )
         );
 
-        rwa1XFallback = new CTMRWA1XFallback(address(rwa1X));
-
-        rwa1X.setFallback(address(rwa1XFallback));
+        // Ensure CTMRWA1X knows deployer and map BEFORE deploying utils (constructor caches addresses)
+        // Set deployer and map early to avoid stale ctmRwaMap in utils
+        // NOTE: utils is deployed in _deployCTMRWADeployer after setCtmRwaMap completes
 
         string[] memory chainIdsStr = new string[](2);
         string[] memory rwaXsStr = new string[](2);
@@ -186,12 +211,16 @@ contract Deployer is Utils {
             address(feeManager)
         );
 
-        ctmRwaErc20Deployer = new CTMRWAERC20Deployer(address(map), address(feeManager));
+        ctmRwaErc20Deployer = new CTMRWAERC20Deployer(address(map), address(deployer), address(feeManager));
 
         deployer.setDeployInvest(address(ctmRwaDeployInvest));
         deployer.setErc20DeployerAddress(address(ctmRwaErc20Deployer));
         rwa1X.setCtmRwaDeployer(address(deployer));
         rwa1X.setCtmRwaMap(address(map));
+
+        // Now that CTMRWA1X is fully wired, deploy utils so it reads correct map/fees in constructor
+        rwa1XUtils = new CTMRWA1XUtils(address(rwa1X));
+        rwa1X.setFallback(address(rwa1XUtils));
     }
 
     function _deployTokenFactory() internal {
@@ -272,9 +301,10 @@ contract Deployer is Utils {
             address(rwa1X),
             address(ctmRwaDeployInvest),
             address(ctmRwaErc20Deployer),
-            // address(identity),
+            address(0), // identity - will be set by individual tests
             address(sentryManager),
-            address(storageManager)
+            address(storageManager),
+            address(rwa1XUtils)
         );
     }
 
@@ -285,7 +315,6 @@ contract Deployer is Utils {
         ID = rwa1X.deployAllCTMRWA1X(
             true, // include local mint
             0,
-            RWA_TYPE,
             VERSION,
             "Semi Fungible Token XChain",
             "SFTX",

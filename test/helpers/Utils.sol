@@ -16,9 +16,10 @@ contract Utils is Test {
         address rwa1X;
         address ctmRwaDeployInvest;
         address ctmRwaERC20Deployer;
-        // address identity;
+        address identity;
         address sentryManager;
         address storageManager;
+        address rwa1XUtils;
     }
 
     uint256 constant RWA_TYPE = 1;

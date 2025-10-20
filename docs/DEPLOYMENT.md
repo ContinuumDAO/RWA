@@ -125,7 +125,7 @@ Use the compilation script to compile the flattened source code and scripts.
 
 ```bash
 ./helpers/1-clean.sh
-./helpers/2-build-flattened.sh
+./helpers/2-build.sh
 ./helpers/5-build-script.sh
 ```
 
@@ -254,6 +254,91 @@ These are the chain names that can be used with the `--chain` flag in Foundry.
 - zksync-sepolia
 - starknet
 - starknet-sepolia
+
+## ERC20 Deployment
+
+### Overview
+
+ERC20 tokens are deployed using the `CTMRWAERC20Deployer` contract, which provides a standardized way to create ERC20 wrappers for specific slots in CTMRWA1 contracts. Each ERC20 token represents one slot and provides a fungible interface to the semi-fungible tokens.
+
+### Deployment Process
+
+#### 1. Prerequisites
+- CTMRWA1 contract must be deployed and configured
+- Slot must exist in the CTMRWA1 contract
+- TokenAdmin must have sufficient fee tokens for deployment
+
+#### 2. Deploy ERC20 Token
+```bash
+# Deploy ERC20 for a specific slot
+forge script script/DeployAssetX.s.sol:DeployAssetX --rpc-url $RPC_URL --broadcast --verify
+
+# Or use the helper script
+./helpers/deploy/1-deploy-assetx.sh
+```
+
+#### 3. ERC20 Deployment Parameters
+- **ID**: The unique ID of the CTMRWA1 contract
+- **RWA_TYPE**: Type of RWA token (1 for CTMRWA1)
+- **VERSION**: Version of the RWA token
+- **SLOT**: Slot number to create ERC20 for
+- **NAME**: Name for the ERC20 token
+- **FEE_TOKEN**: Address of the fee token for payment
+
+#### 4. Post-Deployment Steps
+
+##### Approve TokenIds for ERC20 Spending
+After deployment, users must approve specific tokenIds for ERC20 operations:
+
+```solidity
+// Approve tokenIds for ERC20 spending
+token.approveErc20(tokenId1);
+token.approveErc20(tokenId2);
+```
+
+##### Check Approved Balance
+```solidity
+// Check approved balance for ERC20 operations
+uint256 approvedBalance = erc20.balanceOfApproved(user);
+```
+
+##### Perform ERC20 Operations
+```solidity
+// Transfer using ERC20 interface
+erc20.transfer(recipient, amount);
+```
+
+### ERC20 Approval System
+
+The new ERC20 system requires explicit approval of tokenIds before they can be spent by ERC20 contracts. This provides enhanced security and user control.
+
+#### Key Functions
+- **`approveErc20(tokenId)`**: Approve a tokenId for ERC20 spending
+- **`revokeApproval(tokenId)`**: Revoke approval for a tokenId
+- **`getErc20Approvals(owner, slot)`**: Get approved tokenIds for an owner
+- **`balanceOfApproved(account)`**: Get balance from approved tokenIds only
+
+#### Security Benefits
+- **User Control**: Users choose which tokenIds to approve
+- **Gas Efficiency**: Only approved tokenIds are processed
+- **Security**: Unapproved tokenIds cannot be spent
+- **Flexibility**: Users can approve/revoke as needed
+
+### Integration with DeFi
+
+ERC20 tokens can be integrated with DeFi protocols:
+
+1. **Approve TokenIds**: Users approve specific tokenIds for DeFi operations
+2. **Provide Liquidity**: Use ERC20 tokens in DEX liquidity pools
+3. **Trading**: Trade ERC20 tokens on decentralized exchanges
+4. **Lending**: Use ERC20 tokens as collateral in lending protocols
+
+### Best Practices
+
+1. **Selective Approval**: Only approve tokenIds you want to use in DeFi
+2. **Regular Review**: Periodically review and revoke unnecessary approvals
+3. **Security**: Keep unapproved tokenIds for long-term holding
+4. **Gas Optimization**: Batch approval operations when possible
 
 ## Appendix II: Gas costs for deployment and configuration
 

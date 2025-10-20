@@ -3,9 +3,8 @@
 pragma solidity 0.8.27;
 
 import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
-import { Address } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
-import { Uint } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -76,7 +75,7 @@ contract TestCTMRWA1Sentry is Helpers {
         address newAdmin = tokenAdmin2;
         // Only tokenAdmin or ctmRwa1X can call
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin));
         sentry.setTokenAdmin(newAdmin);
         // ctmRwa1X can call
         vm.prank(address(rwa1X));
@@ -98,7 +97,7 @@ contract TestCTMRWA1Sentry is Helpers {
     function test_setZkMeParams_access() public {
         // Only sentryManager can call
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_OnlyAuthorized.selector, Address.Sender, Address.SentryManager));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.SentryManager));
         sentry.setZkMeParams("app", "prog", user2);
         vm.prank(address(sentryManager));
         sentry.setZkMeParams("app", "prog", user2);
@@ -117,9 +116,9 @@ contract TestCTMRWA1Sentry is Helpers {
         // Only sentryManager can call
         vm.prank(user1);
         vm.expectRevert();
-        sentry.setSentryOptionsLocal(ID, true, true, true, true, true, true, true);
+        sentry.setSentryOptionsLocal(ID, VERSION, true, true, true, true, true, true, true);
         vm.prank(address(sentryManager));
-        sentry.setSentryOptionsLocal(ID, true, true, true, true, true, true, true);
+        sentry.setSentryOptionsLocal(ID, VERSION, true, true, true, true, true, true, true);
     }
 
     function test_setSentryOptionsLocal_effect_countryWL() public {
@@ -131,7 +130,7 @@ contract TestCTMRWA1Sentry is Helpers {
         (, address newSentryAddr) = map.getSentryContract(newID, RWA_TYPE, VERSION);
         ICTMRWA1Sentry newSentry = ICTMRWA1Sentry(newSentryAddr);
         vm.prank(address(sentryManager));
-        newSentry.setSentryOptionsLocal(newID, true, true, true, true, true, true, false);
+        newSentry.setSentryOptionsLocal(newID, VERSION, true, true, true, true, true, true, false);
         assertTrue(newSentry.whitelistSwitch());
         assertTrue(newSentry.kycSwitch());
         assertTrue(newSentry.kybSwitch());
@@ -151,7 +150,7 @@ contract TestCTMRWA1Sentry is Helpers {
         (, address newSentryAddr) = map.getSentryContract(newID, RWA_TYPE, VERSION);
         ICTMRWA1Sentry newSentry = ICTMRWA1Sentry(newSentryAddr);
         vm.prank(address(sentryManager));
-        newSentry.setSentryOptionsLocal(newID, true, true, true, true, true, false, true);
+        newSentry.setSentryOptionsLocal(newID, VERSION, true, true, true, true, true, false, true);
         assertTrue(newSentry.whitelistSwitch());
         assertTrue(newSentry.kycSwitch());
         assertTrue(newSentry.kybSwitch());
@@ -171,15 +170,15 @@ contract TestCTMRWA1Sentry is Helpers {
         // Only sentryManager can call
         vm.prank(user1);
         vm.expectRevert();
-        sentry.setWhitelistSentry(ID, wallets, choices);
+        sentry.setWhitelistSentry(ID, VERSION, wallets, choices);
         vm.prank(address(sentryManager));
-        sentry.setWhitelistSentry(ID, wallets, choices);
+        sentry.setWhitelistSentry(ID, VERSION, wallets, choices);
     }
 
     function test_setWhitelistSentry_effect() public {
         // Enable whitelist enforcement
         vm.prank(address(sentryManager));
-        sentry.setSentryOptionsLocal(ID, true, false, false, false, false, false, false);
+        sentry.setSentryOptionsLocal(ID, VERSION, true, false, false, false, false, false, false);
 
         string[] memory wallets = new string[](2);
         wallets[0] = user1.toHexString();
@@ -188,7 +187,7 @@ contract TestCTMRWA1Sentry is Helpers {
         choices[0] = true;
         choices[1] = false;
         vm.prank(address(sentryManager));
-        sentry.setWhitelistSentry(ID, wallets, choices);
+        sentry.setWhitelistSentry(ID, VERSION, wallets, choices);
         assertTrue(sentry.isAllowableTransfer(user1.toHexString()));
         assertFalse(sentry.isAllowableTransfer(user2.toHexString()));
     }
@@ -201,9 +200,9 @@ contract TestCTMRWA1Sentry is Helpers {
         // Only sentryManager can call
         vm.prank(user1);
         vm.expectRevert();
-        sentry.setCountryListLocal(ID, countries, choices);
+        sentry.setCountryListLocal(ID, VERSION, countries, choices);
         vm.prank(address(sentryManager));
-        sentry.setCountryListLocal(ID, countries, choices);
+        sentry.setCountryListLocal(ID, VERSION, countries, choices);
     }
 
     function test_setCountryListLocal_effect() public {
@@ -214,7 +213,7 @@ contract TestCTMRWA1Sentry is Helpers {
         choices[0] = true;
         choices[1] = true;
         vm.prank(address(sentryManager));
-        sentry.setCountryListLocal(ID, countries, choices);
+        sentry.setCountryListLocal(ID, VERSION, countries, choices);
         // Should be present in countryList
         assertEq(sentry.countryList(1), "US");
         assertEq(sentry.countryList(2), "GB");
@@ -226,14 +225,14 @@ contract TestCTMRWA1Sentry is Helpers {
         assertTrue(sentry.isAllowableTransfer(user1.toHexString()));
         // Enable whitelist
         vm.prank(address(sentryManager));
-        sentry.setSentryOptionsLocal(ID, true, false, false, false, false, false, false);
+        sentry.setSentryOptionsLocal(ID, VERSION, true, false, false, false, false, false, false);
         // Only whitelisted addresses allowed
         string[] memory wallets = new string[](1);
         wallets[0] = user1.toHexString();
         bool[] memory choices = new bool[](1);
         choices[0] = true;
         vm.prank(address(sentryManager));
-        sentry.setWhitelistSentry(ID, wallets, choices);
+        sentry.setWhitelistSentry(ID, VERSION, wallets, choices);
         assertTrue(sentry.isAllowableTransfer(user1.toHexString()));
         assertFalse(sentry.isAllowableTransfer(user2.toHexString()));
     }

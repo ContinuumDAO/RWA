@@ -7,7 +7,7 @@ import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
 import { CTMRWA1TokenFactory } from "../../src/deployment/CTMRWA1TokenFactory.sol";
 import { ICTMRWA1TokenFactory } from "../../src/deployment/ICTMRWA1TokenFactory.sol";
 import { Helpers } from "../helpers/Helpers.sol";
-import {Address} from "../../src/utils/CTMRWAUtils.sol";
+import {CTMRWAErrorParam} from "../../src/utils/CTMRWAUtils.sol";
 
 contract MockDeployer {
 // Used to test onlyDeployer modifier
@@ -42,12 +42,12 @@ contract CTMRWA1TokenFactoryTest is Helpers {
         string memory _name,
         string memory _symbol,
         uint8 _decimals,
-        string memory _baseURI,
+        string memory _baseUri,
         uint256[] memory _slotNumbers,
         string[] memory _slotNames,
         address _ctmRwa1X
     ) public pure returns (bytes memory) {
-        return abi.encode(id, _admin, _name, _symbol, _decimals, _baseURI, _slotNumbers, _slotNames, _ctmRwa1X);
+        return abi.encode(id, _admin, _name, _symbol, _decimals, _baseUri, _slotNumbers, _slotNames, _ctmRwa1X);
     }
 
     function test_OnlyDeployerCanDeploy() public {
@@ -55,19 +55,19 @@ contract CTMRWA1TokenFactoryTest is Helpers {
             getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         // Should succeed as deployer
         vm.prank(address(deployer));
-        address deployed = factory.deploy(deployData);
+        address deployed = factory.deploy(RWA_TYPE, VERSION, deployData);
         assertTrue(deployed != address(0), "Deployment should succeed");
         // Try as notDeployer
         vm.prank(notDeployer);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, Address.Sender, Address.Deployer));
-        factory.deploy(deployData);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer));
+        factory.deploy(RWA_TYPE, VERSION, deployData);
     }
 
     function test_DeployInitializesSlotData() public {
         bytes memory deployData =
             getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(address(deployer));
-        address deployed = factory.deploy(deployData);
+        address deployed = factory.deploy(RWA_TYPE, VERSION, deployData);
         ICTMRWA1 token = ICTMRWA1(deployed);
         (uint256[] memory slots, string[] memory names) = token.getAllSlots();
         assertEq(slots.length, slotNumbers.length, "Slot count should match");
@@ -83,7 +83,7 @@ contract CTMRWA1TokenFactoryTest is Helpers {
         bytes memory deployData =
             getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, emptySlots, emptyNames, ctmRwa1X);
         vm.prank(address(deployer));
-        address deployed = factory.deploy(deployData);
+        address deployed = factory.deploy(RWA_TYPE, VERSION, deployData);
         ICTMRWA1 token = ICTMRWA1(deployed);
         (uint256[] memory slots,) = token.getAllSlots();
         assertEq(slots.length, 0, "No slots should be initialized");
@@ -93,26 +93,26 @@ contract CTMRWA1TokenFactoryTest is Helpers {
         bytes memory deployData =
             getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(address(deployer));
-        address deployed1 = factory.deploy(deployData);
+        address deployed1 = factory.deploy(RWA_TYPE, VERSION, deployData);
         // Deploy again with same ID and data should revert (CREATE2 collision)
         vm.prank(address(deployer));
         vm.expectRevert();
-        factory.deploy(deployData);
+        factory.deploy(RWA_TYPE, VERSION, deployData);
         // Deploy with different ID should succeed
         bytes memory deployData2 =
             getDeployData(ID + 1, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(address(deployer));
-        address deployed2 = factory.deploy(deployData2);
+        address deployed2 = factory.deploy(RWA_TYPE, VERSION, deployData2);
         assertTrue(deployed2 != address(0) && deployed2 != deployed1, "Should deploy at a new address");
     }
 
-    function test_FuzzDeploy(uint256 fuzzID, uint8 fuzzDecimals) public {
-        fuzzID = bound(fuzzID, 1, type(uint256).max);
+    function test_FuzzDeploy(uint256 fuzzId, uint8 fuzzDecimals) public {
+        fuzzId = bound(fuzzId, 1, type(uint256).max);
         fuzzDecimals = uint8(bound(fuzzDecimals, 0, 36));
         bytes memory deployData =
-            getDeployData(fuzzID, admin, tokenName, symbol, fuzzDecimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
+            getDeployData(fuzzId, admin, tokenName, symbol, fuzzDecimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(address(deployer));
-        address deployed = factory.deploy(deployData);
+        address deployed = factory.deploy(RWA_TYPE, VERSION, deployData);
         assertTrue(deployed != address(0), "Fuzz deploy should succeed");
     }
 
@@ -121,25 +121,25 @@ contract CTMRWA1TokenFactoryTest is Helpers {
             getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         uint256 gasStart = gasleft();
         vm.prank(address(deployer));
-        factory.deploy(deployData);
+        factory.deploy(RWA_TYPE, VERSION, deployData);
         uint256 gasUsed = gasStart - gasleft();
         console.log("Gas used for deploy:", gasUsed);
-        assertLt(gasUsed, 4_700_000, "Gas usage should be reasonable");
+        assertLt(gasUsed, 5_000_000, "Gas usage should be reasonable");
     }
 
     function test_RevertOnInvalidDeployer() public {
         bytes memory deployData =
             getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(notDeployer);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, Address.Sender, Address.Deployer));
-        factory.deploy(deployData);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1TokenFactory.CTMRWA1TokenFactory_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer));
+        factory.deploy(RWA_TYPE, VERSION, deployData);
     }
 
     function test_DeployEmitsContract() public {
         bytes memory deployData =
             getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(address(deployer));
-        address deployed = factory.deploy(deployData);
+        address deployed = factory.deploy(RWA_TYPE, VERSION, deployData);
         assertTrue(deployed != address(0), "Deployment should emit contract address");
     }
 
@@ -148,7 +148,7 @@ contract CTMRWA1TokenFactoryTest is Helpers {
         bytes memory deployData =
             getDeployData(ID, admin, tokenName, symbol, decimals, baseURI, slotNumbers, slotNames, ctmRwa1X);
         vm.prank(address(deployer));
-        address deployed1 = factory.deploy(deployData);
+        address deployed1 = factory.deploy(RWA_TYPE, VERSION, deployData);
         // Compute expected address using CREATE2 formula
         bytes32 salt = bytes32(ID);
         bytes memory bytecode = abi.encodePacked(

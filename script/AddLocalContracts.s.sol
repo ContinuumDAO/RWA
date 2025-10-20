@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 import { Script } from "forge-std/Script.sol";
-import { ICTMRWAGateway } from "../flattened/crosschain/CTMRWAGateway.sol";
+import { ICTMRWAGateway } from "../build/crosschain/CTMRWAGateway.sol";
 import { LoadDeployedContracts } from "./LoadDeployedContracts.s.sol";
 import { DeployedContracts } from "./Utils.s.sol";
 

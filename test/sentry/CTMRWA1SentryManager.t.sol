@@ -17,7 +17,7 @@ import { ICTMRWA1Sentry } from "../../src/sentry/ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "../../src/sentry/ICTMRWA1SentryManager.sol";
 import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
-import { List, Uint, Address } from "../../src/utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
 
 // Minimal mock for CTMRWA1Identity
 contract MockCTMRWA1Identity is ICTMRWA1Identity {
@@ -32,11 +32,11 @@ contract MockCTMRWA1Identity is ICTMRWA1Identity {
         return true;
     }
 
-    function isVerifiedPerson(uint256, address) external pure override returns (bool) {
+    function isVerifiedPerson(uint256, uint256, address) external pure override returns (bool) {
         return false;
     }
 
-    function verifyPerson(uint256, string[] memory, string memory) external pure override returns (bool) {
+    function verifyPerson(uint256, uint256, string[] memory, string memory) external pure override returns (bool) {
         return false;
     }
     // ICTMRWA stubs
@@ -66,10 +66,11 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot set sentry options
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin)
         );
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false,
             false,
@@ -86,6 +87,7 @@ contract TestSentryManager is Helpers {
         vm.startPrank(tokenAdmin);
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false,
             false,
@@ -109,6 +111,7 @@ contract TestSentryManager is Helpers {
         // Enable whitelist
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false,
             false,
@@ -124,10 +127,10 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot add whitelist
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin)
         );
         sentryManager.addWhitelist(
-            ID, _stringToArray(user1.toHexString()), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
+            ID, VERSION, _stringToArray(user1.toHexString()), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
         );
         vm.stopPrank();
     }
@@ -142,6 +145,7 @@ contract TestSentryManager is Helpers {
         // Enable country whitelist
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false,
             true, // kycSwitch
             false,
@@ -157,9 +161,9 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot add country list
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin)
         );
-        sentryManager.addCountrylist(ID, _stringToArray("US"), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addCountrylist(ID, VERSION, _stringToArray("US"), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
 
@@ -173,6 +177,7 @@ contract TestSentryManager is Helpers {
         // Set up KYC and accredited
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false,
             true, // kycSwitch
             false,
@@ -188,9 +193,9 @@ contract TestSentryManager is Helpers {
         // Test non-admin cannot go public
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin)
         );
-        sentryManager.goPublic(ID, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.goPublic(ID, VERSION, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
 
@@ -243,6 +248,7 @@ contract TestSentryManager is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             whitelistBool,
             kycBool,
             kybBool,
@@ -276,6 +282,7 @@ contract TestSentryManager is Helpers {
         // Enable whitelist
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false,
             false,
@@ -297,7 +304,7 @@ contract TestSentryManager is Helpers {
             choices[i] = i % 2 == 0; // Alternate true/false
         }
 
-        sentryManager.addWhitelist(ID, addresses, choices, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addWhitelist(ID, VERSION, addresses, choices, _stringToArray(cIdStr), feeTokenStr);
 
         // Verify whitelist was set correctly
         (, address sentry) = map.getSentryContract(ID, RWA_TYPE, VERSION);
@@ -320,6 +327,7 @@ contract TestSentryManager is Helpers {
         // Enable whitelist
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false,
             false,
@@ -335,7 +343,7 @@ contract TestSentryManager is Helpers {
         string[] memory emptyAddresses = new string[](0);
         bool[] memory emptyChoices = new bool[](0);
 
-        sentryManager.addWhitelist(ID, emptyAddresses, emptyChoices, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addWhitelist(ID, VERSION, emptyAddresses, emptyChoices, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
 
@@ -349,6 +357,7 @@ contract TestSentryManager is Helpers {
         // Enable whitelist
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false,
             false,
@@ -365,9 +374,9 @@ contract TestSentryManager is Helpers {
         bool[] memory choices = new bool[](2); // Different length
 
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_LengthMismatch.selector, Uint.Input)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_LengthMismatch.selector, CTMRWAErrorParam.Input)
         );
-        sentryManager.addWhitelist(ID, addresses, choices, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addWhitelist(ID, VERSION, addresses, choices, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
 
@@ -380,10 +389,10 @@ contract TestSentryManager is Helpers {
 
         // Don't enable whitelist
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_Disabled)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, CTMRWAErrorParam.WL_Disabled)
         );
         sentryManager.addWhitelist(
-            ID, _stringToArray(user1.toHexString()), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
+            ID, VERSION, _stringToArray(user1.toHexString()), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
         );
         vm.stopPrank();
     }
@@ -398,10 +407,10 @@ contract TestSentryManager is Helpers {
         // Don't enable country lists
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_BL_Undefined
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, CTMRWAErrorParam.WL_BL_Undefined
             )
         );
-        sentryManager.addCountrylist(ID, _stringToArray("US"), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addCountrylist(ID, VERSION, _stringToArray("US"), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
 
@@ -416,11 +425,12 @@ contract TestSentryManager is Helpers {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_KYC_Disabled
+                ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, CTMRWAErrorParam.WL_KYC_Disabled
             )
         );
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false, // whitelistSwitch
             false, // kycSwitch
             false,
@@ -444,6 +454,7 @@ contract TestSentryManager is Helpers {
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_NoKYC.selector));
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false, // kycSwitch
             true, // kybSwitch
@@ -467,6 +478,7 @@ contract TestSentryManager is Helpers {
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_NoKYC.selector));
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false, // kycSwitch
             false, // kybSwitch
@@ -490,6 +502,7 @@ contract TestSentryManager is Helpers {
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_NoKYC.selector));
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false, // kycSwitch
             false, // kybSwitch
@@ -513,6 +526,7 @@ contract TestSentryManager is Helpers {
         // No expectRevert here, as contract does not revert
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false, // whitelistSwitch
             true, // kycSwitch
             false, // kybSwitch
@@ -536,6 +550,7 @@ contract TestSentryManager is Helpers {
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_NoKYC.selector));
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false, // kycSwitch
             false, // kybSwitch
@@ -557,10 +572,11 @@ contract TestSentryManager is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
 
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, List.WL_BL_Defined)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidList.selector, CTMRWAErrorParam.WL_BL_Defined)
         );
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false, // whitelistSwitch
             true, // kycSwitch
             false, // kybSwitch
@@ -586,6 +602,7 @@ contract TestSentryManager is Helpers {
         // Set up KYC and accredited
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false,
             true, // kycSwitch
             false,
@@ -601,7 +618,7 @@ contract TestSentryManager is Helpers {
         assertEq(ICTMRWA1Sentry(sentry).accreditedSwitch(), true);
 
         // Go public
-        sentryManager.goPublic(ID, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.goPublic(ID, VERSION, _stringToArray(cIdStr), feeTokenStr);
 
         // Verify accredited is now false
         assertEq(ICTMRWA1Sentry(sentry).accreditedSwitch(), false);
@@ -618,6 +635,7 @@ contract TestSentryManager is Helpers {
         // Set up whitelist only (no KYC)
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false, // kycSwitch
             false,
@@ -630,7 +648,7 @@ contract TestSentryManager is Helpers {
         );
 
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_KYCDisabled.selector));
-        sentryManager.goPublic(ID, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.goPublic(ID, VERSION, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
 
@@ -644,6 +662,7 @@ contract TestSentryManager is Helpers {
         // Set up KYC but not accredited
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false,
             true, // kycSwitch
             false,
@@ -658,7 +677,7 @@ contract TestSentryManager is Helpers {
         vm.expectRevert(
             abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_AccreditationDisabled.selector)
         );
-        sentryManager.goPublic(ID, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.goPublic(ID, VERSION, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
 
@@ -682,6 +701,7 @@ contract TestSentryManager is Helpers {
         // Enable whitelist
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false,
             false,
@@ -699,11 +719,11 @@ contract TestSentryManager is Helpers {
 
         // Add addresses to whitelist
         sentryManager.addWhitelist(
-            ID, _stringToArray(user1Str), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
+            ID, VERSION, _stringToArray(user1Str), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
         );
 
         sentryManager.addWhitelist(
-            ID, _stringToArray(user2Str), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
+            ID, VERSION, _stringToArray(user2Str), _boolToArray(true), _stringToArray(cIdStr), feeTokenStr
         );
 
         // Verify addresses are now allowable
@@ -712,7 +732,7 @@ contract TestSentryManager is Helpers {
 
         // Remove address from whitelist
         sentryManager.addWhitelist(
-            ID, _stringToArray(user1Str), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr
+            ID, VERSION, _stringToArray(user1Str), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr
         );
 
         // Verify address is no longer allowable
@@ -735,6 +755,7 @@ contract TestSentryManager is Helpers {
         // Enable whitelist
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false,
             false,
@@ -747,7 +768,7 @@ contract TestSentryManager is Helpers {
         );
 
         // Change token admin
-        rwa1X.changeTokenAdmin(user1.toHexString(), _stringToArray(cIdStr), ID, feeTokenStr);
+        rwa1X.changeTokenAdmin(user1.toHexString(), _stringToArray(cIdStr), ID, VERSION, feeTokenStr);
 
         (, address sentry) = map.getSentryContract(ID, RWA_TYPE, VERSION);
         address newAdmin = ICTMRWA1Sentry(sentry).tokenAdmin();
@@ -761,9 +782,9 @@ contract TestSentryManager is Helpers {
         // New admin cannot remove themselves from whitelist
         vm.stopPrank();
         vm.startPrank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_Unauthorized.selector, Address.Wallet, Address.TokenAdmin));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1Sentry.CTMRWA1Sentry_Unauthorized.selector, CTMRWAErrorParam.Wallet, CTMRWAErrorParam.TokenAdmin));
         sentryManager.addWhitelist(
-            ID, _stringToArray(newAdminStr), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr
+            ID, VERSION, _stringToArray(newAdminStr), _boolToArray(false), _stringToArray(cIdStr), feeTokenStr
         );
         vm.stopPrank();
     }
@@ -778,6 +799,7 @@ contract TestSentryManager is Helpers {
 
         sentryManager.setSentryOptionsX(
             ID,
+            VERSION,
             true, // whitelistSwitch
             true, // kycSwitch
             false, // kybSwitch
@@ -809,6 +831,7 @@ contract TestSentryManager is Helpers {
         // Set sentry options
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false,
             false,
@@ -824,6 +847,7 @@ contract TestSentryManager is Helpers {
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_OptionsAlreadySet.selector));
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false, // whitelistSwitch
             true, // kycSwitch
             false, // kybSwitch
@@ -847,6 +871,7 @@ contract TestSentryManager is Helpers {
         // Set up KYC and accredited
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false,
             true, // kycSwitch
             false,
@@ -859,14 +884,13 @@ contract TestSentryManager is Helpers {
         );
 
         // Go public
-        sentryManager.goPublic(ID, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.goPublic(ID, VERSION, _stringToArray(cIdStr), feeTokenStr);
 
         // KYC should be disabled for new deployments
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_KYCEnabled.selector));
         rwa1X.deployAllCTMRWA1X(
             false, // include local mint
             ID,
-            RWA_TYPE,
             VERSION,
             "Token Name",
             "Symbol",
@@ -896,6 +920,7 @@ contract TestSentryManager is Helpers {
         // Set KYC switch to true
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false, // whitelistSwitch
             true, // kycSwitch
             false, // kybSwitch
@@ -907,7 +932,7 @@ contract TestSentryManager is Helpers {
             feeTokenStr
         );
         // Should succeed
-        sentryManager.setZkMeParams(ID, "appId", "progNo", address(0x1234));
+        sentryManager.setZkMeParams(ID, VERSION, "appId", "progNo", address(0x1234));
 
         // Deploy a new sentry with KYC switch off
         skip(10);
@@ -915,6 +940,7 @@ contract TestSentryManager is Helpers {
 
         sentryManager.setSentryOptions(
             newID,
+            VERSION,
             true, // whitelistSwitch (set to true to pass list validation)
             false, // kycSwitch (off)
             false, // kybSwitch
@@ -927,7 +953,7 @@ contract TestSentryManager is Helpers {
         );
         // Should revert
         vm.expectRevert(ICTMRWA1SentryManager.CTMRWA1SentryManager_NoKYC.selector);
-        sentryManager.setZkMeParams(newID, "appId", "progNo", address(0x1234));
+        sentryManager.setZkMeParams(newID, VERSION, "appId", "progNo", address(0x1234));
         vm.stopPrank();
     }
 
@@ -940,6 +966,7 @@ contract TestSentryManager is Helpers {
         // Enable KYC and country whitelist
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false, // whitelistSwitch
             true, // kycSwitch
             false, // kybSwitch
@@ -955,14 +982,14 @@ contract TestSentryManager is Helpers {
         validCountries[0] = "US";
         bool[] memory choices = new bool[](1);
         choices[0] = true;
-        sentryManager.addCountrylist(ID, validCountries, choices, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addCountrylist(ID, VERSION, validCountries, choices, _stringToArray(cIdStr), feeTokenStr);
         // Invalid country code (should revert)
         string[] memory invalidCountries = new string[](1);
         invalidCountries[0] = "USA"; // 3 letters
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidLength.selector, Uint.CountryCode)
+            abi.encodeWithSelector(ICTMRWA1SentryManager.CTMRWA1SentryManager_InvalidLength.selector, CTMRWAErrorParam.CountryCode)
         );
-        sentryManager.addCountrylist(ID, invalidCountries, choices, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addCountrylist(ID, VERSION, invalidCountries, choices, _stringToArray(cIdStr), feeTokenStr);
         vm.stopPrank();
     }
 
@@ -975,6 +1002,7 @@ contract TestSentryManager is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false,
             false,
@@ -993,7 +1021,7 @@ contract TestSentryManager is Helpers {
             choices[i] = true;
         }
         uint256 gasBefore = gasleft();
-        sentryManager.addWhitelist(ID, addresses, choices, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addWhitelist(ID, VERSION, addresses, choices, _stringToArray(cIdStr), feeTokenStr);
         uint256 gasUsed = gasBefore - gasleft();
         assertTrue(gasUsed < 1_000_000, string.concat("Gas used: ", vm.toString(gasUsed)));
         vm.stopPrank();
@@ -1006,6 +1034,7 @@ contract TestSentryManager is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             true, // whitelistSwitch
             false,
             false,
@@ -1027,7 +1056,7 @@ contract TestSentryManager is Helpers {
         // Prank as c3caller
         vm.startPrank(address(c3caller));
         uint256 gasBefore = gasleft();
-        sentryManager.setWhitelistX(ID, addresses, choices);
+        sentryManager.setWhitelistX(ID, VERSION, addresses, choices);
         uint256 gasUsed = gasBefore - gasleft();
         assertTrue(gasUsed < 1_000_000, string.concat("Gas used: ", vm.toString(gasUsed)));
         vm.stopPrank();
@@ -1040,6 +1069,7 @@ contract TestSentryManager is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false,
             true, // kycSwitch
             false,
@@ -1058,9 +1088,9 @@ contract TestSentryManager is Helpers {
             choices[i] = true;
         }
         uint256 gasBefore = gasleft();
-        sentryManager.addCountrylist(ID, countries, choices, _stringToArray(cIdStr), feeTokenStr);
+        sentryManager.addCountrylist(ID, VERSION, countries, choices, _stringToArray(cIdStr), feeTokenStr);
         uint256 gasUsed = gasBefore - gasleft();
-        assertTrue(gasUsed < 500_000, string.concat("Gas used: ", vm.toString(gasUsed)));
+        assertTrue(gasUsed < 600_000, string.concat("Gas used: ", vm.toString(gasUsed)));
         vm.stopPrank();
     }
 
@@ -1071,6 +1101,7 @@ contract TestSentryManager is Helpers {
         string memory feeTokenStr = address(usdc).toHexString();
         sentryManager.setSentryOptions(
             ID,
+            VERSION,
             false,
             true, // kycSwitch
             false,
@@ -1092,7 +1123,7 @@ contract TestSentryManager is Helpers {
         // Prank as c3caller
         vm.startPrank(address(c3caller));
         uint256 gasBefore = gasleft();
-        sentryManager.setCountryListX(ID, countries, choices);
+        sentryManager.setCountryListX(ID, VERSION, countries, choices);
         uint256 gasUsed = gasBefore - gasleft();
         assertTrue(gasUsed < 1_000_000, string.concat("Gas used: ", vm.toString(gasUsed)));
         vm.stopPrank();

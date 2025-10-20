@@ -2,8 +2,7 @@
 
 pragma solidity 0.8.27;
 
-/// @dev Numbers that can be referenced in errors
-enum Uint {
+enum CTMRWAErrorParam {
     TokenId,
     TokenName,
     Symbol,
@@ -26,21 +25,11 @@ enum Uint {
     Payable,
     ChainID,
     Multiplier,
-    BaseURI
-}
-
-enum Time {
+    BaseURI,
     Early,
-    Late
-}
-
-enum RWA {
+    Late,
     Type,
-    Version
-}
-
-/// @dev Common addresses referenced in errors in CTMRWA1
-enum Address {
+    Version,
     Sender,
     Owner,
     To,
@@ -49,7 +38,6 @@ enum Address {
     TokenAdmin,
     Factory,
     Deployer,
-    Dividend,
     Identity,
     Map,
     Storage,
@@ -73,20 +61,17 @@ enum Address {
     ERC20Deployer,
     Allowable,
     ApprovedOrOwner,
-    Wallet
-}
-
-enum List {
+    Wallet,
     WL_Disabled, // whitelisting is disabled
     WL_Enabled, // whitelisting is enabled
     WL_BL_Undefined, // neither whitelist nor blacklist are defined
     WL_BL_Defined, // whitelist and blacklist are defined
-    WL_KYC_Disabled // neither whitelist nor kyc is enabled
-
+    WL_KYC_Disabled, // neither whitelist nor kyc is enabled
+    Utils
 }
 
 library CTMRWAUtils {
-    error CTMRWAUtils_InvalidLength(Uint);
+    error CTMRWAUtils_InvalidLength(CTMRWAErrorParam);
     error CTMRWAUtils_InvalidHexCharacter();
     error CTMRWAUtils_StringTooLong();
 
@@ -108,15 +93,21 @@ library CTMRWAUtils {
         return string(bLower);
     }
 
-    /// @dev Convert a string to an EVM address. Also checks the string length
+    /// @dev Convert a string to an EVM address. Also checks the string length and 0x prefix
     /// @param str The string to convert to an EVM address
     /// @return The EVM address
     function _stringToAddress(string memory str) internal pure returns (address) {
         bytes memory strBytes = bytes(str);
         // require(strBytes.length == 42, "RWA: Invalid addr length");
         if (strBytes.length != 42) {
-            revert CTMRWAUtils_InvalidLength(Uint.Address);
+            revert CTMRWAUtils_InvalidLength(CTMRWAErrorParam.Address);
         }
+        
+        // Validate 0x prefix
+        if (strBytes[0] != bytes1("0") || strBytes[1] != bytes1("x")) {
+            revert CTMRWAUtils_InvalidLength(CTMRWAErrorParam.Address);
+        }
+        
         bytes memory addrBytes = new bytes(20);
 
         for (uint256 i = 0; i < 20; i++) {

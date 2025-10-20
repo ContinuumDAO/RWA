@@ -6,8 +6,10 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { Test } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
 
-import { Address, ICTMRWA1, Uint } from "../../src/core/ICTMRWA1.sol";
+import { ICTMRWA1, CTMRWAErrorParam } from "../../src/core/ICTMRWA1.sol";
 import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
+import { ICTMRWAERC20Deployer } from "../../src/deployment/ICTMRWAERC20Deployer.sol";
+import { FeeType } from "../../src/managers/IFeeManager.sol";
 import { Helpers } from "../helpers/Helpers.sol";
 
 // Mock contract for reentrancy testing
@@ -66,6 +68,14 @@ contract TestCTMRWA1 is Helpers {
     function setUp() public override {
         super.setUp();
 
+        // Set up fee multipliers for operations that will be tested
+        vm.startPrank(gov);
+        feeManager.setFeeMultiplier(FeeType.MINT, 5);
+        feeManager.setFeeMultiplier(FeeType.TX, 1);
+        feeManager.setFeeMultiplier(FeeType.ADMIN, 5);
+        feeManager.setFeeMultiplier(FeeType.ERC20, 50);
+        vm.stopPrank();
+
         // Deploy token
         vm.startPrank(tokenAdmin);
         (ID, token) = _deployCTMRWA1(address(usdc));
@@ -75,8 +85,8 @@ contract TestCTMRWA1 is Helpers {
         testSlot = 1;
         string memory tokenStr = _toLower((address(usdc).toHexString()));
 
-        testTokenId1 = rwa1X.mintNewTokenValueLocal(user1, 0, testSlot, 1000, ID, tokenStr);
-        testTokenId2 = rwa1X.mintNewTokenValueLocal(user2, 0, testSlot, 1000, ID, tokenStr);
+        testTokenId1 = rwa1XUtils.mintNewTokenValueLocal(user1, 0, testSlot, 1000, ID, VERSION, tokenStr);
+        testTokenId2 = rwa1XUtils.mintNewTokenValueLocal(user2, 0, testSlot, 1000, ID, VERSION, tokenStr);
 
         vm.stopPrank();
 
@@ -89,7 +99,7 @@ contract TestCTMRWA1 is Helpers {
     function test_changeAdmin() public {
         // Only ctmRwa1X can call changeAdmin
         vm.prank(tokenAdmin2);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX));
         token.changeAdmin(tokenAdmin2);
     }
 
@@ -98,13 +108,13 @@ contract TestCTMRWA1 is Helpers {
     function test_attachId() public {
         // Check that an address other than ctmRwa1X cannot attach ID
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX));
         token.attachId(123, user1);
 
         vm.prank(address(rwa1X));
         // Check that ctmRwa1X cannot reset the ID for a previously attached ID
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.TokenAdmin, Address.TokenAdmin)
+            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.TokenAdmin, CTMRWAErrorParam.TokenAdmin)
         );
         token.attachId(123, user1);
     }
@@ -112,36 +122,36 @@ contract TestCTMRWA1 is Helpers {
     function test_attachDividend() public {
         // Check that an address other than ctmRwaMap cannot attach dividend contract
         vm.prank(tokenAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Map));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Map));
         token.attachDividend(address(dividendFactory));
 
         vm.prank(address(map));
         // Check that ctmRwaMap cannot reset the storage address for a previously attached divdend contract
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.Dividend));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, CTMRWAErrorParam.Dividend));
         token.attachDividend(address(dividendFactory));
     }
 
     function test_attachStorage() public {
         // Check that an address other than ctmRwaMap cannot attach storage contract
         vm.prank(tokenAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Map));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Map));
         token.attachStorage(address(storageManager));
 
         vm.prank(address(map));
         // Check that ctmRwaMap cannot reset the storage address for a previously attached storage contract
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.Storage));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, CTMRWAErrorParam.Storage));
         token.attachStorage(address(storageManager));
     }
 
     function test_attachSentry() public {
         // Check that an address other than ctmRwaMap cannot attach sentry contract
         vm.prank(tokenAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Map));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Map));
         token.attachSentry(address(sentryManager));
 
         vm.prank(address(map));
         // Check that ctmRwaMap cannot reset the storage address for a previously attached sentry contract
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.Sentry));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, CTMRWAErrorParam.Sentry));
         token.attachSentry(address(sentryManager));
     }
 
@@ -152,11 +162,11 @@ contract TestCTMRWA1 is Helpers {
         // Tokens are already deployed in setup, just verify the lists
         vm.stopPrank();
 
-        address[] memory adminTokens = rwa1X.getAllTokensByAdminAddress(tokenAdmin);
+        address[] memory adminTokens = rwa1XUtils.getAllTokensByAdminAddress(tokenAdmin, VERSION);
         assertEq(adminTokens.length, 1); // only one CTMRWA1 token deployed
         assertEq(address(token), adminTokens[0]);
 
-        address[] memory nRWA1 = rwa1X.getAllTokensByOwnerAddress(user1); // List of CTMRWA1 tokens that user1 has or
+        address[] memory nRWA1 = rwa1XUtils.getAllTokensByOwnerAddress(user1, VERSION); // List of CTMRWA1 tokens that user1 has or
             // still has tokens in
         assertEq(nRWA1.length, 1);
 
@@ -208,7 +218,7 @@ contract TestCTMRWA1 is Helpers {
         uint256 initialBalance = token.balanceOf(testTokenId1);
 
         // Try to mint value to the token
-        token.mintValueX(testTokenId1, testSlot, 100);
+        token.mintValueX(testTokenId1, 100);
 
         // Verify only one mint occurred
         assertEq(token.balanceOf(testTokenId1), initialBalance + 100);
@@ -223,7 +233,7 @@ contract TestCTMRWA1 is Helpers {
         vm.startPrank(user1);
         // Try to set override wallet without being tokenAdmin
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.TokenAdmin)
+            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin)
         );
         token.setOverrideWallet(user2);
         vm.stopPrank();
@@ -233,10 +243,10 @@ contract TestCTMRWA1 is Helpers {
         // Test that only rwa1X can call restricted functions
         vm.startPrank(user1);
         // Try to change admin without being rwa1X
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX));
         token.changeAdmin(address(0xBEEF));
         // Try to transfer from without being rwa1X
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.RWAX));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX));
         token.createSlotX(12, "Test Slot");
         vm.stopPrank();
     }
@@ -246,9 +256,9 @@ contract TestCTMRWA1 is Helpers {
         vm.startPrank(user1);
         // Try to mint value without being a minter
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Minter)
+            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Minter)
         );
-        token.mintValueX(testTokenId1, testSlot, 100);
+        token.mintValueX(testTokenId1, 100);
         vm.stopPrank();
     }
 
@@ -256,7 +266,7 @@ contract TestCTMRWA1 is Helpers {
         // Test that only ctmRwaMap can call restricted functions
         vm.startPrank(user1);
         // Try to attach dividend without being ctmRwaMap
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Map));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Map));
         token.attachDividend(address(dividendFactory));
         vm.stopPrank();
     }
@@ -310,8 +320,8 @@ contract TestCTMRWA1 is Helpers {
         string memory longName =
             "This is a very long name that exceeds the maximum allowed length of 128 characters and should cause a revert when trying to deploy an ERC20 token";
 
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NameTooLong.selector));
-        token.deployErc20(testSlot, longName, address(usdc));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWAERC20Deployer.CTMRWAERC20Deployer_NameTooLong.selector));
+        deployer.deployERC20(ID, 1, 1, testSlot, longName, address(usdc));
 
         vm.stopPrank();
     }
@@ -325,7 +335,7 @@ contract TestCTMRWA1 is Helpers {
         vm.startPrank(address(rwa1X));
 
         uint256 initialBalance = token.balanceOf(testTokenId1);
-        token.mintValueX(testTokenId1, testSlot, value);
+        token.mintValueX(testTokenId1, value);
 
         assertEq(token.balanceOf(testTokenId1), initialBalance + value);
 
@@ -427,7 +437,7 @@ contract TestCTMRWA1 is Helpers {
         vm.startPrank(user1);
 
         // Transfer zero value should revert
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroUint.selector, Uint.Value));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroUint.selector, CTMRWAErrorParam.Value));
         token.transferFrom(testTokenId1, testTokenId2, 0);
 
         vm.stopPrank();
@@ -450,6 +460,77 @@ contract TestCTMRWA1 is Helpers {
 
     // ============ APPROVAL TESTS ============
 
+    function test_revokeApproval() public {
+        // Test revokeApproval function
+        vm.startPrank(user1);
+
+        // First, approve user2 to spend from testTokenId1
+        token.approve(user2, testTokenId1);
+        
+        // Verify approval was set
+        assertEq(token.getApproved(testTokenId1), user2);
+
+        // Revoke the approval
+        vm.expectEmit(true, true, true, true);
+        emit ICTMRWA1.RevokeApproval(testTokenId1);
+        token.revokeApproval(testTokenId1);
+
+        // Verify approval was revoked (should be address(0))
+        assertEq(token.getApproved(testTokenId1), address(0));
+
+        vm.stopPrank();
+    }
+
+    function test_revokeApproval_unauthorized() public {
+        // Test that only the owner can revoke approval
+        vm.startPrank(user1);
+
+        // First, approve user2 to spend from testTokenId1
+        token.approve(user2, testTokenId1);
+        
+        // Verify approval was set
+        assertEq(token.getApproved(testTokenId1), user2);
+
+        vm.stopPrank();
+
+        // Try to revoke approval as user2 (not the owner)
+        vm.startPrank(user2);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Owner));
+        token.revokeApproval(testTokenId1);
+        vm.stopPrank();
+
+        // Verify approval is still set (revocation failed)
+        assertEq(token.getApproved(testTokenId1), user2);
+    }
+
+    function test_revokeApproval_nonExistentToken() public {
+        // Test revoking approval for non-existent token
+        uint256 nonExistentTokenId = 999_999;
+        
+        vm.startPrank(user1);
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IDNonExistent.selector, nonExistentTokenId));
+        token.revokeApproval(nonExistentTokenId);
+        vm.stopPrank();
+    }
+
+    function test_revokeApproval_noApprovalSet() public {
+        // Test revoking approval when no approval is set (should still work)
+        vm.startPrank(user1);
+
+        // Verify no approval is set initially
+        assertEq(token.getApproved(testTokenId1), address(0));
+
+        // Revoke approval (should not revert even if no approval was set)
+        vm.expectEmit(true, true, true, true);
+        emit ICTMRWA1.RevokeApproval(testTokenId1);
+        token.revokeApproval(testTokenId1);
+
+        // Verify approval is still address(0)
+        assertEq(token.getApproved(testTokenId1), address(0));
+
+        vm.stopPrank();
+    }
+
     function test_approvalSecurity() public {
         // Test approval security
         vm.startPrank(user1);
@@ -461,7 +542,7 @@ contract TestCTMRWA1 is Helpers {
         assertEq(token.allowance(testTokenId1, user2), 500);
 
         // Try to approve self (should fail)
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, Address.To, Address.Owner));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_Unauthorized.selector, CTMRWAErrorParam.To, CTMRWAErrorParam.Owner));
         token.approve(testTokenId1, user1, 100);
 
         vm.stopPrank();
@@ -505,18 +586,28 @@ contract TestCTMRWA1 is Helpers {
         vm.stopPrank();
     }
 
-    // ============ ERC20 DEPLOYMENT TESTS ============
+    // ============ ERC20 APPROVAL TESTS ============
 
-    function test_erc20DeploymentSecurity() public {
-        // Test ERC20 deployment security
+    function test_erc20ApprovalSecurity() public {
+        // Test ERC20 approval security
         vm.startPrank(tokenAdmin);
+        
+        // First deploy an ERC20 for the test slot
+        usdc.approve(address(deployer), 100_000_000);
+        deployer.deployERC20(ID, 1, 1, testSlot, "Test ERC20", address(usdc));
+        vm.stopPrank();
+        
+        vm.startPrank(user1);
 
-        // Deploy ERC20 for slot
-        token.deployErc20(testSlot, "Test ERC20", address(usdc));
+        // Approve tokenId for ERC20 spending
+        token.approveErc20(testTokenId1);
 
-        // Try to deploy again for same slot (should fail)
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_NotZeroAddress.selector, Address.RWAERC20));
-        token.deployErc20(testSlot, "Test ERC20 2", address(usdc));
+        // Verify approval
+        assertEq(token.getApproved(testTokenId1), token.getErc20(testSlot));
+
+        // Try to approve again (should fail)
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_ERC20AlreadyApproved.selector, testTokenId1));
+        token.approveErc20(testTokenId1);
 
         vm.stopPrank();
     }
@@ -625,12 +716,170 @@ contract TestCTMRWA1 is Helpers {
         // Test overflow protection (though Solidity 0.8+ has built-in protection)
         vm.startPrank(address(rwa1X));
 
-        // Try to mint maximum value
-        token.mintValueX(testTokenId1, testSlot, type(uint256).max - 1000);
+        // Get current supply in slot (should be 2000 from both testTokenId1 and testTokenId2)
+        uint256 currentSupplyInSlot = token.totalSupplyInSlot(testSlot);
+        
+        // Try to mint maximum value (checkpoints use uint208 for the value)
+        // Current balance should be 1000 from setup, but we need to account for total supply in slot
+        uint256 maxUint208 = 2**208 - 1;
+        uint256 maxMintable = maxUint208 - currentSupplyInSlot;
+        token.mintValueX(testTokenId1, maxMintable);
 
         // Try to mint more (should fail due to overflow)
-        vm.expectRevert("panic: arithmetic underflow or overflow (0x11)");
-        token.mintValueX(testTokenId1, testSlot, 1000);
+        // The current supply in slot is now type(uint208).max, so minting any amount should fail
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_ValueOverflow.selector, maxUint208 + 1, maxUint208));
+        token.mintValueX(testTokenId1, 1);
+
+        vm.stopPrank();
+    }
+
+    function test_mintValueXUpdatesCheckpoints() public {
+        // Test that mintValueX properly updates checkpointed arrays
+        vm.startPrank(address(rwa1X));
+
+        uint256 mintValue = 5000;
+        uint256 slot = token.slotOf(testTokenId1);
+        address owner = token.ownerOf(testTokenId1);
+
+        // Get initial values
+        uint256 initialBalance = token.balanceOf(owner, slot);
+        uint256 initialTokenBalance = token.balanceOf(testTokenId1);
+        uint256 initialSupplyInSlot = token.totalSupplyInSlot(slot);
+        
+
+        // Mint value using mintValueX
+        token.mintValueX(testTokenId1, mintValue);
+
+        // Check that token balance increased
+        uint256 newTokenBalance = token.balanceOf(testTokenId1);
+        assertEq(newTokenBalance, initialTokenBalance + mintValue, "Token balance should increase by minted value");
+
+        // Check that owner's balance in slot increased
+        uint256 newOwnerBalance = token.balanceOf(owner, slot);
+        assertEq(newOwnerBalance, initialBalance + mintValue, "Owner balance in slot should increase by minted value");
+
+        // Check that total supply in slot increased
+        uint256 newSupplyInSlot = token.totalSupplyInSlot(slot);
+        assertEq(newSupplyInSlot, initialSupplyInSlot + mintValue, "Total supply in slot should increase by minted value");
+
+        // Test checkpoint functionality by checking balance at different times
+        // First, warp to a specific timestamp to ensure the first mint happens at timestamp 100
+        vm.warp(100);
+        
+        // Wait a bit and mint more to create a different timestamp
+        vm.warp(block.timestamp + 100);
+        token.mintValueX(testTokenId1, 2000);
+        
+        uint256 timestamp2 = block.timestamp; // Capture timestamp after second mint
+        uint256 finalBalance = token.balanceOf(owner, slot);
+        uint256 finalSupplyInSlot = token.totalSupplyInSlot(slot);
+        
+        // Check final balances
+        assertEq(finalBalance, initialBalance + mintValue + 2000, "Final balance should be correct");
+        assertEq(finalSupplyInSlot, initialSupplyInSlot + mintValue + 2000, "Final supply in slot should be correct");
+        
+        // Now test historical lookup - this should work correctly with different timestamps
+        // Test that we can query balance at timestamp1 (should be after first mint only)
+        // The first mint happened at timestamp 1, so we need to query for timestamp 1
+        uint256 balanceAtTime1 = token.balanceOfAt(owner, slot, 1);
+        assertEq(balanceAtTime1, initialBalance + mintValue, "Balance at timestamp1 should be after first mint only");
+        
+        // Test that we can query balance at timestamp2 (should be after second mint)
+        uint256 balanceAtTime2 = token.balanceOfAt(owner, slot, timestamp2);
+        assertEq(balanceAtTime2, initialBalance + mintValue + 2000, "Balance at timestamp2 should be after both mints");
+        
+        // Test that we can query balance at a timestamp between the two mints
+        // Since there's no checkpoint between the mints, we should get the most recent checkpoint
+        // which should be the first mint (timestamp 1) with value 6000
+        uint256 midTimestamp = 150; // Between first and second mint
+        uint256 balanceAtMidTime = token.balanceOfAt(owner, slot, midTimestamp);
+        assertEq(balanceAtMidTime, initialBalance + mintValue, "Balance at mid timestamp should be after first mint only");
+        
+        // Note: We cannot query for a balance before any mints because the checkpoint system
+        // only creates checkpoints when mints happen, not for the initial state.
+        // The initial balance (1000) is not stored as a checkpoint.
+        
+        // Test supply historical lookup as well
+        uint256 supplyAtTime1 = token.totalSupplyInSlotAt(slot, 1);
+        assertEq(supplyAtTime1, initialSupplyInSlot + mintValue, "Supply at timestamp1 should be after first mint only");
+        
+        uint256 supplyAtTime2 = token.totalSupplyInSlotAt(slot, timestamp2);
+        assertEq(supplyAtTime2, initialSupplyInSlot + mintValue + 2000, "Supply at timestamp2 should be after both mints");
+
+        vm.stopPrank();
+    }
+
+    function test_burnValueXUpdatesCheckpoints() public {
+        // Test that burnValueX properly updates checkpointed arrays
+        vm.startPrank(address(rwa1X));
+
+        uint256 burnValue = 500; // Burn 500 from token with 1000 balance
+        uint256 slot = token.slotOf(testTokenId1);
+        address owner = token.ownerOf(testTokenId1);
+
+        // Get initial values
+        uint256 initialBalance = token.balanceOf(owner, slot);
+        uint256 initialTokenBalance = token.balanceOf(testTokenId1);
+        uint256 initialSupplyInSlot = token.totalSupplyInSlot(slot);
+
+        // Burn value using burnValueX
+        token.burnValueX(testTokenId1, burnValue);
+
+        // Check that token balance decreased
+        uint256 newTokenBalance = token.balanceOf(testTokenId1);
+        assertEq(newTokenBalance, initialTokenBalance - burnValue, "Token balance should decrease by burned value");
+
+        // Check that owner's balance in slot decreased
+        uint256 newOwnerBalance = token.balanceOf(owner, slot);
+        assertEq(newOwnerBalance, initialBalance - burnValue, "Owner balance in slot should decrease by burned value");
+
+        // Check that total supply in slot decreased
+        uint256 newSupplyInSlot = token.totalSupplyInSlot(slot);
+        assertEq(newSupplyInSlot, initialSupplyInSlot - burnValue, "Total supply in slot should decrease by burned value");
+
+        // Test checkpoint functionality by checking balance at different times
+        // First, warp to a specific timestamp to ensure the burn happens at timestamp 100
+        vm.warp(100);
+        
+        // Wait a bit and burn more to create a different timestamp
+        vm.warp(block.timestamp + 100);
+        token.burnValueX(testTokenId1, 200); // Burn 200 more (total burned: 500 + 200 = 700)
+        
+        uint256 timestamp2 = block.timestamp; // Capture timestamp after second burn
+        uint256 finalBalance = token.balanceOf(owner, slot);
+        uint256 finalSupplyInSlot = token.totalSupplyInSlot(slot);
+        
+        // Check final balances
+        assertEq(finalBalance, initialBalance - burnValue - 200, "Final balance should be correct");
+        assertEq(finalSupplyInSlot, initialSupplyInSlot - burnValue - 200, "Final supply in slot should be correct");
+        
+        // Now test historical lookup - this should work correctly with different timestamps
+        // Test that we can query balance at timestamp1 (should be after first burn only)
+        // The first burn happened at timestamp 1, so we need to query for timestamp 1
+        uint256 balanceAtTime1 = token.balanceOfAt(owner, slot, 1);
+        assertEq(balanceAtTime1, initialBalance - burnValue, "Balance at timestamp1 should be after first burn only");
+        
+        // Test that we can query balance at timestamp2 (should be after second burn)
+        uint256 balanceAtTime2 = token.balanceOfAt(owner, slot, timestamp2);
+        assertEq(balanceAtTime2, initialBalance - burnValue - 200, "Balance at timestamp2 should be after both burns");
+        
+        // Test that we can query balance at a timestamp between the two burns
+        // Since there's no checkpoint between the burns, we should get the most recent checkpoint
+        // which should be the first burn (timestamp 1) with value after first burn
+        uint256 midTimestamp = 150; // Between first and second burn
+        uint256 balanceAtMidTime = token.balanceOfAt(owner, slot, midTimestamp);
+        assertEq(balanceAtMidTime, initialBalance - burnValue, "Balance at mid timestamp should be after first burn only");
+        
+        // Note: We cannot query for a balance before any burns because the checkpoint system
+        // only creates checkpoints when burns happen, not for the initial state.
+        // The initial balance is not stored as a checkpoint.
+        
+        // Test supply historical lookup as well
+        uint256 supplyAtTime1 = token.totalSupplyInSlotAt(slot, 1);
+        assertEq(supplyAtTime1, initialSupplyInSlot - burnValue, "Supply at timestamp1 should be after first burn only");
+        
+        uint256 supplyAtTime2 = token.totalSupplyInSlotAt(slot, timestamp2);
+        assertEq(supplyAtTime2, initialSupplyInSlot - burnValue - 200, "Supply at timestamp2 should be after both burns");
 
         vm.stopPrank();
     }
@@ -664,12 +913,12 @@ contract TestCTMRWA1 is Helpers {
 
         string memory tokenStr = _toLower((address(usdc).toHexString()));
 
-        uint256 tokenId1User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, tokenStr);
+        uint256 tokenId1User1 = rwa1XUtils.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, VERSION, tokenStr);
 
-        uint256 tokenId2User1 = rwa1X.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, tokenStr);
+        uint256 tokenId2User1 = rwa1XUtils.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, VERSION, tokenStr);
 
         // Licensed Security override not set up
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, CTMRWAErrorParam.Override));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         string memory randomData = "this is any old data";
@@ -677,6 +926,7 @@ contract TestCTMRWA1 is Helpers {
 
         storageManager.addURI(
             ID,
+            VERSION,
             "2",
             URICategory.ISSUER,
             URIType.CONTRACT,
@@ -698,6 +948,7 @@ contract TestCTMRWA1 is Helpers {
 
         storageManager.addURI(
             ID,
+            VERSION,
             "1",
             URICategory.LICENSE,
             URIType.CONTRACT,
@@ -709,7 +960,7 @@ contract TestCTMRWA1 is Helpers {
         );
 
         // Licensed Security override not set up, since we didn't set the Regulator's wallet yet
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, CTMRWAErrorParam.Override));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         // Try again to set admin as the Regulator's wallet
@@ -717,7 +968,7 @@ contract TestCTMRWA1 is Helpers {
         assertEq(ICTMRWA1Storage(stor).regulatorWallet(), admin);
 
         // Licensed Security override not set up, since we did not set the override wallet yet
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, CTMRWAErrorParam.Override));
         token.forceTransfer(user1, user2, tokenId1User1);
 
         // Set the override wallet as tokenAdmin2. This should be a Multi-sig wallet, with admin as one of the signers.
@@ -726,7 +977,7 @@ contract TestCTMRWA1 is Helpers {
 
         // Try to force transfer again, should fail since the override wallet is not the sender (tokenAdmin)
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Override)
+            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Override)
         );
         token.forceTransfer(user1, user2, tokenId1User1);
 
@@ -741,19 +992,19 @@ contract TestCTMRWA1 is Helpers {
         vm.startPrank(user2);
         // Try a forceTransfer with the user2, should fail since user2 is not the override wallet (tokenAdmin2)
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, Address.Sender, Address.Override)
+            abi.encodeWithSelector(ICTMRWA1.CTMRWA1_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.Override)
         );
         token.forceTransfer(user1, user2, tokenId2User1);
 
         vm.stopPrank();
 
         vm.startPrank(tokenAdmin);
-        rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), ID, tokenStr);
+        rwa1X.changeTokenAdmin(tokenAdmin2.toHexString(), _stringToArray(cIdStr), ID, VERSION, tokenStr);
         vm.stopPrank();
 
         vm.startPrank(tokenAdmin2);
         // Must re-setup override wallet if tokenAdmin has changed
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, Address.Override));
+        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_IsZeroAddress.selector, CTMRWAErrorParam.Override));
         token.forceTransfer(user1, user2, tokenId2User1);
         vm.stopPrank();
     }
@@ -788,7 +1039,7 @@ contract TestCTMRWA1 is Helpers {
         // Mint a token for user1 in slot 1 (setUp already minted 1000 for user1 and 1000 for user2)
         vm.startPrank(tokenAdmin);
         string memory tokenStr = address(usdc).toHexString();
-        uint256 tokenId = rwa1X.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, tokenStr);
+        uint256 tokenId = rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
         vm.stopPrank();
 
         uint48 t1 = nowTs;
@@ -800,7 +1051,7 @@ contract TestCTMRWA1 is Helpers {
         nowTs += 10;
         vm.warp(nowTs);
         vm.startPrank(tokenAdmin);
-        rwa1X.mintNewTokenValueLocal(user1, 0, 1, 500, ID, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, 500, ID, VERSION, tokenStr);
         vm.stopPrank();
         uint48 t2 = nowTs;
         assertEq(token.balanceOf(user1, 1), 2500);
@@ -818,7 +1069,7 @@ contract TestCTMRWA1 is Helpers {
         // Mint a token for user1 in slot 1 (setUp already minted 1000 for user1 and 1000 for user2)
         vm.startPrank(tokenAdmin);
         string memory tokenStr = address(usdc).toHexString();
-        rwa1X.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user1, 0, 1, 1000, ID, VERSION, tokenStr);
         vm.stopPrank();
         uint48 t1 = nowTs;
         // After setUp: slot 1 has 2000. After this mint: slot 1 has 3000.
@@ -828,7 +1079,7 @@ contract TestCTMRWA1 is Helpers {
         nowTs += 10;
         vm.warp(nowTs);
         vm.startPrank(tokenAdmin);
-        rwa1X.mintNewTokenValueLocal(user2, 0, 1, 500, ID, tokenStr);
+        rwa1XUtils.mintNewTokenValueLocal(user2, 0, 1, 500, ID, VERSION, tokenStr);
         vm.stopPrank();
         uint48 t2 = nowTs;
         assertEq(token.totalSupplyInSlot(1), 3500);

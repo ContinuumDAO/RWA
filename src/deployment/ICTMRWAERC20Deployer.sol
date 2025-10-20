@@ -3,12 +3,18 @@
 pragma solidity 0.8.27;
 
 import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { Address } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWAERC20Deployer {
-    error CTMRWAERC20Deployer_IsZeroAddress(Address);
-    error CTMRWAERC20Deployer_InvalidContract(Address);
-    error CTMRWAERC20Deployer_OnlyAuthorized(Address, Address);
+    error CTMRWAERC20Deployer_IsZeroAddress(CTMRWAErrorParam);
+    error CTMRWAERC20Deployer_InvalidContract(CTMRWAErrorParam);
+    error CTMRWAERC20Deployer_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
+    error CTMRWAERC20Deployer_NameTooLong();
+    error CTMRWAERC20Deployer_FailedTransfer();
+    error CTMRWAERC20Deployer_InvalidVersion(uint256);
+    error CTMRWAERC20Deployer_InvalidRWAType(uint256);
+    error CTMRWAERC20Deployer_InvalidSlot(uint256);
+
 
     function deployERC20(
         uint256 ID,
@@ -16,7 +22,6 @@ interface ICTMRWAERC20Deployer {
         uint256 version,
         uint256 slot,
         string memory name,
-        string memory symbol,
         address feeToken,
         address originalCaller
     ) external returns (address);

@@ -4,7 +4,7 @@ pragma solidity 0.8.27;
 
 import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -47,14 +47,14 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
     modifier onlyTokenAdmin() {
         if (msg.sender != tokenAdmin && msg.sender != ctmRwa1X) {
-            revert CTMRWA1Sentry_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+            revert CTMRWA1Sentry_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
         }
         _;
     }
 
     modifier onlySentryManager() {
         if (msg.sender != sentryManagerAddr) {
-            revert CTMRWA1Sentry_OnlyAuthorized(Address.Sender, Address.SentryManager);
+            revert CTMRWA1Sentry_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.SentryManager);
         }
         _;
     }
@@ -130,6 +130,7 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
     /** @dev Set the sentry options on the local chain. This function is called by CTMRWA1SentryManager
      * @param _ID The ID of the RWA token
+     * @param _version The version of the RWA token
      * @param _whitelist The whitelist switch
      * @param _kyc The KYC switch
      * @param _kyb The KYB switch
@@ -137,6 +138,7 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
      */
     function setSentryOptionsLocal(
         uint256 _ID,
+        uint256 _version,
         bool _whitelist,
         bool _kyc,
         bool _kyb,
@@ -148,7 +150,9 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         if (_ID != ID) {
             revert CTMRWA1Sentry_InvalidID(ID, _ID);
         }
-
+        if (_version != VERSION) {
+            revert CTMRWA1Sentry_InvalidVersion(VERSION, _version);
+        }
         if (_whitelist) {
             whitelistSwitch = true;
         }
@@ -178,15 +182,19 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
     /** @dev Set the Whitelist status on this chain. This contract holds the Whitelist state. This contract
      * is called by CTMRWA1SentryManager
      * @param _ID The ID of the RWA token
+     * @param _version The version of the RWA token
      * @param _wallets The list of wallets to set the state for
      * @param _choices The list of choices for the wallets
      */
-    function setWhitelistSentry(uint256 _ID, string[] memory _wallets, bool[] memory _choices)
+    function setWhitelistSentry(uint256 _ID, uint256 _version, string[] memory _wallets, bool[] memory _choices)
         external
         onlySentryManager
     {
         if (_ID != ID) {
             revert CTMRWA1Sentry_InvalidID(ID, _ID);
+        }
+        if (_version != VERSION) {
+            revert CTMRWA1Sentry_InvalidVersion(VERSION, _version);
         }
         _setWhitelist(_wallets, _choices);
     }
@@ -194,21 +202,27 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
     /** @dev Set the country Whitelist ot Blacklist on this chain. This contract holds the state. This contract
      * is called by CTMRWA1SentryManager
      * @param _ID The ID of the RWA token
+     * @param _version The version of the RWA token
      * @param _countryList The list of countries to set the state for
      * @param _choices The list of choices for the countries
      */
-    function setCountryListLocal(uint256 _ID, string[] memory _countryList, bool[] memory _choices)
+    function setCountryListLocal(uint256 _ID, uint256 _version, string[] memory _countryList, bool[] memory _choices)
         external
         onlySentryManager
     {
         if (_ID != ID) {
             revert CTMRWA1Sentry_InvalidID(ID, _ID);
         }
-
+        if (_version != VERSION) {
+            revert CTMRWA1Sentry_InvalidVersion(VERSION, _version);
+        }
         _setCountryList(_countryList, _choices);
     }
 
-    /** @dev Internal function to manage the wallet Whitelist
+    
+
+    /** @dev Internal function to manage the wallet Whitelist on this chain. This contract holds the state. This contract
+     * is called by CTMRWA1SentryManager
      * @param _wallets The list of wallets to set the state for
      * @param _choices The list of choices for the wallets
      */
@@ -226,7 +240,7 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
 
             if (walletStr.equal(adminStr) && !_choices[i]) {
                 // revert("CTMRWA1Sentry: Cannot remove tokenAdmin from the whitelist");
-                revert CTMRWA1Sentry_Unauthorized(Address.Wallet, Address.TokenAdmin);
+                revert CTMRWA1Sentry_Unauthorized(CTMRWAErrorParam.Wallet, CTMRWAErrorParam.TokenAdmin);
             } else if (indx != 0 && indx == ctmWhitelist.length - 1 && !_choices[i]) {
                 // last entry to be removed
                 whitelistIndx[walletStr] = 0;

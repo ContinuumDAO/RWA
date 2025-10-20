@@ -86,7 +86,7 @@ const customErrors = [
     "CTMRWA1Dividend_EnforcedPause()",
     
     // Crosschain errors
-    "CTMRWA1XFallback_OnlyAuthorized(CTMRWAErrorParam,CTMRWAErrorParam)",
+    "CTMRWA1XUtils_OnlyAuthorized(CTMRWAErrorParam,CTMRWAErrorParam)",
     "CTMRWAGateway_LengthMismatch(CTMRWAErrorParam)",
     "CTMRWAGateway_InvalidLength(CTMRWAErrorParam)",
     

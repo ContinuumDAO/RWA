@@ -9,7 +9,7 @@ import { ICTMRWAGateway } from "../crosschain/ICTMRWAGateway.sol";
 import { ICTMRWA1Identity } from "../identity/ICTMRWA1Identity.sol";
 import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
 import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { Address, CTMRWAUtils, List, Uint } from "../utils/CTMRWAUtils.sol";
+import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
 import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
 import { ICTMRWA1SentryManager } from "./ICTMRWA1SentryManager.sol";
 import { ICTMRWA1SentryUtils } from "./ICTMRWA1SentryUtils.sol";
@@ -35,6 +35,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     using SafeERC20 for IERC20;
     using CTMRWAUtils for string;
 
+    /// @dev The latest version of RWA type
+    uint256 public LATEST_VERSION;
+
     /// @dev The address of the CTMRWADeployer contract
     address public ctmRwaDeployer;
 
@@ -45,10 +48,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     address public utilsAddr;
 
     /// @dev rwaType is the RWA type defining CTMRWA1
-    uint256 public constant RWA_TYPE = 1;
-
-    /// @dev version is the single integer version of this RWA type
-    uint256 public constant VERSION = 1;
+    uint256 public immutable RWA_TYPE = 1;
 
     /// @dev The address of the CTMRWAGateway contract
     address public gateway;
@@ -74,19 +74,20 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     /// @dev New Whitelist added on local chain for ID
     event WhitelistAdded(uint256 ID);
 
-    /// @dev New c3call to Add a Country List for ID to chain toChainIdStr
+    /// @dev New c3call to Add a Country CTMRWAErrorParam for ID to chain toChainIdStr
     event AddingCountryList(uint256 ID, string toChainIdStr);
 
-    /// @dev New Country List added on local chain for ID
+    /// @dev New Country CTMRWAErrorParam added on local chain for ID
     event CountryListAdded(uint256 ID);
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
-            revert CTMRWA1SentryManager_OnlyAuthorized(Address.Sender, Address.Deployer);
+            revert CTMRWA1SentryManager_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer);
         }
         _;
     }
 
+    /// @dev Initialize the contract
     function initialize(
         address _gov,
         address _c3callerProxy,
@@ -97,6 +98,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         address _feeManager
     ) external initializer {
         __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        LATEST_VERSION = 1;
         ctmRwaDeployer = _ctmRwaDeployer;
         gateway = _gateway;
         feeManager = _feeManager;
@@ -106,10 +108,25 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
 
     /**
+     * @notice Governance can update the latest version
+     * @param _newVersion The new latest version
+     */
+    function updateLatestVersion(uint256 _newVersion) external onlyGov {
+        if (_newVersion == 0) {
+            revert CTMRWA1SentryManager_InvalidVersion(_newVersion);
+        }
+        LATEST_VERSION = _newVersion;
+    }
+
+    /**
      * @notice Governance can change to a new CTMRWAGateway contract
      * @param _gateway address of the new CTMRWAGateway contract
      */
     function setGateway(address _gateway) external onlyGov {
+        if (_gateway == address(0)) {
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Gateway);
+        }
+
         gateway = _gateway;
     }
 
@@ -118,6 +135,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * @param _feeManager address of the new FeeManager contract
      */
     function setFeeManager(address _feeManager) external onlyGov {
+        if (_feeManager == address(0)) {
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.FeeManager);
+        }
+        
         feeManager = _feeManager;
     }
 
@@ -126,6 +147,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * @param _deployer address of the new CTMRWADeployer contract
      */
     function setCtmRwaDeployer(address _deployer) external onlyGov {
+        if (_deployer == address(0)) {
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Deployer);
+        }
+
         ctmRwaDeployer = _deployer;
     }
 
@@ -134,6 +159,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * @param _map address of the new CTMRWAMap contract
      */
     function setCtmRwaMap(address _map) external onlyGov {
+        if (_map == address(0)) {
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Map);
+        }
+
         ctmRwaMap = _map;
     }
 
@@ -142,6 +171,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * @param _utilsAddr address of the new CTMRWA1SentryUtils contract
      */
     function setSentryUtils(address _utilsAddr) external onlyGov {
+        if (_utilsAddr == address(0)) {
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Utils);
+        }
         utilsAddr = _utilsAddr;
     }
 
@@ -150,7 +182,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      */
     function setIdentity(address _id, address _zkMeVerifierAddr) external onlyGov {
         if (_id == address(0)) {
-            revert CTMRWA1SentryManager_IsZeroAddress(Address.Identity);
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Identity);
         }
         identity = _id;
         ICTMRWA1Identity(_id).setZkMeVerifierAddress(_zkMeVerifierAddr);
@@ -172,6 +204,19 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         returns (address)
     {
         address sentryAddr = ICTMRWA1SentryUtils(utilsAddr).deploySentry(_ID, _tokenAddr, _rwaType, _version, _map);
+
+        // Verify that the deployed sentry contract is for the correct version, RWA type
+        if (_version != ICTMRWA1Sentry(sentryAddr).VERSION()) {
+            revert CTMRWA1SentryManager_InvalidVersion(_version);
+        }
+
+        if (_rwaType != ICTMRWA1Sentry(sentryAddr).RWA_TYPE()) {
+            revert CTMRWA1SentryManager_InvalidRWAType(_rwaType);
+        }
+
+        if (RWA_TYPE != ICTMRWA1Sentry(sentryAddr).RWA_TYPE()) {
+            revert CTMRWA1SentryManager_InvalidRWAType(RWA_TYPE);
+        }
 
         return (sentryAddr);
     }
@@ -215,6 +260,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      */
     function setSentryOptions(
         uint256 _ID,
+        uint256 _version,
         bool _whitelist,
         bool _kyc,
         bool _kyb,
@@ -225,12 +271,12 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         _checkTokenAdmin(ctmRwa1Addr);
 
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwaMap).getSentryContract(_ID, RWA_TYPE, VERSION);
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwaMap).getSentryContract(_ID, RWA_TYPE, _version);
         if (!ok) {
-            revert CTMRWA1SentryManager_InvalidContract(Address.Sentry);
+            revert CTMRWA1SentryManager_InvalidContract(CTMRWAErrorParam.Sentry);
         }
 
         bool sentryOptionsSet = ICTMRWA1Sentry(sentryAddr).sentryOptionsSet();
@@ -240,7 +286,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
 
         if (!_kyc) {
             if (!_whitelist) {
-                revert CTMRWA1SentryManager_InvalidList(List.WL_KYC_Disabled);
+                revert CTMRWA1SentryManager_InvalidList(CTMRWAErrorParam.WL_KYC_Disabled);
             }
 
             if (_kyb || _over18 || _accredited || _countryWL || _countryBL) {
@@ -248,7 +294,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
             }
         } else {
             if (_countryWL && _countryBL) {
-                revert CTMRWA1SentryManager_InvalidList(List.WL_BL_Defined);
+                revert CTMRWA1SentryManager_InvalidList(CTMRWAErrorParam.WL_BL_Defined);
             }
         }
 
@@ -261,14 +307,14 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
 
             if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Sentry(sentryAddr).setSentryOptionsLocal(
-                    _ID, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
+                    _ID, _version, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
                 );
             } else {
-                (, string memory toRwaSentryStr) = _getSentry(chainIdStr);
+                (, string memory toRwaSentryStr) = _getSentry(chainIdStr, _version);
 
-                string memory funcCall = "setSentryOptionsX(uint256,bool,bool,bool,bool,bool,bool,bool)";
+                string memory funcCall = "setSentryOptionsX(uint256,uint256,bool,bool,bool,bool,bool,bool,bool)";
                 bytes memory callData = abi.encodeWithSignature(
-                    funcCall, _ID, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
+                    funcCall, _ID, _version, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
                 );
 
                 _c3call(toRwaSentryStr, chainIdStr, callData);
@@ -283,6 +329,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * implementation. It can only be called by the tokenAdmin (Issuer). It can only be called if the
      * _kyc switch has been set in setSentryOptions. See https://dashboard.zk.me for details.
      * @param _ID The ID of the RWA token
+     * @param _version The version of the RWA token
      * @param _appId The appId that the tokenAdmin can generate in the zkMe Dashboard from their apiKey
      * @param _programNo The programNo for the Schema, which details access restrictions (e.g. geo-fencing).
      * NOTE The tokenAdmin can change the _programNo if they update the access restrictions, so that all
@@ -291,15 +338,15 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * has undergone KYC AND passes the access restrictions in the Schema (_programNo). AssetX calls the
      * hasApproved function in this contract.
      */
-    function setZkMeParams(uint256 _ID, string memory _appId, string memory _programNo, address _cooperator) public {
+    function setZkMeParams(uint256 _ID, uint256 _version, string memory _appId, string memory _programNo, address _cooperator) public {
         if (identity == address(0)) {
-            revert CTMRWA1SentryManager_IsZeroAddress(Address.Identity);
+            revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Identity);
         }
 
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         _checkTokenAdmin(ctmRwa1Addr);
 
-        (address sentryAddr,) = _getSentryAddr(_ID);
+        (address sentryAddr,) = _getSentryAddr(_ID, _version);
 
         bool kyc = ICTMRWA1Sentry(sentryAddr).kycSwitch();
 
@@ -316,16 +363,17 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * would be called after a time period had elapsed as determined by a Regulator, so that the token
      * can be publicly traded.
      * @param _ID The ID of the RWA token
+     * @param _version The version of the RWA token
      * @param _chainIdsStr This is an array of strings of chainIDs to deploy to.
      * @param _feeTokenStr This is fee token on the source chain (local chain) that you wish to use to pay
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * NOTE This function has no effect if zkMe is the KYC provider and is then only for information purposes.
      */
-    function goPublic(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr) public {
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+    function goPublic(uint256 _ID, uint256 _version, string[] memory _chainIdsStr, string memory _feeTokenStr) public {
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         _checkTokenAdmin(ctmRwa1Addr);
 
-        (address sentryAddr,) = _getSentryAddr(_ID);
+        (address sentryAddr,) = _getSentryAddr(_ID, _version);
 
         bool kyc = ICTMRWA1Sentry(sentryAddr).kycSwitch();
         if (!kyc) {
@@ -351,14 +399,14 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
 
             if (chainIdStr.equal(cIdStr)) {
                 ICTMRWA1Sentry(sentryAddr).setSentryOptionsLocal(
-                    _ID, false, true, kyb, over18, false, countryWL, countryBL
+                    _ID, _version, false, true, kyb, over18, false, countryWL, countryBL
                 );
             } else {
-                (, string memory toRwaSentryStr) = _getSentry(chainIdStr);
+                (, string memory toRwaSentryStr) = _getSentry(chainIdStr, _version);
 
-                string memory funcCall = "setSentryOptionsX(uint256,bool,bool,bool,bool,bool,bool,bool)";
+                string memory funcCall = "setSentryOptionsX(uint256,uint256,bool,bool,bool,bool,bool,bool,bool)";
                 bytes memory callData =
-                    abi.encodeWithSignature(funcCall, _ID, false, true, kyb, over18, false, countryWL, countryBL);
+                    abi.encodeWithSignature(funcCall, _ID, _version, false, true, kyb, over18, false, countryWL, countryBL);
 
                 _c3call(toRwaSentryStr, chainIdStr, callData);
 
@@ -371,6 +419,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     /// See this function for the parameter descriptions. It is an onlyCaller function.
     function setSentryOptionsX(
         uint256 _ID,
+        uint256 _version,
         bool _whitelist,
         bool _kyc,
         bool _kyb,
@@ -379,10 +428,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         bool _countryWL,
         bool _countryBL
     ) external onlyCaller returns (bool) {
-        (address sentryAddr,) = _getSentryAddr(_ID);
+        (address sentryAddr,) = _getSentryAddr(_ID, _version);
 
         ICTMRWA1Sentry(sentryAddr).setSentryOptionsLocal(
-            _ID, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
+            _ID, _version, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
         );
 
         emit SentryOptionsSet(_ID);
@@ -394,6 +443,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * @notice This function allows the tokenAdmin (Issuer) to maintain a Whitelist of user wallets
      * on all chains that may receive value in the RWA token.
      * @param _ID The ID of the RWA token
+     * @param _version The version of the RWA token
      * @param _wallets An array of wallets as strings for which the access status is being updated.
      * @param _choices An array of switches corresponding to _wallets. If an entry is true, then this
      * wallet address may receive value. The function _isAllowableTransfer in CTMRWA1Sentry is called to check
@@ -404,23 +454,24 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      */
     function addWhitelist(
         uint256 _ID,
+        uint256 _version,
         string[] memory _wallets,
         bool[] memory _choices,
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
         if (_choices.length != _wallets.length) {
-            revert CTMRWA1SentryManager_LengthMismatch(Uint.Input);
+            revert CTMRWA1SentryManager_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
-        (address sentryAddr,) = _getSentryAddr(_ID);
+        (address sentryAddr,) = _getSentryAddr(_ID, _version);
 
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         _checkTokenAdmin(ctmRwa1Addr);
 
         bool whitelistSwitch = ICTMRWA1Sentry(sentryAddr).whitelistSwitch();
         if (!whitelistSwitch) {
-            revert CTMRWA1SentryManager_InvalidList(List.WL_Disabled);
+            revert CTMRWA1SentryManager_InvalidList(CTMRWAErrorParam.WL_Disabled);
         }
 
         uint256 len = _wallets.length;
@@ -435,12 +486,12 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
             string memory chainIdStr = _chainIdsStr[i]._toLower();
 
             if (chainIdStr.equal(cIdStr)) {
-                ICTMRWA1Sentry(sentryAddr).setWhitelistSentry(_ID, _wallets, _choices);
+                ICTMRWA1Sentry(sentryAddr).setWhitelistSentry(_ID, _version, _wallets, _choices);
             } else {
-                (, string memory toRwaSentryStr) = _getSentry(chainIdStr);
+                (, string memory toRwaSentryStr) = _getSentry(chainIdStr, _version);
 
-                string memory funcCall = "setWhitelistX(uint256,string[],bool[])";
-                bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _wallets, _choices);
+                string memory funcCall = "setWhitelistX(uint256,uint256,string[],bool[])";
+                bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _version, _wallets, _choices);
 
                 _c3call(toRwaSentryStr, chainIdStr, callData);
 
@@ -451,17 +502,18 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
 
     /// @dev This function is only called on the destination chain by addWhitelist. It is an onlyCaller function
     /// @param _ID The ID of the RWA token
+    /// @param _version The version of the RWA token
     /// @param _wallets The list of wallets to set the state for
     /// @param _choices The list of choices for the wallets
     /// @return success True if the whitelist was set, false otherwise.
-    function setWhitelistX(uint256 _ID, string[] memory _wallets, bool[] memory _choices)
+    function setWhitelistX(uint256 _ID, uint256 _version, string[] memory _wallets, bool[] memory _choices)
         external
         onlyCaller
         returns (bool)
     {
-        (address sentryAddr,) = _getSentryAddr(_ID);
+        (address sentryAddr,) = _getSentryAddr(_ID, _version);
 
-        ICTMRWA1Sentry(sentryAddr).setWhitelistSentry(_ID, _wallets, _choices);
+        ICTMRWA1Sentry(sentryAddr).setWhitelistSentry(_ID, _version, _wallets, _choices);
 
         emit WhitelistAdded(_ID);
 
@@ -473,6 +525,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * trade.
      * The list can be either a Country Whitelist OR a Country Blacklist as determined by setSentryOptions
      * @param _ID The ID of the RWA token.
+     * @param _version The version of the RWA token
      * @param _countries Is an array of strings representing the countries whose access is being set here
      * The strings must each be an ISO3166 2 letter country code. See https://datahub.io/core/country-list
      * @param _choices An array of switches corresponding to the _countries array.
@@ -485,24 +538,25 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      */
     function addCountrylist(
         uint256 _ID,
+        uint256 _version,
         string[] memory _countries,
         bool[] memory _choices,
         string[] memory _chainIdsStr,
         string memory _feeTokenStr
     ) public {
         if (_choices.length != _countries.length) {
-            revert CTMRWA1SentryManager_LengthMismatch(Uint.Input);
+            revert CTMRWA1SentryManager_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
-        (address sentryAddr,) = _getSentryAddr(_ID);
+        (address sentryAddr,) = _getSentryAddr(_ID, _version);
 
-        (address ctmRwa1Addr,) = _getTokenAddr(_ID);
+        (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         _checkTokenAdmin(ctmRwa1Addr);
 
         bool countryWLSwitch = ICTMRWA1Sentry(sentryAddr).countryWLSwitch();
         bool countryBLSwitch = ICTMRWA1Sentry(sentryAddr).countryBLSwitch();
         if (!countryWLSwitch && !countryBLSwitch) {
-            revert CTMRWA1SentryManager_InvalidList(List.WL_BL_Undefined);
+            revert CTMRWA1SentryManager_InvalidList(CTMRWAErrorParam.WL_BL_Undefined);
         }
 
         uint256 len = _countries.length;
@@ -513,18 +567,18 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
 
         for (uint256 i = 0; i < _chainIdsStr.length; i++) {
             if (bytes(_countries[i]).length != 2) {
-                revert CTMRWA1SentryManager_InvalidLength(Uint.CountryCode);
+                revert CTMRWA1SentryManager_InvalidLength(CTMRWAErrorParam.CountryCode);
             }
 
             string memory chainIdStr = _chainIdsStr[i]._toLower();
 
             if (chainIdStr.equal(cIdStr)) {
-                ICTMRWA1Sentry(sentryAddr).setCountryListLocal(_ID, _countries, _choices);
+                ICTMRWA1Sentry(sentryAddr).setCountryListLocal(_ID, _version, _countries, _choices);
             } else {
-                (, string memory toRwaSentryStr) = _getSentry(chainIdStr);
+                (, string memory toRwaSentryStr) = _getSentry(chainIdStr, _version);
 
-                string memory funcCall = "setCountryListX(uint256,string[],bool[])";
-                bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _countries, _choices);
+                string memory funcCall = "setCountryListX(uint256,uint256,string[],bool[])";
+                bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _version, _countries, _choices);
 
                 _c3call(toRwaSentryStr, chainIdStr, callData);
 
@@ -536,17 +590,18 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     /// @dev This function is only called on the destination chain by addCountrylist. It is an onlyCaller function.
     /// See addCountrylist for details of the params.
     /// @param _ID The ID of the RWA token
+    /// @param _version The version of the RWA token
     /// @param _countries The list of countries to set the state for
     /// @param _choices The list of choices for the countries
     /// @return success True if the country list was set, false otherwise.
-    function setCountryListX(uint256 _ID, string[] memory _countries, bool[] memory _choices)
+    function setCountryListX(uint256 _ID, uint256 _version, string[] memory _countries, bool[] memory _choices)
         external
         onlyCaller
         returns (bool)
     {
-        (address sentryAddr,) = _getSentryAddr(_ID);
+        (address sentryAddr,) = _getSentryAddr(_ID, _version);
 
-        ICTMRWA1Sentry(sentryAddr).setCountryListLocal(_ID, _countries, _choices);
+        ICTMRWA1Sentry(sentryAddr).setCountryListLocal(_ID, _version, _countries, _choices);
 
         emit CountryListAdded(_ID);
 
@@ -561,9 +616,18 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         if (_feeWei > 0) {
             address feeToken = _feeTokenStr._stringToAddress();
 
-            IERC20(feeToken).transferFrom(msg.sender, address(this), _feeWei);
+            // Record spender balance before transfer
+            uint256 senderBalanceBefore = IERC20(feeToken).balanceOf(msg.sender);
 
-            IERC20(feeToken).approve(feeManager, _feeWei);
+            IERC20(feeToken).safeTransferFrom(msg.sender, address(this), _feeWei);
+
+            // Assert spender balance change
+            uint256 senderBalanceAfter = IERC20(feeToken).balanceOf(msg.sender);
+            if (senderBalanceBefore - senderBalanceAfter != _feeWei) {
+                revert CTMRWA1SentryManager_FailedTransfer();
+            }
+
+            IERC20(feeToken).forceApprove(feeManager, _feeWei);
             IFeeManager(feeManager).payFee(_feeWei, _feeTokenStr);
         }
         return (true);
@@ -583,6 +647,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         bool includeLocal = false; // local chain is already included in _toChainIdsStr
 
         uint256 fee = IFeeManager(feeManager).getXChainFee(_toChainIdsStr, includeLocal, _feeType, _feeTokenStr);
+        fee = fee * (10000 - IFeeManager(feeManager).getFeeReduction(msg.sender)) / 10000;
 
         return (fee * _nItems);
     }
@@ -596,14 +661,19 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
 
     /// @dev Get the CTMRWA1 contract address corresponding to the ID on this chain
     /// @param _ID The ID of the RWA token
+    /// @param _version The version of the RWA token
     /// @return tokenAddr The address of the CTMRWA1 contract
     /// @return tokenAddrStr The string version of the CTMRWA1 contract address
-    function _getTokenAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, RWA_TYPE, VERSION);
+    function _getTokenAddr(uint256 _ID, uint256 _version) internal view returns (address, string memory) {
+        (bool ok, address tokenAddr) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, RWA_TYPE, _version);
         if (!ok) {
-            revert CTMRWA1SentryManager_InvalidContract(Address.Token);
+            revert CTMRWA1SentryManager_InvalidContract(CTMRWAErrorParam.Token);
         }
         string memory tokenAddrStr = tokenAddr.toHexString()._toLower();
+
+        if (_version > LATEST_VERSION || _version != ICTMRWA1(tokenAddr).VERSION()) {
+            revert CTMRWA1SentryManager_InvalidVersion(_version);
+        }
 
         return (tokenAddr, tokenAddrStr);
     }
@@ -612,10 +682,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     /// @param _ID The ID of the RWA token
     /// @return sentryAddr The address of the CTMRWA1Sentry contract
     /// @return sentryAddrStr The string version of the CTMRWA1Sentry contract address
-    function _getSentryAddr(uint256 _ID) internal view returns (address, string memory) {
-        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwaMap).getSentryContract(_ID, RWA_TYPE, VERSION);
+    function _getSentryAddr(uint256 _ID, uint256 _version) internal view returns (address, string memory) {
+        (bool ok, address sentryAddr) = ICTMRWAMap(ctmRwaMap).getSentryContract(_ID, RWA_TYPE, _version);
         if (!ok) {
-            revert CTMRWA1SentryManager_InvalidContract(Address.Sentry);
+            revert CTMRWA1SentryManager_InvalidContract(CTMRWAErrorParam.Sentry);
         }
         string memory sentryAddrStr = sentryAddr.toHexString()._toLower();
 
@@ -624,9 +694,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
 
     /// @dev Get the sentryManager address on a destination chain for a c3call
     /// @param _toChainIdStr The chainId of the destination chain
+    /// @param _version The version of the RWA token
     /// @return fromAddressStr The address of the CTMRWA1SentryManager contract on this chain
     /// @return toSentryStr The address of the CTMRWA1SentryManager contract on the destination chain
-    function _getSentry(string memory _toChainIdStr) internal view returns (string memory, string memory) {
+    function _getSentry(string memory _toChainIdStr, uint256 _version) internal view returns (string memory, string memory) {
         if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1SentryManager_SameChain();
         }
@@ -634,9 +705,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         string memory fromAddressStr = msg.sender.toHexString()._toLower();
 
         (bool ok, string memory toSentryStr) =
-            ICTMRWAGateway(gateway).getAttachedSentryManager(RWA_TYPE, VERSION, _toChainIdStr);
+            ICTMRWAGateway(gateway).getAttachedSentryManager(RWA_TYPE, _version, _toChainIdStr);
         if (!ok) {
-            revert CTMRWA1SentryManager_InvalidContract(Address.SentryManager);
+            revert CTMRWA1SentryManager_InvalidContract(CTMRWAErrorParam.SentryManager);
         }
 
         return (fromAddressStr, toSentryStr);
@@ -651,7 +722,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         string memory currentAdminStr = currentAdmin.toHexString()._toLower();
 
         if (msg.sender != currentAdmin && msg.sender != identity) {
-            revert CTMRWA1SentryManager_OnlyAuthorized(Address.Sender, Address.TokenAdmin);
+            revert CTMRWA1SentryManager_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.TokenAdmin);
         }
 
         return (currentAdmin, currentAdminStr);

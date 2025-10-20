@@ -5,29 +5,30 @@ pragma solidity 0.8.27;
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
 
-import { CTMRWA1X } from "../flattened/crosschain/CTMRWA1X.sol";
-import { CTMRWA1XFallback } from "../flattened/crosschain/CTMRWA1XFallback.sol";
-import { CTMRWAGateway } from "../flattened/crosschain/CTMRWAGateway.sol";
+import { CTMRWA1X } from "../build/crosschain/CTMRWA1X.sol";
+import { CTMRWA1XUtils } from "../build/crosschain/CTMRWA1XUtils.sol";
+import { CTMRWAGateway } from "../build/crosschain/CTMRWAGateway.sol";
 
-import { CTMRWA1TokenFactory } from "../flattened/deployment/CTMRWA1TokenFactory.sol";
-import { CTMRWADeployInvest } from "../flattened/deployment/CTMRWADeployInvest.sol";
-import { CTMRWADeployer } from "../flattened/deployment/CTMRWADeployer.sol";
+import { CTMRWA1TokenFactory } from "../build/deployment/CTMRWA1TokenFactory.sol";
+import { CTMRWADeployInvest } from "../build/deployment/CTMRWADeployInvest.sol";
+import { CTMRWADeployer } from "../build/deployment/CTMRWADeployer.sol";
 
-import { CTMRWAERC20Deployer } from "../flattened/deployment/CTMRWAERC20Deployer.sol";
+import { CTMRWAERC20Deployer } from "../build/deployment/CTMRWAERC20Deployer.sol";
 
-import { CTMRWA1DividendFactory } from "../flattened/dividend/CTMRWA1DividendFactory.sol";
+import { CTMRWA1DividendFactory } from "../build/dividend/CTMRWA1DividendFactory.sol";
 
-import { FeeManager, FeeType } from "../flattened/managers/FeeManager.sol";
+import { FeeManager, FeeType } from "../build/managers/FeeManager.sol";
 
-import { CTMRWA1SentryManager } from "../flattened/sentry/CTMRWA1SentryManager.sol";
-import { CTMRWA1SentryUtils } from "../flattened/sentry/CTMRWA1SentryUtils.sol";
+import { CTMRWA1SentryManager } from "../build/sentry/CTMRWA1SentryManager.sol";
+import { CTMRWA1SentryUtils } from "../build/sentry/CTMRWA1SentryUtils.sol";
 
-import { CTMRWAMap } from "../flattened/shared/CTMRWAMap.sol";
+import { CTMRWAMap } from "../build/shared/CTMRWAMap.sol";
 
-import { CTMRWA1StorageManager } from "../flattened/storage/CTMRWA1StorageManager.sol";
-import { CTMRWA1StorageUtils } from "../flattened/storage/CTMRWA1StorageUtils.sol";
+import { CTMRWA1StorageManager } from "../build/storage/CTMRWA1StorageManager.sol";
+import { CTMRWA1StorageUtils } from "../build/storage/CTMRWA1StorageUtils.sol";
 
-import { CTMRWAProxy } from "../flattened/utils/CTMRWAProxy.sol";
+import { CTMRWAProxy } from "../build/utils/CTMRWAProxy.sol";
+
 
 import { DeployedContracts } from "./Utils.s.sol";
 
@@ -91,7 +92,7 @@ contract DeployAssetX is Script {
             )
         );
 
-        rwa1XFallback = address(new CTMRWA1XFallback(rwa1X));
+        rwa1XFallback = address(new CTMRWA1XUtils(rwa1X));
     }
 
     function _deployMap(uint256 dappID, address gov, address c3caller, address mpc) internal {
@@ -125,7 +126,7 @@ contract DeployAssetX is Script {
             )
         );
 
-        erc20Deployer = address(new CTMRWAERC20Deployer(map, feeManager));
+        erc20Deployer = address(new CTMRWAERC20Deployer(map, deployer, feeManager));
     }
 
     function _deployTokenFactory() internal {
