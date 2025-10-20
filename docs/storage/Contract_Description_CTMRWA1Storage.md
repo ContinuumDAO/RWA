@@ -50,6 +50,69 @@ This contract is deployed by CTMRWADeployer once for every CTMRWA1 contract on e
 
 ## Core Functions
 
+### Function Arguments Reference (complete)
+
+#### constructor(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _storageManagerAddr, address _map)
+- _ID (uint256): Unique RWA ID for this storage instance; must match linked CTMRWA1 ID.
+- _tokenAddr (address): Deployed CTMRWA1 token address bound to this storage.
+- _rwaType (uint256): RWA type (1 for CTMRWA1).
+- _version (uint256): Single integer version of this RWA type.
+- _storageManagerAddr (address): CTMRWA1StorageManager address on this chain.
+- _map (address): CTMRWAMap address for contract lookups.
+
+#### setTokenAdmin(address _tokenAdmin)
+- _tokenAdmin (address): New tokenAdmin (Issuer) address.
+
+#### createSecurity(address _regulatorWallet)
+- _regulatorWallet (address): Security Regulator’s wallet address to register.
+
+#### addURILocal(uint256 _ID, uint256 _version, string memory _objectName, URICategory _uriCategory, URIType _uriType, string memory _title, uint256 _slot, uint256 _timestamp, bytes32 _uriDataHash)
+- _ID (uint256): RWA ID; must equal this contract’s ID.
+- _version (uint256): RWA version; used to validate the linked CTMRWA1 via CTMRWAMap.
+- _objectName (string): Storage object name (e.g., Greenfield object name).
+- _uriCategory (URICategory): Category enum describing the record (e.g., ISSUER, LICENSE, …).
+- _uriType (URIType): CONTRACT (whole token) or SLOT (specific asset class).
+- _title (string): Human-readable title/description shown in Explorer.
+- _slot (uint256): Asset Class index; must exist if _uriType == SLOT; 0 for CONTRACT.
+- _timestamp (uint256): Unix timestamp when the record is created.
+- _uriDataHash (bytes32): Hash of checksum of the stored object; must be globally unique here.
+
+#### popURILocal(uint256 _toPop)
+- _toPop (uint256): Number of most recent records to remove (fallback recovery); must be <= current record count.
+
+#### setNonce(uint256 _val)
+- _val (uint256): New nonce value to set (used to rewind during fallback recovery).
+
+#### increaseNonce(uint256 _val)
+- _val (uint256): New nonce value; must be strictly greater than current nonce.
+
+#### greenfieldBucket()
+- (no arguments)
+
+#### getAllURIData()
+- (no arguments)
+
+#### getURIHashByIndex(URICategory _uriCat, URIType _uriTyp, uint256 _index)
+- _uriCat (URICategory): Category to query.
+- _uriTyp (URIType): Type to query (CONTRACT or SLOT).
+- _index (uint256): 0-based position within the category/type list.
+
+#### getURIHashCount(URICategory _uriCat, URIType _uriTyp)
+- _uriCat (URICategory): Category to count.
+- _uriTyp (URIType): Type to count.
+
+#### getURIHash(bytes32 _hash)
+- _hash (bytes32): Hash of checksum to look up.
+
+#### existURIHash(bytes32 _uriHash)
+- _uriHash (bytes32): Hash of checksum to test existence.
+
+#### existObjectName(string memory _objectName)
+- _objectName (string): Object name to test existence (on-chain index only).
+
+#### getURIByObjectName(string memory _objectName)
+- _objectName (string): Object name to look up and return full record.
+
 ### Initialization
 
 #### `constructor(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _storageManagerAddr, address _map)`
@@ -80,6 +143,40 @@ This contract is deployed by CTMRWADeployer once for every CTMRWA1 contract on e
 
 #### `createSecurity(address _regulatorWallet)`
 - **Access:** Only callable by tokenAdmin
+- **Purpose:** Register the Security Regulator wallet
+- **Requirement:** Must have at least one LICENSE record of type CONTRACT, otherwise reverts with `CTMRWA1Storage_NoSecurityDescription`
+
+### Storage Write Functions (Manager-only)
+
+#### `addURILocal(uint256 _ID, uint256 _version, string memory _objectName, URICategory _uriCategory, URIType _uriType, string memory _title, uint256 _slot, uint256 _timestamp, bytes32 _uriDataHash)`
+- **Access:** Only callable by storage manager/utils
+- **Purpose:** Add a new storage record locally
+- **Validations:**
+  - `_ID` must match `ID` -> `CTMRWA1Storage_InvalidID`
+  - `existURIHash(_uriDataHash)` must be false -> `CTMRWA1Storage_HashExists`
+  - If `_uriType == SLOT`, map must confirm compatible token/version and `slotExists(_slot)` must be true -> `CTMRWA1Storage_InvalidSlot`
+  - First record must be `(ISSUER, CONTRACT)` -> `CTMRWA1Storage_IssuerNotFirst`
+- **Effects:** Appends record, updates indices/counters, increments `nonce`, emits `NewURI`
+
+#### `popURILocal(uint256 _toPop)`
+- **Access:** Only callable by storage manager/utils
+- **Purpose:** Remove last `_toPop` records (used by cross-chain fallback)
+- **Validation:** `_toPop` <= current length, else `CTMRWA1Storage_OutOfBounds`
+- **Cleanup:** Updates hash/counters/category-type indices for removed items
+
+#### `setNonce(uint256 _val)`
+- **Access:** Only callable by storage manager/utils
+- **Purpose:** Rewind nonce during fallback handling
+
+### TokenAdmin Nonce Adjustment
+
+#### `increaseNonce(uint256 _val)`
+- **Access:** Only callable by tokenAdmin
+- **Purpose:** Temporarily allow increasing nonce manually
+- **Validation:** `_val` must be strictly greater than current `nonce`, else `CTMRWA1Storage_IncreasingNonceOnly`
+
+#### `createSecurity(address _regulatorWallet)`
+- **Access:** Only callable by tokenAdmin
 - **Purpose:** Add Security Regulator wallet address
 - **Parameters:** `_regulatorWallet` - Regulator's wallet address
 - **Validation:** Requires LICENSE storage object to exist first
@@ -87,7 +184,7 @@ This contract is deployed by CTMRWADeployer once for every CTMRWA1 contract on e
 
 ### Storage Management
 
-#### `addURILocal(uint256 _ID, string memory _objectName, URICategory _uriCategory, URIType _uriType, string memory _title, uint256 _slot, uint256 _timestamp, bytes32 _uriDataHash)`
+#### `addURILocal(uint256 _ID, uint256 _version, string memory _objectName, URICategory _uriCategory, URIType _uriType, string memory _title, uint256 _slot, uint256 _timestamp, bytes32 _uriDataHash)`
 - **Access:** Only callable by storage manager or utils
 - **Purpose:** Add storage object information to contract state
 - **Parameters:**
@@ -244,6 +341,7 @@ This contract is deployed by CTMRWADeployer once for every CTMRWA1 contract on e
 - **CTMRWA1X**: Cross-chain coordinator
 - **BNB Greenfield**: Decentralized storage system
 - **IPFS**: Inter-Planetary File System (future implementation)
+ - **ForceTransfer Prerequisite**: `createSecurity(_regulatorWallet)` must be called (and a LICENSE/CONTRACT record must exist) before any wallet can be authorized for forceTransfer functionality
 
 ## Error Handling
 

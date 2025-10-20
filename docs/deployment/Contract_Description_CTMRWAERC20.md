@@ -3,383 +3,427 @@
 ## Overview
 
 **Contract Name:** CTMRWAERC20  
-**Author:** @Selqui ContinuumDAO  
+**File:** `src/deployment/CTMRWAERC20.sol`  
 **License:** BSL-1.1  
-**Solidity Version:** 0.8.27
+**Author:** @Selqui ContinuumDAO
 
-The CTMRWAERC20 contract is an ERC20 token that provides a fungible interface to the semi-fungible CTMRWA1 tokens. It represents a specific slot within a CTMRWA1 contract as a standard ERC20 token, allowing for easier integration with DeFi protocols and traditional ERC20 wallets.
+## Contract Description
 
-This contract is deployed by the `deployERC20()` function in the `CTMRWAERC20Deployer` contract using CREATE2 for deterministic addresses. Each ERC20 token corresponds to exactly one slot in the underlying CTMRWA1 contract.
+This contract is an ERC20. The required interface functions are directly linked to various functions in CTMRWA1. This contract is deployed by deployERC20() in the contract CTMRWAERC20Deployer which uses CREATE2.
 
-## Key Features
+### Key Features
+- ERC20 compliance with full standard implementation
+- Slot-specific representation (one ERC20 per slot)
+- Dynamic supply derived from CTMRWA1 slot balances
+- Cross-contract integration with CTMRWA1
+- Reentrancy protection for transfer security
+- Deterministic deployment using CREATE2
+- **TokenId Approval System**: Owners must specifically approve tokenIds for ERC20 transfers
+- **Revocable Approvals**: TokenId approvals can be easily revoked at any time
+- Gas optimization through approved tokenId processing
+- Dual balance functions (total and approved)
+- Automatic approval management for new tokenIds
 
-- **ERC20 Compliance:** Full ERC20 standard implementation with fungible token interface
-- **Slot Representation:** Each ERC20 represents a specific slot in CTMRWA1
-- **Dynamic Supply:** Total supply derived from CTMRWA1 slot balances
-- **Cross-contract Integration:** Direct integration with CTMRWA1 for balance management
-- **Reentrancy Protection:** Uses ReentrancyGuard for transfer security
-- **Deterministic Deployment:** CREATE2 deployment for predictable addresses
-- **Gas Optimization:** Efficient balance calculation and transfer mechanisms using approved tokenIds
-- **Approval-based Transfers:** Only processes pre-approved tokenIds for enhanced security
-- **Dual Balance Functions:** Separate functions for total balance and approved balance
+## State Variables
 
-## Public Variables
+- `ID (uint256)`: The ID of the CTMRWA1 that created this ERC20 is stored here
+- `RWA_TYPE (uint256, immutable)`: rwaType is the type of RWA token contract, e.g. CTMRWA1 has rwaType == 1
+- `VERSION (uint256, immutable)`: version is the version of the rwaType
+- `slot (uint256)`: The slot number that this ERC20 relates to. Each ERC20 relates to ONE slot
+- `slotName (string)`: The corresponding slot name
+- `ctmRwaName (string)`: The name of this ERC20
+- `ctmRwaSymbol (string)`: The symbol of this ERC20
+- `ctmRwaDecimals (uint8)`: The decimals of this ERC20 are the same as for the CTMRWA1
+- `ctmRwaMap (address)`: The address of the CTMRWAMap contract
+- `ctmRwaToken (address)`: The address of the CTMRWA1 contract that called this
 
-### Token Identification
-- **`ID`** (uint256): The ID of the CTMRWA1 contract that created this ERC20
-- **`RWA_TYPE`** (uint256, immutable): Type of RWA token contract (1 for CTMRWA1)
-- **`VERSION`** (uint256, immutable): Version of the RWA token type
-- **`slot`** (uint256): The slot number that this ERC20 relates to
+## Constructor
 
-### Token Metadata
-- **`ctmRwaName`** (string): The name of this ERC20 (includes slot prefix)
-- **`ctmRwaSymbol`** (string): The symbol of this ERC20
-- **`ctmRwaDecimals`** (uint8): The decimals of this ERC20 (same as CTMRWA1)
-- **`slotName`** (string): The corresponding slot name from CTMRWA1
+```solidity
+constructor(
+    uint256 _ID,
+    uint256 _rwaType,
+    uint256 _version,
+    uint256 _slot,
+    string memory _name,
+    string memory _symbol,
+    address _ctmRwaMap
+)
+```
+- Initializes a new CTMRWAERC20 contract instance
+- Sets token identification parameters
+- Creates slot-prefixed name (e.g., "slot 1| TokenName")
+- Retrieves CTMRWA1 contract address from map
+- Validates slot exists in CTMRWA1
+- Gets slot name and decimals from CTMRWA1
 
-### Contract Addresses
-- **`ctmRwaMap`** (address): Address of the CTMRWAMap contract
-- **`ctmRwaToken`** (address): Address of the CTMRWA1 contract
+## ERC20 Interface Functions
 
-### Constants
-- **Removed `MAX_TOKENS`**: No longer needed as approval mechanism controls the number of tokenIds
+### name()
+```solidity
+function name() public view override(ERC20, ICTMRWAERC20) returns (string memory)
+```
+The ERC20 name returns the input name, pre-pended with the slot.
 
-## Core Functions
+**Returns:** The name of the ERC20
 
-### Constructor
+### symbol()
+```solidity
+function symbol() public view override(ERC20, ICTMRWAERC20) returns (string memory)
+```
+The ERC20 symbol.
 
-#### `constructor(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, string memory _name, string memory _symbol, address _ctmRwaMap)`
-- **Purpose:** Initializes a new CTMRWAERC20 contract instance
-- **Parameters:**
-  - `_ID`: ID of the CTMRWA1 contract
-  - `_rwaType`: Type of RWA token (1 for CTMRWA1)
-  - `_version`: Version of the RWA token
-  - `_slot`: Slot number this ERC20 represents
-  - `_name`: Base name for the ERC20
-  - `_symbol`: Symbol for the ERC20
-  - `_ctmRwaMap`: Address of the CTMRWAMap contract
-- **Initialization:**
-  - Sets token identification parameters
-  - Creates slot-prefixed name (e.g., "slot 1| TokenName")
-  - Retrieves CTMRWA1 contract address from map
-  - Validates slot exists in CTMRWA1
-  - Gets slot name and decimals from CTMRWA1
-- **Validation:** Ensures slot exists in the underlying CTMRWA1 contract
+**Returns:** The symbol of the ERC20
 
-### ERC20 Interface Functions
+### decimals()
+```solidity
+function decimals() public view override(ERC20, ICTMRWAERC20) returns (uint8)
+```
+The ERC20 decimals. This is not part of the official ERC20 interface, but is added here for convenience.
 
-#### `name()`
-- **Purpose:** Returns the ERC20 name with slot prefix
-- **Returns:** `ctmRwaName` - The name of the ERC20 (e.g., "slot 1| MyToken")
-- **Override:** Overrides both ERC20 and ICTMRWAERC20 interfaces
+**Returns:** The decimals of the ERC20
 
-#### `symbol()`
-- **Purpose:** Returns the ERC20 symbol
-- **Returns:** `ctmRwaSymbol` - The symbol of the ERC20
-- **Override:** Overrides both ERC20 and ICTMRWAERC20 interfaces
+### totalSupply()
+```solidity
+function totalSupply() public view override(ERC20, IERC20) returns (uint256)
+```
+The ERC20 totalSupply. This is derived from the CTMRWA1 and is the total fungible balance summed over all tokenIds in the slot of this ERC20.
 
-#### `decimals()`
-- **Purpose:** Returns the ERC20 decimals (same as CTMRWA1)
-- **Returns:** `ctmRwaDecimals` - The decimals of the ERC20
-- **Override:** Overrides both ERC20 and ICTMRWAERC20 interfaces
+**Returns:** The total supply of the ERC20
 
-#### `totalSupply()`
-- **Purpose:** Returns the total supply derived from CTMRWA1 slot balances
-- **Logic:** Sums all fungible balances across all tokenIds in the slot
-- **Returns:** Total supply of the ERC20
-- **Override:** Overrides both ERC20 and IERC20 interfaces
+### balanceOf()
+```solidity
+function balanceOf(address _account) public view override(ERC20, IERC20) returns (uint256)
+```
+The ERC20 balanceOf. This is derived from the CTMRWA1 and is the sum of the fungible balances of approved tokenIds in this slot for this _account.
 
-#### `balanceOf(address _account)`
-- **Purpose:** Returns the total balance of a specific account in this slot
-- **Parameters:** `_account` - Wallet address to check balance for
-- **Logic:** Sums fungible balances of all tokenIds in this slot for the account
-- **Returns:** Total balance of the account in this slot
-- **Override:** Overrides both ERC20 and IERC20 interfaces
+**Parameters:**
+- `_account`: The wallet address of the balanceOf being sought
 
-#### `balanceOfApproved(address _account)`
-- **Purpose:** Returns the balance from only approved tokenIds for a specific account
-- **Parameters:** `_account` - Wallet address to check approved balance for
-- **Logic:** Sums fungible balances of only pre-approved tokenIds for ERC20 spending
-- **Returns:** Approved balance of the account in this slot
-- **Use Case:** Used internally for transfer validation and by external contracts
+**Returns:** The balance of the _account from approved tokenIds only
 
-#### `allowance(address _owner, address _spender)`
-- **Purpose:** Returns the ERC20 allowance of spender on behalf of owner
-- **Parameters:**
-  - `_owner`: Owner of the tokenIds granting approval
-  - `_spender`: Recipient being granted approval
-- **Returns:** Allowance amount
-- **Override:** Overrides both ERC20 and IERC20 interfaces
+### balanceOfApproved()
+```solidity
+function balanceOfApproved(address _account) public view returns (uint256)
+```
+Returns the balance of approved tokenIds for a specific account.
 
-### Transfer Functions
+**Purpose:** This function explicitly shows the balance available for ERC20 transfers, which only includes tokenIds that have been specifically approved by the owner for ERC20 operations.
 
-#### `approve(address _spender, uint256 _value)`
-- **Purpose:** Grant approval to a spender to spend fungible value from the slot
-- **Parameters:**
-  - `_spender`: Wallet address being granted approval
-  - `_value`: Fungible value being approved
-- **Returns:** True if approval was successful
-- **Override:** Overrides both ERC20 and IERC20 interfaces
+**Parameters:**
+- `_account`: The wallet address of the balanceOf being sought
 
-#### `transfer(address _to, uint256 _value)`
-- **Purpose:** Transfer fungible value to another wallet from caller's balance
-- **Parameters:**
-  - `_to`: Recipient of the transfer
-  - `_value`: Fungible amount being transferred
-- **Logic:** Takes value from first tokenId owned by caller, then second, etc.
-- **Security:** Uses nonReentrant modifier for transfer protection
-- **Returns:** True if transfer was successful
-- **Override:** Overrides both ERC20 and IERC20 interfaces
+**Returns:** The balance of the _account from approved tokenIds only
 
-#### `transferFrom(address _from, address _to, uint256 _value)`
-- **Purpose:** Transfer value from one wallet to another (requires allowance)
-- **Parameters:**
-  - `_from`: Wallet being debited
-  - `_to`: Wallet being credited
-  - `_value`: Fungible amount being transferred
-- **Logic:** Spends allowance and transfers value across tokenIds
-- **Security:** Uses nonReentrant modifier for transfer protection
-- **Returns:** True if transfer was successful
-- **Override:** Overrides both ERC20 and IERC20 interfaces
+### allowance()
+```solidity
+function allowance(address _owner, address _spender) public view override(ERC20, IERC20) returns (uint256)
+```
+Returns the ERC20 allowance of _spender on behalf of _owner.
+
+**Parameters:**
+- `_owner`: The owner of the tokenIds who is granting approval to the spender
+- `_spender`: The recipient, who is being granted approval to spend on behalf of _owner
+
+**Returns:** The allowance of _spender on behalf of _owner
+
+## Transfer Functions
+
+### approve()
+```solidity
+function approve(address _spender, uint256 _value) public override(ERC20, IERC20) returns (bool)
+```
+Grant approval to a spender to spend a fungible value from the slot.
+
+**Parameters:**
+- `_spender`: The wallet address being granted approval to spend value
+- `_value`: The fungible value being approved to spend by the spender
+
+**Returns:** True if the approval was successful, false otherwise
+
+### transfer()
+```solidity
+function transfer(address _to, uint256 _value) public override(ERC20, IERC20) nonReentrant returns (bool)
+```
+Transfer a fungible value to another wallet from the caller's balance.
+
+**Parameters:**
+- `_to`: The recipient of the transfer
+- `_value`: The fungible amount being transferred
+
+**Note:** The _value is taken from the first tokenId owned by the caller and if this is not sufficient, the balance is taken from the second owned tokenId etc.
+
+**Returns:** True if the transfer was successful, false otherwise
+
+### transferFrom()
+```solidity
+function transferFrom(address _from, address _to, uint256 _value) public override(ERC20, IERC20) nonReentrant returns (bool)
+```
+The caller transfers _value from the wallet _from to the wallet _to.
+
+**Parameters:**
+- `_from`: The wallet being debited
+- `_to`: The wallet being credited
+- `_value`: The fungible amount being transfered
+
+**Note:** The caller must have sufficient allowance granted to it by the _from wallet. The _value is taken from the first tokenId owned by the caller and if this is not sufficient, the balance is taken from the second owned tokenId etc.
+
+**Returns:** True if the transfer was successful, false otherwise
 
 ## Internal Functions
 
-### Approval Management
-- **`_approve(address _owner, address _spender, uint256 _value, bool _emitEvent)`**: Low-level approval function
-  - Validates spender is not zero address
-  - Calls parent ERC20 approval logic
-  - Controls event emission
+### _approve()
+```solidity
+function _approve(address _owner, address _spender, uint256 _value, bool _emitEvent) internal override
+```
+Low level function to approve spending.
 
-### Transfer Management
-- **`_update(address _from, address _to, uint256 _value)`**: Core transfer logic
-  - Gets array of approved tokenIds from CTMRWA1
-  - Validates sufficient approved balance in slot
-  - Iterates through only approved tokenIds for gas efficiency
-  - Creates new tokenId for recipient
-  - Transfers value from source tokenIds to new tokenId
-  - Handles partial transfers across multiple approved tokenIds
-  - Automatically approves new tokenId for ERC20 contract
-  - Emits Transfer event
+**Parameters:**
+- `_owner`: Owner of the tokenIds granting approval
+- `_spender`: Recipient being granted approval
+- `_value`: Fungible value being approved
+- `_emitEvent`: Whether to emit approval event
 
-### Allowance Management
-- **`_spendAllowance(address _owner, address _spender, uint256 _value)`**: Spend allowance logic
-  - Checks current allowance against required value
-  - Updates allowance if not unlimited
-  - Handles allowance reduction
+### _update()
+```solidity
+function _update(address _from, address _to, uint256 _value) internal override
+```
+Low level function calling transferFrom in CTMRWA1 to adjust the balances of both the _from tokenIds and creating a new tokenId for the _to wallet.
 
-## Access Control Modifiers
+**Process:**
+1. Gets array of approved tokenIds for this owner and slot
+2. Validates sufficient approved balance
+3. Iterates through approved tokenIds
+4. Creates new tokenId for recipient via CTMRWA1XUtils
+5. Transfers value from approved tokenIds to new tokenId
+6. Handles partial transfers across multiple approved tokenIds
+7. Clears approved values from source tokenIds
+8. Emits Transfer event
+
+### _spendAllowance()
+```solidity
+function _spendAllowance(address _owner, address _spender, uint256 _value) internal override
+```
+Low level function granting approval IF the spender has enough allowance from _owner.
+
+**Process:**
+1. Checks current allowance against required value
+2. Updates allowance if not unlimited
+3. Handles allowance reduction
+
+## Access Control
 
 The contract does not use custom access control modifiers, as it follows standard ERC20 patterns where any address can interact with the token functions.
 
 ## Events
 
 The contract inherits standard ERC20 events:
-- **`Transfer(address indexed from, address indexed to, uint256 value)`**: Emitted on token transfers
-- **`Approval(address indexed owner, address indexed spender, uint256 value)`**: Emitted on approval changes
+- `Transfer(address indexed from, address indexed to, uint256 value)`: Emitted on token transfers
+- `Approval(address indexed owner, address indexed spender, uint256 value)`: Emitted on approval changes
 
 ## Security Features
 
-1. **Reentrancy Protection:** Uses ReentrancyGuard for transfer functions
-2. **Zero Address Validation:** Prevents approval to zero address
-3. **Approval-based Balance Validation:** Ensures sufficient approved balance before transfers
-4. **Allowance Validation:** Validates allowance before transferFrom
-5. **ERC20 Approval System:** Only processes pre-approved tokenIds for enhanced security
-6. **Immutable Parameters:** Critical parameters are immutable
-7. **Cross-contract Validation:** Validates slot existence in CTMRWA1
-8. **Automatic Approval Management:** Automatically approves new tokenIds for ERC20 contract
+- Reentrancy protection for transfer functions
+- Zero address validation for approvals
+- Approved balance validation before transfers
+- Allowance validation for transferFrom
+- **TokenId Approval Control**: Only pre-approved tokenIds can be used for ERC20 transfers
+- **Revocable Approvals**: TokenId approvals can be revoked at any time by the owner
+- Immutable parameters for critical values
+- Cross-contract validation with CTMRWA1
+- Automatic approval management for new tokenIds
 
 ## Integration Points
 
-- **CTMRWA1**: Core semi-fungible token contract providing balance data
-- **CTMRWAMap**: Contract address registry for CTMRWA1 lookup
-- **CTMRWAERC20Deployer**: Factory contract that creates ERC20 instances
-- **DeFi Protocols**: Standard ERC20 integration for liquidity and trading
-- **Wallets**: Standard ERC20 wallet support
+- `CTMRWA1`: Core semi-fungible token contract providing balance data
+- `CTMRWAMap`: Contract address registry for CTMRWA1 lookup
+- `CTMRWA1X`: Cross-chain coordinator for token operations
+- `CTMRWA1XUtils`: Utility contract for minting operations
+- `CTMRWAERC20Deployer`: Factory contract that creates ERC20 instances
+- `DeFi Protocols`: Standard ERC20 integration for liquidity and trading
+- `Wallets`: Standard ERC20 wallet support
 
 ## Error Handling
 
 The contract uses custom error types for efficient gas usage:
 
-- **`CTMRWAERC20_InvalidContract(CTMRWAErrorParam.Token)`**: Thrown when CTMRWA1 contract not found
-- **`CTMRWAERC20_NonExistentSlot(uint256 slot)`**: Thrown when slot doesn't exist in CTMRWA1
-- **`CTMRWAERC20_IsZeroAddress(CTMRWAErrorParam.Spender)`**: Thrown when approving zero address
+- `CTMRWAERC20_InvalidContract(CTMRWAErrorParam.Token)`: Thrown when CTMRWA1 contract not found
+- `CTMRWAERC20_NonExistentSlot(uint256 slot)`: Thrown when slot doesn't exist in CTMRWA1
+- `CTMRWAERC20_IsZeroAddress(CTMRWAErrorParam.Spender)`: Thrown when approving zero address
 
 Standard ERC20 errors are also used:
-- **`ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)`**: Insufficient balance
-- **`ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed)`**: Insufficient allowance
+- `ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed)`: Insufficient balance
+- `ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed)`: Insufficient allowance
 
 ## Transfer Process
 
 ### 1. Approved TokenId Retrieval
-- **Step:** Get array of approved tokenIds for sender and slot
-- **Method:** Call CTMRWA1.getErc20Approvals(sender, slot)
-- **Result:** Array of tokenIds approved for ERC20 spending
+- Gets array of approved tokenIds for sender and slot
+- Calls CTMRWA1.getErc20Approvals(sender, slot)
+- **Important**: Only tokenIds that have been specifically approved by the owner for ERC20 transfers are included
+- Result: Array of tokenIds approved for ERC20 spending
 
 ### 2. Approved Balance Validation
-- **Step:** Check if sender has sufficient approved balance
-- **Method:** Call balanceOfApproved(sender) to sum approved tokenId balances
-- **Result:** Proceed if sufficient, revert if insufficient
+- Checks if sender has sufficient approved balance
+- Calls balanceOfApproved(sender) to sum approved tokenId balances
+- **Note**: If no tokenIds are approved, balance will be zero and transfer will fail
+- Result: Proceed if sufficient, revert if insufficient
 
 ### 3. Approved TokenId Iteration
-- **Step:** Iterate through only approved tokenIds
-- **Method:** Process approved tokenIds array from step 1
-- **Benefit:** Gas efficient - only processes relevant tokenIds
+- Iterates through only approved tokenIds
+- Processes approved tokenIds array from step 1
+- **Security**: Only processes tokenIds that the owner has explicitly approved for ERC20 operations
+- Benefit: Gas efficient - only processes relevant tokenIds
 
 ### 4. New TokenId Creation
-- **Step:** Create new tokenId for recipient
-- **Method:** Call CTMRWA1.mintFromX(recipient, slot, slotName, 0)
-- **Result:** New tokenId owned by recipient
+- Creates new tokenId for recipient
+- Calls CTMRWA1XUtils.mintFromXForERC20(recipient, slot, slotName)
+- Result: New tokenId owned by recipient
 
 ### 5. Value Transfer
-- **Step:** Transfer value from approved tokenIds to new tokenId
-- **Method:** Use CTMRWA1.transferFrom for each approved tokenId
-- **Logic:** Handle partial transfers across multiple approved tokenIds
+- Transfers value from approved tokenIds to new tokenId
+- Uses CTMRWA1.transferFrom for each approved tokenId
+- Logic: Handle partial transfers across multiple approved tokenIds
 
 ### 6. Automatic Approval
-- **Step:** Approve new tokenId for ERC20 contract
-- **Method:** Call CTMRWA1.approveFromX(address(this), newTokenId)
-- **Result:** New tokenId can be used in future ERC20 operations
+- Approves new tokenId for ERC20 contract
+- Calls CTMRWA1.clearApprovedValuesFromERC20 for source tokenIds
+- Result: New tokenId can be used in future ERC20 operations
 
 ### 7. Event Emission
-- **Step:** Emit Transfer event
-- **Data:** from, to, and value parameters
-- **Result:** Standard ERC20 event for external tracking
+- Emits Transfer event
+- Data: from, to, and value parameters
+- Result: Standard ERC20 event for external tracking
+
+**Key Point**: The entire transfer process depends on the owner having previously approved specific tokenIds for ERC20 operations. Without these approvals, no ERC20 transfers are possible.
 
 ## Use Cases
 
 ### DeFi Integration
-- **Scenario:** Providing liquidity to DEXs
-- **Process:** Standard ERC20 transfer and approval
-- **Benefit:** Seamless integration with existing DeFi protocols
+- Providing liquidity to DEXs
+- Standard ERC20 transfer and approval
+- Seamless integration with existing DeFi protocols
 
 ### Wallet Support
-- **Scenario:** Using standard ERC20 wallets
-- **Process:** Direct balance and transfer operations
-- **Benefit:** No special wallet requirements
+- Using standard ERC20 wallets
+- Direct balance and transfer operations
+- No special wallet requirements
 
 ### Cross-chain Trading
-- **Scenario:** Trading RWA tokens across chains
-- **Process:** Standard ERC20 operations on each chain
-- **Benefit:** Consistent interface across all chains
+- Trading RWA tokens across chains
+- Standard ERC20 operations on each chain
+- Consistent interface across all chains
 
 ### Portfolio Management
-- **Scenario:** Managing RWA token portfolios
-- **Process:** Standard balance and transfer operations
-- **Benefit:** Familiar ERC20 interface for portfolio tools
+- Managing RWA token portfolios
+- Standard balance and transfer operations
+- Familiar ERC20 interface for portfolio tools
 
 ## Best Practices
 
-1. **Gas Optimization:** Monitor gas usage for large transfers
-2. **Balance Checking:** Always check balances before transfers
-3. **Allowance Management:** Use approve/transferFrom pattern for third-party transfers
-4. **Event Monitoring:** Monitor Transfer events for tracking
-5. **Integration Testing:** Test with standard ERC20 interfaces
+1. **Gas Optimization**: Monitor gas usage for large transfers
+2. **Balance Checking**: Always check balances before transfers
+3. **Allowance Management**: Use approve/transferFrom pattern for third-party transfers
+4. **TokenId Approval Management**: Explicitly approve tokenIds for ERC20 transfers and revoke approvals when no longer needed
+5. **Event Monitoring**: Monitor Transfer events for tracking
+6. **Integration Testing**: Test with standard ERC20 interfaces
 
 ## Limitations
 
-- **Slot Specific:** Each ERC20 represents only one slot
-- **Approval Required:** TokenIds must be pre-approved for ERC20 spending
-- **Gas Costs:** Large transfers may be expensive due to tokenId iteration
-- **Cross-contract Dependency:** Requires CTMRWA1 contract availability
-- **Approval Management:** Users must manually approve tokenIds for ERC20 operations
-
-## Future Enhancements
-
-Potential improvements to the ERC20 interface:
-
-1. **Batch Operations:** Implement batch transfer functions
-2. **Gas Optimization:** Optimize tokenId iteration algorithms
-3. **Event Enhancement:** Add detailed transfer tracking events
-4. **Integration APIs:** Add convenience functions for common operations
-5. **Metadata Support:** Enhanced metadata and URI support
+- Slot Specific: Each ERC20 represents only one slot
+- **Approval Required**: TokenIds must be pre-approved for ERC20 spending - owners must explicitly approve each tokenId they want to use for ERC20 transfers
+- **Revocable Approvals**: TokenId approvals can be revoked at any time, which may affect ERC20 transfer availability
+- Gas Costs: Large transfers may be expensive due to tokenId iteration
+- Cross-contract Dependency: Requires CTMRWA1 contract availability
+- **Manual Approval Management**: Users must manually approve tokenIds for ERC20 operations and can revoke these approvals at any time
 
 ## CREATE2 Deployment Details
 
 ### Deterministic Addresses
-- **Method:** Uses CREATE2 with salt for deployment
-- **Salt:** Generated from ERC20 parameters
-- **Benefit:** Predictable addresses across deployments
+- Uses CREATE2 with salt for deployment
+- Salt generated from ERC20 parameters
+- Benefit: Predictable addresses across deployments
 
 ### Deployment Process
-1. **CTMRWAERC20Deployer** receives deployment request
-2. **Salt Generation** from ERC20 parameters
-3. **CREATE2 Deployment** with deterministic address
-4. **Contract Initialization** with slot and metadata
-5. **Address Registration** in CTMRWAMap
+1. CTMRWAERC20Deployer receives deployment request
+2. Salt generation from ERC20 parameters
+3. CREATE2 deployment with deterministic address
+4. Contract initialization with slot and metadata
+5. Address registration in CTMRWAMap
 
 ## ERC20 Architecture
 
 ### Role in CTMRWA System
-- **Fungible Layer:** Provides ERC20 interface to semi-fungible tokens
-- **Slot Representation:** Each ERC20 represents one CTMRWA1 slot
-- **Integration Layer:** Enables DeFi and wallet integration
-- **Balance Aggregation:** Aggregates balances across multiple tokenIds
+- Fungible Layer: Provides ERC20 interface to semi-fungible tokens
+- Slot Representation: Each ERC20 represents one CTMRWA1 slot
+- Integration Layer: Enables DeFi and wallet integration
+- Balance Aggregation: Aggregates balances across multiple tokenIds
 
 ### Integration Flow
-1. **CTMRWA1** manages semi-fungible token data
-2. **CTMRWAERC20** provides ERC20 interface to specific slot
-3. **DeFi Protocols** interact with standard ERC20 interface
-4. **Wallets** display and manage ERC20 balances
-5. **CTMRWAMap** tracks ERC20 contract addresses
+1. CTMRWA1 manages semi-fungible token data
+2. CTMRWAERC20 provides ERC20 interface to specific slot
+3. DeFi Protocols interact with standard ERC20 interface
+4. Wallets display and manage ERC20 balances
+5. CTMRWAMap tracks ERC20 contract addresses
 
 ## Gas Optimization
 
 ### Transfer Costs
-- **Base Transfer:** ~21000 gas for simple transfers
-- **TokenId Iteration:** ~5000-50000 gas depending on number of tokenIds
-- **Cross-contract Calls:** ~2600 gas per CTMRWA1 call
-- **Total Estimate:** ~30000-100000 gas per transfer
+- Base Transfer: ~21000 gas for simple transfers
+- TokenId Iteration: ~5000-50000 gas depending on number of tokenIds
+- Cross-contract Calls: ~2600 gas per CTMRWA1 call
+- Total Estimate: ~30000-100000 gas per transfer
 
 ### Optimization Strategies
-- **MAX_TOKENS Limit:** Prevents excessive gas usage
-- **Efficient Iteration:** Optimized tokenId iteration algorithm
-- **Batch Operations:** Consider batch transfers for efficiency
-- **Gas Estimation:** Always estimate gas before transfers
+- Approved TokenId Processing: Only processes pre-approved tokenIds
+- Efficient Iteration: Optimized tokenId iteration algorithm
+- Batch Operations: Consider batch transfers for efficiency
+- Gas Estimation: Always estimate gas before transfers
 
 ## Security Considerations
 
 ### Transfer Security
-- **Reentrancy Protection:** Prevents reentrancy attacks
-- **Balance Validation:** Ensures sufficient balance before transfers
-- **Allowance Validation:** Validates allowance for transferFrom
-- **Zero Address Protection:** Prevents transfers to zero address
+- Reentrancy Protection: Prevents reentrancy attacks
+- Balance Validation: Ensures sufficient balance before transfers
+- Allowance Validation: Validates allowance for transferFrom
+- Zero Address Protection: Prevents transfers to zero address
 
 ### Integration Security
-- **Contract Validation:** Validates CTMRWA1 contract existence
-- **Slot Validation:** Ensures slot exists in CTMRWA1
-- **Address Verification:** Verify deployed addresses on block explorers
-- **Cross-contract Safety:** Safe integration with CTMRWA1
+- Contract Validation: Validates CTMRWA1 contract existence
+- Slot Validation: Ensures slot exists in CTMRWA1
+- Address Verification: Verify deployed addresses on block explorers
+- Cross-contract Safety: Safe integration with CTMRWA1
 
 ### TokenId Management
-- **Iteration Safety:** Safe iteration through tokenIds
-- **Gas Limit Protection:** MAX_TOKENS prevents gas limit issues
-- **Partial Transfer Handling:** Safe handling of partial transfers
-- **New TokenId Creation:** Safe creation of new tokenIds
+- Iteration Safety: Safe iteration through tokenIds
+- Partial Transfer Handling: Safe handling of partial transfers
+- New TokenId Creation: Safe creation of new tokenIds
+- Approval Management: Secure approval and clearance operations
 
 ## Slot Management
 
 ### Slot Representation
-- **One-to-One Mapping:** Each ERC20 represents exactly one slot
-- **Slot Prefix:** Name includes slot number for identification
-- **Slot Validation:** Validates slot exists in CTMRWA1
-- **Slot Metadata:** Retrieves slot name from CTMRWA1
+- One-to-One Mapping: Each ERC20 represents exactly one slot
+- Slot Prefix: Name includes slot number for identification
+- Slot Validation: Validates slot exists in CTMRWA1
+- Slot Metadata: Retrieves slot name from CTMRWA1
 
 ### Slot Operations
-- **Balance Aggregation:** Aggregates balances across slot tokenIds
-- **Transfer Coordination:** Coordinates transfers within slot
-- **Supply Calculation:** Calculates total supply from slot
-- **TokenId Management:** Manages tokenIds within slot
+- Balance Aggregation: Aggregates balances across slot tokenIds
+- Transfer Coordination: Coordinates transfers within slot
+- Supply Calculation: Calculates total supply from slot
+- TokenId Management: Manages tokenIds within slot
 
 ## ERC20 Compliance
 
 ### Standard Interface
-- **ERC20 Functions:** Implements all required ERC20 functions
-- **Event Compliance:** Emits standard ERC20 events
-- **Return Values:** Returns correct data types and values
-- **Error Handling:** Uses standard ERC20 error patterns
+- ERC20 Functions: Implements all required ERC20 functions
+- Event Compliance: Emits standard ERC20 events
+- Return Values: Returns correct data types and values
+- Error Handling: Uses standard ERC20 error patterns
 
 ### Extended Features
-- **Decimals Function:** Additional decimals() function for convenience
-- **Slot Integration:** Seamless integration with CTMRWA1 slots
-- **Dynamic Supply:** Supply derived from underlying token balances
-- **Cross-contract Balance:** Balance calculation from CTMRWA1
+- Decimals Function: Additional decimals() function for convenience
+- Slot Integration: Seamless integration with CTMRWA1 slots
+- Dynamic Supply: Supply derived from underlying token balances
+- Cross-contract Balance: Balance calculation from CTMRWA1

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The ERC20 Approval System is a new security feature implemented in CTMRWA1 that provides fine-grained control over which tokenIds can be spent by ERC20 contracts. This system enhances security by requiring explicit user approval before tokenIds can be used in ERC20 operations.
+The ERC20 Approval System is a security feature implemented in CTMRWA1 that provides fine-grained control over which tokenIds can be spent by ERC20 contracts. This system enhances security by requiring explicit user approval before tokenIds can be used in ERC20 operations.
 
 ## Key Features
 

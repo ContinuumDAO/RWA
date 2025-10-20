@@ -33,8 +33,8 @@ This contract is deployed only once on each chain and manages all CTMRWA1 storag
 - **`feeManager`** (address): Address of the FeeManager contract
 
 ### Contract Identification
-- **`RWA_TYPE`** (uint256, constant): RWA type defining CTMRWA1 (1)
-- **`VERSION`** (uint256, constant): Version of this RWA type (1)
+- **`RWA_TYPE`** (uint256, immutable): RWA type defining CTMRWA1 (1)
+- **`LATEST_VERSION`** (uint256): Latest supported RWA version for this manager
 
 ### Configuration
 - **`cIdStr`** (string): String representation of this chainID
@@ -68,6 +68,11 @@ This contract is deployed only once on each chain and manages all CTMRWA1 storag
 - **Security:** Only governance can authorize upgrades
 
 ### Governance Functions
+
+#### `updateLatestVersion(uint256 _newVersion)`
+- **Access:** Only callable by governance
+- **Purpose:** Update the latest supported version
+- **Parameters:** `_newVersion` - Must be > 0
 
 #### `setGateway(address _gateway)`
 - **Access:** Only callable by governance
@@ -110,11 +115,12 @@ This contract is deployed only once on each chain and manages all CTMRWA1 storag
 
 ### Storage Management
 
-#### `addURI(uint256 _ID, string memory _objectName, URICategory _uriCategory, URIType _uriType, string memory _title, uint256 _slot, bytes32 _uriDataHash, string[] memory _chainIdsStr, string memory _feeTokenStr)`
+#### `addURI(uint256 _ID, uint256 _version, string memory _objectName, URICategory _uriCategory, URIType _uriType, string memory _title, uint256 _slot, bytes32 _uriDataHash, string[] memory _chainIdsStr, string memory _feeTokenStr)`
 - **Access:** Public function with tokenAdmin validation
 - **Purpose:** Add storage record across multiple chains
 - **Parameters:**
   - `_ID`: ID of the RWA token
+  - `_version`: Version of the RWA token
   - `_objectName`: Object name on decentralized storage (should match nonce)
   - `_uriCategory`: Category type of stored data
   - `_uriType`: Type of storage (CONTRACT or SLOT)
@@ -136,11 +142,12 @@ This contract is deployed only once on each chain and manages all CTMRWA1 storag
 - **Events:** Emits AddingURI event for each destination chain
 - **Note:** First storage object must be ISSUER CONTRACT describing the Issuer
 
-#### `transferURI(uint256 _ID, string[] memory _chainIdsStr, string memory _feeTokenStr)`
+#### `transferURI(uint256 _ID, uint256 _version, string[] memory _chainIdsStr, string memory _feeTokenStr)`
 - **Access:** Public function with tokenAdmin validation
 - **Purpose:** Transfer all existing storage data to newly added chains
 - **Parameters:**
   - `_ID`: ID of the RWA token
+  - `_version`: Version of the RWA token
   - `_chainIdsStr`: Array of destination chain IDs (exclude local chain)
   - `_feeTokenStr`: Fee token for payment
 - **Validation:**
@@ -156,11 +163,12 @@ This contract is deployed only once on each chain and manages all CTMRWA1 storag
 - **Events:** Emits AddingURI event for each destination chain
 - **Note:** Used when new chains are added to existing RWA
 
-#### `addURIX(uint256 _ID, uint256 _startNonce, string[] memory _objectName, uint8[] memory _uriCategory, uint8[] memory _uriType, string[] memory _title, uint256[] memory _slot, uint256[] memory _timestamp, bytes32[] memory _uriDataHash)`
+#### `addURIX(uint256 _ID, uint256 _version, uint256 _startNonce, string[] memory _objectName, uint8[] memory _uriCategory, uint8[] memory _uriType, string[] memory _title, uint256[] memory _slot, uint256[] memory _timestamp, bytes32[] memory _uriDataHash)`
 - **Access:** Only callable by C3Caller
 - **Purpose:** Add storage information on destination chain
 - **Parameters:**
   - `_ID`: ID of the RWA token
+  - `_version`: Version of the RWA token
   - `_startNonce`: Starting nonce value
   - `_objectName`: Array of object names
   - `_uriCategory`: Array of category types

@@ -1,369 +1,544 @@
-# CTMRWAMap Contract Documentation
+# Contract Description: CTMRWAMap
 
 ## Overview
 
-**Contract Name:** CTMRWAMap  
-**Author:** @Selqui ContinuumDAO  
-**License:** BSL-1.1  
-**Solidity Version:** 0.8.27
+The `CTMRWAMap` contract links together the various parts of CTMRWA tokens (e.g. CTMRWA1). For every ID (and rwaType and version), which is unique to one CTMRWA token, there are different contracts as follows:
 
-The CTMRWAMap contract serves as the central registry that links together the various components of the CTMRWA1 RWA ecosystem. For every unique RWA ID, there are five main contracts that work together:
+1. The CTMRWA contract itself, which is the Semi-Fungible-Token
+2. A Dividend contract called CTMRWA1Dividend (for rwaType 1)
+3. A Storage contract called CTMRWA1Storage (for rwwatType 1)
+4. A Sentry contract called CTMRWA1Sentry (for rwaType 1)
+5. A Investment contract called CTMRWADeployInvest
+6. A ERC20 contract called CTMRWAERC20
 
-1. **CTMRWA1** - The core Semi-Fungible-Token contract
-2. **CTMRWA1Dividend** - Dividend distribution contract
-3. **CTMRWA1Storage** - Storage management contract
-4. **CTMRWA1Sentry** - Security and access control contract
-5. **CTMRWAInvest** - Investment with escrow contract
+This set all share a single ID, which is the same on all chains that the CTMRWA token is deployed to. The whole set is deployed by CTMRWADeployer. This contract, deployed just once on each chain, stores the state linking the ID to each of the constituent contract addresses. The links from the contract addresses back to the ID are also stored.
 
-This contract is deployed once on each chain and maintains the state linking each RWA ID to its constituent contract addresses. It also stores reverse mappings from contract addresses back to their corresponding IDs. The contract provides a unified interface for querying and managing these relationships across the entire CTMRWA ecosystem.
+## Contract Description
+
+The CTMRWAMap is a central registry contract that maintains the mapping between RWA token IDs and their associated contract addresses. It serves as the single source of truth for contract relationships within the RWA ecosystem, enabling cross-contract communication and ensuring proper contract associations.
 
 ## Key Features
 
-- **Central Registry:** Maintains mappings between RWA IDs and contract addresses
-- **Bidirectional Lookup:** Supports both ID-to-contract and contract-to-ID queries
-- **Multi-contract Support:** Manages relationships for all CTMRWA1 ecosystem contracts
-- **Cross-chain Consistency:** Ensures consistent ID mapping across all chains
-- **Contract Attachment:** Handles the linking of contracts during deployment
-- **Type Validation:** Validates RWA type and version compatibility
-- **Governance Control:** Governance can update contract addresses
-- **Upgradeable:** Uses UUPS upgradeable pattern for future improvements
-- **C3Caller Integration:** Uses C3Caller for cross-chain communication
+- **Contract Registry**: Central registry for all RWA token contracts
+- **Bidirectional Mapping**: Maps IDs to contracts and contracts to IDs
+- **Multi-contract Support**: Supports multiple contract types per RWA token
+- **Cross-chain Consistency**: Maintains consistent mappings across chains
+- **Contract Attachment**: Links contracts together during deployment
+- **Type and Version Validation**: Ensures contract compatibility
+- **Access Control**: Restricted access for contract management
 
 ## Public Variables
 
-### Contract Addresses
-- **`gateway`** (address): Address of the CTMRWAGateway contract
-- **`ctmRwaDeployer`** (address): Address of the CTMRWADeployer contract
-- **`ctmRwa1X`** (address): Address of the CTMRWA1X contract
+### gateway
+```solidity
+address public gateway
+```
+The address of the CTMRWAGateway contract
 
-### Configuration
-- **`cIdStr`** (string): String representation of the local chainID
+### ctmRwaDeployer
+```solidity
+address public ctmRwaDeployer
+```
+The address of the CTMRWADeployer contract
 
-### ID to Contract Mappings
-- **`idToContract`** (mapping): Maps RWA ID to CTMRWA1 contract address (string)
-- **`idToDividend`** (mapping): Maps RWA ID to CTMRWA1Dividend contract address (string)
-- **`idToStorage`** (mapping): Maps RWA ID to CTMRWA1Storage contract address (string)
-- **`idToSentry`** (mapping): Maps RWA ID to CTMRWA1Sentry contract address (string)
-- **`idToInvest`** (mapping): Maps RWA ID to CTMRWADeployInvest contract address (string)
+### ctmRwa1X
+```solidity
+address public ctmRwa1X
+```
+The address of the CTMRWA1X contract
 
-### Contract to ID Mappings
-- **`contractToId`** (mapping): Maps CTMRWA1 contract address (string) to RWA ID
-- **`dividendToId`** (mapping): Maps CTMRWA1Dividend contract address (string) to RWA ID
-- **`storageToId`** (mapping): Maps CTMRWA1Storage contract address (string) to RWA ID
-- **`sentryToId`** (mapping): Maps CTMRWA1Sentry contract address (string) to RWA ID
-- **`investToId`** (mapping): Maps CTMRWADeployInvest contract address (string) to RWA ID
+### cIdStr
+```solidity
+string cIdStr
+```
+String representation of the local chainID
 
-## Core Functions
+## Mapping Variables
 
-### Initialization
+### idToContract
+```solidity
+mapping(uint256 => string) idToContract
+```
+ID => address of CTMRWA1 contract as string
 
-#### `initialize(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID, address _gateway, address _rwa1X)`
-- **Access:** Public initializer
-- **Purpose:** Initializes the CTMRWAMap contract instance
-- **Parameters:**
-  - `_gov`: Governance address
-  - `_c3callerProxy`: C3Caller proxy address
-  - `_txSender`: Transaction sender address
-  - `_dappID`: DApp ID for C3Caller integration
-  - `_gateway`: CTMRWAGateway contract address
-  - `_rwa1X`: CTMRWA1X contract address
-- **Initialization:**
-  - Initializes C3GovernDapp with governance parameters
-  - Sets contract addresses
-  - Sets chain ID string representation
+### contractToId
+```solidity
+mapping(string => uint256) contractToId
+```
+address of CTMRWA1 contract as string => ID
 
-### Upgrade Management
+### idToDividend
+```solidity
+mapping(uint256 => string) idToDividend
+```
+ID => CTMRWA1Dividend contract as string
 
-#### `_authorizeUpgrade(address newImplementation)`
-- **Access:** Internal function, only callable by governance
-- **Purpose:** Authorizes contract upgrades
-- **Parameters:** `newImplementation` - Address of new implementation
-- **Security:** Only governance can authorize upgrades
+### dividendToId
+```solidity
+mapping(string => uint256) dividendToId
+```
+CTMRWA1Dividend contract as string => ID
 
-### Configuration Functions
+### idToStorage
+```solidity
+mapping(uint256 => string) idToStorage
+```
+ID => CTMRWA1Storage contract as string
 
-#### `setCtmRwaDeployer(address _deployer, address _gateway, address _rwa1X)`
-- **Access:** Only callable by CTMRWA1X
-- **Purpose:** Set addresses of CTMRWADeployer, CTMRWAGateway, and CTMRWA1X
-- **Parameters:**
-  - `_deployer`: New CTMRWADeployer address
-  - `_gateway`: New CTMRWAGateway address
-  - `_rwa1X`: New CTMRWA1X address
-- **Note:** Can only be called by setMap function in CTMRWA1X, called by Governor
+### storageToId
+```solidity
+mapping(string => uint256) storageToId
+```
+CTMRWA1Storage contract as string => ID
 
-### Query Functions
+### idToSentry
+```solidity
+mapping(uint256 => string) idToSentry
+```
+ID => CTMRWA1Sentry contract as string
 
-#### `getTokenId(string memory _tokenAddrStr, uint256 _rwaType, uint256 _version)`
-- **Access:** Public view function
-- **Purpose:** Get RWA ID for a given CTMRWA1 contract address
-- **Parameters:**
-  - `_tokenAddrStr`: String version of CTMRWA1 contract address
-  - `_rwaType`: Type of RWA (must be 1 for CTMRWA1)
-  - `_version`: Version of RWA (latest is 1)
-- **Returns:** Tuple of (bool ok, uint256 id)
-  - `ok`: True if ID exists, false otherwise
-  - `id`: RWA ID if found, 0 otherwise
-- **Logic:** Converts address to lowercase and looks up in contractToId mapping
+### sentryToId
+```solidity
+mapping(string => uint256) sentryToId
+```
+CTMRWA1Sentry contract as string => ID
 
-#### `getTokenContract(uint256 _ID, uint256 _rwaType, uint256 _version)`
-- **Access:** Public view function
-- **Purpose:** Get CTMRWA1 contract address for a given RWA ID
-- **Parameters:**
-  - `_ID`: RWA ID to examine
-  - `_rwaType`: Type of RWA (must be 1 for CTMRWA1)
-  - `_version`: Version of RWA (latest is 1)
-- **Returns:** Tuple of (bool ok, address contractStr)
-  - `ok`: True if ID exists, false otherwise
-  - `contractStr`: CTMRWA1 contract address if found, address(0) otherwise
-- **Logic:** Looks up in idToContract mapping and validates type/version
+### idToInvest
+```solidity
+mapping(uint256 => string) idToInvest
+```
+ID => CTMRWADeployInvest contract as string
 
-#### `getDividendContract(uint256 _ID, uint256 _rwaType, uint256 _version)`
-- **Access:** Public view function
-- **Purpose:** Get CTMRWA1Dividend contract address for a given RWA ID
-- **Parameters:** Same as getTokenContract
-- **Returns:** Tuple of (bool ok, address dividendStr)
-- **Logic:** Looks up in idToDividend mapping and validates type/version
+### investToId
+```solidity
+mapping(string => uint256) investToId
+```
+CTMRWADeployInvest contract as string => ID
 
-#### `getStorageContract(uint256 _ID, uint256 _rwaType, uint256 _version)`
-- **Access:** Public view function
-- **Purpose:** Get CTMRWA1Storage contract address for a given RWA ID
-- **Parameters:** Same as getTokenContract
-- **Returns:** Tuple of (bool ok, address storageStr)
-- **Logic:** Looks up in idToStorage mapping and validates type/version
+### idToErc20
+```solidity
+mapping(uint256 => mapping(uint256 => string)) idToErc20
+```
+ID => slot => CTMRWAERC20 contract as string
 
-#### `getSentryContract(uint256 _ID, uint256 _rwaType, uint256 _version)`
-- **Access:** Public view function
-- **Purpose:** Get CTMRWA1Sentry contract address for a given RWA ID
-- **Parameters:** Same as getTokenContract
-- **Returns:** Tuple of (bool ok, address sentryStr)
-- **Logic:** Looks up in idToSentry mapping and validates type/version
+### erc20ToId
+```solidity
+mapping(uint256 => mapping(string => uint256)) erc20ToId
+```
+slot => CTMRWAERC20 contract as string => ID
 
-#### `getInvestContract(uint256 _ID, uint256 _rwaType, uint256 _version)`
-- **Access:** Public view function
-- **Purpose:** Get CTMRWADeployInvest contract address for a given RWA ID
-- **Parameters:** Same as getTokenContract
-- **Returns:** Tuple of (bool ok, address investStr)
-- **Logic:** Looks up in idToInvest mapping and validates type/version
+## Constructor
 
-### Contract Management
+### initialize()
+```solidity
+function initialize(
+    address _gov,
+    address _c3callerProxy,
+    address _txSender,
+    uint256 _dappID,
+    address _gateway,
+    address _rwa1X
+) external initializer
+```
+Initialize the contract with required parameters
 
-#### `attachContracts(uint256 _ID, address _tokenAddr, address _dividendAddr, address _storageAddr, address _sentryAddr)`
-- **Access:** Only callable by CTMRWADeployer
-- **Purpose:** Link CTMRWA1 ecosystem contracts together after deployment
-- **Parameters:**
-  - `_ID`: RWA ID for the contracts
-  - `_tokenAddr`: CTMRWA1 contract address
-  - `_dividendAddr`: CTMRWA1Dividend contract address
-  - `_storageAddr`: CTMRWA1Storage contract address
-  - `_sentryAddr`: CTMRWA1Sentry contract address
-- **Logic:**
-  - Calls internal _attachCTMRWAID function
-  - Attaches dividend, storage, and sentry contracts to CTMRWA1
-  - Validates all attachments are successful
-- **Validation:** Ensures contracts are not already attached
+**Parameters:**
+- `_gov`: The governance address
+- `_c3callerProxy`: The C3 caller proxy address
+- `_txSender`: The transaction sender address
+- `_dappID`: The dApp ID
+- `_gateway`: The gateway address
+- `_rwa1X`: The CTMRWA1X address
 
-#### `setInvestmentContract(uint256 _ID, uint256 _rwaType, uint256 _version, address _investAddr)`
-- **Access:** Only callable by CTMRWADeployer
-- **Purpose:** Set investment contract for a given RWA ID
-- **Parameters:**
-  - `_ID`: RWA ID
-  - `_rwaType`: Type of RWA (must be 1 for CTMRWA1)
-  - `_version`: Version of RWA (latest is 1)
-  - `_investAddr`: CTMRWADeployInvest contract address
-- **Returns:** True if investment contract was set, false otherwise
-- **Logic:**
-  - Validates RWA type and version
-  - Ensures contract hasn't been deployed yet
-  - Sets bidirectional mappings
+## Access Control
+
+### onlyDeployer
+```solidity
+modifier onlyDeployer()
+```
+Restricts access to the deployer only
+
+### onlyRwa1X
+```solidity
+modifier onlyRwa1X()
+```
+Restricts access to the CTMRWA1X contract only
+
+## Administrative Functions
+
+### setCtmRwaDeployer()
+```solidity
+function setCtmRwaDeployer(address _deployer, address _gateway, address _rwa1X) external onlyRwa1X
+```
+Set the addresses of CTMRWADeployer, CTMRWAGateway and CTMRWA1X
+
+**Parameters:**
+- `_deployer`: The deployer address
+- `_gateway`: The gateway address
+- `_rwa1X`: The CTMRWA1X address
+
+**Note:** Can only be called by the setMap function in CTMRWA1X, called by Governor
+
+## Query Functions
+
+### getTokenId()
+```solidity
+function getTokenId(string memory _tokenAddrStr, uint256 _rwaType, uint256 _version) public view returns (bool, uint256)
+```
+Return the ID of a given CTMRWA1 contract
+
+**Parameters:**
+- `_tokenAddrStr`: String version of the CTMRWA1 contract address
+- `_rwaType`: The type of CTMRWA. Must be 1 here, to match CTMRWA1
+- `_version`: The version of this CTMRWA. Latest version is 1
+
+**Returns:**
+- `ok`: True if the ID exists, false otherwise
+- `id`: The ID of the CTMRWA1 contract
+
+**Note:** The input address is a string. The function also returns a boolean ok, which is false if the ID does not exist
+
+### getTokenContract()
+```solidity
+function getTokenContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address)
+```
+Return the CTMRWA1 contract address for a given ID
+
+**Parameters:**
+- `_ID`: The ID being examined
+- `_rwaType`: The type of CTMRWA. Must be 1 here, to match CTMRWA1
+- `_version`: The version of this CTMRWA. Latest version is 1
+
+**Returns:**
+- `ok`: True if the ID exists, false otherwise
+- `contractAddr`: The address of the CTMRWA1 contract
+
+### getDividendContract()
+```solidity
+function getDividendContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address)
+```
+Return the CTMRWA1Dividend contract address for a given ID
+
+**Parameters:**
+- `_ID`: The ID being examined
+- `_rwaType`: The type of CTMRWA. Must be 1 here, to match CTMRWA1
+- `_version`: The version of this CTMRWA. Latest version is 1
+
+**Returns:**
+- `ok`: True if the ID exists, false otherwise
+- `dividendAddr`: The address of the CTMRWA1Dividend contract
+
+### getStorageContract()
+```solidity
+function getStorageContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address)
+```
+Return the CTMRWA1Storage contract address for a given ID
+
+**Parameters:**
+- `_ID`: The ID being examined
+- `_rwaType`: The type of CTMRWA. Must be 1 here, to match CTMRWA1
+- `_version`: The version of this CTMRWA. Latest version is 1
+
+**Returns:**
+- `ok`: True if the ID exists, false otherwise
+- `storageAddr`: The address of the CTMRWA1Storage contract
+
+### getSentryContract()
+```solidity
+function getSentryContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address)
+```
+Return the CTMRWA1Sentry contract address for a given ID
+
+**Parameters:**
+- `_ID`: The ID being examined
+- `_rwaType`: The type of CTMRWA. Must be 1 here, to match CTMRWA1
+- `_version`: The version of this CTMRWA. Latest version is 1
+
+**Returns:**
+- `ok`: True if the ID exists, false otherwise
+- `sentryAddr`: The address of the CTMRWA1Sentry contract
+
+### getInvestContract()
+```solidity
+function getInvestContract(uint256 _ID, uint256 _rwaType, uint256 _version) public view returns (bool, address)
+```
+Return the CTMRWADeployInvest contract address for a given ID
+
+**Parameters:**
+- `_ID`: The ID being examined
+- `_rwaType`: The type of CTMRWA. Must be 1 here, to match CTMRWA1
+- `_version`: The version of this CTMRWA. Latest version is 1
+
+**Returns:**
+- `ok`: True if the ID exists, false otherwise
+- `investAddr`: The address of the CTMRWADeployInvest contract
+
+### getErc20Contract()
+```solidity
+function getErc20Contract(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot) public view returns (bool, address)
+```
+Return the CTMRWAERC20 contract address for a given ID and slot
+
+**Parameters:**
+- `_ID`: The ID being examined
+- `_rwaType`: The type of CTMRWA. Must be 1 here, to match CTMRWA1
+- `_version`: The version of this CTMRWA. Latest version is 1
+- `_slot`: The slot number being examined
+
+**Returns:**
+- `ok`: True if the ID and slot exist, false otherwise
+- `erc20Addr`: The address of the CTMRWAERC20 contract
+
+## Contract Management Functions
+
+### attachContracts()
+```solidity
+function attachContracts(
+    uint256 _ID,
+    address _tokenAddr,
+    address _dividendAddr,
+    address _storageAddr,
+    address _sentryAddr
+) external onlyDeployer
+```
+This function is called by CTMRWADeployer after the deployment of the CTMRWA1, CTMRWA1Dividend, CTMRWA1Storage and CTMRWA1Sentry contracts on a chain. It links them together by setting the same ID for the one CTMRWA token and storing their contract addresses.
+
+**Parameters:**
+- `_ID`: The ID of the CTMRWA token
+- `_tokenAddr`: The address of the CTMRWA1 contract
+- `_dividendAddr`: The address of the CTMRWA1Dividend contract
+- `_storageAddr`: The address of the CTMRWA1Storage contract
+- `_sentryAddr`: The address of the CTMRWA1Sentry contract
+
+**Note:** Only the deployer of the CTMRWAMap contract can call this function
+
+### setInvestmentContract()
+```solidity
+function setInvestmentContract(uint256 _ID, uint256 _rwaType, uint256 _version, address _investAddr) external onlyDeployer returns (bool)
+```
+Set the investment contract for a given ID
+
+**Parameters:**
+- `_ID`: The ID of the CTMRWA token
+- `_rwaType`: The type of CTMRWA. Must be 1 here, to match CTMRWA1
+- `_version`: The version of this CTMRWA. Latest version is 1
+- `_investAddr`: The address of the CTMRWADeployInvest contract
+
+**Returns:** success True if the investment contract was set, false otherwise
+
+**Note:** Only the deployer of the CTMRWAMap contract can call this function
+
+### setErc20Contract()
+```solidity
+function setErc20Contract(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, address _erc20Addr) external onlyDeployer returns (bool)
+```
+Set the ERC20 contract for a given ID and slot
+
+**Parameters:**
+- `_ID`: The ID of the CTMRWA token
+- `_rwaType`: The type of CTMRWA. Must be 1 here, to match CTMRWA1
+- `_version`: The version of this CTMRWA. Latest version is 1
+- `_slot`: The slot number for the ERC20
+- `_erc20Addr`: The address of the CTMRWAERC20 contract
+
+**Returns:** success True if the ERC20 contract was set, false otherwise
+
+**Note:** Only the deployer of the CTMRWAMap contract can call this function
 
 ## Internal Functions
 
-### Contract Attachment
-- **`_attachCTMRWAID(uint256 _ID, address _ctmRwaAddr, address _dividendAddr, address _storageAddr, address _sentryAddr)`**: Internal helper for attachContracts
-  - Converts addresses to lowercase strings
-  - Validates contracts are not already attached
-  - Sets all bidirectional mappings
-  - Returns true if successful, false if already attached
+### _attachCTMRWAID()
+```solidity
+function _attachCTMRWAID(
+    uint256 _ID,
+    address _ctmRwaAddr,
+    address _dividendAddr,
+    address _storageAddr,
+    address _sentryAddr
+) internal returns (bool)
+```
+Internal helper function for attachContracts
 
-### Utility Functions
-- **`cID()`**: Returns current chain ID
-  - Used for chain identification
-  - Returns block.chainid
+**Parameters:**
+- `_ID`: The ID of the CTMRWA token
+- `_ctmRwaAddr`: The address of the CTMRWA1 contract
+- `_dividendAddr`: The address of the CTMRWA1Dividend contract
+- `_storageAddr`: The address of the CTMRWA1Storage contract
+- `_sentryAddr`: The address of the CTMRWA1Sentry contract
 
-### Validation Functions
-- **`_checkRwaTypeVersion(string memory _addrStr, uint256 _rwaType, uint256 _version)`**: Validates RWA type and version compatibility
-  - Checks if address string is not empty
-  - Queries contract for RWA_TYPE and VERSION
-  - Validates against provided parameters
-  - Returns true if compatible, false otherwise
+**Returns:** success True if the contracts were attached, false otherwise
 
-### C3Caller Integration
-- **`_c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)`**: C3Caller fallback function
-  - Handles cross-chain call failures
-  - Emits LogFallback event with failure details
-  - Returns true (currently only logs failures)
+### _checkRwaTypeVersion()
+```solidity
+function _checkRwaTypeVersion(string memory _addrStr, uint256 _rwaType, uint256 _version) internal view returns (bool)
+```
+Internal helper function to check the CTMRWA type and version of a contract
 
-## Access Control Modifiers
+**Parameters:**
+- `_addrStr`: The address of the contract to check
+- `_rwaType`: The type of CTMRWA. Must be 1 here, to match CTMRWA1
+- `_version`: The version of this CTMRWA. Latest version is 1
 
-- **`onlyDeployer`**: Restricts access to only CTMRWADeployer
-  - Ensures only authorized deployer can attach contracts
-  - Maintains deployment security and control
+**Returns:** ok True if the CTMRWA type and version are compatible, false otherwise
 
-- **`onlyRwa1X`**: Restricts access to only CTMRWA1X
-  - Ensures only CTMRWA1X can update contract addresses
-  - Maintains system control and coordination
+### cID()
+```solidity
+function cID() internal view returns (uint256)
+```
+Get the current chain ID
 
-- **`onlyGov`**: Restricts access to only governance (inherited from C3GovernDapp)
-  - Ensures only governance can authorize upgrades
-  - Maintains system control
+**Returns:** The current chain ID
+
+### _c3Fallback()
+```solidity
+function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason) internal override returns (bool)
+```
+Fallback function for failed c3call cross-chain. Only emits an event at present
+
+**Parameters:**
+- `_selector`: The selector of the function that failed
+- `_data`: The data of the function that failed
+- `_reason`: The reason for the failure
+
+**Returns:** ok True if the fallback was successful, false otherwise
 
 ## Events
 
-- **`LogFallback(bytes4 selector, bytes data, bytes reason)`**: Emitted when C3Caller fallback is processed
-  - Records function selector, data, and reason for debugging
-  - Helps track cross-chain operation failures
-  - Enables monitoring and analysis of failure patterns
+### LogFallback
+```solidity
+event LogFallback(bytes4 selector, bytes data, bytes reason)
+```
+Emitted when a cross-chain call fails and fallback is triggered
+
+**Parameters:**
+- `selector`: The selector of the failed function
+- `data`: The data of the failed function
+- `reason`: The reason for the failure
 
 ## Security Features
 
-1. **Access Control:** Multiple levels of access control for different operations
-2. **Type Validation:** Validates RWA type and version compatibility
-3. **Duplicate Prevention:** Prevents duplicate contract attachments
-4. **Bidirectional Mapping:** Ensures data consistency with reverse lookups
-5. **Upgradeable:** Uses UUPS pattern for secure upgrades
-6. **Governance Control:** Governance can authorize upgrades
-7. **Address Validation:** Validates contract addresses before operations
+- **Access Control**: Multi-layer access control with role-based permissions
+- **Input Validation**: Comprehensive input validation for all parameters
+- **Type and Version Validation**: Ensures contract compatibility
+- **Zero Address Protection**: Prevents zero address assignments
+- **Duplicate Prevention**: Prevents duplicate contract attachments
+- **Contract Verification**: Verifies contract compatibility before attachment
 
 ## Integration Points
 
-- **CTMRWA1**: Core RWA token contract
-- **CTMRWA1Dividend**: Dividend distribution contract
-- **CTMRWA1Storage**: Storage management contract
-- **CTMRWA1Sentry**: Security and access control contract
-- **CTMRWADeployInvest**: Investment deployment contract
-- **CTMRWADeployer**: Deployment coordinator
-- **CTMRWAGateway**: Cross-chain gateway
-- **CTMRWA1X**: Cross-chain coordinator
-- **C3Caller**: Cross-chain communication system
+- **CTMRWA1**: Core RWA token contract integration
+- **CTMRWA1Dividend**: Dividend contract integration
+- **CTMRWA1Storage**: Storage contract integration
+- **CTMRWA1Sentry**: Sentry contract integration
+- **CTMRWADeployInvest**: Investment contract integration
+- **CTMRWAERC20**: ERC20 contract integration
+- **CTMRWADeployer**: Deployer contract integration
+- **CTMRWAGateway**: Gateway contract integration
+- **CTMRWA1X**: Cross-chain contract integration
 
 ## Error Handling
 
-The contract uses custom error types for efficient gas usage:
+The contract uses custom error types for gas efficiency:
 
-- **`CTMRWAMap_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.Deployer)`**: Thrown when unauthorized address tries to attach contracts
-- **`CTMRWAMap_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAX)`**: Thrown when unauthorized address tries to update addresses
-- **`CTMRWAMap_AlreadyAttached(uint256 ID, address tokenAddr)`**: Thrown when contracts are already attached
-- **`CTMRWAMap_FailedAttachment(CTMRWAErrorParam.Dividend)`**: Thrown when dividend attachment fails
-- **`CTMRWAMap_FailedAttachment(CTMRWAErrorParam.Storage)`**: Thrown when storage attachment fails
-- **`CTMRWAMap_FailedAttachment(CTMRWAErrorParam.Sentry)`**: Thrown when sentry attachment fails
-- **`CTMRWAMap_IncompatibleRWA(CTMRWAErrorParam.Type)`**: Thrown when RWA type is incompatible
-- **`CTMRWAMap_IncompatibleRWA(CTMRWAErrorParam.Version)`**: Thrown when RWA version is incompatible
+- `CTMRWAMap_OnlyAuthorized`: Thrown when unauthorized access is attempted
+- `CTMRWAMap_IsZeroAddress`: Thrown when zero address is provided
+- `CTMRWAMap_AlreadyAttached`: Thrown when contract is already attached
+- `CTMRWAMap_FailedAttachment`: Thrown when attachment fails
+- `CTMRWAMap_IncompatibleRWA`: Thrown when RWA type or version is incompatible
 
-## Contract Relationship Management
+## Contract Attachment Process
 
-### Ecosystem Structure
-- **Single ID:** Each RWA has a unique ID across all chains
-- **Four Core Contracts:** CTMRWA1, CTMRWA1Dividend, CTMRWA1Storage, CTMRWA1Sentry
-- **Optional Investment Contract:** CTMRWADeployInvest for investment functionality
-- **Bidirectional Mapping:** ID-to-contract and contract-to-ID lookups
+### 1. Contract Deployment
+- Deploy CTMRWA1, CTMRWA1Dividend, CTMRWA1Storage, and CTMRWA1Sentry contracts
+- Ensure all contracts are properly initialized
+- Verify contract compatibility
 
-### Attachment Process
-1. **Deployment:** CTMRWADeployer deploys all contracts
-2. **Registration:** CTMRWAMap registers contract addresses
-3. **Attachment:** Contracts are linked together
-4. **Validation:** All relationships are validated
+### 2. Contract Attachment
+- Call attachContracts with all contract addresses
+- Link contracts together with shared ID
+- Set up bidirectional mappings
+- Attach contracts to each other
+
+### 3. Investment Contract Setup
+- Set investment contract for the ID
+- Verify contract compatibility
+- Set up investment contract mapping
+
+### 4. ERC20 Contract Setup
+- Set ERC20 contract for specific slot
+- Verify contract compatibility
+- Set up ERC20 contract mapping
 
 ## Use Cases
 
-### Contract Discovery
-- **Scenario:** Find all contracts for a specific RWA
-- **Process:** Use query functions with RWA ID
-- **Benefit:** Complete ecosystem contract discovery
-
-### Address Resolution
-- **Scenario:** Resolve contract addresses across chains
-- **Process:** Use getTokenContract and related functions
-- **Benefit:** Consistent address resolution
-
-### Contract Management
-- **Scenario:** Manage contract relationships during deployment
-- **Process:** Use attachContracts to link contracts
-- **Benefit:** Automated contract relationship management
-
-### Cross-chain Coordination
-- **Scenario:** Coordinate contract addresses across chains
-- **Process:** Use CTMRWAGateway for cross-chain resolution
-- **Benefit:** Consistent contract addressing across ecosystem
+1. **Contract Discovery**: Find contract addresses by ID
+2. **Cross-contract Communication**: Enable communication between contracts
+3. **Contract Validation**: Verify contract relationships
+4. **Deployment Management**: Manage contract deployments
+5. **Cross-chain Consistency**: Maintain consistent mappings across chains
+6. **Contract Registry**: Central registry for all RWA contracts
+7. **Relationship Management**: Manage contract relationships
 
 ## Best Practices
 
-1. **ID Management:** Ensure unique RWA IDs across all chains
-2. **Contract Validation:** Always validate RWA type and version
-3. **Address Consistency:** Maintain consistent address mappings
-4. **Deployment Coordination:** Coordinate deployments across chains
-5. **Governance Control:** Use governance for critical updates
+1. **Contract Planning**: Plan contract relationships before deployment
+2. **Address Management**: Properly manage contract addresses
+3. **Type Validation**: Ensure contract type and version compatibility
+4. **Access Control**: Maintain proper access control for sensitive operations
+5. **Error Handling**: Implement robust error handling
+6. **Integration**: Ensure proper integration with other contracts
+7. **Security**: Implement security measures for contract management
 
 ## Limitations
 
-- **Single Instance:** Only one CTMRWAMap per chain
-- **Deployer Dependency:** All attachments require deployer authorization
-- **Cross-chain Dependency:** Requires coordination across chains
-- **Type Restriction:** Currently only supports RWA_TYPE = 1
-- **Version Restriction:** Currently only supports VERSION = 1
+- **Single Chain**: Each map contract is chain-specific
+- **Deployer Dependency**: Requires deployer for contract attachment
+- **Type Restriction**: Limited to specific RWA types and versions
+- **Address Format**: Requires string format for addresses
+- **Contract Dependency**: Depends on other contracts for functionality
 
 ## Future Enhancements
 
-Potential improvements to the mapping system:
-
-1. **Multi-type Support:** Additional RWA types can be added
-2. **Version Management:** Enhanced version management and migration
-3. **Advanced Queries:** Enhanced query capabilities and filtering
-4. **Analytics Integration:** Add mapping analytics and reporting
+- **Multi-chain Support**: Enhanced multi-chain contract management
+- **Advanced Validation**: More sophisticated contract validation
+- **Automated Management**: Automated contract relationship management
+- **Analytics Integration**: Contract relationship analytics
+- **Enhanced Security**: Advanced security features for contract management
 
 ## Cross-chain Architecture
 
-### Mapping Synchronization
-- **Centralized Registry:** Single point of truth for contract mappings
-- **Distributed Storage:** Mappings stored on each chain
-- **Consistent Addressing:** Consistent contract addressing across chains
-- **Gateway Integration:** Uses gateway for cross-chain resolution
+### Map Role
+- Central registry for contract relationships
+- Contract address management
+- Cross-chain consistency maintenance
+- Contract validation and verification
 
-### Communication Flow
-- **Local Queries:** Direct queries to local mappings
-- **Cross-chain Resolution:** Gateway-mediated address resolution
-- **Deployment Coordination:** Coordinated deployment across chains
-- **Fallback Handling:** Graceful handling of cross-chain failures
+### Contract Management
+- Contract attachment and linking
+- Bidirectional mapping maintenance
+- Type and version validation
+- Contract relationship management
+
+### Integration Management
+- Multi-contract integration
+- Cross-contract communication
+- Contract discovery and validation
+- Relationship management
 
 ## Gas Optimization
 
-### Query Costs
-- **Local Queries:** ~5000-15000 gas for contract address lookups
-- **Type Validation:** ~10000-20000 gas for RWA type/version checks
-- **Contract Attachment:** ~50000-100000 gas for contract linking
-- **Total Estimate:** ~65000-135000 gas per operation
-
-### Optimization Strategies
-- **Efficient Queries:** Use appropriate query functions
-- **Batch Operations:** Consider batch operations for efficiency
-- **Gas Estimation:** Always estimate gas before operations
-- **Caching:** Cache frequently accessed mappings
+- **Efficient Storage**: Optimized storage layout for gas efficiency
+- **Batch Operations**: Batch operations to reduce gas costs
+- **Event Optimization**: Efficient event emission
+- **Function Optimization**: Optimized function implementations
+- **Mapping Optimization**: Efficient mapping operations
 
 ## Security Considerations
 
-### Access Control
-- **Deployer Authorization:** Only deployer can attach contracts
-- **Governance Control:** Only governance can authorize upgrades
-- **Cross-chain Security:** Secure cross-chain communication
-- **Function Validation:** Validate all function parameters
-
-### Data Integrity
-- **Bidirectional Mapping:** Maintain consistent bidirectional mappings
-- **Type Validation:** Validate RWA type and version compatibility
-- **Duplicate Prevention:** Prevent duplicate contract attachments
-- **Address Validation:** Validate contract addresses before operations
-
-### Cross-chain Security
-- **Gateway Integration:** Secure gateway for cross-chain resolution
-- **Fallback Handling:** Graceful handling of cross-chain failures
-- **Consistent Addressing:** Maintain consistent addressing across chains
-- **Deployment Security:** Secure deployment and attachment process
+- **Access Control**: Multi-layer access control system
+- **Input Validation**: Comprehensive input validation
+- **Type Security**: Type and version validation
+- **Address Security**: Zero address protection
+- **Duplicate Prevention**: Duplicate attachment prevention
+- **Contract Security**: Contract compatibility verification
+- **Integration Security**: Secure contract integration

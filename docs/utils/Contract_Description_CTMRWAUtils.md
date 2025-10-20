@@ -1,3 +1,106 @@
+# CTMRWAUtils Library Documentation
+
+## Overview
+
+`CTMRWAUtils` provides shared utilities and strongly-typed error parameters used across the CTMRWA1 suite. It includes:
+- A canonical `CTMRWAErrorParam` enum for compact, structured error signaling
+- String utilities (lowercasing, hex parsing, address parsing, length checks)
+- Single-value-to-array helpers used to build cross-chain batched payloads
+
+## Error Parameter Enum
+
+```solidity
+enum CTMRWAErrorParam {
+    TokenId, TokenName, Symbol, SlotLength, SlotName, Value, Input, Title, URI, Nonce,
+    Address, Balance, Dividend, Commission, CountryCode, Offering, MinInvestment,
+    InvestmentLow, InvestmentHigh, Payable, ChainID, Multiplier, BaseURI, Early, Late,
+    Type, Version, Sender, Owner, To, From, Regulator, TokenAdmin, Factory, Deployer,
+    Identity, Map, Storage, Sentry, SentryManager, StorageManager, RWAERC20, Override,
+    Admin, Minter, Fallback, Token, Invest, DeployInvest, Spender, ZKMe, Cooperator,
+    Gateway, FeeManager, RWAX, ERC20Deployer, Allowable, ApprovedOrOwner, Wallet,
+    WL_Disabled, WL_Enabled, WL_BL_Undefined, WL_BL_Defined, WL_KYC_Disabled, Utils
+}
+```
+
+Used in custom errors throughout the system (e.g., `..._InvalidLength(CTMRWAErrorParam.Address)`), enabling consistent, gas-efficient error reporting without verbose strings.
+
+## Custom Errors
+
+```solidity
+error CTMRWAUtils_InvalidLength(CTMRWAErrorParam);
+error CTMRWAUtils_InvalidHexCharacter();
+error CTMRWAUtils_StringTooLong();
+```
+
+## String Utilities
+
+### _toLower
+```solidity
+function _toLower(string memory str) internal pure returns (string memory)
+```
+- Converts ASCII uppercase characters in `str` to lowercase.
+
+### _stringToAddress
+```solidity
+function _stringToAddress(string memory str) internal pure returns (address)
+```
+- Parses a hex string address with 0x prefix and length 42 into an `address`.
+- Reverts `CTMRWAUtils_InvalidLength(Address)` on invalid length/prefix.
+- Reverts `CTMRWAUtils_InvalidHexCharacter()` on invalid hex characters.
+
+### _hexCharToByte
+```solidity
+function _hexCharToByte(bytes1 char) internal pure returns (uint8)
+```
+- Converts a single ASCII hex character to its 0–15 nibble value.
+- Reverts on non-hex input.
+
+### _checkStringLength
+```solidity
+function _checkStringLength(string memory _str, uint256 _len) internal pure
+```
+- Reverts `CTMRWAUtils_StringTooLong()` if `_str.length > _len`.
+
+## Single-Value Array Builders
+
+These helpers wrap a single value into a 1-element array for composing multi-chain batched calls.
+
+### _stringToArray
+```solidity
+function _stringToArray(string memory _string) internal pure returns (string[] memory)
+```
+
+### _boolToArray
+```solidity
+function _boolToArray(bool _bool) internal pure returns (bool[] memory)
+```
+
+### _uint256ToArray
+```solidity
+function _uint256ToArray(uint256 _myUint256) internal pure returns (uint256[] memory)
+```
+
+### _uint8ToArray
+```solidity
+function _uint8ToArray(uint8 _myUint8) internal pure returns (uint8[] memory)
+```
+
+### _bytes32ToArray
+```solidity
+function _bytes32ToArray(bytes32 _myBytes32) internal pure returns (bytes32[] memory)
+```
+
+## Integration Notes
+
+- Address parsing (`_stringToAddress`) is used wherever addresses are passed as strings across chains.
+- Single-value array builders are heavily used by managers sending one-item batched parameters via C3 calls.
+- Error parameter enum values map directly to failure contexts (e.g., `Title`, `URI`, `Sender`).
+
+## Best Practices
+
+- Always validate string addresses via `_stringToAddress` rather than manual parsing.
+- Use `_checkStringLength` before persisting external strings (titles, object names, etc.).
+- Prefer enum-based custom errors with `CTMRWAErrorParam` for consistent, low-gas diagnostics.
 # CTMRWAUtils Contract Documentation
 
 ## Overview

@@ -3,36 +3,32 @@
 ## Overview
 
 **Contract Name:** CTMRWAGateway  
-**Author:** @Selqui ContinuumDAO  
+**File:** `src/crosschain/CTMRWAGateway.sol`  
 **License:** BSL-1.1  
-**Solidity Version:** 0.8.27
+**Author:** @Selqui ContinuumDAO
 
-The CTMRWAGateway contract is the gateway between any blockchain that can have an RWA deployed to it. It stores the contract addresses of CTMRWAGateway contracts on other chains, as well as the contract addresses of CTMRWA1X, CTMRWA1StorageManager and CTMRWA1SentryManager contracts. This enables c3calls to be made between all the c3Caller dApps that make up AssetX.
+## Contract Description
 
-This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract interactions related to cross-chain communication and address mapping.
+This contract is the gateway between any blockchain that can have an RWA deployed to it. It stores the contract addresses of CTMRWAGateway contracts on other chains, as well as, for instance, in the case of rwaType 1, the contract addresses of CTMRWA1X, CTMRWA1StorageManager and CTMRWA1SentryManager contracts. This enables c3calls to be made between all the c3Caller DApps that make up AssetX.
 
-## Key Features
+This contract is only deployed ONCE on each chain and manages all CTMRWA contract interactions related to cross-chain communication and address mapping.
 
-- **Cross-chain Address Mapping:** Stores contract addresses across multiple chains
-- **Multi-contract Support:** Manages addresses for CTMRWA1X, StorageManager, and SentryManager contracts
-- **Chain Discovery:** Enables discovery of RWA contracts on different chains
-- **Governance Integration:** Built-in governance capabilities through C3GovernDappUpgradeable
-- **Upgradeable:** Uses UUPS upgradeable pattern for future improvements
-- **Fallback Handling:** Basic fallback mechanism for failed cross-chain calls
+### Key Features
+- Cross-chain address mapping for CTMRWAGateway contracts
+- Multi-contract support for CTMRWA1X, StorageManager, and SentryManager contracts
+- Chain discovery and contract address resolution
+- Governance integration through C3GovernDAppUpgradeable
+- UUPS upgradeable pattern for future improvements
+- Fallback handling for failed cross-chain calls
 
-## Public Variables
+## State Variables
 
-### Chain Information
-- **`cIdStr`** (string): String representation of the current chain ID
-
-### Cross-chain Contract Mappings
-- **`rwaX`** (mapping(uint256 => mapping(uint256 => ChainContract[]))): rwaType => version => ChainContract array. Addresses of other CTMRWAGateway contracts
-- **`rwaXChains`** (mapping(uint256 => mapping(uint256 => string[]))): rwaType => version => chainStr array. ChainIds of other CTMRWA1X contracts
-- **`storageManager`** (mapping(uint256 => mapping(uint256 => ChainContract[]))): rwaType => version => chainStr array. Addresses of other CTMRWA1StorageManager contracts
-- **`sentryManager`** (mapping(uint256 => mapping(uint256 => ChainContract[]))): rwaType => version => chainStr array. Addresses of other CTMRWA1SentryManager contracts
-
-### Internal Storage
-- **`chainContract`** (ChainContract[]): Array holding ChainContract structs for all chains
+- `cIdStr (string)`: String representation of the current chain ID
+- `rwaX (mapping(uint256 => mapping(uint256 => ChainContract[])))`: rwaType => version => ChainContract array. Addresses of other CTMRWAGateway contracts
+- `rwaXChains (mapping(uint256 => mapping(uint256 => string[])))`: rwaType => version => chainStr array. ChainIds of other CTMRWA1X contracts
+- `storageManager (mapping(uint256 => mapping(uint256 => ChainContract[])))`: rwaType => version => chainStr array. Addresses of other CTMRWA1StorageManager contracts
+- `sentryManager (mapping(uint256 => mapping(uint256 => ChainContract[])))`: rwaType => version => chainStr array. Addresses of other CTMRWA1SentryManager contracts
+- `chainContract (ChainContract[])`: Array holding ChainContract structs for all chains
 
 ## Data Structures
 
@@ -44,294 +40,199 @@ struct ChainContract {
 }
 ```
 
-## Core Functions
+## Constructor
 
-### Initializer
+```solidity
+function initialize(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)
+```
+- Initializes the CTMRWAGateway contract instance
+- Sets chain ID string representation
+- Adds this contract to the chain contract list
 
-#### `initialize(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)`
-- **Purpose:** Initializes the CTMRWAGateway contract instance
-- **Parameters:**
-  - `_gov`: Address of the governance contract
-  - `_c3callerProxy`: Address of the C3 caller proxy
-  - `_txSender`: Address of the transaction sender
-  - `_dappID`: ID of the dapp
-- **Initialization:**
-  - Initializes C3GovernDapp with governance parameters
-  - Sets chain ID string representation
-  - Adds this contract to the chain contract list
+## Access Control
 
-### Chain Contract Management Functions
+- `onlyGov`: Restricts access to governance functions
+- `initializer`: Ensures function can only be called once during initialization
 
-#### `addChainContract(string[] memory _newChainIdsStr, string[] memory _contractAddrsStr)`
-- **Access:** Only callable by governance
-- **Purpose:** Adds addresses of CTMRWAGateway contracts on other chains
-- **Parameters:**
-  - `_newChainIdsStr`: Array of chain IDs as strings
-  - `_contractAddrsStr`: Array of contract addresses as strings
-- **Requirements:**
-  - Arrays must have same length
-  - Each string must be 64 characters or less
-- **Logic:**
-  - Validates input parameters
-  - Updates existing entries or adds new ones
-  - Converts all strings to lowercase for consistency
-- **Returns:** True if addresses were added successfully
+## Chain Contract Management
 
-#### `getChainContract(string memory _chainIdStr)`
-- **Purpose:** Gets the address string for a CTMRWAGateway contract on another chainId
-- **Parameters:**
-  - `_chainIdStr`: Chain ID converted to a string
-- **Returns:** Contract address string for the specified chain ID, or empty string if not found
+### addChainContract()
+```solidity
+function addChainContract(string[] memory _newChainIdsStr, string[] memory _contractAddrsStr) external onlyGov
+```
+Governor function to add addresses of CTMRWAGateway contracts on other chains. All input addresses are arrays of strings.
 
-#### `getChainContract(uint256 _pos)`
-- **Purpose:** Gets the chainId and address of a CTMRWAGateway contract at a specific index
-- **Parameters:**
-  - `_pos`: Index into the stored array
-- **Returns:** Chain ID string and contract address string at the specified index
+### getChainContract()
+```solidity
+function getChainContract(string memory _chainIdStr) external view returns (string memory)
+```
+Get the address string for a CTMRWAGateway contract on another chainId.
 
-#### `getChainCount()`
-- **Purpose:** Gets the number of stored chainIds and CTMRWAGateway pairs
-- **Returns:** Total number of stored chain-contract pairs
+### getChainContract()
+```solidity
+function getChainContract(uint256 _pos) public view returns (string memory, string memory)
+```
+Get the chainId and address of a CTMRWAGateway contract at an index _pos.
 
-### CTMRWA1X Management Functions
+### getChainCount()
+```solidity
+function getChainCount() public view returns (uint256)
+```
+Get the number of stored chainIds and CTMRWAGateway pairs stored.
 
-#### `getAllRwaXChains(uint256 _rwaType, uint256 _version)`
-- **Purpose:** Gets all the chainIds of all CTMRWA1X contracts
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-- **Returns:** Array of chain IDs for all CTMRWA1X contracts
+## CTMRWA1X Management
 
-#### `existRwaXChain(uint256 _rwaType, uint256 _version, string memory _chainIdStr)`
-- **Purpose:** Checks if a stored CTMRWA1X contract exists on a specific chainId
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-  - `_chainIdStr`: Chain ID as string to check
-- **Returns:** True if chain ID exists, false otherwise
+### getAllRwaXChains()
+```solidity
+function getAllRwaXChains(uint256 _rwaType, uint256 _version) public view returns (string[] memory)
+```
+Get all the chainIds of all CTMRWA1X contracts.
 
-#### `getAttachedRWAX(uint256 _rwaType, uint256 _version, uint256 _indx)`
-- **Purpose:** Gets chainId and CTMRWA1X contract address at a specific index
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-  - `_indx`: Index position to return data from
-- **Returns:** Chain ID string and contract address string at the index
+### existRwaXChain()
+```solidity
+function existRwaXChain(uint256 _rwaType, uint256 _version, string memory _chainIdStr) public view returns (bool)
+```
+Check the existence of a stored CTMRWA1X contract on chainId _chainIdStr.
 
-#### `getRWAXCount(uint256 _rwaType, uint256 _version)`
-- **Purpose:** Gets the total number of stored CTMRWA1X contracts for all chainIds
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-- **Returns:** Total number of stored CTMRWA1X contracts
+### getAttachedRWAX()
+```solidity
+function getAttachedRWAX(uint256 _rwaType, uint256 _version, uint256 _indx) public view returns (string memory, string memory)
+```
+Return all chainIds as an array, including the local chainId, and the corresponding CTMRWA1X contract addresses as another array at an index position. NOTE: The local chainId is at index 0.
 
-#### `getAttachedRWAX(uint256 _rwaType, uint256 _version, string memory _chainIdStr)`
-- **Purpose:** Gets the attached CTMRWA1X contract address for a specific chainId
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-  - `_chainIdStr`: Chain ID as string being examined
-- **Returns:** Success boolean and contract address string
+### getRWAXCount()
+```solidity
+function getRWAXCount(uint256 _rwaType, uint256 _version) public view returns (uint256)
+```
+Get the total number of stored CTMRWA1X contracts for all chainIds (including this one).
 
-#### `attachRWAX(uint256 _rwaType, uint256 _version, string[] memory _chainIdsStr, string[] memory _rwaXAddrsStr)`
-- **Access:** Only callable by governance
-- **Purpose:** Attaches new CTMRWA1X contracts for chainIds
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-  - `_chainIdsStr`: Array of chain IDs as strings
-  - `_rwaXAddrsStr`: Array of CTMRWA1X contract addresses as strings
-- **Requirements:**
-  - Arrays must not be empty and must have same length
-  - Each string must be 64 characters or less
-- **Returns:** True if addresses were added successfully
+### getAttachedRWAX()
+```solidity
+function getAttachedRWAX(uint256 _rwaType, uint256 _version, string memory _chainIdStr) public view returns (bool, string memory)
+```
+Get the attached CTMRWA1X contract address for chainId _chainIdStr as a string, including the local chainId. NOTE: The local chainId is at index 0.
 
-### Storage Manager Management Functions
+### attachRWAX()
+```solidity
+function attachRWAX(uint256 _rwaType, uint256 _version, string[] memory _chainIdsStr, string[] memory _rwaXAddrsStr) external onlyGov returns (bool)
+```
+Governor function. Attach new CTMRWA1X contracts for chainIds, including the local chainId. NOTE: The local chainId is at index 0.
 
-#### `getAttachedStorageManager(uint256 _rwaType, uint256 _version, uint256 _indx)`
-- **Purpose:** Gets chainId and CTMRWA1StorageManager contract address at a specific index
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-  - `_indx`: Index position to return data from
-- **Returns:** Chain ID string and contract address string at the index
+## Storage Manager Management
 
-#### `getStorageManagerCount(uint256 _rwaType, uint256 _version)`
-- **Purpose:** Gets the total number of stored CTMRWA1StorageManager contracts
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-- **Returns:** Total number of stored CTMRWA1StorageManager contracts
+### getAttachedStorageManager()
+```solidity
+function getAttachedStorageManager(uint256 _rwaType, uint256 _version, uint256 _indx) public view returns (string memory, string memory)
+```
+Return all chainIds as an array, including the local chainId, and the corresponding CTMRWA1StorageManager contract addresses as another array at an index position. NOTE: The local chainId is at index 0.
 
-#### `getAttachedStorageManager(uint256 _rwaType, uint256 _version, string memory _chainIdStr)`
-- **Purpose:** Gets the attached CTMRWA1StorageManager contract address for a specific chainId
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-  - `_chainIdStr`: Chain ID as string being examined
-- **Returns:** Success boolean and contract address string
+### getStorageManagerCount()
+```solidity
+function getStorageManagerCount(uint256 _rwaType, uint256 _version) public view returns (uint256)
+```
+Get the total number of stored CTMRWA1StorageManager contracts for all chainIds (including this one).
 
-#### `attachStorageManager(uint256 _rwaType, uint256 _version, string[] memory _chainIdsStr, string[] memory _storageManagerAddrsStr)`
-- **Access:** Only callable by governance
-- **Purpose:** Attaches new CTMRWA1StorageManager contracts for chainIds
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-  - `_chainIdsStr`: Array of chain IDs as strings
-  - `_storageManagerAddrsStr`: Array of CTMRWA1StorageManager contract addresses as strings
-- **Requirements:**
-  - Arrays must not be empty and must have same length
-  - Each string must be 64 characters or less
-- **Returns:** True if addresses were added successfully
+### getAttachedStorageManager()
+```solidity
+function getAttachedStorageManager(uint256 _rwaType, uint256 _version, string memory _chainIdStr) public view returns (bool, string memory)
+```
+Get the attached CTMRWA1StorageManager contract address for chainId _chainIdStr as a string.
 
-### Sentry Manager Management Functions
+### attachStorageManager()
+```solidity
+function attachStorageManager(uint256 _rwaType, uint256 _version, string[] memory _chainIdsStr, string[] memory _storageManagerAddrsStr) external onlyGov returns (bool)
+```
+Governor function. Attach new CTMRWA1StorageManager contracts for chainIds, including the local chainId. NOTE: The local chainId is at index 0.
 
-#### `getAttachedSentryManager(uint256 _rwaType, uint256 _version, uint256 _indx)`
-- **Purpose:** Gets chainId and CTMRWA1SentryManager contract address at a specific index
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-  - `_indx`: Index position to return data from
-- **Returns:** Chain ID string and contract address string at the index
+## Sentry Manager Management
 
-#### `getSentryManagerCount(uint256 _rwaType, uint256 _version)`
-- **Purpose:** Gets the total number of stored CTMRWA1SentryManager contracts
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-- **Returns:** Total number of stored CTMRWA1SentryManager contracts
+### getAttachedSentryManager()
+```solidity
+function getAttachedSentryManager(uint256 _rwaType, uint256 _version, uint256 _indx) public view returns (string memory, string memory)
+```
+Return all chainIds as an array, including the local chainId, and the corresponding CTMRWA1SentryManager contract addresses as another array at an index position. NOTE: The local chainId is at index 0.
 
-#### `getAttachedSentryManager(uint256 _rwaType, uint256 _version, string memory _chainIdStr)`
-- **Purpose:** Gets the attached CTMRWA1SentryManager contract address for a specific chainId
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-  - `_chainIdStr`: Chain ID as string being examined
-- **Returns:** Success boolean and contract address string
+### getSentryManagerCount()
+```solidity
+function getSentryManagerCount(uint256 _rwaType, uint256 _version) public view returns (uint256)
+```
+Get the total number of stored CTMRWA1SentryManager contracts for all chainIds (including this one).
 
-#### `attachSentryManager(uint256 _rwaType, uint256 _version, string[] memory _chainIdsStr, string[] memory _sentryManagerAddrsStr)`
-- **Access:** Only callable by governance
-- **Purpose:** Attaches new CTMRWA1SentryManager contracts for chainIds
-- **Parameters:**
-  - `_rwaType`: Type of RWA (1 for CTMRWA1)
-  - `_version`: Version of RWA type (1 for current)
-  - `_chainIdsStr`: Array of chain IDs as strings
-  - `_sentryManagerAddrsStr`: Array of CTMRWA1SentryManager contract addresses as strings
-- **Requirements:**
-  - Arrays must not be empty and must have same length
-  - Each string must be 64 characters or less
-- **Returns:** True if addresses were added successfully
+### getAttachedSentryManager()
+```solidity
+function getAttachedSentryManager(uint256 _rwaType, uint256 _version, string memory _chainIdStr) public view returns (bool, string memory)
+```
+Get the attached CTMRWA1SentryManager contract address for chainId _chainIdStr as a string, including the local chainId. NOTE: The local chainId is at index 0.
+
+### attachSentryManager()
+```solidity
+function attachSentryManager(uint256 _rwaType, uint256 _version, string[] memory _chainIdsStr, string[] memory _sentryManagerAddrsStr) external onlyGov returns (bool)
+```
+Governor function. Attach new CTMRWA1SentryManager contracts for chainIds, including the local chainId. NOTE: The local chainId is at index 0.
 
 ## Internal Functions
 
-### Chain Management
-- **`_addChainContract(uint256 _chainId, address _contractAddr)`**: Adds a chain contract to the internal array
-- **`cID()`**: Returns current chain ID
+### _addChainContract()
+```solidity
+function _addChainContract(uint256 _chainId, address _contractAddr) internal
+```
+Adds the address of a CTMRWAGateway contract on another chainId.
 
-### Fallback Handling
-- **`_c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)`**: Handles failed cross-chain calls
+### cID()
+```solidity
+function cID() internal view returns (uint256)
+```
+Returns current chain ID.
 
-## Access Control Modifiers
-
-- **`onlyGov`**: Restricts access to governance functions
-- **`initializer`**: Ensures function can only be called once during initialization
+### _c3Fallback()
+```solidity
+function _c3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason) internal override returns (bool)
+```
+Fallback function for a failed c3call. Only logs an event at present.
 
 ## Events
 
-The contract emits events for tracking operations:
-
-- **`LogFallback(bytes4 indexed selector, bytes data, bytes reason)`**: Emitted when a cross-chain call fails
-  - `selector`: Function selector that failed
-  - `data`: ABI encoded data that was sent
-  - `reason`: Revert reason from the failed operation
+- `LogFallback(bytes4 selector, bytes data, bytes reason)`: Record that a c3Caller cross-chain transfer failed with fallback
 
 ## Security Features
 
-1. **Governance Integration:** Built-in governance through C3GovernDappUpgradeable
-2. **Access Control:** Only governance can modify contract mappings
-3. **Upgradeable:** UUPS upgradeable pattern for future improvements
-4. **Input Validation:** Extensive validation of input parameters
-5. **String Normalization:** All strings converted to lowercase for consistency
-6. **Fallback Handling:** Basic fallback mechanism for failed operations
+- Governance integration through C3GovernDAppUpgradeable
+- UUPS upgradeable pattern for future improvements
+- Access control via onlyGov modifier
+- Input validation for string lengths and array lengths
+- String normalization to lowercase for consistency
 
 ## Integration Points
 
-- **CTMRWA1X**: Cross-chain coordinator contracts on different chains
-- **CTMRWA1StorageManager**: Storage management contracts across chains
-- **CTMRWA1SentryManager**: Access control contracts across chains
-- **C3GovernDapp**: Governance functionality
-- **C3Caller**: Cross-chain communication system
+- `CTMRWA1X`: Cross-chain coordinator contracts on different chains
+- `CTMRWA1StorageManager`: Storage management contracts across chains
+- `CTMRWA1SentryManager`: Access control contracts across chains
+- `C3GovernDApp`: Governance functionality
+- `C3Caller`: Cross-chain communication system
 
 ## Error Handling
 
-The contract uses custom error types for efficient gas usage and clear error messages:
+The contract uses custom error types for efficient gas usage:
 
-- **`CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input)`**: Thrown when input arrays have different lengths
-- **`CTMRWAGateway_InvalidLength(CTMRWAErrorParam.Input)`**: Thrown when input arrays are empty
-- **`CTMRWAGateway_InvalidLength(CTMRWAErrorParam.Address)`**: Thrown when address string is too long
+- `CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input)`: Thrown when input arrays have different lengths
+- `CTMRWAGateway_InvalidLength(CTMRWAErrorParam.Input)`: Thrown when input arrays are empty
+- `CTMRWAGateway_InvalidLength(CTMRWAErrorParam.Address)`: Thrown when address string is too long
 
 ## Cross-chain Architecture Role
 
 The CTMRWAGateway contract serves as the central registry for cross-chain RWA operations:
 
-### 1. Address Discovery
-- **Purpose:** Enables discovery of RWA contracts on different chains
-- **Function:** Stores and retrieves contract addresses across multiple chains
-- **Benefit:** Allows seamless cross-chain communication
+### Address Discovery
+- Enables discovery of RWA contracts on different chains
+- Stores and retrieves contract addresses across multiple chains
+- Allows seamless cross-chain communication
 
-### 2. Contract Mapping
-- **Purpose:** Maps chain IDs to contract addresses
-- **Function:** Maintains relationships between chains and their RWA infrastructure
-- **Benefit:** Enables targeted cross-chain operations
+### Contract Mapping
+- Maps chain IDs to contract addresses
+- Maintains relationships between chains and their RWA infrastructure
+- Enables targeted cross-chain operations
 
-### 3. Multi-contract Support
-- **Purpose:** Manages different types of RWA contracts
-- **Function:** Handles CTMRWA1X, StorageManager, and SentryManager contracts
-- **Benefit:** Provides comprehensive cross-chain infrastructure
-
-## Use Cases
-
-### Cross-chain Deployment
-- **Scenario:** Deploying RWA contracts across multiple chains
-- **Process:** Gateway stores addresses of deployed contracts
-- **Benefit:** Enables coordinated deployment and management
-
-### Cross-chain Communication
-- **Scenario:** Sending messages between chains
-- **Process:** Gateway provides target contract addresses
-- **Benefit:** Enables reliable cross-chain messaging
-
-### Contract Discovery
-- **Scenario:** Finding RWA contracts on different chains
-- **Process:** Query gateway for contract addresses
-- **Benefit:** Enables dynamic contract discovery
-
-### Infrastructure Management
-- **Scenario:** Managing RWA infrastructure across chains
-- **Process:** Gateway maintains infrastructure mappings
-- **Benefit:** Centralized infrastructure management
-
-## Best Practices
-
-1. **Regular Updates:** Keep contract mappings up to date as new chains are added
-2. **Validation:** Always validate contract addresses before using them
-3. **Monitoring:** Monitor for failed cross-chain operations
-4. **Governance:** Use governance processes for adding new chains
-5. **Backup:** Maintain backup records of contract mappings
-
-## Limitations
-
-- **Governance Dependency:** All modifications require governance approval
-- **String Storage:** Uses strings for addresses, which is gas-intensive
-- **Centralized Control:** Single point of control for cross-chain mappings
-- **Manual Updates:** Requires manual updates when new chains are added
-
-## Future Enhancements
-
-Potential improvements to the gateway system:
-
-1. **Automated Discovery:** Implement automatic contract discovery mechanisms
-2. **Enhanced Validation:** Add more sophisticated address validation
-3. **Performance Optimization:** Optimize storage and retrieval mechanisms
-4. **Multi-signature Support:** Add multi-signature requirements for critical updates
-5. **Event-driven Updates:** Implement event-driven updates for contract changes
+### Multi-contract Support
+- Manages different types of RWA contracts
+- Handles CTMRWA1X, StorageManager, and SentryManager contracts
+- Provides comprehensive cross-chain infrastructure

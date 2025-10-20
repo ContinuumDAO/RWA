@@ -40,6 +40,15 @@ This contract is deployed only once on each chain and manages all CTMRWA1Storage
 - **`AddURIX`** (bytes4, constant): Function selector for addURIX cross-chain function
   - Calculated as keccak256("addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])")
 
+```solidity
+// Matches contract constant
+bytes4 public AddURIX = bytes4(
+    keccak256(
+        "addURIX(uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])"
+    )
+);
+```
+
 ## Core Functions
 
 ### Initialization
@@ -97,6 +106,7 @@ This contract is deployed only once on each chain and manages all CTMRWA1Storage
   - Performs recovery operations:
     - Pops URI records from storage
     - Rewinds nonce to previous state
+  - Emits `LogFallback`
 - **Recovery Process:**
   - For addURIX failures:
     - Extracts ID, startNonce, and objectName from failed data
@@ -105,7 +115,7 @@ This contract is deployed only once on each chain and manages all CTMRWA1Storage
     - Calls setNonce to rewind nonce to previous state
 - **Returns:** True if fallback was successful
 - **Events:** Emits LogFallback event with failure details
-- **Note:** Storage object on decentralized storage must be cleaned up before retry
+- **Note:** The decentralized storage object (e.g., Greenfield) created for the failed add must be cleaned up before retrying
 
 ## Internal Functions
 

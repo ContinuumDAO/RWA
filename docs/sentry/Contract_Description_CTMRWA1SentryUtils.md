@@ -1,260 +1,313 @@
-# CTMRWA1SentryUtils Contract Documentation
+# Contract Description: CTMRWA1SentryUtils
 
 ## Overview
 
-**Contract Name:** CTMRWA1SentryUtils  
-**Author:** @Selqui ContinuumDAO  
-**License:** BSL-1.1  
-**Solidity Version:** 0.8.27
+The `CTMRWA1SentryUtils` contract serves as a utility contract for deploying and managing CTMRWA1Sentry instances. The main purpose of this contract is to deploy an instance of CTMRWA1Sentry for a CTMRWA1 token. It also houses the required c3caller fallback function, which currently does not do anything except emit the LogFallback event.
 
-The CTMRWA1SentryUtils contract serves as a utility contract for the CTMRWA1Sentry system. Its main purpose is to deploy instances of CTMRWA1Sentry contracts for CTMRWA1 tokens using CREATE2 for deterministic addresses. It also houses the required C3Caller fallback function for handling cross-chain operation failures.
+## Contract Description
 
-This contract is deployed only once on each chain and manages all CTMRWA1Sentry contract deployments and C3Caller fallbacks. It provides deployment and error tracking functionality for the sentry system.
+The CTMRWA1SentryUtils is a utility contract that provides deployment functionality for sentry contracts and handles cross-chain communication fallbacks. It acts as a helper contract for the CTMRWA1SentryManager, enabling the deployment of sentry contracts with proper salt-based addressing.
 
 ## Key Features
 
-- **CREATE2 Deployment:** Uses CREATE2 instruction for deterministic sentry contract addresses
-- **Cross-chain Error Tracking:** Maintains records of failed C3Caller operations
-- **Sentry Management:** Coordinates with CTMRWA1SentryManager for deployments
-- **Error Monitoring:** Provides debugging information for cross-chain failures
-- **Fallback Handling:** Handles C3Caller fallbacks for sentry operations
-- **Address Resolution:** Provides utility functions for contract address lookup
-- **Immutable Configuration:** Uses immutable variables for security
+- **Sentry Deployment**: Deploy CTMRWA1Sentry contracts with deterministic addressing
+- **Cross-chain Fallback**: Handle failed cross-chain calls with proper logging
+- **Debug Support**: Provide debugging information for failed operations
+- **Access Control**: Restricted access through sentry manager only
+- **Salt-based Deployment**: Deterministic contract deployment using salt
 
 ## Public Variables
 
-### Contract Identification
-- **`RWA_TYPE`** (uint256, immutable): RWA type defining CTMRWA1
-- **`VERSION`** (uint256, immutable): Version of this RWA type
+### RWA_TYPE
+```solidity
+uint256 public immutable RWA_TYPE
+```
+The RWA type identifier
 
-### Contract Addresses
-- **`ctmRwa1Map`** (address): Address of the CTMRWAMap contract
-- **`sentryManager`** (address): Address of the CTMRWA1SentryManager contract
+### VERSION
+```solidity
+uint256 public immutable VERSION
+```
+The version of the RWA token
 
-### Error Tracking
-- **`lastSelector`** (bytes4): Latest function selector from failed C3Caller operation
-- **`lastData`** (bytes): Latest data from failed C3Caller operation
-- **`lastReason`** (bytes): Latest reason from failed C3Caller operation
+### ctmRwaMap
+```solidity
+address public ctmRwaMap
+```
+The address of the CTMRWAMap contract
 
-## Core Functions
+### sentryManager
+```solidity
+address public sentryManager
+```
+The address of the sentry manager contract
 
-### Initialization
+### lastSelector
+```solidity
+bytes4 public lastSelector
+```
+The selector of the last failed function
 
-#### `constructor(uint256 _rwaType, uint256 _version, address _map, address _sentryManager)`
-- **Access:** Public constructor
-- **Purpose:** Initializes the CTMRWA1SentryUtils contract instance
-- **Parameters:**
-  - `_rwaType`: RWA type defining CTMRWA1
-  - `_version`: Version of this RWA type
-  - `_map`: Address of the CTMRWAMap contract
-  - `_sentryManager`: Address of the CTMRWA1SentryManager contract
-- **Initialization:**
-  - Sets immutable RWA_TYPE and VERSION
-  - Sets contract addresses for map and sentry manager
-  - Establishes connection to sentry management system
+### lastData
+```solidity
+bytes public lastData
+```
+The data of the last failed function
 
-### Deployment Functions
+### lastReason
+```solidity
+bytes public lastReason
+```
+The reason for the last failure
 
-#### `deploySentry(uint256 _ID, address _tokenAddr, uint256 _rwaType, uint256 _version, address _map)`
-- **Access:** Only callable by CTMRWA1SentryManager
-- **Purpose:** Deploy an instance of CTMRWA1Sentry using CREATE2
-- **Parameters:**
-  - `_ID`: ID of the RWA token (used as CREATE2 salt)
-  - `_tokenAddr`: Address of the CTMRWA1 contract
-  - `_rwaType`: Type of RWA token (set to 1 for CTMRWA1)
-  - `_version`: Version of the RWA token (set to 1 for current version)
-  - `_map`: Address of the CTMRWAMap contract
-- **Logic:**
-  - Uses CREATE2 instruction with `_ID` as salt for deterministic address
-  - Deploys new CTMRWA1Sentry contract
-  - Passes sentryManager as the manager address
-- **Returns:** Address of the deployed CTMRWA1Sentry contract
-- **Security:** Only sentryManager can deploy sentry contracts
+## Constructor
 
-### Error Recovery Functions
+### Constructor
+```solidity
+constructor(uint256 _rwaType, uint256 _version, address _map, address _sentryManager)
+```
+Initialize the contract with required parameters
 
-#### `getLastReason()`
-- **Access:** Public view function
-- **Purpose:** Get the latest revert string from a failed cross-chain C3Caller operation
-- **Returns:** String representation of the last failure reason
-- **Use Case:** Debugging and monitoring cross-chain operation failures
-- **Note:** For debug purposes only
+**Parameters:**
+- `_rwaType`: The RWA type identifier
+- `_version`: The version of the RWA token
+- `_map`: The address of the CTMRWAMap contract
+- `_sentryManager`: The address of the sentry manager contract
 
-#### `sentryC3Fallback(bytes4 _selector, bytes calldata _data, bytes calldata _reason)`
-- **Access:** Only callable by CTMRWA1SentryManager
-- **Purpose:** Handle C3Caller fallbacks for failed cross-chain sentry operations
-- **Parameters:**
-  - `_selector`: Function selector of the failed operation
-  - `_data`: Encoded data of the failed operation
-  - `_reason`: Reason for the failure
-- **Logic:**
-  - Stores failure information for debugging purposes
-  - Currently does not perform any recovery operations
-  - Emits LogFallback event with failure details
-- **Returns:** True if fallback was successful
-- **Events:** Emits LogFallback event with failure details
-- **Note:** Currently only tracks failures, no recovery actions implemented
+## Deployment Functions
+
+### deploySentry()
+```solidity
+function deploySentry(
+    uint256 _ID,
+    address _tokenAddr,
+    uint256 _rwaType,
+    uint256 _version,
+    address _map
+) external onlySentryManager returns (address)
+```
+Deploy an instance of CTMRWA1Sentry with salt including its unique ID
+
+**Parameters:**
+- `_ID`: The ID of the RWA token
+- `_tokenAddr`: The address of the CTMRWA1 contract
+- `_rwaType`: The type of RWA token
+- `_version`: The version of the RWA token
+- `_map`: The address of the CTMRWA1Map contract
+
+**Returns:** The address of the deployed CTMRWA1Sentry contract
+
+## Query Functions
+
+### getLastReason()
+```solidity
+function getLastReason() public view returns (string memory)
+```
+Get the last revert string for a failed cross-chain c3call. For debug purposes
+
+**Returns:** lastReason The latest revert string if a cross-chain call failed for whatever reason
+
+## Cross-chain Functions
+
+### sentryC3Fallback()
+```solidity
+function sentryC3Fallback(
+    bytes4 _selector,
+    bytes calldata _data,
+    bytes calldata _reason
+) external onlySentryManager returns (bool)
+```
+The required c3caller fallback function
+
+**Parameters:**
+- `_selector`: The selector of the function that failed
+- `_data`: The data of the function that failed
+- `_reason`: The reason for the failure
+
+**Returns:** ok True if the fallback was successful, false otherwise
 
 ## Internal Functions
 
-### Utility Functions
-- **`_getTokenAddr(uint256 _ID)`**: Gets CTMRWA1 contract address for RWA ID
-  - Queries CTMRWAMap for token contract address
-  - Returns both address and lowercase hex string
-  - Throws error if token contract not found
+### _getTokenAddr()
+```solidity
+function _getTokenAddr(uint256 _ID) internal view returns (address, string memory)
+```
+Get the deployed contract address on this chain for this CTMRWA1 ID
+
+**Parameters:**
+- `_ID`: The ID of the RWA token
+
+**Returns:**
+- `tokenAddr`: The address of the CTMRWA1 contract
+- `tokenAddrStr`: The string version of the CTMRWA1 contract address
 
 ## Access Control Modifiers
 
-- **`onlySentryManager`**: Restricts access to only CTMRWA1SentryManager
-  - Ensures only authorized sentry manager can deploy contracts
-  - Maintains deployment security and control
-  - Prevents unauthorized access to fallback functions
+### onlySentryManager
+```solidity
+modifier onlySentryManager()
+```
+Restricts access to the sentry manager only
 
 ## Events
 
-- **`LogFallback(bytes4 selector, bytes data, bytes reason)`**: Emitted when C3Caller fallback is processed
-  - Records function selector, data, and reason for debugging
-  - Helps track cross-chain operation failures
-  - Enables monitoring and analysis of failure patterns
+### LogFallback
+```solidity
+event LogFallback(bytes4 selector, bytes data, bytes reason)
+```
+Emitted when a cross-chain call fails and fallback is triggered
+
+**Parameters:**
+- `selector`: The selector of the failed function
+- `data`: The data of the failed function
+- `reason`: The reason for the failure
 
 ## Security Features
 
-1. **Access Control:** Only sentryManager can deploy contracts and handle fallbacks
-2. **CREATE2 Security:** Uses deterministic deployment with ID as salt
-3. **Error Tracking:** Maintains comprehensive error records
-4. **Parameter Validation:** Validates contract addresses and parameters
-5. **Immutable Configuration:** RWA_TYPE and VERSION are immutable for security
-6. **Manager Authorization:** All operations require sentry manager authorization
+- **Access Control**: Restricted access through sentry manager only
+- **Immutable Configuration**: RWA_TYPE and VERSION are immutable
+- **Salt-based Deployment**: Deterministic contract deployment
+- **Fallback Handling**: Proper handling of failed cross-chain calls
+- **Debug Support**: Comprehensive logging for debugging
 
 ## Integration Points
 
-- **CTMRWA1SentryManager**: Main sentry management contract
-- **CTMRWA1Sentry**: Individual sentry contracts for each RWA
-- **CTMRWAMap**: Contract address registry
-- **CTMRWA1**: Core RWA token contract
-- **C3Caller**: Cross-chain communication system
+- **CTMRWA1SentryManager**: Main integration point for deployment requests
+- **CTMRWA1Sentry**: Deployed sentry contracts
+- **CTMRWAMap**: Contract address mapping
+- **CTMRWA1**: Core RWA token contracts
+- **C3 Protocol**: Cross-chain communication protocol
 
 ## Error Handling
 
-The contract uses custom error types for efficient gas usage:
+The contract uses custom error types for gas efficiency:
 
-- **`CTMRWA1SentryUtils_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.SentryManager)`**: Thrown when unauthorized address tries to access functions
-- **`CTMRWA1SentryUtils_InvalidContract(CTMRWAErrorParam.Token)`**: Thrown when token contract not found
+- `CTMRWA1SentryUtils_OnlyAuthorized`: Thrown when unauthorized access is attempted
+- `CTMRWA1SentryUtils_InvalidContract`: Thrown when invalid contract is referenced
 
-## Cross-chain Error Tracking Process
+## Deployment Process
 
-### 1. Failure Detection
-- **Step:** C3Caller detects cross-chain operation failure
-- **Method:** C3Caller calls sentryC3Fallback with failure details
-- **Result:** Failure information stored for analysis
+### 1. Contract Initialization
+- Set RWA_TYPE and VERSION as immutable values
+- Configure CTMRWAMap and sentry manager addresses
+- Initialize contract state
 
-### 2. Error Recording
-- **Step:** Record failure details for debugging
-- **Method:** Store selector, data, and reason
-- **Result:** Complete failure record maintained
+### 2. Sentry Deployment
+- Receive deployment request from sentry manager
+- Deploy CTMRWA1Sentry with salt-based addressing
+- Return deployed contract address
+- Verify deployment success
 
-### 3. Event Emission
-- **Step:** Emit event for monitoring
-- **Method:** Emit LogFallback event
-- **Result:** Failure visible to external monitoring systems
-
-### 4. Debug Access
-- **Step:** Provide access to failure information
-- **Method:** Use getLastReason to retrieve details
-- **Result:** Debug information available for analysis
+### 3. Cross-chain Fallback
+- Handle failed cross-chain calls
+- Log failure information for debugging
+- Emit fallback events
+- Return success status
 
 ## Use Cases
 
-### Sentry Contract Deployment
-- **Scenario:** Deploy new sentry contract for RWA token
-- **Process:** Use deploySentry with CREATE2 for deterministic address
-- **Benefit:** Predictable contract addresses across deployments
-
-### Cross-chain Error Monitoring
-- **Scenario:** Monitor cross-chain sentry operation failures
-- **Process:** Use getLastReason to retrieve failure details
-- **Benefit:** Debug and improve cross-chain reliability
-
-### Sentry System Management
-- **Scenario:** Coordinate sentry operations across multiple contracts
-- **Process:** Work with sentry manager for deployment and error tracking
-- **Benefit:** Centralized sentry management and error handling
-
-### Debugging Support
-- **Scenario:** Debug cross-chain sentry operation failures
-- **Process:** Analyze failure records and events
-- **Benefit:** Improved system reliability and debugging capabilities
+1. **Sentry Deployment**: Deploy sentry contracts for RWA tokens
+2. **Cross-chain Management**: Handle cross-chain communication failures
+3. **Debug Support**: Provide debugging information for failed operations
+4. **Utility Functions**: Provide utility functions for sentry management
+5. **Fallback Handling**: Handle cross-chain call failures gracefully
 
 ## Best Practices
 
-1. **Error Monitoring:** Regularly check getLastReason for failures
-2. **Deployment Planning:** Plan sentry deployments with deterministic addresses
-3. **Cross-chain Coordination:** Coordinate with sentry manager for operations
-4. **Debug Information:** Use failure records for system improvement
-5. **Event Monitoring:** Monitor LogFallback events for failure patterns
+1. **Deployment Management**: Properly manage sentry contract deployments
+2. **Cross-chain Monitoring**: Monitor cross-chain call success/failure
+3. **Debug Information**: Maintain debug information for troubleshooting
+4. **Access Control**: Ensure proper access control for sensitive operations
+5. **Error Handling**: Implement robust error handling for all operations
 
 ## Limitations
 
-- **Single Instance:** Only one SentryUtils per chain
-- **Manager Dependency:** All operations require sentry manager authorization
-- **Limited Recovery:** Currently only tracks failures, no recovery actions
-- **Cross-chain Dependency:** Requires C3Caller for cross-chain operations
-- **Debug Focus:** Primarily focused on debugging rather than recovery
+- **Single Purpose**: Limited to sentry deployment and fallback handling
+- **Manager Dependency**: Requires sentry manager for all operations
+- **Cross-chain Dependency**: Depends on cross-chain communication
+- **Debug Only**: Some functions are for debugging purposes only
 
 ## Future Enhancements
 
-Potential improvements to the sentry utilities system:
+- **Enhanced Debugging**: More comprehensive debugging capabilities
+- **Batch Operations**: Support for batch sentry deployments
+- **Advanced Fallback**: More sophisticated fallback handling
+- **Analytics Integration**: Integration with analytics systems
+- **Automated Recovery**: Automated recovery from failed operations
 
-1. **Enhanced Recovery:** Implement actual recovery mechanisms for failures
-2. **Advanced Monitoring:** Add comprehensive monitoring and alerting
-3. **Batch Operations:** Support batch deployment and error handling
-4. **Automated Debugging:** Add automated failure analysis and reporting
-5. **Recovery Actions:** Implement specific recovery actions for different failure types
+## Cross-chain Architecture
 
-## CREATE2 Deployment Architecture
+### Utility Role
+- Helper contract for sentry manager
+- Deployment utility for sentry contracts
+- Cross-chain fallback handler
+- Debug information provider
 
-### Deterministic Addresses
-- **Salt Generation:** Uses RWA ID as CREATE2 salt
-- **Address Calculation:** Predictable addresses across deployments
-- **Collision Prevention:** Unique addresses for each RWA token
-- **Verification:** Addresses can be calculated off-chain
+### Deployment Management
+- Salt-based deterministic deployment
+- Contract address verification
+- Deployment success validation
+- Cross-chain deployment coordination
 
-### Deployment Process
-- **Parameter Validation:** Validate all deployment parameters
-- **Contract Creation:** Use CREATE2 for deterministic deployment
-- **Address Registration:** Register address with sentry manager
-- **Verification:** Verify successful deployment
+### Fallback Handling
+- Cross-chain call failure detection
+- Failure information logging
+- Event emission for monitoring
+- Success/failure status reporting
 
 ## Gas Optimization
 
-### Deployment Costs
-- **CREATE2 Deployment:** ~200000-300000 gas for sentry contract deployment
-- **Fallback Processing:** ~20000-50000 gas for error tracking
-- **Address Lookup:** ~5000-10000 gas for contract address queries
-- **Total Estimate:** ~225000-360000 gas per deployment
-
-### Optimization Strategies
-- **Batch Deployments:** Consider batch deployment for efficiency
-- **Gas Estimation:** Always estimate gas before deployments
-- **Error Prevention:** Minimize cross-chain failures to reduce tracking costs
-- **Efficient Tracking:** Optimize error tracking operations for gas efficiency
+- **Immutable Variables**: Use of immutable for constant values
+- **Efficient Storage**: Optimized storage layout
+- **Minimal Operations**: Streamlined function implementations
+- **Event Optimization**: Efficient event emission
+- **Function Optimization**: Optimized function implementations
 
 ## Security Considerations
 
-### Access Control
-- **Manager Authorization:** Only sentry manager can deploy and handle fallbacks
-- **Function Validation:** Validate all function parameters
-- **Address Verification:** Verify contract addresses before operations
-- **Error Handling:** Secure error handling and tracking
+- **Access Control**: Restricted access through sentry manager
+- **Immutable Configuration**: Immutable RWA_TYPE and VERSION
+- **Salt Security**: Secure salt-based deployment
+- **Fallback Security**: Secure fallback handling
+- **Input Validation**: Proper input validation
+- **Error Handling**: Comprehensive error handling
+- **Event Security**: Secure event emission
 
-### Deployment Security
-- **CREATE2 Security:** Secure CREATE2 deployment with proper salt
-- **Parameter Validation:** Validate all deployment parameters
-- **Address Verification:** Verify deployed contract addresses
-- **Manager Security:** Secure sentry manager access
+## Debugging Support
 
-### Cross-chain Security
-- **C3Caller Integration:** Secure cross-chain communication
-- **Fallback Security:** Secure fallback handling and tracking
-- **Error Tracking:** Secure error tracking and debugging
-- **Event Security:** Secure event emission and monitoring
+### Debug Information
+- Last failed function selector
+- Last failed function data
+- Last failure reason
+- Comprehensive logging
+
+### Fallback Events
+- LogFallback event for monitoring
+- Detailed failure information
+- Cross-chain call tracking
+- Debug support for troubleshooting
+
+## Contract Lifecycle
+
+### 1. Initialization
+- Constructor sets immutable values
+- Configure required addresses
+- Initialize contract state
+
+### 2. Deployment Phase
+- Receive deployment requests
+- Deploy sentry contracts
+- Verify deployment success
+- Return contract addresses
+
+### 3. Operation Phase
+- Handle cross-chain calls
+- Manage fallback scenarios
+- Provide debug information
+- Support sentry operations
+
+### 4. Maintenance Phase
+- Monitor cross-chain operations
+- Handle fallback scenarios
+- Provide debugging support
+- Maintain contract state

@@ -3,73 +3,102 @@
 ## Overview
 
 **Contract Name:** CTMRWA1  
-**Author:** @Selqui ContinuumDAO  
+**File:** `src/core/CTMRWA1.sol`  
 **License:** MIT  
-**Solidity Version:** 0.8.27
+**Author:** @Selqui ContinuumDAO
 
-The CTMRWA1 contract is an AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs). The basic functionality relating to the Semi Fungible Token is derived from ERC3525 (https://eips.ethereum.org/EIPS/eip-3525), but **CTMRWA1 is NOT ERC3525 compliant**.
+## Contract Description
 
-This token can be deployed many times and on multiple chains from CTMRWA1X. Each CTMRWA1 corresponds to a single RWA and is deployed on each chain.
+CTMRWA1 is a multi-chain semi-fungible token contract for Real-World Assets (RWAs). It derives concepts from ERC3525 but is not ERC3525 compliant. The contract can be deployed multiple times on multiple chains from CTMRWA1X and supports cross-chain functionality.
 
-## Key Features
+### Key Features
+- Semi-fungible, slot-based value model
+- Multi-chain deployment and coordination via CTMRWA1X
+- Pausable and reentrancy-protected state-changing flows
+- Fine-grained approvals for tokenId transfers and value spending
+- Per-slot ERC20 wrapper integration with selective token approvals
+- Historical per-slot balances and total supply via checkpoints
 
-- **Multi-chain Support:** Each CTMRWA1 corresponds to a single RWA deployed across multiple chains
-- **Semi-Fungible Tokens:** Based on ERC3525 concepts but with custom implementation
-- **Slot-based System:** Tokens are organized into slots with different characteristics
-- **Cross-chain Architecture:** Integrated with CTMRWA1X for cross-chain operations
-- **Regulatory Compliance:** Built-in support for regulatory oversight and compliance
-- **Access Control:** Comprehensive permission system with multiple roles
+## Constructor
 
-## Public Variables
+The CTMRWA1 contract is initialized with the following parameters:
+
+```solidity
+constructor(
+    address _tokenAdmin,
+    address _map,
+    string memory tokenName_,
+    string memory symbol_,
+    uint8 decimals_,
+    string memory baseURI_,
+    address _ctmRwa1X
+)
+```
+
+### Constructor Behavior
+
+During construction, the contract:
+1. Sets `tokenAdmin` and `ctmRwaMap`
+2. Initializes `_tokenIdGenerator` to 1
+3. Sets token metadata (`_name`, `_symbol`, `_decimals`, `baseURI`)
+4. Stores `ctmRwa1X`
+5. Derives `ctmRwaDeployer` from `CTMRWA1X`
+6. Derives `tokenFactory` and `erc20Deployer` from `CTMRWADeployer`
+
+## State Variables
 
 ### Core Identifiers
-- **`ID`** (uint256): Unique identifier linking CTMRWA1 across chains - same ID on every chain
-- **`VERSION`** (uint256, constant): Single integer version of this RWA type (value: 1)
-- **`RWA_TYPE`** (uint256, constant): RWA type defining CTMRWA1 (value: 1)
+- `ID (uint256)`: Unique identifier linking CTMRWA1 across chains
+- `VERSION (uint256, immutable = 1)`: Version of this RWA type
+- `RWA_TYPE (uint256, immutable = 1)`: RWA type defining CTMRWA1
 
 ### Administrative Addresses
-- **`tokenAdmin`** (address): Address of the wallet controlling the RWA, also known as the Issuer
-- **`ctmRwaDeployer`** (address): Single contract on each chain which deploys the components of a CTMRWA1
-- **`overrideWallet`** (address): If defined by the tokenAdmin, is a wallet that can forceTransfer assets from any holder
-- **`ctmRwaMap`** (address): Single contract which maps the multi-chain ID to the component address of each part of the CTMRWA1
-- **`ctmRwa1X`** (address): Single contract on each chain responsible for deploying, minting, and transferring the CTMRWA1 and its components
-- **`rwa1XFallback`** (address): Contract responsible for dealing with failed cross-chain calls from ctmRwa1X
+- `tokenAdmin (address)`: Wallet controlling the RWA (Issuer)
+- `ctmRwaDeployer (address)`: Contract deploying CTMRWA1 components
+- `overrideWallet (address)`: Optional wallet permitted to forceTransfer
+- `ctmRwaMap (address)`: Contract mapping multi-chain ID to components
+- `ctmRwa1X (address)`: Cross-chain coordinator for deploy/mint/transfer
 
 ### Component Addresses
-- **`dividendAddr`** (address): Contract managing dividend payments to CTMRWA1 holders
-- **`storageAddr`** (address): Contract managing decentralized storage of information for CTMRWA1
-- **`sentryAddr`** (address): Contract controlling access to the CTMRWA1
-- **`tokenFactory`** (address): Contract that directly deploys this contract
-- **`erc20Deployer`** (address): Contract which allows deployment of an ERC20 representing any slot of a CTMRWA1
+- `dividendAddr (address)`: Dividend manager contract
+- `storageAddr (address)`: Storage manager contract
+- `sentryAddr (address)`: Access control and whitelisting contract
+- `tokenFactory (address)`: Contract that directly deploys CTMRWA1
+- `erc20Deployer (address)`: Contract for deploying per-slot ERC20s
 
-### Token Metadata
-- **`baseURI`** (string): String identifying how information is stored about the CTMRWA1. Can be set to "GFLD", "IPFS", or "NONE"
+### Token Metadata and Slot Indexes
+- `baseURI (string)`: Identifier for info storage: "GFLD" | "IPFS" | "NONE"
+- `slotNumbers (uint256[])`: Array of slot numbers defined for this CTMRWA1
+- `slotNames (string[])`: Array of slot names corresponding to `slotNumbers`
+- `_allSlots (SlotData[])`: Array of slot metadata and membership
+- `allSlotsIndex (mapping(uint256 => uint256))`: slot => index into `_allSlots`
 
-### Slot Management
-- **`slotNumbers`** (uint256[]): Array holding the slots defined for this CTMRWA1
-- **`slotNames`** (string[]): Array holding the names of each slot in this CTMRWA1
-- **`_allSlots`** (SlotData[]): Array of all slot data structures
-- **`allSlotsIndex`** (mapping(uint256 => uint256)): Mapping from slot number to index in _allSlots array
+### Checkpointing and Approvals
+- `_balance (mapping(address => mapping(uint256 => Checkpoints.Trace208)))`: Owner => slot => balance checkpoints
+- `_supplyInSlot (mapping(uint256 => Checkpoints.Trace208))`: Slot => total supply checkpoints
+- `_approvedValues (mapping(uint256 => mapping(address => uint256)))`: tokenId => (spender => allowance)
+- `_erc20Slots (mapping(uint256 => address))`: slot => ERC20 address
+- `_erc20Approvals (mapping(address => mapping(uint256 => uint256[])))`: Owner => slot => approved tokenIds for ERC20
 
 ## Data Structures
 
 ### TokenData
 ```solidity
 struct TokenData {
-    uint256 id;           // Unique token identifier
-    uint256 slot;         // Slot number this token belongs to
-    uint256 balance;      // Fungible balance of the token
-    address owner;        // Address that owns this token
-    address approved;     // Address approved to transfer this token
-    address[] valueApprovals; // Array of addresses approved to spend value
+    uint256 id;           // Token ID
+    uint256 slot;         // Slot number
+    uint256 balance;      // Token balance
+    address owner;        // Token owner
+    address approved;     // Approved address for tokenId transfer
+    address[] valueApprovals; // Addresses approved for value spending
 }
 ```
 
 ### AddressData
 ```solidity
 struct AddressData {
-    uint256[] ownedTokens;                    // Array of token IDs owned by this address
-    mapping(uint256 => uint256) ownedTokensIndex; // Mapping from token ID to index in ownedTokens array
+    uint256[] ownedTokens;                    // Array of owned token IDs
+    mapping(uint256 => uint256) ownedTokensIndex; // Token ID to index mapping
 }
 ```
 
@@ -77,312 +106,445 @@ struct AddressData {
 ```solidity
 struct SlotData {
     uint256 slot;         // Slot number
-    string slotName;      // Name of the slot
-    uint256[] slotTokens; // Array of token IDs in this slot
+    string slotName;      // Slot name
+    uint256[] slotTokens; // Token IDs in the slot
 }
 ```
 
-## Core Functions
+## Access Control Functions
 
-### Constructor
+### pause()
+```solidity
+function pause() external onlyTokenAdmin
+```
+Description: Pauses the contract.  
+Access: Only tokenAdmin or CTMRWA1X
 
-#### `constructor(address _tokenAdmin, address _map, string memory tokenName_, string memory symbol_, uint8 decimals_, string memory baseURI_, address _ctmRwa1X)`
-- **Purpose:** Initializes a new CTMRWA1 contract instance
-- **Parameters:**
-  - `_tokenAdmin`: Address of the wallet controlling the RWA (Issuer)
-  - `_map`: Address of the CTMRWA map contract for multi-chain coordination
-  - `tokenName_`: Name of the token collection
-  - `symbol_`: Symbol of the token collection
-  - `decimals_`: Number of decimal places for token values
-  - `baseURI_`: String identifying storage method ("GFLD", "IPFS", or "NONE")
-  - `_ctmRwa1X`: Address of the CTMRWA1X cross-chain coordination contract
-- **Initialization:**
-  - Sets tokenAdmin and ctmRwaMap addresses
-  - Initializes tokenId generator to 1
-  - Sets token metadata (name, symbol, decimals, baseURI)
-  - Configures ctmRwa1X and derives related addresses:
-    - rwa1XFallback from CTMRWA1X contract
-    - ctmRwaDeployer from CTMRWA1X contract
-    - tokenFactory from CTMRWADeployer contract
-    - erc20Deployer from CTMRWADeployer contract
+### unpause()
+```solidity
+function unpause() external onlyTokenAdmin
+```
+Description: Unpauses the contract.  
+Access: Only tokenAdmin or CTMRWA1X
 
-### Administrative Functions
+## Administrative Functions
 
-#### `changeAdmin(address _tokenAdmin)`
-- **Access:** Only callable by CTMRWA1X
-- **Purpose:** Changes the tokenAdmin for this CTMRWA1
-- **Security:** Resets the override wallet for safety
-- **Returns:** True if admin was changed successfully
+### changeAdmin()
+```solidity
+function changeAdmin(address _tokenAdmin) public onlyRwa1X
+```
+Description: Changes the `tokenAdmin`. Resets `overrideWallet` for safety.  
+Parameters: `_tokenAdmin` (address) new admin  
+Access: Only CTMRWA1X
 
-#### `setOverrideWallet(address _overrideWallet)`
-- **Access:** Only callable by tokenAdmin
-- **Purpose:** Sets the override wallet that can force transfers
-- **Requirements:** 
-  - Regulator wallet must be set in CTMRWA1Storage
-  - Token admin must have fully described Issuer details
-  - Security license from regulator must be obtained
-- **Security:** Override wallet should be a multi-sig or MPC TSS wallet
+### setOverrideWallet()
+```solidity
+function setOverrideWallet(address _overrideWallet) public onlyTokenAdmin
+```
+Description: Sets the override wallet that can force transfers.  
+Parameters: `_overrideWallet` (address)  
+Access: Only tokenAdmin  
+Requirements: Regulator wallet must be set in `CTMRWA1Storage`
 
-#### `pause()` / `unpause()` / `isPaused()`
-- **Access:** Only callable by tokenAdmin or CTMRWA1X
-- **Purpose:** Controls the paused state of the contract
+### attachId()
+```solidity
+function attachId(uint256 nextID, address _tokenAdmin) external onlyRwa1X returns (bool)
+```
+Description: Attaches `ID` after deployment (only once).  
+Parameters: `nextID` (uint256), `_tokenAdmin` (address)  
+Returns: True if attached
 
-### Token Information Functions
+### attachDividend()
+```solidity
+function attachDividend(address _dividendAddr) external onlyCtmMap returns (bool)
+```
+Description: Connect the `CTMRWA1Dividend` contract.  
+Returns: True if successful
 
-#### `name()` / `symbol()` / `valueDecimals()`
-- **Purpose:** Returns basic token metadata
-- **Returns:** Token name, symbol, and decimal places
+### attachStorage()
+```solidity
+function attachStorage(address _storageAddr) external onlyCtmMap returns (bool)
+```
+Description: Connect the `CTMRWA1Storage` contract.  
+Returns: True if successful
 
-#### `idOf(uint256 _tokenId)`
-- **Purpose:** Returns the id of a user-held token
-- **Returns:** The id of the specified token
+### attachSentry()
+```solidity
+function attachSentry(address _sentryAddr) external onlyCtmMap returns (bool)
+```
+Description: Connect the `CTMRWA1Sentry` contract.  
+Returns: True if successful
 
-#### `balanceOf(uint256 _tokenId)`
-- **Purpose:** Returns the fungible balance of a token
-- **Returns:** The balance of the specified token
+## Token Information Functions
 
-#### `balanceOf(address _owner)`
-- **Purpose:** Returns the number of tokenIds owned by a wallet
-- **Returns:** Number of tokens owned by the address
+### name()
+```solidity
+function name() public view returns (string memory)
+```
+Description: Returns the token collection name.
 
-#### `balanceOf(address _owner, uint256 _slot)`
-- **Purpose:** Returns the total balance of all tokenIds owned by a wallet in a specific slot
-- **Returns:** Total balance in the specified slot
+### symbol()
+```solidity
+function symbol() public view returns (string memory)
+```
+Description: Returns the token collection symbol.
 
-#### `balanceOfAt(address _owner, uint256 _slot, uint256 _timestamp)`
-- **Purpose:** Returns the balance at a specific historical timestamp
-- **Returns:** Historical balance at the specified timestamp
+### valueDecimals()
+```solidity
+function valueDecimals() external view returns (uint8)
+```
+Description: Returns decimals used for value.
 
-#### `ownerOf(uint256 _tokenId)`
-- **Purpose:** Returns the address of the owner of a token
-- **Returns:** Owner address of the specified token
+### ownerOf()
+```solidity
+function ownerOf(uint256 _tokenId) public view returns (address)
+```
+Description: Returns the owner of a tokenId.
 
-#### `slotOf(uint256 _tokenId)` / `slotNameOf(uint256 _tokenId)`
-- **Purpose:** Returns the slot number and name of a token
-- **Returns:** Slot number and slot name
+### slotOf()
+```solidity
+function slotOf(uint256 _tokenId) public view returns (uint256)
+```
+Description: Returns the slot number of a tokenId.
 
-#### `getTokenInfo(uint256 _tokenId)`
-- **Purpose:** Returns comprehensive information about a token
-- **Returns:** Token id, balance, owner, slot, slot name, and token admin
+### slotNameOf()
+```solidity
+function slotNameOf(uint256 _tokenId) public view returns (string memory)
+```
+Description: Returns the slot name of a tokenId.
 
-### Transfer and Approval Functions
+### getTokenInfo()
+```solidity
+function getTokenInfo(uint256 _tokenId)
+    external
+    view
+    returns (uint256, uint256, address, uint256, string memory, address)
+```
+Description: Returns `(id, balance, owner, slot, slotName, tokenAdmin)` for a tokenId.
 
-#### `approve(uint256 _tokenId, address _to, uint256 _value)`
-- **Purpose:** Approves spending of fungible balance from a tokenId
-- **Access:** Owner or approved operator
-- **Events:** Emits ApprovalValue event
+## Balance and Ownership Functions
 
-#### `allowance(uint256 _tokenId, address _operator)`
-- **Purpose:** Returns the allowance to spend from a tokenId's fungible balance
-- **Returns:** Current allowance amount
+### balanceOf(uint256)
+```solidity
+function balanceOf(uint256 _tokenId) public view returns (uint256)
+```
+Description: Returns the fungible balance of a tokenId.
 
-#### `transferFrom(uint256 _fromTokenId, address _to, uint256 _value)`
-- **Purpose:** Transfers value from a tokenId to a new address (creates new tokenId)
-- **Access:** Only callable by CTMRWA1X
-- **Returns:** New tokenId created
+### balanceOf(address)
+```solidity
+function balanceOf(address _owner) public view returns (uint256)
+```
+Description: Returns count of tokenIds owned by `_owner`.
 
-#### `transferFrom(uint256 _fromTokenId, uint256 _toTokenId, uint256 _value)`
-- **Purpose:** Transfers value between two existing tokenIds
-- **Access:** Requires spend allowance
-- **Returns:** Owner of destination tokenId
+### balanceOf(address, uint256)
+```solidity
+function balanceOf(address _owner, uint256 _slot) public view returns (uint256)
+```
+Description: Returns total balance across `_owner`'s tokenIds in `_slot`.
 
-#### `transferFrom(address _from, address _to, uint256 _tokenId)`
-- **Purpose:** Transfers a tokenId between addresses
-- **Access:** Only callable by CTMRWA1X
-- **Requirements:** Token must be approved for transfer or owned by _from
+### balanceOfAt()
+```solidity
+function balanceOfAt(address _owner, uint256 _slot, uint256 _timestamp) public view returns (uint256)
+```
+Description: Returns checkpointed balance at a timestamp for owner and slot.
 
-#### `forceTransfer(address _from, address _to, uint256 _tokenId)`
-- **Purpose:** Allows override wallet to force transfer any tokenId
-- **Access:** Only callable by override wallet
-- **Returns:** True if transfer successful
+## Slot Management Functions
 
-### Minting and Burning Functions
+### slotCount()
+```solidity
+function slotCount() public view returns (uint256)
+```
+Description: Returns the number of slots.
 
-#### `mintFromX(address _to, uint256 _slot, string memory _slotName, uint256 _value)`
-- **Purpose:** Mints a new tokenId with value to a specific slot
-- **Access:** Only callable by authorized minters
-- **Returns:** New tokenId created
+### getAllSlots()
+```solidity
+function getAllSlots() public view returns (uint256[] memory, string[] memory)
+```
+Description: Returns arrays of all slot numbers and slot names.
 
-#### `mintFromX(address _to, uint256 _tokenId, uint256 _slot, string memory _slotName, uint256 _value)`
-- **Purpose:** Mints value to a specific existing tokenId
-- **Access:** Only callable by authorized minters
+### initializeSlotData()
+```solidity
+function initializeSlotData(uint256[] memory _slotNumbers, string[] memory _slotNames) external onlyTokenFactory
+```
+Description: Initializes slot data on a newly deployed chain.  
+Access: Only tokenFactory  
+Requirements: Same length arrays; only if slots not yet initialized
 
-#### `mintValueX(uint256 _toTokenId, uint256 _slot, uint256 _value)`
-- **Purpose:** Mints value to an existing tokenId
-- **Access:** Only callable by authorized minters
-- **Requirements:** Slot must match, address must be whitelisted (if enabled)
+### slotName()
+```solidity
+function slotName(uint256 _slot) public view returns (string memory)
+```
+Description: Returns the name for a slot number.
 
-#### `burn(uint256 _tokenId)`
-- **Purpose:** Burns a tokenId completely
-- **Access:** Owner or approved operator
+### slotByIndex()
+```solidity
+function slotByIndex(uint256 _index) public view returns (uint256)
+```
+Description: Returns the slot number at index in slot array.
 
-#### `burnValueX(uint256 _fromTokenId, uint256 _value)`
-- **Purpose:** Burns value from an existing tokenId
-- **Access:** Only callable by authorized minters
-- **Returns:** True if burn successful
+### slotExists()
+```solidity
+function slotExists(uint256 _slot) public view returns (bool)
+```
+Description: Returns whether a slot exists.
 
-### Slot Management Functions
+### tokenSupplyInSlot()
+```solidity
+function tokenSupplyInSlot(uint256 _slot) external view returns (uint256)
+```
+Description: Returns the number of tokenIds in a slot.
 
-#### `slotCount()`
-- **Purpose:** Returns the number of slots in the CTMRWA1
-- **Returns:** Total number of slots
+### totalSupplyInSlot()
+```solidity
+function totalSupplyInSlot(uint256 _slot) external view returns (uint256)
+```
+Description: Returns total fungible balance in a slot.
 
-#### `getAllSlots()`
-- **Purpose:** Returns arrays of all slot numbers and names
-- **Returns:** Arrays of slot numbers and slot names
+### totalSupplyInSlotAt()
+```solidity
+function totalSupplyInSlotAt(uint256 _slot, uint256 _timestamp) external view returns (uint256)
+```
+Description: Returns historical total supply for a slot at timestamp.
 
-- **Purpose:** Returns slot data by index
-- **Returns:** SlotData struct for the specified index
+### tokenInSlotByIndex()
+```solidity
+function tokenInSlotByIndex(uint256 _slot, uint256 _index) public view returns (uint256)
+```
+Description: Returns the tokenId in a slot by index.
 
-#### `initializeSlotData(uint256[] memory _slotNumbers, string[] memory _slotNames)`
-- **Purpose:** Initializes slot data on a newly deployed chain
-- **Access:** Only callable by tokenFactory
-- **Requirements:** Arrays must have same length, slots must not already be initialized
+### createSlotX()
+```solidity
+function createSlotX(uint256 _slot, string memory _slotName) external onlyRwa1X
+```
+Description: Creates a new slot (cross-chain controlled).  
+Access: Only CTMRWA1X
 
-#### `slotName(uint256 _slot)` / `slotByIndex(uint256 _index)` / `slotExists(uint256 _slot)`
-- **Purpose:** Slot information and validation functions
-- **Returns:** Slot name, slot number, or existence status
+## Supply and Enumeration Functions
 
-#### `tokenSupplyInSlot(uint256 _slot)` / `totalSupplyInSlot(uint256 _slot)`
-- **Purpose:** Returns supply information for a specific slot
-- **Returns:** Number of tokens or total balance in the slot
+### totalSupply()
+```solidity
+function totalSupply() external view returns (uint256)
+```
+Description: Returns total number of tokenIds in CTMRWA1.
 
-#### `totalSupplyInSlotAt(uint256 _slot, uint256 _timestamp)`
-- **Purpose:** Returns historical total supply in a slot
-- **Returns:** Total supply at the specified timestamp
+### tokenOfOwnerByIndex()
+```solidity
+function tokenOfOwnerByIndex(address _owner, uint256 _index) external view returns (uint256)
+```
+Description: Returns the tokenId owned by `_owner` at `_index`.
 
-#### `tokenInSlotByIndex(uint256 _slot, uint256 _index)`
-- **Purpose:** Returns tokenId at specific index in a slot
-- **Returns:** TokenId at the specified index
+## Approval Functions
 
-### ERC20 Integration Functions
+### approve(uint256, address, uint256)
+```solidity
+function approve(uint256 _tokenId, address _to, uint256 _value) public payable
+```
+Description: Approves `_to` to spend `_value` from `_tokenId`'s fungible balance.
 
-#### `deployErc20(uint256 _slot, string memory _erc20Name, address _feeToken)`
-- **Purpose:** Deploys an ERC20 representing a specific slot
-- **Access:** Only callable by tokenAdmin
-- **Requirements:** 
-  - Slot must exist
-  - ERC20 must not already exist for this slot
-  - Name must be 128 characters or less
-- **Note:** Can only be called once per slot
+### allowance()
+```solidity
+function allowance(uint256 _tokenId, address _operator) public view returns (uint256)
+```
+Description: Returns allowance to spend from `_tokenId` by `_operator`.
 
-#### `getErc20(uint256 _slot)`
-- **Purpose:** Returns the address of the ERC20 token representing a slot
-- **Returns:** ERC20 contract address for the slot
+### approve(address, uint256)
+```solidity
+function approve(address _to, uint256 _tokenId) public
+```
+Description: Approves `_to` to transfer `_tokenId` (tokenId-level approval).
 
-### Utility Functions
+### revokeApproval()
+```solidity
+function revokeApproval(uint256 _tokenId) public
+```
+Description: Revokes tokenId-level approval; clears ERC20 approval bookkeeping if set.
 
-#### `totalSupply()`
-- **Purpose:** Returns the total number of tokenIds in this CTMRWA1
-- **Returns:** Total number of tokens
+### isApprovedOrOwner()
+```solidity
+function isApprovedOrOwner(address _operator, uint256 _tokenId) public view returns (bool)
+```
+Description: Returns whether `_operator` is approved or owner for `_tokenId`.
 
-#### `tokenOfOwnerByIndex(address _owner, uint256 _index)`
-- **Purpose:** Returns tokenId at specific index for an owner
-- **Returns:** TokenId at the specified index
+### getApproved()
+```solidity
+function getApproved(uint256 _tokenId) public view returns (address)
+```
+Description: Returns address approved for tokenId-level transfer.
 
-#### `exists(uint256 _tokenId)`
-- **Purpose:** Checks if a tokenId exists
-- **Returns:** True if tokenId exists
+### spendAllowance()
+```solidity
+function spendAllowance(address _operator, uint256 _tokenId, uint256 _value) public
+```
+Description: Reduces allowance or requires direct ownership approval when spending value.
 
-#### `getApproved(uint256 _tokenId)`
-- **Purpose:** Returns the address approved to transfer a tokenId
-- **Returns:** Approved address
+## Transfer Functions
 
-#### `isApprovedOrOwner(address _operator, uint256 _tokenId)`
-- **Purpose:** Checks if an address is approved or owner of a tokenId
-- **Returns:** True if operator is approved or owner
+### transferFrom(uint256, address, uint256)
+```solidity
+function transferFrom(uint256 _fromTokenId, address _to, uint256 _value)
+    public
+    onlyRwa1X
+    whenNotPaused
+    nonReentrant
+    returns (uint256 newTokenId)
+```
+Description: Transfers value from a tokenId to a new token for `_to`. Creates a new tokenId and moves `_value`.
 
-#### `spendAllowance(address _operator, uint256 _tokenId, uint256 _value)`
-- **Purpose:** Spends allowance for value transfer
-- **Requirements:** Must have sufficient allowance
+### transferFrom(uint256, uint256, uint256)
+```solidity
+function transferFrom(uint256 _fromTokenId, uint256 _toTokenId, uint256 _value)
+    public
+    nonReentrant
+    whenNotPaused
+    returns (address)
+```
+Description: Transfers value between two existing tokenIds. If the source becomes empty, it is removed from owner enumeration.
 
-## Internal Functions
+### transferFrom(address, address, uint256)
+```solidity
+function transferFrom(address _from, address _to, uint256 _tokenId) public onlyRwa1X whenNotPaused
+```
+Description: Transfers a tokenId between addresses (cross-chain controlled) with approval checks.
 
-### Token Management
-- **`_exists(uint256 _tokenId)`**: Checks if tokenId exists
-- **`_mint(address _to, uint256 _slot, string memory _slotName, uint256 _value)`**: Internal minting function
-- **`_mint(address _to, uint256 _tokenId, uint256 _slot, string memory _slotName, uint256 _value)`**: Low-level minting
-- **`_mintValue(uint256 _tokenId, uint256 _value)`**: Mints value to existing tokenId
-- **`__mintValue(uint256 _tokenId, uint256 _value)`**: Lowest level mint function
-- **`__mintToken(address _to, uint256 _tokenId, uint256 _slot)`**: Mints new token using new tokenId
-- **`_burn(uint256 _tokenId)`**: Internal burn function
-- **`_burnValue(uint256 _tokenId, uint256 _value)`**: Burns value from existing tokenId
+### forceTransfer()
+```solidity
+function forceTransfer(address _from, address _to, uint256 _tokenId) public
+```
+Description: If `overrideWallet` is set, allows force transfer of any tokenId by that wallet.
 
-### Transfer Functions
-- **`_transferValue(uint256 _fromTokenId, uint256 _toTokenId, uint256 _value)`**: Transfers value between tokenIds
-- **`_transferTokenId(address _from, address _to, uint256 _tokenId)`**: Transfers tokenId ownership
-- **`_beforeValueTransfer(...)`**: Hook called before value transfer
-- **`_afterValueTransfer(...)`**: Hook called after value transfer
+## Minting Functions
 
-### Approval Functions
-- **`_approve(address _to, uint256 _tokenId)`**: Internal approval function
-- **`_approveValue(uint256 _tokenId, address _to, uint256 _value)`**: Approves value spending
-- **`_clearApprovedValues(uint256 _tokenId)`**: Clears all value approvals
-- **`_existApproveValue(address _to, uint256 _tokenId)`**: Checks if value approval exists
+### mintFromX(address, uint256, string, uint256)
+```solidity
+function mintFromX(address _to, uint256 _slot, string memory _slotName, uint256 _value)
+    external
+    whenNotPaused
+    returns (uint256 tokenId)
+```
+Description: Mints to a new tokenId. Callable by authorized minters or the slot ERC20.
 
-### Enumeration Functions
-- **`_addTokenToOwnerEnumeration(address _to, uint256 _tokenId)`**: Adds token to owner's enumeration
-- **`_removeTokenFromOwnerEnumeration(address _from, uint256 _tokenId)`**: Removes token from owner's enumeration
-- **`_addTokenToAllTokensEnumeration(TokenData memory _tokenData)`**: Adds token to all tokens enumeration
-- **`_removeTokenFromAllTokensEnumeration(uint256 _tokenId)`**: Removes token from all tokens enumeration
-- **`_addTokenToSlotEnumeration(uint256 _slot, uint256 _tokenId)`**: Adds token to slot enumeration
-- **`_removeTokenFromSlotEnumeration(uint256 _slot, uint256 _tokenId)`**: Removes token from slot enumeration
-- **`_addSlotToAllSlotsEnumeration(SlotData memory _slotData)`**: Adds slot to all slots enumeration
+### mintFromX(address, uint256, uint256, string, uint256)
+```solidity
+function mintFromX(address _to, uint256 _tokenId, uint256 _slot, string memory _slotName, uint256 _value)
+    external
+    onlyMinter
+    whenNotPaused
+```
+Description: Low-level mint to a provided new `_tokenId`. Callable by authorized minters.
 
-### Slot Management
-- **`_createSlot(uint256 _slot, string memory _slotName)`**: Creates new slot
-- **`_tokenExistsInSlot(uint256 _slot, uint256 _tokenId)`**: Checks if token exists in slot
+### mintValueX()
+```solidity
+function mintValueX(uint256 _toTokenId, uint256 _value)
+    external
+    onlyMinter
+    whenNotPaused
+```
+Description: Mints value to an existing tokenId. Checks whitelist if enabled.
 
-### Utility Functions
-- **`_createOriginalTokenId()`**: Creates new tokenId
-- **`_checkOnCTMRWA1Received(...)`**: Hook for token receiver validation
+## Burning Functions
+
+### burn()
+```solidity
+function burn(uint256 _tokenId) public whenNotPaused
+```
+Description: Burns a tokenId if caller is owner or approved.
+
+### burnValueX()
+```solidity
+function burnValueX(uint256 _fromTokenId, uint256 _value) external onlyMinter whenNotPaused
+```
+Description: Burns value from an existing tokenId. Callable by minters.
+
+## ERC20 Integration Functions
+
+### setErc20()
+```solidity
+function setErc20(address _erc20, uint256 _slot) external onlyErc20Deployer
+```
+Description: Sets the ERC20 address for a slot (once). Requires slot exist and ERC20 not already set.
+
+### getErc20()
+```solidity
+function getErc20(uint256 _slot) public view returns (address)
+```
+Description: Returns the ERC20 wrapper address for a slot.
+
+### approveFromX()
+```solidity
+function approveFromX(address _to, uint256 _tokenId) external
+```
+Description: Approve from RWA1X or authorized slot ERC20 contracts.
+
+### clearApprovedValues()
+```solidity
+function clearApprovedValues(uint256 _tokenId) external onlyRwa1X
+```
+Description: Clears all value approvals for a tokenId (cross-chain context).
+
+### clearApprovedValuesFromERC20()
+```solidity
+function clearApprovedValuesFromERC20(uint256 _tokenId) external onlyERC20
+```
+Description: Clears all value approvals for a tokenId (slot ERC20 context).
+
+### removeTokenFromOwnerEnumeration()
+```solidity
+function removeTokenFromOwnerEnumeration(address _from, uint256 _tokenId) external onlyRwa1X
+```
+Description: Owner enumeration maintenance helper for cross-chain operations.
+
+### getErc20Approvals()
+```solidity
+function getErc20Approvals(address _owner, uint256 _slot) external view returns (uint256[] memory)
+```
+Description: Returns tokenIds approved for slot ERC20 spending for an owner.
+
+### approveErc20()
+```solidity
+function approveErc20(uint256 _tokenId) public
+```
+Description: Owner approves the slot ERC20 to manage a tokenId; records in per-owner, per-slot approval list.
+
+## Utility Functions
+
+### exists()
+```solidity
+function exists(uint256 _tokenId) external view returns (bool)
+```
+Description: Returns whether a tokenId exists.
 
 ## Access Control Modifiers
 
-- **`onlyTokenAdmin`**: Restricts access to tokenAdmin or CTMRWA1X
-- **`onlyErc20Deployer`**: Restricts access to ERC20 deployer contracts
-- **`onlyTokenFactory`**: Restricts access to token factory
-- **`onlyCtmMap`**: Restricts access to CTMRWA map contract
-- **`onlyRwa1X`**: Restricts access to CTMRWA1X or fallback contract
-- **`onlyMinter`**: Restricts access to authorized minters
-- **`onlyERC20`**: Restricts access to ERC20 contracts
+- `onlyTokenAdmin`: Restricts access to `tokenAdmin` or `ctmRwa1X`
+- `onlyErc20Deployer`: Restricts access to `erc20Deployer`
+- `onlyTokenFactory`: Restricts access to `tokenFactory`
+- `onlyCtmMap`: Restricts access to `ctmRwaMap`
+- `onlyRwa1X`: Restricts access to `ctmRwa1X`
+- `onlyMinter`: Restricts access to authorized minters per `CTMRWA1X`
+- `onlyERC20`: Restricts access to authorized slot ERC20 contracts
 
 ## Events
 
-The contract emits standard ERC721-like events plus custom events for value transfers and slot changes:
-
-- **`Transfer(address indexed from, address indexed to, uint256 indexed tokenId)`**: Token transfer
-- **`Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)`**: Token approval
-- **`TransferValue(uint256 indexed fromTokenId, uint256 indexed toTokenId, uint256 value)`**: Value transfer
-- **`ApprovalValue(uint256 indexed tokenId, address indexed operator, uint256 value)`**: Value approval
-- **`SlotChanged(uint256 indexed tokenId, uint256 indexed oldSlot, uint256 indexed newSlot)`**: Slot change
+- `Transfer(address indexed from, address indexed to, uint256 indexed tokenId)`
+- `Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)`
+- `TransferValue(uint256 indexed fromTokenId, uint256 indexed toTokenId, uint256 value)`
+- `ApprovalValue(uint256 indexed tokenId, address indexed operator, uint256 value)`
+- `SlotChanged(uint256 indexed tokenId, uint256 indexed oldSlot, uint256 indexed newSlot)`
 
 ## Security Features
 
-1. **Pausable:** Contract can be paused by authorized parties
-2. **Reentrancy Protection:** Uses OpenZeppelin's ReentrancyGuard
-3. **Access Control:** Comprehensive modifier system for different roles
-4. **Override Wallet:** Regulatory oversight capability for forced transfers
-5. **Whitelisting:** Optional address whitelisting through Sentry contract
-6. **Value Overflow Protection:** Checks for uint208 overflow in value operations
-7. **Cross-chain Security:** Integration with CTMRWA1X for secure cross-chain operations
+- Reentrancy guard on critical value-transfer functions
+- Pausable controls
+- Strict access modifiers with custom errors
+- Whitelist enforcement via `CTMRWA1Sentry` when configured
+- Overflow checks for uint208-based checkpoint math
+- Cross-chain authority enforcement via `CTMRWA1X`
 
 ## Integration Points
 
-- **CTMRWA1X**: Main cross-chain coordination contract
-- **CTMRWA1Sentry**: Access control and whitelisting
-- **CTMRWA1Storage**: Decentralized storage for RWA information
-- **CTMRWA1Dividend**: Dividend distribution system
-- **CTMRWAERC20Deployer**: ERC20 token deployment for slots
-- **CTMRWAMap**: Multi-chain address mapping
-
-## Error Handling
-
-The contract uses custom error types for efficient gas usage and clear error messages, including:
-
-- Authorization errors
-- Zero address checks
-- Invalid slot errors
-- Insufficient balance/allowance errors
-- Non-existent token errors
-- Overflow protection errors
+- `CTMRWA1X`: Cross-chain coordinator and minter registry
+- `CTMRWAMap`: Multi-chain component address mapping
+- `CTMRWA1Sentry`: Access control and whitelist
+- `CTMRWA1Storage`: Issuer/regulator/legal metadata
+- `CTMRWA1Dividend`: Dividend distribution
+- `CTMRWAERC20Deployer`: Per-slot ERC20 deployment and management
