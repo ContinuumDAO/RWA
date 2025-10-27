@@ -1651,4 +1651,104 @@ contract TestCTMRWA1X is Helpers {
         assertTrue(token.exists(tokenId), "Token should still exist after partial transfer");
         assertEq(token.ownerOf(tokenId), user1, "Owner should remain the same after partial transfer");
     }
+
+    function test_transferWholeTokenX_withApproval_burnsValueAndRemovesFromEnumeration() public {
+        // Deploy a token contract and create slots
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        vm.stopPrank();
+
+        // Create a token for testing
+        vm.startPrank(tokenAdmin);
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+        uint256 slot = 1; // Use slot 1 for testing
+        uint256 tokenId = rwa1XUtils.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, VERSION, tokenStr);
+        vm.stopPrank();
+
+        // Verify initial state
+        assertEq(token.balanceOf(tokenId), 1000);
+        assertEq(token.totalSupply(), 1); // Only the new tokenId (slots don't count toward totalSupply)
+        assertEq(token.totalSupplyInSlot(slot), 1000); // Only the new token's value
+        
+        // Check that user1 owns the token
+        assertEq(token.ownerOf(tokenId), user1);
+        
+        // Get initial owner enumeration count
+        uint256 initialOwnerBalance = token.balanceOf(user1);
+        assertTrue(initialOwnerBalance > 0);
+
+        // Use the pre-configured destination chain ID from the test setup
+        // This chain ID is already attached in the Deployer helper
+        string memory destinationChainId = "999999999999999999999";
+        
+        // Set up fees for the destination chain (needed for cross-chain transfer)
+        vm.startPrank(gov);
+        string[] memory tokensStr = new string[](2);
+        uint256[] memory fees = new uint256[](2);
+        
+        tokensStr[0] = _toLower(address(ctm).toHexString());
+        tokensStr[1] = _toLower(address(usdc).toHexString());
+        
+        fees[0] = 10 ** 18; // 1 CTM baseFee (18 decimals)
+        fees[1] = 10 ** 18; // 1 USDC baseFee (stored in 18 decimals, corrected to 6 decimals)
+        
+        feeManager.addFeeToken(destinationChainId, tokensStr, fees);
+        
+        // Add necessary operator permissions for C3 caller to work
+        // This is needed for cross-chain calls to execute properly
+        c3UUIDKeeper.addOperator(address(c3caller)); // Add C3Caller as operator to C3UUIDKeeper
+        c3caller.addOperator(gov); // Add gov as an operator to C3Caller
+        c3caller.addOperator(address(rwa1X)); // Add rwa1X as an operator to C3Caller
+        vm.stopPrank();
+        
+        // Set up approval mechanism: user1 (owner) approves user2 to transfer the token
+        // This tests the approval functionality mentioned in the user query
+        vm.startPrank(user1);
+        token.approve(user2, tokenId);
+        vm.stopPrank();
+
+        // Verify the approval is set correctly
+        assertEq(token.getApproved(tokenId), user2);
+
+        // Record balances before transfer
+        uint256 totalSupplyBefore = token.totalSupply();
+        uint256 ownerBalanceBefore = token.balanceOf(user1);
+
+        // Call transferWholeTokenX with user2 (approved caller) to the destination chain (cross-chain transfer)
+        // This should execute successfully up to the _c3call point
+        vm.startPrank(user2); // user2 is calling, not user1 (the owner)
+        rwa1X.transferWholeTokenX(
+            user1.toHexString(),           // fromAddrStr (user1 is the owner)
+            user2.toHexString(),          // toAddressStr  
+            destinationChainId,           // toChainIdStr (different chain - cross-chain transfer)
+            tokenId,                      // fromTokenId
+            ID,                           // ID
+            VERSION,                      // version
+            tokenStr                      // feeTokenStr
+        );
+        vm.stopPrank();
+
+        // Verify the token value was burned and removed from enumeration
+        assertEq(token.balanceOf(tokenId), 0);                    // Value should be burned
+        assertEq(token.totalSupply(), totalSupplyBefore);        // Total supply should remain the same (token still exists)
+        assertEq(token.totalSupplyInSlot(slot), 0); // Slot supply should be 0 after burning all value
+        assertEq(token.balanceOf(user1), ownerBalanceBefore - 1); // Owner should have one less token
+        
+        // Verify the token no longer exists in owner enumeration
+        bool tokenFoundInEnumeration = false;
+        for (uint256 i = 0; i < token.balanceOf(user1); i++) {
+            if (token.tokenOfOwnerByIndex(user1, i) == tokenId) {
+                tokenFoundInEnumeration = true;
+                break;
+            }
+        }
+        assertFalse(tokenFoundInEnumeration, "Token should not be found in owner enumeration after burning");
+        
+        // Verify token still exists but with zero balance (burned value, not burned token)
+        assertTrue(token.exists(tokenId), "Token should still exist after burning value");
+        
+        // Verify that the approval was cleared during the transfer process
+        assertEq(token.getApproved(tokenId), address(0), "Approval should be cleared after transfer");
+    }
 }
