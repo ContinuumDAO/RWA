@@ -1461,4 +1461,194 @@ contract TestCTMRWA1X is Helpers {
 
         console.log("Fee reduction test completed successfully - fee reduced from", feePaidFirstTime, "to", feePaidSecondTime);
     }
+
+    function test_transferWholeTokenX_burnsValueAndRemovesFromEnumeration() public {
+        // Deploy a token contract and create slots
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        vm.stopPrank();
+
+        // Create a token for testing
+        vm.startPrank(tokenAdmin);
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+        uint256 slot = 1; // Use slot 1 for testing
+        uint256 tokenId = rwa1XUtils.mintNewTokenValueLocal(user1, 0, slot, 1000, ID, VERSION, tokenStr);
+        vm.stopPrank();
+
+        // Verify initial state
+        assertEq(token.balanceOf(tokenId), 1000);
+        assertEq(token.totalSupply(), 1); // Only the new tokenId (slots don't count toward totalSupply)
+        assertEq(token.totalSupplyInSlot(slot), 1000); // Only the new token's value
+        
+        // Check that user1 owns the token
+        assertEq(token.ownerOf(tokenId), user1);
+        
+        // Get initial owner enumeration count
+        uint256 initialOwnerBalance = token.balanceOf(user1);
+        assertTrue(initialOwnerBalance > 0);
+
+        // Use the pre-configured destination chain ID from the test setup
+        // This chain ID is already attached in the Deployer helper
+        string memory destinationChainId = "999999999999999999999";
+        
+        // Set up fees for the destination chain (needed for cross-chain transfer)
+        vm.startPrank(gov);
+        string[] memory tokensStr = new string[](2);
+        uint256[] memory fees = new uint256[](2);
+        
+        tokensStr[0] = _toLower(address(ctm).toHexString());
+        tokensStr[1] = _toLower(address(usdc).toHexString());
+        
+        fees[0] = 10 ** 18; // 1 CTM baseFee (18 decimals)
+        fees[1] = 10 ** 18; // 1 USDC baseFee (stored in 18 decimals, corrected to 6 decimals)
+        
+        feeManager.addFeeToken(destinationChainId, tokensStr, fees);
+        
+        // Add necessary operator permissions for C3 caller to work
+        // This is needed for cross-chain calls to execute properly
+        c3UUIDKeeper.addOperator(address(c3caller)); // Add C3Caller as operator to C3UUIDKeeper
+        c3caller.addOperator(gov); // Add gov as an operator to C3Caller
+        c3caller.addOperator(address(rwa1X)); // Add rwa1X as an operator to C3Caller
+        vm.stopPrank();
+        
+        // Approve CTMRWA1X to spend the token (since they're the owner)
+        vm.startPrank(user1);
+        token.approve(address(rwa1X), tokenId);
+        vm.stopPrank();
+
+        // Record balances before transfer
+        uint256 totalSupplyBefore = token.totalSupply();
+        uint256 ownerBalanceBefore = token.balanceOf(user1);
+
+        // Call transferWholeTokenX to the destination chain (cross-chain transfer)
+        // This should execute successfully up to the _c3call point
+        vm.startPrank(user1);
+        rwa1X.transferWholeTokenX(
+            user1.toHexString(),           // fromAddrStr
+            user2.toHexString(),          // toAddressStr  
+            destinationChainId,           // toChainIdStr (different chain - cross-chain transfer)
+            tokenId,                      // fromTokenId
+            ID,                           // ID
+            VERSION,                      // version
+            tokenStr                      // feeTokenStr
+        );
+        vm.stopPrank();
+
+        // Verify the token was burned and removed from enumeration
+        assertEq(token.balanceOf(tokenId), 0);                    // Value should be burned
+        assertEq(token.totalSupply(), totalSupplyBefore);        // Total supply should remain the same (token still exists)
+        assertEq(token.totalSupplyInSlot(slot), 0); // Slot supply should be 0 after burning all value
+        assertEq(token.balanceOf(user1), ownerBalanceBefore - 1); // Owner should have one less token
+        
+        // Verify the token no longer exists in owner enumeration
+        bool tokenFoundInEnumeration = false;
+        for (uint256 i = 0; i < token.balanceOf(user1); i++) {
+            if (token.tokenOfOwnerByIndex(user1, i) == tokenId) {
+                tokenFoundInEnumeration = true;
+                break;
+            }
+        }
+        assertFalse(tokenFoundInEnumeration, "Token should not be found in owner enumeration after burning");
+        
+        // Verify token still exists but with zero balance (burned value, not burned token)
+        assertTrue(token.exists(tokenId), "Token should still exist after burning value");
+        // Note: ownerOf may not work for burned tokens, so we skip that check
+    }
+
+    function test_transferPartialTokenX_burnsCorrectValueAndKeepsOwner() public {
+        // Deploy a token contract and create slots
+        vm.startPrank(tokenAdmin);
+        (ID, token) = _deployCTMRWA1(address(usdc));
+        _createSomeSlots(ID, address(usdc), address(rwa1X));
+        vm.stopPrank();
+
+        // Create a token for testing with a larger balance
+        vm.startPrank(tokenAdmin);
+        string memory tokenStr = _toLower((address(usdc).toHexString()));
+        uint256 slot = 1; // Use slot 1 for testing
+        uint256 tokenId = rwa1XUtils.mintNewTokenValueLocal(user1, 0, slot, 2000, ID, VERSION, tokenStr);
+        vm.stopPrank();
+
+        // Verify initial state
+        assertEq(token.balanceOf(tokenId), 2000);
+        assertEq(token.totalSupply(), 1); // Only the new tokenId (slots don't count toward totalSupply)
+        assertEq(token.totalSupplyInSlot(slot), 2000); // Only the new token's value
+        
+        // Check that user1 owns the token
+        assertEq(token.ownerOf(tokenId), user1);
+        
+        // Get initial owner enumeration count
+        uint256 initialOwnerBalance = token.balanceOf(user1);
+        assertTrue(initialOwnerBalance > 0);
+
+        // Use the pre-configured destination chain ID from the test setup
+        // This chain ID is already attached in the Deployer helper
+        string memory destinationChainId = "999999999999999999999";
+        
+        // Set up fees for the destination chain (needed for cross-chain transfer)
+        vm.startPrank(gov);
+        string[] memory tokensStr = new string[](2);
+        uint256[] memory fees = new uint256[](2);
+        
+        tokensStr[0] = _toLower(address(ctm).toHexString());
+        tokensStr[1] = _toLower(address(usdc).toHexString());
+        
+        fees[0] = 10 ** 18; // 1 CTM baseFee (18 decimals)
+        fees[1] = 10 ** 18; // 1 USDC baseFee (stored in 18 decimals, corrected to 6 decimals)
+        
+        feeManager.addFeeToken(destinationChainId, tokensStr, fees);
+        
+        // Add necessary operator permissions for C3 caller to work
+        // This is needed for cross-chain calls to execute properly
+        c3UUIDKeeper.addOperator(address(c3caller)); // Add C3Caller as operator to C3UUIDKeeper
+        c3caller.addOperator(gov); // Add gov as an operator to C3Caller
+        c3caller.addOperator(address(rwa1X)); // Add rwa1X as an operator to C3Caller
+        vm.stopPrank();
+        
+        // Approve CTMRWA1X to spend the token (since they're the owner)
+        vm.startPrank(user1);
+        token.approve(address(rwa1X), tokenId);
+        vm.stopPrank();
+
+        // Record balances before transfer
+        uint256 totalSupplyBefore = token.totalSupply();
+        uint256 ownerBalanceBefore = token.balanceOf(user1);
+        uint256 slotSupplyBefore = token.totalSupplyInSlot(slot);
+        uint256 partialValue = 500; // Transfer 500 out of 2000
+
+        // Call transferPartialTokenX to the destination chain (cross-chain transfer)
+        // This should execute successfully up to the _c3call point
+        vm.startPrank(user1);
+        rwa1X.transferPartialTokenX(
+            tokenId,                      // fromTokenId
+            user2.toHexString(),          // toAddressStr  
+            destinationChainId,           // toChainIdStr (different chain - cross-chain transfer)
+            partialValue,                 // value to transfer
+            ID,                           // ID
+            VERSION,                      // version
+            tokenStr                      // feeTokenStr
+        );
+        vm.stopPrank();
+
+        // Verify the partial value was burned and owner remains the same
+        assertEq(token.balanceOf(tokenId), 2000 - partialValue); // Value should be reduced by partialValue
+        assertEq(token.totalSupply(), totalSupplyBefore);        // Total supply should remain the same (token still exists)
+        assertEq(token.totalSupplyInSlot(slot), slotSupplyBefore - partialValue); // Slot supply should decrease by partialValue
+        assertEq(token.balanceOf(user1), ownerBalanceBefore);     // Owner should have the same number of tokens
+        
+        // Verify the token still exists in owner enumeration (not removed like in transferWholeTokenX)
+        bool tokenFoundInEnumeration = false;
+        for (uint256 i = 0; i < token.balanceOf(user1); i++) {
+            if (token.tokenOfOwnerByIndex(user1, i) == tokenId) {
+                tokenFoundInEnumeration = true;
+                break;
+            }
+        }
+        assertTrue(tokenFoundInEnumeration, "Token should still be found in owner enumeration after partial transfer");
+        
+        // Verify token still exists and owner is unchanged
+        assertTrue(token.exists(tokenId), "Token should still exist after partial transfer");
+        assertEq(token.ownerOf(tokenId), user1, "Owner should remain the same after partial transfer");
+    }
 }

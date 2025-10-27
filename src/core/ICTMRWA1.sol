@@ -146,7 +146,7 @@ interface ICTMRWA1 is ICTMRWA {
         returns (uint256 tokenId);
     function mintFromX(address to, uint256 tokenId, uint256 slot, string memory slotName, uint256 value) external;
 
-    function spendAllowance(address operator, uint256 tokenId, uint256 value) external;
+    function spendAllowanceX(address operator, uint256 tokenId, uint256 value) external;
     function isApprovedOrOwner(address operator, uint256 tokenId) external view returns (bool);
     function getApproved(uint256 tokenId) external view returns (address);
 

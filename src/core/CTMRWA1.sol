@@ -546,7 +546,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         nonReentrant
         returns (uint256 newTokenId)
     {
-        spendAllowance(msg.sender, _fromTokenId, _value);
+        _spendAllowance(msg.sender, _fromTokenId, _value);
 
         newTokenId = _createOriginalTokenId();
         _mint(_to, newTokenId, CTMRWA1.slotOf(_fromTokenId), "", 0);
@@ -568,7 +568,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
         whenNotPaused
         returns (address)
     {
-        spendAllowance(msg.sender, _fromTokenId, _value);
+        _spendAllowance(msg.sender, _fromTokenId, _value);
         
         // Check if this will empty the fromTokenId before transferring
         uint256 fromBalance = balanceOf(_fromTokenId);
@@ -657,7 +657,7 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
      * @param _tokenId The tokenId from which approval to spend _value is being given
      * @param _value The fungible value being given approval to spend
      */
-    function spendAllowance(address _operator, uint256 _tokenId, uint256 _value) public {
+    function _spendAllowance(address _operator, uint256 _tokenId, uint256 _value) internal {
         if (_value == 0) {
             revert CTMRWA1_IsZeroUint(CTMRWAErrorParam.Value);
         }
@@ -668,6 +668,10 @@ contract CTMRWA1 is ReentrancyGuard, Pausable, ICTMRWA1 {
             }
             _approveValue(_tokenId, _operator, currentAllowance - _value);
         }
+    }
+
+    function spendAllowanceX(address _operator, uint256 _tokenId, uint256 _value) external onlyRwa1X whenNotPaused {
+        _spendAllowance(_operator, _tokenId, _value);
     }
 
     /**
