@@ -652,7 +652,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         } else {
             (string memory fromAddressStr, string memory toRwaXStr) = _getRWAX(toChainIdStr, _version);
 
-            ICTMRWA1(ctmRwa1Addr).spendAllowance(msg.sender, _fromTokenId, _value);
+            ICTMRWA1(ctmRwa1Addr).spendAllowanceX(msg.sender, _fromTokenId, _value);
 
             _payFee(FeeType.TX, _feeTokenStr, toChainIdStr._stringToArray(), false);
 
@@ -714,7 +714,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(0), _fromTokenId);
             ICTMRWA1(ctmRwa1Addr).clearApprovedValues(_fromTokenId);
 
-            ICTMRWA1(ctmRwa1Addr).removeTokenFromOwnerEnumeration(msg.sender, _fromTokenId);
+            ICTMRWA1(ctmRwa1Addr).burnValueX(_fromTokenId, value);
+            ICTMRWA1(ctmRwa1Addr).removeTokenFromOwnerEnumeration(msg.sender, _fromTokenId); 
 
             string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
             bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _fromAddrStr, _toAddressStr, slot, value);

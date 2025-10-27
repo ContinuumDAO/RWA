@@ -569,9 +569,9 @@ contract TestCTMRWA1 is Helpers {
 
     function test_spendAllowance_reverts_when_not_approved_or_owner_and_no_allowance() public {
         // user2 is not owner or approved for testTokenId1 and has no allowance
-        vm.startPrank(user2);
+        vm.startPrank(address(rwa1X));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InsufficientAllowance.selector));
-        token.spendAllowance(user2, testTokenId1, 100);
+        token.spendAllowanceX(user2, testTokenId1, 100);
         vm.stopPrank();
 
         // Approve user2 for a value less than 100
@@ -580,9 +580,9 @@ contract TestCTMRWA1 is Helpers {
         vm.stopPrank();
 
         // Try to spend 100 again, should still revert
-        vm.startPrank(user2);
+        vm.startPrank(address(rwa1X));
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_InsufficientAllowance.selector));
-        token.spendAllowance(user2, testTokenId1, 100);
+        token.spendAllowanceX(user2, testTokenId1, 100);
         vm.stopPrank();
     }
 
@@ -1089,4 +1089,5 @@ contract TestCTMRWA1 is Helpers {
         // Check historical supply at t2 (should be 3500)
         assertEq(token.totalSupplyInSlotAt(1, t2), 3500);
     }
+
 }
