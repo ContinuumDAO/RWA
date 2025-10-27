@@ -105,23 +105,28 @@ contract FeeManager is
             revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
+
+        // require(feeTokenIndexMap[feeToken] == 0, "FeeManager: token already listed"); // <<-- prevent duplicates
+        if (feeTokenIndexMap[feeToken] != 0) {
+            revert FeeManager_TokenAlreadyListed(feeToken);
+        }
         
-            // Check if token is SafeERC20 compliant
-            if (!_isSafeERC20Compliant(feeToken)) {
-                revert FeeManager_UnsafeToken(feeToken);
-            }
+        // Check if token is SafeERC20 compliant
+        if (!_isSafeERC20Compliant(feeToken)) {
+            revert FeeManager_UnsafeToken(feeToken);
+        }
 
-            // Check if token has valid decimals (between 6 and 18 inclusive)
-            // We know the token has a decimals function from the SafeERC20 compliance check
-            uint8 decimals = IERC20Extended(feeToken).decimals();
-            if (decimals < 6 || decimals > 18) {
-                revert FeeManager_InvalidDecimals(feeToken, decimals);
-            }
+        // Check if token is upgradeable (reject upgradeable tokens)
+        if (_isUpgradeable(feeToken)) {
+            revert FeeManager_UpgradeableToken(feeToken);
+        }
 
-            // Check if token is upgradeable
-            if (_isUpgradeable(feeToken)) {
-                revert FeeManager_UpgradeableToken(feeToken);
-            }
+        // Check if token has valid decimals (between 6 and 18 inclusive)
+        // We know the token has a decimals function from the SafeERC20 compliance check
+        uint8 decimals = IERC20Extended(feeToken).decimals();
+        if (decimals < 6 || decimals > 18) {
+            revert FeeManager_InvalidDecimals(feeToken, decimals);
+        }
         
         uint256 index = feeTokenList.length;
         feeTokenList.push(feeToken);
@@ -198,21 +203,23 @@ contract FeeManager is
             revert FeeManager_InvalidLength(CTMRWAErrorParam.ChainID);
         }
 
-        if (feeTokensStr.length != baseFee.length) {
+        uint256 len = feeTokensStr.length;
+
+        if (len != baseFee.length) {
             revert FeeManager_InvalidLength(CTMRWAErrorParam.Input);
         }
 
         dstChainIDStr = dstChainIDStr._toLower();
 
-        address[] memory localFeetokens = new address[](feeTokensStr.length);
-        for (uint256 i = 0; i < feeTokensStr.length; i++) {
+        address[] memory localFeetokens = new address[](len);
+        for (uint256 i = 0; i < len; i++) {
             if (bytes(feeTokensStr[i]).length != 42) {
                 revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
             }
             localFeetokens[i] = feeTokensStr[i]._toLower()._stringToAddress();
         }
 
-        for (uint256 index = 0; index < feeTokensStr.length; index++) {
+        for (uint256 index = 0; index < len; index++) {
             if (feeTokenIndexMap[localFeetokens[index]] == 0) {
                 revert FeeManager_NonExistentToken(localFeetokens[index]);
             }

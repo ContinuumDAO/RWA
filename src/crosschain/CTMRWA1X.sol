@@ -441,6 +441,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         ICTMRWA1(ctmRwa1Addr).changeAdmin(_newAdmin);
 
         ICTMRWA1XUtils(ctmRwa1XUtilsAddr).swapAdminAddress(_currentAdmin, _newAdmin, ctmRwa1Addr, _version);
+
+        emit AdminChanged(_ID, _newAdmin);
     }
 
     /**
@@ -516,8 +518,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         }
 
         _changeAdmin(currentAdmin, newAdmin, _ID, _version);
-
-        emit AdminChanged(_ID, _newAdminStr);
 
         return (true);
     }
