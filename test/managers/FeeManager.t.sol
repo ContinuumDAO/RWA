@@ -88,9 +88,7 @@ contract TestFeeManager is Helpers {
         feeTokenStr = addressToString(address(usdc));
         // Mint tokens to user for testing
         feeToken.mint(user1, INITIAL_SUPPLY / 2);
-        // Add fee token
-        vm.prank(gov);
-        feeManager.addFeeToken(feeTokenStr);
+        // Note: USDC token is already added by the base Deployer setup
         // Set up fee configuration for a chain
         string[] memory tokens = new string[](1);
         tokens[0] = feeTokenStr;
@@ -238,6 +236,29 @@ contract TestFeeManager is Helpers {
         vm.prank(gov);
         feeManager.delFeeToken(newTokenStr);
         assertEq(feeManager.getFeeTokenIndexMap(newTokenStr), 0, "Token index should be reset");
+    }
+
+    function test_CannotAddDuplicateFeeToken() public {
+        address newToken = address(new TestERC20("New Token", "NTK", 18));
+        string memory newTokenStr = addressToString(newToken);
+        
+        // Add the token for the first time
+        vm.prank(gov);
+        feeManager.addFeeToken(newTokenStr);
+        
+        // Verify token was added
+        address[] memory tokenList = feeManager.getFeeTokenList();
+        assertEq(tokenList[tokenList.length - 1], newToken, "New token should be added");
+        
+        // Try to add the same token again - should revert
+        vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_TokenAlreadyListed.selector, newToken));
+        vm.prank(gov);
+        feeManager.addFeeToken(newTokenStr);
+        
+        // Verify token list hasn't changed
+        address[] memory tokenListAfter = feeManager.getFeeTokenList();
+        assertEq(tokenListAfter.length, tokenList.length, "Token list length should not change");
+        assertEq(tokenListAfter[tokenListAfter.length - 1], newToken, "Same token should still be at the end");
     }
 
     function test_AddDeleteMultipleFeeTokens() public {
@@ -615,9 +636,7 @@ contract TestFeeManagerFeeTypeValidation is Helpers {
         feeTokenStr = addressToString(address(usdc));
         // Mint tokens to user for testing
         feeToken.mint(user1, INITIAL_SUPPLY / 2);
-        // Add fee token
-        vm.prank(gov);
-        feeManager.addFeeToken(feeTokenStr);
+        // Note: USDC token is already added by the base Deployer setup
         // Set up fee configuration for a chain
         string[] memory tokens = new string[](1);
         tokens[0] = feeTokenStr;

@@ -34,7 +34,7 @@ interface ICTMRWA1X {
     event ChangingAdmin(uint256 ID, string toChainIdStr);
 
     /// @dev New token admin set on the local chain
-    event AdminChanged(uint256 ID, string newAdmin);
+    event AdminChanged(uint256 ID, address newAdmin);
 
     // CTMRWAErrorParam
     error CTMRWA1X_OnlyAuthorized(CTMRWAErrorParam addr, CTMRWAErrorParam auth); // `addr` must be `auth`

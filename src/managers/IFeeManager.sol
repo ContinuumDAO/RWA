@@ -48,7 +48,8 @@ interface IFeeManager {
     error FeeManager_UnsafeToken(address);
     error FeeManager_UpgradeableToken(address);
     error FeeManager_InvalidDecimals(address token, uint8 decimals);
-
+    error FeeManager_TokenAlreadyListed(address token);
+    
     function getXChainFee(
         string[] memory _toChainIDsStr,
         bool _includeLocal,
