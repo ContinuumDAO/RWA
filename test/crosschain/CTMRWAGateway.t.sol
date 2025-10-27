@@ -353,4 +353,67 @@ contract TestGateway is Helpers {
         assertLt(gasUsed, 1_000_000);
         vm.stopPrank();
     }
+
+    // Test for addChainContract: multiple chains processed simultaneously
+    function test_addChainContract_multipleChainsSimultaneously() public {
+        vm.startPrank(gov);
+        
+        // Add multiple chain contracts in a single batch
+        string[] memory chainIds = new string[](3);
+        string[] memory addrs = new string[](3);
+        
+        chainIds[0] = "100";
+        addrs[0] = "0x1111111111111111111111111111111111111111";
+        
+        chainIds[1] = "200";
+        addrs[1] = "0x2222222222222222222222222222222222222222";
+        
+        chainIds[2] = "300";
+        addrs[2] = "0x3333333333333333333333333333333333333333";
+        
+        // Execute the batch operation
+        gateway.addChainContract(chainIds, addrs);
+        
+        // Verify all chains were added correctly
+        string memory addr100 = gateway.getChainContract("100");
+        string memory addr200 = gateway.getChainContract("200");
+        string memory addr300 = gateway.getChainContract("300");
+        
+        assertTrue(stringsEqual(addr100, _toLower(addrs[0])));
+        assertTrue(stringsEqual(addr200, _toLower(addrs[1])));
+        assertTrue(stringsEqual(addr300, _toLower(addrs[2])));
+        
+        // Verify total chain count increased by 3
+        uint256 totalChains = gateway.getChainCount();
+        assertEq(totalChains, 5); // local chain + "ethereumGateway" + 3 new chains
+        
+        // Now update one of the existing chains and add a new one in the same batch
+        string[] memory updateChainIds = new string[](2);
+        string[] memory updateAddrs = new string[](2);
+        
+        // Update chain 100 with a new address
+        updateChainIds[0] = "100";
+        updateAddrs[0] = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        
+        // Add a new chain 400
+        updateChainIds[1] = "400";
+        updateAddrs[1] = "0x4444444444444444444444444444444444444444";
+        
+        // Execute the update batch
+        gateway.addChainContract(updateChainIds, updateAddrs);
+        
+        // Verify chain 100 was updated
+        string memory updatedAddr100 = gateway.getChainContract("100");
+        assertTrue(stringsEqual(updatedAddr100, _toLower(updateAddrs[0])));
+        
+        // Verify chain 400 was added
+        string memory addr400 = gateway.getChainContract("400");
+        assertTrue(stringsEqual(addr400, _toLower(updateAddrs[1])));
+        
+        // Verify total chain count increased by 1 (only the new chain)
+        uint256 finalTotalChains = gateway.getChainCount();
+        assertEq(finalTotalChains, 6); // local chain + "ethereumGateway" + 4 chains (100,200,300,400)
+        
+        vm.stopPrank();
+    }
 }

@@ -75,9 +75,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
             revert CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
-        bool preExisted;
-
         for (uint256 j = 0; j < _newChainIdsStr.length; j++) {
+            bool preExisted = false;
+            
             _newChainIdsStr[j]._checkStringLength(64);
             _contractAddrsStr[j]._checkStringLength(64);
             string memory newChainIdStr = _newChainIdsStr[j]._toLower();
@@ -92,7 +92,6 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
 
             if (!preExisted) {
                 chainContract.push(ChainContract(newChainIdStr, contractAddrStr));
-                preExisted = false;
             }
         }
     }
@@ -334,9 +333,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
             revert CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
-        bool preExisted;
-
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
+            bool preExisted = false;
+            
             _chainIdsStr[j]._checkStringLength(64);
             _rwaXAddrsStr[j]._checkStringLength(64);
             string memory rwaXAddrStr = _rwaXAddrsStr[j]._toLower();
@@ -357,7 +356,6 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
                 ChainContract memory newAttach = ChainContract(chainIdStr, rwaXAddrStr);
                 rwaX[_rwaType][_version].push(newAttach);
                 rwaXChains[_rwaType][_version].push(chainIdStr);
-                preExisted = false;
             }
         }
 
@@ -388,9 +386,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
             revert CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
-        bool preExisted;
-
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
+            bool preExisted = false;
+            
             _chainIdsStr[j]._checkStringLength(64);
             _storageManagerAddrsStr[j]._checkStringLength(64);
             string memory storageManagerAddrStr = _storageManagerAddrsStr[j]._toLower();
@@ -406,7 +404,6 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
             if (!preExisted) {
                 ChainContract memory newAttach = ChainContract(chainIdStr, storageManagerAddrStr);
                 storageManager[_rwaType][_version].push(newAttach);
-                preExisted = false;
             }
         }
 
@@ -437,9 +434,9 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
             revert CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
-        bool preExisted;
-
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
+            bool preExisted = false;
+            
             _chainIdsStr[j]._checkStringLength(64);
             _sentryManagerAddrsStr[j]._checkStringLength(64);
             string memory sentryManagerAddrStr = _sentryManagerAddrsStr[j]._toLower();
@@ -455,7 +452,6 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
             if (!preExisted) {
                 ChainContract memory newAttach = ChainContract(chainIdStr, sentryManagerAddrStr);
                 sentryManager[_rwaType][_version].push(newAttach);
-                preExisted = false;
             }
         }
 
