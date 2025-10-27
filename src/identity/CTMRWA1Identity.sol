@@ -151,7 +151,7 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
             revert CTMRWA1Identity_InvalidKYC(msg.sender);
         }
 
-        _payFee(_feeTokenStr);
+        _payFee(_chainIdsStr, _feeTokenStr);
 
         ICTMRWA1SentryManager(sentryManager).addWhitelist(
             _ID, _version, msg.sender.toHexString()._stringToArray(), CTMRWAUtils._boolToArray(true), _chainIdsStr, _feeTokenStr
@@ -200,9 +200,9 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
 
     /// @dev Pay the fees for verifyPerson KYC
     /// @return success True if the fee was paid, false otherwise.
-    function _payFee(string memory _feeTokenStr) internal returns (bool) {
+    function _payFee(string[] memory _chainIdsStr, string memory _feeTokenStr) internal returns (bool) {
         bool includeLocal = false;
-        uint256 feeWei = IFeeManager(feeManager).getXChainFee(cIdStr._stringToArray(), includeLocal, FeeType.KYC, _feeTokenStr);
+        uint256 feeWei = IFeeManager(feeManager).getXChainFee(_chainIdsStr, includeLocal, FeeType.KYC, _feeTokenStr);
         feeWei = feeWei * (10000 - IFeeManager(feeManager).getFeeReduction(msg.sender)) / 10000;
 
         if (feeWei > 0) {
