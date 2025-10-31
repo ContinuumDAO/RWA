@@ -78,6 +78,10 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         _;
     }
 
+    constructor() {
+    _disableInitializers();
+    }
+
     function initialize(
         address _gov,
         address _gateway,

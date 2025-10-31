@@ -1253,11 +1253,12 @@ contract TestCTMRWA1X is Helpers {
     }
 
     function test_revert_IsZeroAddress_Deployer() public {
-        // Deploy a fresh CTMRWA1X with ctmRwaDeployer set to zero
-        address newRwa1X = address(new CTMRWA1X());
-        // Initialize with ctmRwaDeployer = address(0)
-        vm.prank(gov);
-        CTMRWA1X(newRwa1X).initialize(address(0x1), address(0x2), gov, address(0x3), address(0x4), 1);
+        // Deploy a fresh CTMRWA1X via proxy (required since _disableInitializers() prevents direct initialization)
+        address newRwa1XImpl = address(new CTMRWA1X());
+        address newRwa1X = _deployProxy(
+            newRwa1XImpl,
+            abi.encodeCall(CTMRWA1X.initialize, (address(0x1), address(0x2), gov, address(0x3), address(0x4), 1))
+        );
         vm.prank(gov);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_IsZeroAddress.selector, CTMRWAErrorParam.Map));
         CTMRWA1X(newRwa1X).setCtmRwaMap(address(0));

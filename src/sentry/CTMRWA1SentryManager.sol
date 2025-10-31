@@ -87,6 +87,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         _;
     }
 
+    constructor() {
+    _disableInitializers();
+    }
+
     /// @dev Initialize the contract
     function initialize(
         address _gov,

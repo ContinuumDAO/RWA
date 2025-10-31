@@ -64,7 +64,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
     /// @dev Addresses of routers, including ContinuumDAO, permitted to bridge tokens cross-chain
     mapping(address => bool) public isMinter;
 
-
+    constructor() {
+        _disableInitializers();
+    }
 
 
     function initialize(

@@ -44,6 +44,10 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
     /// @dev This array holds ChainContract structs for all chains
     ChainContract[] private chainContract;
 
+    constructor() {
+    _disableInitializers();
+    }
+
     function initialize(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)
         external
         initializer

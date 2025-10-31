@@ -70,6 +70,10 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         _;
     }
 
+    constructor() {
+    _disableInitializers();
+    }
+
     /// @dev Initialize the contract
     function initialize(
         address _gov,

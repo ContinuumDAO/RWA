@@ -71,6 +71,10 @@ contract FeeManager is
     /// @dev key is toChainIDStr, value key is tokenAddress
     mapping(string => mapping(address => uint256)) private _toFeeConfigs;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(address govAddr, address c3callerProxyAddr, address txSender, uint256 dappID2)
         public
         initializer
