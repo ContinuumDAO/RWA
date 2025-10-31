@@ -84,6 +84,10 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
 
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
+    constructor() {
+    _disableInitializers();
+    }
+
     function initialize(
         address _gov,
         address _c3callerProxy,
