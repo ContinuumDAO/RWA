@@ -16,6 +16,8 @@ mkdir -p build/shared/
 mkdir -p build/storage/
 mkdir -p build/utils/
 
+echo -e "\n📄 Flattening src/ to build/..."
+
 # core
 forge flatten src/core/CTMRWA1.sol --output build/core/CTMRWA1.sol
 
