@@ -1,0 +1,14 @@
+{
+  "lib/c3caller": {
+    "rev": "0a08181cb709f105973e57b56421dc8b6d7cb627"
+  },
+  "lib/forge-std": {
+    "rev": "0c71116a218268ee8c0157be8efcb13af0f7beaf"
+  },
+  "lib/openzeppelin-contracts": {
+    "rev": "e8745a6a68d77c43c01e2cbe2c83a0b3d36ecc84"
+  },
+  "lib/openzeppelin-contracts-upgradeable": {
+    "rev": "d83fc65ee4b24aa50a6d42e4510cee1566067a98"
+  }
+}
