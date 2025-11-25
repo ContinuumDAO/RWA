@@ -91,12 +91,11 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
     function initialize(
         address _gov,
         address _c3callerProxy,
-        address _txSender,
         uint256 _dappID,
         address _gateway,
         address _rwa1X
     ) external initializer {
-        __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3callerProxy, _dappID);
         gateway = _gateway;
         ctmRwa1X = _rwa1X;
         cIdStr = cID().toString();

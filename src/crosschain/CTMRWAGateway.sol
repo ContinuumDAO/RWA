@@ -48,11 +48,11 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
     _disableInitializers();
     }
 
-    function initialize(address _gov, address _c3callerProxy, address _txSender, uint256 _dappID)
+    function initialize(address _gov, address _c3callerProxy, uint256 _dappID)
         external
         initializer
     {
-        __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3callerProxy, _dappID);
         cIdStr = cID().toString();
         _addChainContract(cID(), address(this));
     }

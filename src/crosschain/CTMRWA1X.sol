@@ -74,11 +74,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         address _feeManager,
         address _gov,
         address _c3callerProxy,
-        address _txSender,
         uint256 _dappID
     ) external initializer {
         __ReentrancyGuard_init();
-        __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3callerProxy, _dappID);
         LATEST_VERSION = 1;
         gateway = _gateway;
         feeManager = _feeManager;
@@ -383,9 +382,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             funcCall, _version, currentAdminStr, ID, _tokenName, _symbol, _decimals, _baseURI, _slotNumbers, _slotNames
         );
 
-        _c3call(toRwaXStr, toChainIdStr, callData);
+        bytes32 uuid = _c3call(toRwaXStr, toChainIdStr, callData);
 
-        emit DeployCTMRWA1(ID, toChainIdStr);
+        emit DeployCTMRWA1(ID, uuid, toChainIdStr);
     }
 
     /**
@@ -403,7 +402,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         string memory _baseURI,
         uint256[] memory _slotNumbers,
         string[] memory _slotNames
-    ) external onlyCaller returns (bool) {
+    ) external onlyC3Caller returns (bool) {
         (bool ok,) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, RWA_TYPE, _version);
         if (ok) {
             revert CTMRWA1X_InvalidContract(CTMRWAErrorParam.Token);
@@ -487,9 +486,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
                 funcCall = "adminX(uint256,uint256,string,string)";
                 callData = abi.encodeWithSignature(funcCall, _ID, _version, currentAdminStr, _newAdminStr);
 
-                _c3call(toRwaXStr, toChainIdStr, callData);
+                bytes32 uuid = _c3call(toRwaXStr, toChainIdStr, callData);
 
-                emit ChangingAdmin(_ID, toChainIdStr);
+                emit ChangingAdmin(_ID, uuid, toChainIdStr);
             }
         }
     }
@@ -500,7 +499,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      */
     function adminX(uint256 _ID, uint256 _version, string memory _oldAdminStr, string memory _newAdminStr)
         external
-        onlyCaller
+        onlyC3Caller
         returns (bool)
     {
         (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, RWA_TYPE, _version);
@@ -570,9 +569,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
                 string memory funcCall = "createNewSlotX(uint256,uint256,string,uint256,string)";
                 bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _version, fromAddressStr, _slot, _slotName);
 
-                _c3call(toRwaXStr, toChainIdStr, callData);
+                bytes32 uuid = _c3call(toRwaXStr, toChainIdStr, callData);
 
-                emit CreateSlot(_ID, _slot, toChainIdStr);
+                emit CreateSlot(_ID, uuid, _slot, toChainIdStr);
             }
         }
 
@@ -586,7 +585,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      */
     function createNewSlotX(uint256 _ID, uint256 _version, string memory _fromAddressStr, uint256 _slot, string memory _slotName)
         external
-        onlyCaller
+        onlyC3Caller
         returns (bool)
     {
         // (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, RWA_TYPE, _version);
@@ -666,7 +665,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
             bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _version, fromAddressStr, _toAddressStr, slot, _value);
 
-            _c3call(toRwaXStr, toChainIdStr, callData);
+            bytes32 uuid = _c3call(toRwaXStr, toChainIdStr, callData);
+
+            emit Minting(_ID, uuid, _toAddressStr, toChainIdStr);
 
             return 0;
         }
@@ -722,9 +723,9 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
             bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _fromAddrStr, _toAddressStr, slot, value);
 
-            _c3call(toRwaXStr, toChainIdStr, callData);
+            bytes32 uuid = _c3call(toRwaXStr, toChainIdStr, callData);
 
-            emit Minting(_ID, _toAddressStr, toChainIdStr);
+            emit Minting(_ID, uuid, _toAddressStr, toChainIdStr);
         }
     }
 
@@ -741,7 +742,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         string memory _toAddressStr,
         uint256 _slot,
         uint256 _balance
-    ) external onlyCaller returns (bool) {
+    ) external onlyC3Caller returns (bool) {
         (, string memory fromChainIdStr,) = _context();
 
         address toAddr = _toAddressStr._stringToAddress();

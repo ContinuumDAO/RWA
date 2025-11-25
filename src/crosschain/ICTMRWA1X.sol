@@ -13,25 +13,25 @@ interface ICTMRWA1X {
 
 
     /// @dev New c3call for CTMRWA1 deployment on destination chain toChainIdStr
-    event DeployCTMRWA1(uint256 ID, string toChainIdStr);
+    event DeployCTMRWA1(uint256 indexed ID, bytes32 uuid, string toChainIdStr);
 
     /// @dev New CTMRWA1 deployed on the local chain
     event CreateNewCTMRWA1(uint256 ID);
 
     /// @dev New c3call to create a new Asset Class (slot) on chain toChainIdStr
-    event CreateSlot(uint256 ID, uint256 slot, string toChainIdStr);
+    event CreateSlot(uint256 indexed ID, bytes32 uuid, uint256 slot, string toChainIdStr);
 
     /// @dev New Asset Class (slot) created on the local chain from fromChainIdStr
     event SlotCreated(uint256 ID, uint256 slot, string fromChainIdStr);
 
     /// @dev New c3call to mint value to chain toChainIdStr to address toAddressStr
-    event Minting(uint256 ID, string toAddressStr, string toChainIdStr);
+    event Minting(uint256 indexed ID, bytes32 uuid, string toAddressStr, string toChainIdStr);
 
     /// @dev New value minted from another chain fromChainIdStr and fromAddrStr
     event Minted(uint256 ID, string fromChainIdStr, string fromAddrStr);
 
     /// @dev New c3call to change the token admin on chain toChainIdStr
-    event ChangingAdmin(uint256 ID, string toChainIdStr);
+    event ChangingAdmin(uint256 indexed ID, bytes32 uuid, string toChainIdStr);
 
     /// @dev New token admin set on the local chain
     event AdminChanged(uint256 ID, address newAdmin);

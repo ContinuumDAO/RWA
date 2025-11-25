@@ -58,7 +58,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     string cIdStr;
 
     /// @dev New c3call for adding URI for ID to chain chainIdStr
-    event AddingURI(uint256 ID, string chainIdStr);
+    event AddingURI(uint256 indexed ID, bytes32 uuid, string chainIdStr);
 
     /// @dev New URI added on local chain for ID
     event URIAdded(uint256 ID);
@@ -78,13 +78,12 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     function initialize(
         address _gov,
         address _c3callerProxy,
-        address _txSender,
         uint256 _dappID,
         address _ctmRwaDeployer,
         address _gateway,
         address _feeManager
     ) external initializer {
-        __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3callerProxy, _dappID);
         LATEST_VERSION = 1;
         ctmRwaDeployer = _ctmRwaDeployer;
         gateway = _gateway;
@@ -291,9 +290,9 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
                     _uriDataHash._bytes32ToArray()
                 );
 
-                _c3call(toRwaSMStr, chainIdStr, callData);
+                bytes32 uuid = _c3call(toRwaSMStr, chainIdStr, callData);
 
-                emit AddingURI(_ID, chainIdStr);
+                emit AddingURI(_ID, uuid, chainIdStr);
             }
         }
     }
@@ -363,9 +362,9 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
                     funcCall, _ID, _version, startNonce, objectName, uriCategory, uriType, title, slot, timestamp, uriDataHash
                 );
 
-                _c3call(toRwaSMStr, chainIdStr, callData);
+                bytes32 uuid = _c3call(toRwaSMStr, chainIdStr, callData);
 
-                emit AddingURI(_ID, chainIdStr);
+                emit AddingURI(_ID, uuid, chainIdStr);
             }
         }
     }

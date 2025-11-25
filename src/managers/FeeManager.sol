@@ -75,13 +75,13 @@ contract FeeManager is
         _disableInitializers();
     }
 
-    function initialize(address govAddr, address c3callerProxyAddr, address txSender, uint256 dappID2)
+    function initialize(address govAddr, address c3callerProxyAddr, uint256 dappID2)
         public
         initializer
     {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
-        __C3GovernDApp_init(govAddr, c3callerProxyAddr, txSender, dappID2);
+        __C3GovernDApp_init(govAddr, c3callerProxyAddr, dappID2);
         __Pausable_init();
     }
 

@@ -63,19 +63,19 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     string cIdStr;
 
     /// @dev A new c3call for ID to set the Sentry Options on chain toChainIdStr
-    event SettingSentryOptions(uint256 ID, string toChainIdStr);
+    event SettingSentryOptions(uint256 indexed ID, bytes32 uuid, string toChainIdStr);
 
     /// @dev New Sentry Options set for ID
     event SentryOptionsSet(uint256 ID);
 
     /// @dev New c3call to set Whitelist for ID to chain toChainIdStr
-    event AddingWhitelist(uint256 ID, string toChainIdStr);
+    event AddingWhitelist(uint256 indexed ID, bytes32 uuid, string toChainIdStr);
 
     /// @dev New Whitelist added on local chain for ID
     event WhitelistAdded(uint256 ID);
 
     /// @dev New c3call to Add a Country CTMRWAErrorParam for ID to chain toChainIdStr
-    event AddingCountryList(uint256 ID, string toChainIdStr);
+    event AddingCountryList(uint256 indexed ID, bytes32 uuid, string toChainIdStr);
 
     /// @dev New Country CTMRWAErrorParam added on local chain for ID
     event CountryListAdded(uint256 ID);
@@ -95,13 +95,12 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     function initialize(
         address _gov,
         address _c3callerProxy,
-        address _txSender,
         uint256 _dappID,
         address _ctmRwaDeployer,
         address _gateway,
         address _feeManager
     ) external initializer {
-        __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3callerProxy, _dappID);
         LATEST_VERSION = 1;
         ctmRwaDeployer = _ctmRwaDeployer;
         gateway = _gateway;
@@ -321,9 +320,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
                     funcCall, _ID, _version, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
                 );
 
-                _c3call(toRwaSentryStr, chainIdStr, callData);
+                bytes32 uuid = _c3call(toRwaSentryStr, chainIdStr, callData);
 
-                emit SettingSentryOptions(_ID, chainIdStr);
+                emit SettingSentryOptions(_ID, uuid, chainIdStr);
             }
         }
     }
@@ -412,9 +411,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
                 bytes memory callData =
                     abi.encodeWithSignature(funcCall, _ID, _version, false, true, kyb, over18, false, countryWL, countryBL);
 
-                _c3call(toRwaSentryStr, chainIdStr, callData);
+                bytes32 uuid = _c3call(toRwaSentryStr, chainIdStr, callData);
 
-                emit SettingSentryOptions(_ID, chainIdStr);
+                emit SettingSentryOptions(_ID, uuid, chainIdStr);
             }
         }
     }
@@ -497,9 +496,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
                 string memory funcCall = "setWhitelistX(uint256,uint256,string[],bool[])";
                 bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _version, _wallets, _choices);
 
-                _c3call(toRwaSentryStr, chainIdStr, callData);
+                bytes32 uuid = _c3call(toRwaSentryStr, chainIdStr, callData);
 
-                emit AddingWhitelist(_ID, chainIdStr);
+                emit AddingWhitelist(_ID, uuid, chainIdStr);
             }
         }
     }
@@ -584,9 +583,9 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
                 string memory funcCall = "setCountryListX(uint256,uint256,string[],bool[])";
                 bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _version, _countries, _choices);
 
-                _c3call(toRwaSentryStr, chainIdStr, callData);
+                bytes32 uuid = _c3call(toRwaSentryStr, chainIdStr, callData);
 
-                emit AddingCountryList(_ID, chainIdStr);
+                emit AddingCountryList(_ID, uuid, chainIdStr);
             }
         }
     }
