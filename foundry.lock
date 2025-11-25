@@ -1,6 +1,9 @@
 {
   "lib/c3caller": {
-    "rev": "0a08181cb709f105973e57b56421dc8b6d7cb627"
+    "branch": {
+      "name": "audit2",
+      "rev": "978e90beac7d6ca55f64d5938e6490f0bdb16833"
+    }
   },
   "lib/forge-std": {
     "rev": "0c71116a218268ee8c0157be8efcb13af0f7beaf"
