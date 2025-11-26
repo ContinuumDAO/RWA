@@ -105,7 +105,7 @@ contract TestFeeManager is Helpers {
     function test_OnlyGovCanAddFeeToken() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         vm.prank(user1);
@@ -115,7 +115,7 @@ contract TestFeeManager is Helpers {
     function test_OnlyGovCanDelFeeToken() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         vm.prank(user1);
@@ -125,7 +125,7 @@ contract TestFeeManager is Helpers {
     function test_OnlyGovCanSetFeeMultiplier() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         vm.prank(user1);
@@ -135,7 +135,7 @@ contract TestFeeManager is Helpers {
     function test_OnlyGovCanWithdrawFee() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         vm.prank(user1);
@@ -145,7 +145,7 @@ contract TestFeeManager is Helpers {
     function test_OnlyGovCanPause() public {
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         vm.prank(user1);
@@ -157,7 +157,7 @@ contract TestFeeManager is Helpers {
         feeManager.pause();
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         vm.prank(user1);

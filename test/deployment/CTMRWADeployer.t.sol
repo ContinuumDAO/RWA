@@ -136,42 +136,41 @@ contract TestCTMRWADeployer is Helpers {
     // Governance Setter Access Control
     function test_onlyGovernorCanCallSetters(address nonGov) public {
         vm.assume(nonGov != gov && nonGov != address(0));
-        vm.assume(!deployer.txSenders(nonGov));
         address dummy = address(0x1234);
         vm.startPrank(nonGov);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         deployer.setGateway(dummy);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         deployer.setFeeManager(dummy);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         deployer.setRwaX(dummy);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         deployer.setMap(dummy);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         deployer.setErc20DeployerAddress(dummy);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         deployer.setDeployInvest(dummy);
@@ -316,7 +315,7 @@ contract TestCTMRWADeployer is Helpers {
         vm.startPrank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.GovOrC3Caller
+                IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector, C3ErrorParam.Sender, C3ErrorParam.Gov
             )
         );
         deployer.setInvestCommissionRate(100);

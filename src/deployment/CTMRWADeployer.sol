@@ -89,10 +89,9 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         address _rwaX,
         address _map,
         address _c3callerProxy,
-        address _txSender,
         uint256 _dappID
     ) external initializer {
-        __C3GovernDApp_init(_gov, _c3callerProxy, _txSender, _dappID);
+        __C3GovernDApp_init(_gov, _c3callerProxy, _dappID);
         gateway = _gateway;
         feeManager = _feeManager;
         rwaX = _rwaX;

@@ -430,7 +430,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         bool _accredited,
         bool _countryWL,
         bool _countryBL
-    ) external onlyCaller returns (bool) {
+    ) external onlyC3Caller returns (bool) {
         (address sentryAddr,) = _getSentryAddr(_ID, _version);
 
         ICTMRWA1Sentry(sentryAddr).setSentryOptionsLocal(
@@ -511,7 +511,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     /// @return success True if the whitelist was set, false otherwise.
     function setWhitelistX(uint256 _ID, uint256 _version, string[] memory _wallets, bool[] memory _choices)
         external
-        onlyCaller
+        onlyC3Caller
         returns (bool)
     {
         (address sentryAddr,) = _getSentryAddr(_ID, _version);
@@ -599,7 +599,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     /// @return success True if the country list was set, false otherwise.
     function setCountryListX(uint256 _ID, uint256 _version, string[] memory _countries, bool[] memory _choices)
         external
-        onlyCaller
+        onlyC3Caller
         returns (bool)
     {
         (address sentryAddr,) = _getSentryAddr(_ID, _version);

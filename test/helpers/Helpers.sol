@@ -31,16 +31,19 @@ contract Helpers is Test, Accounts, Deployer, RWA {
 
         vm.startPrank(gov);
 
-        _deployC3Caller();
-        _deployFeeManager(gov, admin, address(ctm), address(usdc));
-        _deployGateway(gov, admin);
-        _deployCTMRWA1X(gov, admin);
-        _deployMap(gov, admin);
-        _deployCTMRWADeployer(gov, admin);
+        _deployC3CallerContracts();
+        usdc.approve(address(dappManager), 350 * 10 ** usdc.decimals()); // 350 USDC to cover 7x 50 USDC dapp deposits
+        _initiateC3Fee(address(usdc), 50 * 10 ** usdc.decimals());
+        _registerDAppIDs(address(usdc));
+        _deployFeeManager(gov, address(ctm), address(usdc));
+        _deployGateway(gov);
+        _deployCTMRWA1X(gov);
+        _deployMap(gov);
+        _deployCTMRWADeployer(gov);
         _deployTokenFactory();
         _deployDividendFactory();
-        _deployStorage(gov, admin);
-        _deploySentry(gov, admin);
+        _deployStorage(gov);
+        _deploySentry(gov);
 
         vm.stopPrank();
 

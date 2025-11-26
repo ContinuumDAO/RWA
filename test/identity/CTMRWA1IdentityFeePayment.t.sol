@@ -148,7 +148,10 @@ contract TestCTMRWA1IdentityFeePayment is Helpers {
         string[] memory multipleChains = new string[](2);
         multipleChains[0] = cIdStr;  // Local chain
         multipleChains[1] = "1";     // Ethereum (already configured in gateway)
-        
+
+        vm.prank(gov);
+        c3caller.activateChainID("1");
+
         // Set up fees for Ethereum chain (needed for cross-chain operations)
         vm.startPrank(gov);
         string[] memory tokensStr = new string[](2);
@@ -165,9 +168,8 @@ contract TestCTMRWA1IdentityFeePayment is Helpers {
         
         // Add necessary operator permissions for C3 caller to work
         // This is needed for cross-chain calls to execute properly
-        c3UUIDKeeper.addOperator(address(c3caller)); // Add C3Caller as operator to C3UUIDKeeper
-        c3caller.addOperator(gov); // Add gov as an operator to C3Caller
-        c3caller.addOperator(address(identity)); // Add identity as an operator to C3Caller
+        c3caller.addMPC(gov); // Add gov as an operator to C3Caller
+        c3caller.addMPC(address(identity)); // Add identity as an operator to C3Caller
         vm.stopPrank();
         
         // Setup KYC
@@ -210,7 +212,10 @@ contract TestCTMRWA1IdentityFeePayment is Helpers {
         string[] memory chainsWithLocal = new string[](2);
         chainsWithLocal[0] = cIdStr;  // Local chain
         chainsWithLocal[1] = "1";     // Ethereum (already configured in gateway)
-        
+
+        vm.prank(gov);
+        c3caller.activateChainID("1");
+
         // Set up fees for Ethereum chain
         vm.startPrank(gov);
         string[] memory tokensStr = new string[](2);
@@ -225,9 +230,8 @@ contract TestCTMRWA1IdentityFeePayment is Helpers {
         feeManager.addFeeToken("1", tokensStr, fees);
         
         // Add necessary operator permissions for C3 caller to work
-        c3UUIDKeeper.addOperator(address(c3caller)); // Add C3Caller as operator to C3UUIDKeeper
-        c3caller.addOperator(gov); // Add gov as an operator to C3Caller
-        c3caller.addOperator(address(identity)); // Add identity as an operator to C3Caller
+        c3caller.addMPC(gov); // Add gov as an operator to C3Caller
+        c3caller.addMPC(address(identity)); // Add identity as an operator to C3Caller
         vm.stopPrank();
         
         // Test fee calculation with includeLocal = false (as used in _payFee)

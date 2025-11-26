@@ -385,7 +385,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         uint256[] memory _slot,
         uint256[] memory _timestamp,
         bytes32[] memory _uriDataHash
-    ) external onlyCaller returns (bool) {
+    ) external onlyC3Caller returns (bool) {
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Storage);

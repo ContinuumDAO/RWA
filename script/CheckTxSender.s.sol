@@ -68,37 +68,37 @@ contract CheckTxSender is Script {
             revert ("MAP_<chainid> not defined");
         }
 
-        vm.startBroadcast();
-        bool isTxSenderGateway = IC3GovernDApp(gateway).txSenders(txSender);
-        bool isTxSenderFeeManager = IC3GovernDApp(feeManager).txSenders(txSender);
-        bool isTxSenderRWA1X = IC3GovernDApp(rwa1X).txSenders(txSender);
-        bool isTxSenderDeployer = IC3GovernDApp(deployer).txSenders(txSender);
-        bool isTxSenderStorageManager = IC3GovernDApp(storageManager).txSenders(txSender);
-        bool isTxSenderSentryManager = IC3GovernDApp(sentryManager).txSenders(txSender);
-        bool isTxSenderMap = IC3GovernDApp(map).txSenders(txSender);
+        // vm.startBroadcast();
+        // bool isTxSenderGateway = IC3GovernDApp(gateway).txSenders(txSender);
+        // bool isTxSenderFeeManager = IC3GovernDApp(feeManager).txSenders(txSender);
+        // bool isTxSenderRWA1X = IC3GovernDApp(rwa1X).txSenders(txSender);
+        // bool isTxSenderDeployer = IC3GovernDApp(deployer).txSenders(txSender);
+        // bool isTxSenderStorageManager = IC3GovernDApp(storageManager).txSenders(txSender);
+        // bool isTxSenderSentryManager = IC3GovernDApp(sentryManager).txSenders(txSender);
+        // bool isTxSenderMap = IC3GovernDApp(map).txSenders(txSender);
 
-        string memory resGateway = 
-            string.concat("Gateway ", (isTxSenderGateway ? unicode"✅" : unicode"⚠️"));
-        string memory resFeeManager = 
-            string.concat("FeeManager ", (isTxSenderFeeManager ? unicode"✅" : unicode"⚠️"));
-        string memory resRWA1X = 
-            string.concat("RWA1X ", (isTxSenderRWA1X ? unicode"✅" : unicode"⚠️"));
-        string memory resDeployer = 
-            string.concat("Deployer ", (isTxSenderDeployer ? unicode"✅" : unicode"⚠️"));
-        string memory resStorageManager = 
-            string.concat("StorageManager ", (isTxSenderStorageManager ? unicode"✅" : unicode"⚠️"));
-        string memory resSentryManager = 
-            string.concat("SentryManager ", (isTxSenderSentryManager ? unicode"✅" : unicode"⚠️"));
-        string memory resMap = 
-            string.concat("Map ", (isTxSenderMap ? unicode"✅" : unicode"⚠️"));
+        // string memory resGateway = 
+        //     string.concat("Gateway ", (isTxSenderGateway ? unicode"✅" : unicode"⚠️"));
+        // string memory resFeeManager = 
+        //     string.concat("FeeManager ", (isTxSenderFeeManager ? unicode"✅" : unicode"⚠️"));
+        // string memory resRWA1X = 
+        //     string.concat("RWA1X ", (isTxSenderRWA1X ? unicode"✅" : unicode"⚠️"));
+        // string memory resDeployer = 
+        //     string.concat("Deployer ", (isTxSenderDeployer ? unicode"✅" : unicode"⚠️"));
+        // string memory resStorageManager = 
+        //     string.concat("StorageManager ", (isTxSenderStorageManager ? unicode"✅" : unicode"⚠️"));
+        // string memory resSentryManager = 
+        //     string.concat("SentryManager ", (isTxSenderSentryManager ? unicode"✅" : unicode"⚠️"));
+        // string memory resMap = 
+        //     string.concat("Map ", (isTxSenderMap ? unicode"✅" : unicode"⚠️"));
 
-        console.log(resGateway);
-        console.log(resFeeManager);
-        console.log(resRWA1X);
-        console.log(resDeployer);
-        console.log(resStorageManager);
-        console.log(resSentryManager);
-        console.log(resMap);
-        vm.stopBroadcast();
+        // console.log(resGateway);
+        // console.log(resFeeManager);
+        // console.log(resRWA1X);
+        // console.log(resDeployer);
+        // console.log(resStorageManager);
+        // console.log(resSentryManager);
+        // console.log(resMap);
+        // vm.stopBroadcast();
     }
 }

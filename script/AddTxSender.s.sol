@@ -66,14 +66,14 @@ contract AddTxSender is Script {
             revert ("MAP_<chainid> not defined");
         }
 
-        vm.startBroadcast();
-        IC3GovernDApp(gateway).addTxSender(txSender);
-        IC3GovernDApp(feeManager).addTxSender(txSender);
-        IC3GovernDApp(rwa1X).addTxSender(txSender);
-        IC3GovernDApp(deployer).addTxSender(txSender);
-        IC3GovernDApp(storageManager).addTxSender(txSender);
-        IC3GovernDApp(sentryManager).addTxSender(txSender);
-        IC3GovernDApp(map).addTxSender(txSender);
-        vm.stopBroadcast();
+        // vm.startBroadcast();
+        // IC3GovernDApp(gateway).addTxSender(txSender);
+        // IC3GovernDApp(feeManager).addTxSender(txSender);
+        // IC3GovernDApp(rwa1X).addTxSender(txSender);
+        // IC3GovernDApp(deployer).addTxSender(txSender);
+        // IC3GovernDApp(storageManager).addTxSender(txSender);
+        // IC3GovernDApp(sentryManager).addTxSender(txSender);
+        // IC3GovernDApp(map).addTxSender(txSender);
+        // vm.stopBroadcast();
     }
 }

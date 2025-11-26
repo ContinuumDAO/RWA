@@ -1257,7 +1257,7 @@ contract TestCTMRWA1X is Helpers {
         address newRwa1XImpl = address(new CTMRWA1X());
         address newRwa1X = _deployProxy(
             newRwa1XImpl,
-            abi.encodeCall(CTMRWA1X.initialize, (address(0x1), address(0x2), gov, address(0x3), address(0x4), 1))
+            abi.encodeCall(CTMRWA1X.initialize, (address(0x1), address(0x2), gov, address(0x3), 1))
         );
         vm.prank(gov);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1X.CTMRWA1X_IsZeroAddress.selector, CTMRWAErrorParam.Map));
@@ -1492,7 +1492,9 @@ contract TestCTMRWA1X is Helpers {
         // Use the pre-configured destination chain ID from the test setup
         // This chain ID is already attached in the Deployer helper
         string memory destinationChainId = "999999999999999999999";
-        
+        vm.prank(gov);
+        c3caller.activateChainID(destinationChainId);
+
         // Set up fees for the destination chain (needed for cross-chain transfer)
         vm.startPrank(gov);
         string[] memory tokensStr = new string[](2);
@@ -1508,9 +1510,8 @@ contract TestCTMRWA1X is Helpers {
         
         // Add necessary operator permissions for C3 caller to work
         // This is needed for cross-chain calls to execute properly
-        c3UUIDKeeper.addOperator(address(c3caller)); // Add C3Caller as operator to C3UUIDKeeper
-        c3caller.addOperator(gov); // Add gov as an operator to C3Caller
-        c3caller.addOperator(address(rwa1X)); // Add rwa1X as an operator to C3Caller
+        c3caller.addMPC(gov); // Add gov as an operator to C3Caller
+        c3caller.addMPC(address(rwa1X)); // Add rwa1X as an operator to C3Caller
         vm.stopPrank();
         
         // Approve CTMRWA1X to spend the token (since they're the owner)
@@ -1586,25 +1587,26 @@ contract TestCTMRWA1X is Helpers {
         // Use the pre-configured destination chain ID from the test setup
         // This chain ID is already attached in the Deployer helper
         string memory destinationChainId = "999999999999999999999";
-        
+        vm.prank(gov);
+        c3caller.activateChainID(destinationChainId);
+
         // Set up fees for the destination chain (needed for cross-chain transfer)
         vm.startPrank(gov);
         string[] memory tokensStr = new string[](2);
         uint256[] memory fees = new uint256[](2);
-        
+
         tokensStr[0] = _toLower(address(ctm).toHexString());
         tokensStr[1] = _toLower(address(usdc).toHexString());
-        
+
         fees[0] = 10 ** 18; // 1 CTM baseFee (18 decimals)
         fees[1] = 10 ** 18; // 1 USDC baseFee (stored in 18 decimals, corrected to 6 decimals)
-        
+
         feeManager.addFeeToken(destinationChainId, tokensStr, fees);
-        
+
         // Add necessary operator permissions for C3 caller to work
         // This is needed for cross-chain calls to execute properly
-        c3UUIDKeeper.addOperator(address(c3caller)); // Add C3Caller as operator to C3UUIDKeeper
-        c3caller.addOperator(gov); // Add gov as an operator to C3Caller
-        c3caller.addOperator(address(rwa1X)); // Add rwa1X as an operator to C3Caller
+        c3caller.addMPC(gov); // Add gov as an operator to C3Caller
+        c3caller.addMPC(address(rwa1X)); // Add rwa1X as an operator to C3Caller
         vm.stopPrank();
         
         // Approve CTMRWA1X to spend the token (since they're the owner)
@@ -1682,7 +1684,9 @@ contract TestCTMRWA1X is Helpers {
         // Use the pre-configured destination chain ID from the test setup
         // This chain ID is already attached in the Deployer helper
         string memory destinationChainId = "999999999999999999999";
-        
+        vm.prank(gov);
+        c3caller.activateChainID(destinationChainId);
+
         // Set up fees for the destination chain (needed for cross-chain transfer)
         vm.startPrank(gov);
         string[] memory tokensStr = new string[](2);
@@ -1698,9 +1702,8 @@ contract TestCTMRWA1X is Helpers {
         
         // Add necessary operator permissions for C3 caller to work
         // This is needed for cross-chain calls to execute properly
-        c3UUIDKeeper.addOperator(address(c3caller)); // Add C3Caller as operator to C3UUIDKeeper
-        c3caller.addOperator(gov); // Add gov as an operator to C3Caller
-        c3caller.addOperator(address(rwa1X)); // Add rwa1X as an operator to C3Caller
+        c3caller.addMPC(gov); // Add gov as an operator to C3Caller
+        c3caller.addMPC(address(rwa1X)); // Add rwa1X as an operator to C3Caller
         vm.stopPrank();
         
         // Set up approval mechanism: user1 (owner) approves user2 to transfer the token

@@ -8,6 +8,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { C3CallerUpgradeable } from "@c3caller/upgradeable/C3CallerUpgradeable.sol";
 import { C3UUIDKeeperUpgradeable } from "@c3caller/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
+import {C3DAppManagerUpgradeable} from  "@c3caller/upgradeable/dapp/C3DAppManagerUpgradeable.sol";
 
 import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
 
@@ -37,8 +38,17 @@ import { CTMRWA1StorageUtils } from "../../src/storage/CTMRWA1StorageUtils.sol";
 contract Deployer is Utils {
     using Strings for *;
 
-    C3UUIDKeeperUpgradeable c3UUIDKeeper;
+    C3UUIDKeeperUpgradeable uuidKeeper;
+    C3DAppManagerUpgradeable dappManager;
     C3CallerUpgradeable c3caller;
+
+    uint256 feeManagerDAppID;
+    uint256 gatewayDAppID;
+    uint256 xDAppID;
+    uint256 mapDAppID;
+    uint256 deployerDAppID;
+    uint256 storageManagerDAppID;
+    uint256 sentryManagerDAppID;
 
     FeeManager feeManager;
     string[] tokensStr;
@@ -70,18 +80,39 @@ contract Deployer is Utils {
     uint256 ID;
     CTMRWA1 token;
 
-    function _deployC3Caller() internal {
-        address c3UUIDKeeperImpl = address(new C3UUIDKeeperUpgradeable());
-        c3UUIDKeeper = C3UUIDKeeperUpgradeable(_deployProxy(c3UUIDKeeperImpl, abi.encodeCall(C3UUIDKeeperUpgradeable.initialize, ())));
+    function _deployC3CallerContracts() internal {
+        address uuidKeeperImpl = address(new C3UUIDKeeperUpgradeable());
+        uuidKeeper = C3UUIDKeeperUpgradeable(_deployProxy(uuidKeeperImpl, abi.encodeCall(C3UUIDKeeperUpgradeable.initialize, ())));
+        address dappManagerImpl = address(new C3DAppManagerUpgradeable());
+        dappManager = C3DAppManagerUpgradeable(_deployProxy(dappManagerImpl, abi.encodeCall(C3DAppManagerUpgradeable.initialize, ())));
         address c3callerImpl = address(new C3CallerUpgradeable());
-        c3caller = C3CallerUpgradeable(_deployProxy(c3callerImpl, abi.encodeCall(C3CallerUpgradeable.initialize, (address(c3UUIDKeeper)))));
+        c3caller = C3CallerUpgradeable(_deployProxy(c3callerImpl, abi.encodeCall(C3CallerUpgradeable.initialize, (address(uuidKeeper), address(dappManager)))));
+        uuidKeeper.setC3Caller(address(c3caller));
+        dappManager.setC3Caller(address(c3caller));
     }
 
-    function _deployFeeManager(address gov, address admin, address ctm, address usdc) internal {
+    function _initiateC3Fee(address _feeToken, uint256 _minimumDeposit) internal {
+        dappManager.setFeeConfig(_feeToken, 1, 1);
+        dappManager.setFeeMinimumDeposit(_feeToken, _minimumDeposit);
+    }
+
+    function _registerDAppIDs(address _feeToken) internal {
+        feeManagerDAppID = dappManager.initDAppConfig("v1.feemanager.assetx", _feeToken, "fee manager metadata");
+        gatewayDAppID = dappManager.initDAppConfig("v1.gateway.assetx", _feeToken, "gateway metadata");
+        xDAppID = dappManager.initDAppConfig("v1.x.assetx", _feeToken, "x metadata");
+        mapDAppID = dappManager.initDAppConfig("v1.map.assetx", _feeToken, "map metadata");
+        deployerDAppID = dappManager.initDAppConfig("v1.deployer.assetx", _feeToken, "deployer metadata");
+        storageManagerDAppID = dappManager.initDAppConfig("v1.storage.assetx", _feeToken, "storage metadata");
+        sentryManagerDAppID = dappManager.initDAppConfig("v1.sentry.assetx", _feeToken, "sentry metadata");
+    }
+
+    function _deployFeeManager(address gov, address ctm, address usdc) internal {
         address feeManagerImpl = address(new FeeManager());
         feeManager = FeeManager(
-            _deployProxy(feeManagerImpl, abi.encodeCall(FeeManager.initialize, (gov, address(c3caller), admin, 1)))
+            _deployProxy(feeManagerImpl, abi.encodeCall(FeeManager.initialize, (gov, address(c3caller), feeManagerDAppID)))
         );
+
+        dappManager.setDAppAddr(feeManagerDAppID, address(feeManager), true);
 
         feeManager.addFeeToken(address(ctm).toHexString());
         feeManager.addFeeToken(address(usdc).toHexString());
@@ -133,27 +164,31 @@ contract Deployer is Utils {
         feeManager.addFeeToken(currentChainId, tokensStr, fees);
     }
 
-    function _deployGateway(address gov, address admin) internal {
+    function _deployGateway(address gov) internal {
         address gatewayImpl = address(new CTMRWAGateway());
         gateway = CTMRWAGateway(
-            _deployProxy(gatewayImpl, abi.encodeCall(CTMRWAGateway.initialize, (gov, address(c3caller), admin, 4)))
+            _deployProxy(gatewayImpl, abi.encodeCall(CTMRWAGateway.initialize, (gov, address(c3caller), gatewayDAppID)))
         );
+
+        dappManager.setDAppAddr(gatewayDAppID, address(gateway), true);
 
         string[] memory chainIdsStr = _stringToArray("1");
         string[] memory gwaysStr = _stringToArray("ethereumGateway");
         gateway.addChainContract(chainIdsStr, gwaysStr);
     }
 
-    function _deployCTMRWA1X(address gov, address admin) internal {
+    function _deployCTMRWA1X(address gov) internal {
         address rwa1XImpl = address(new CTMRWA1X());
         rwa1X = CTMRWA1X(
             _deployProxy(
                 rwa1XImpl,
                 abi.encodeCall(
-                    CTMRWA1X.initialize, (address(gateway), address(feeManager), gov, address(c3caller), admin, 2)
+                    CTMRWA1X.initialize, (address(gateway), address(feeManager), gov, address(c3caller), xDAppID)
                 )
             )
         );
+
+        dappManager.setDAppAddr(xDAppID, address(rwa1X), true);
 
         // Ensure CTMRWA1X knows deployer and map BEFORE deploying utils (constructor caches addresses)
         // Set deployer and map early to avoid stale ctmRwaMap in utils
@@ -171,19 +206,20 @@ contract Deployer is Utils {
         gateway.attachRWAX(RWA_TYPE, VERSION, chainIdsStr, rwaXsStr);
     }
 
-    function _deployMap(address gov, address admin) internal {
+    function _deployMap(address gov) internal {
         address mapImpl = address(new CTMRWAMap());
         map = CTMRWAMap(
             _deployProxy(
                 mapImpl,
                 abi.encodeCall(
-                    CTMRWAMap.initialize, (gov, address(c3caller), address(admin), 87, address(gateway), address(rwa1X))
+                    CTMRWAMap.initialize, (gov, address(c3caller), mapDAppID, address(gateway), address(rwa1X))
                 )
             )
         );
+        dappManager.setDAppAddr(mapDAppID, address(map), true);
     }
 
-    function _deployCTMRWADeployer(address gov, address admin) internal {
+    function _deployCTMRWADeployer(address gov) internal {
         address deployerImpl = address(new CTMRWADeployer());
         deployer = CTMRWADeployer(
             _deployProxy(
@@ -197,12 +233,13 @@ contract Deployer is Utils {
                         address(rwa1X),
                         address(map),
                         address(c3caller),
-                        admin,
-                        3
+                        deployerDAppID
                     )
                 )
             )
         );
+
+        dappManager.setDAppAddr(deployerDAppID, address(deployer), true);
 
         ctmRwaDeployInvest = new CTMRWADeployInvest(
             address(map),
@@ -233,17 +270,19 @@ contract Deployer is Utils {
         deployer.setDividendFactory(RWA_TYPE, VERSION, address(dividendFactory));
     }
 
-    function _deployStorage(address gov, address admin) internal {
+    function _deployStorage(address gov) internal {
         address storageManagerImpl = address(new CTMRWA1StorageManager());
         storageManager = CTMRWA1StorageManager(
             _deployProxy(
                 storageManagerImpl,
                 abi.encodeCall(
                     CTMRWA1StorageManager.initialize,
-                    (gov, address(c3caller), admin, 88, address(deployer), address(gateway), address(feeManager))
+                    (gov, address(c3caller), storageManagerDAppID, address(deployer), address(gateway), address(feeManager))
                 )
             )
         );
+
+        dappManager.setDAppAddr(storageManagerDAppID, address(storageManager), true);
 
         storageUtils = new CTMRWA1StorageUtils(RWA_TYPE, VERSION, address(map), address(storageManager));
 
@@ -264,17 +303,19 @@ contract Deployer is Utils {
         gateway.attachStorageManager(RWA_TYPE, VERSION, chainIdsStr, storagesStr);
     }
 
-    function _deploySentry(address gov, address admin) internal {
+    function _deploySentry(address gov) internal {
         address sentryManagerImpl = address(new CTMRWA1SentryManager());
         sentryManager = CTMRWA1SentryManager(
             _deployProxy(
                 sentryManagerImpl,
                 abi.encodeCall(
                     CTMRWA1SentryManager.initialize,
-                    (gov, address(c3caller), admin, 88, address(deployer), address(gateway), address(feeManager))
+                    (gov, address(c3caller), sentryManagerDAppID, address(deployer), address(gateway), address(feeManager))
                 )
             )
         );
+
+        dappManager.setDAppAddr(sentryManagerDAppID, address(sentryManager), true);
 
         deployer.setSentryFactory(RWA_TYPE, VERSION, address(sentryManager));
 

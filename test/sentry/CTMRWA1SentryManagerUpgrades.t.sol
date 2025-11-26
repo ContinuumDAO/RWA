@@ -330,7 +330,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
             abi.encodeWithSelector(
                 IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector,
                 C3ErrorParam.Sender,
-                C3ErrorParam.GovOrC3Caller
+                C3ErrorParam.Gov
             )
         );
         (success, ) = address(sentryManager).call(abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl3), abi.encodeCall(MockCTMRWA1SentryManagerV2.initializeV2, (3))));
@@ -391,7 +391,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
             abi.encodeWithSelector(
                 IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector,
                 C3ErrorParam.Sender,
-                C3ErrorParam.GovOrC3Caller
+                C3ErrorParam.Gov
             )
         );
         sentryManager.updateLatestVersion(5);
@@ -482,7 +482,7 @@ contract TestCTMRWA1SentryManagerUpgrades is Helpers {
             abi.encodeWithSelector(
                 IC3GovernDApp.C3GovernDApp_OnlyAuthorized.selector,
                 C3ErrorParam.Sender,
-                C3ErrorParam.GovOrC3Caller
+                C3ErrorParam.Gov
             )
         );
         sentryManager.updateLatestVersion(5);
