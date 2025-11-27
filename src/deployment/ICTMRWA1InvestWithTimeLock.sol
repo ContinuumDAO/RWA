@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 struct Offering {
     uint256 tokenId;
@@ -43,9 +43,11 @@ interface ICTMRWA1InvestWithTimeLock {
     event ClaimDividendInEscrow(uint256 indexed ID, address holder, uint256 unclaimed);
     event FundedRewardToken(uint256 indexed offeringIndex, uint256 fundAmount, uint256 rewardMultiplier);
     event LateRewardFunding(uint256 indexed offeringIndex);
-    event RewardClaimed(address indexed holder, uint256 indexed offerIndex, uint256 indexed holdingIndex, uint256 amount);
+    event RewardClaimed(
+        address indexed holder, uint256 indexed offerIndex, uint256 indexed holdingIndex, uint256 amount
+    );
     event RemoveRemainingBalance(uint256 indexed ID, uint256 indexed indx, uint256 remainingBalance);
-    
+
     // Errors
     error CTMRWA1InvestWithTimeLock_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
     error CTMRWA1InvestWithTimeLock_InvalidContract(CTMRWAErrorParam);
@@ -125,8 +127,16 @@ interface ICTMRWA1InvestWithTimeLock {
 
     function listEscrowHolding(address holder, uint256 myIndx) external view returns (Holding memory);
 
-    function getRewardInfo(address holder, uint256 offerIndex, uint256 holdingIndex) external view returns (address rewardToken, uint256 rewardAmount);
+    function getRewardInfo(address holder, uint256 offerIndex, uint256 holdingIndex)
+        external
+        view
+        returns (address rewardToken, uint256 rewardAmount);
     function claimReward(uint256 offerIndex, uint256 holdingIndex) external;
-    function fundRewardTokenForOffering(uint256 _offeringIndex, uint256 _fundAmount, uint256 _rewardMultiplier, uint256 _rateDivisor) external;
+    function fundRewardTokenForOffering(
+        uint256 _offeringIndex,
+        uint256 _fundAmount,
+        uint256 _rewardMultiplier,
+        uint256 _rateDivisor
+    ) external;
     function removeRemainingTokenId(uint256 _indx, address _feeToken) external returns (uint256);
 }

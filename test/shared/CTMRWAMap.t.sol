@@ -2,14 +2,14 @@
 
 pragma solidity 0.8.27;
 
-import { console } from "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
-import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
-import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
-import { Helpers } from "../helpers/Helpers.sol";
+import {CTMRWA1} from "../../src/core/CTMRWA1.sol";
+import {ICTMRWAMap} from "../../src/shared/ICTMRWAMap.sol";
+import {CTMRWAErrorParam} from "../../src/utils/CTMRWAUtils.sol";
+import {Helpers} from "../helpers/Helpers.sol";
 
 contract TestCTMRWAMap is Helpers {
     using Strings for address;

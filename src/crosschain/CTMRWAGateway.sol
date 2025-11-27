@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ChainContract, ICTMRWAGateway } from "./ICTMRWAGateway.sol";
-import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ChainContract, ICTMRWAGateway} from "./ICTMRWAGateway.sol";
+import {C3GovernDAppUpgradeable} from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -15,7 +15,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
  * @notice This contract is the gateway between any blockchain that can have an RWA deployed
  * to it. It stores the contract addresses of CTMRWAGateway contracts on other chains, as well.
  * In the case of rwaType 1, the contract addresses of CTMRWA1X, CTMRWA1StorageManager and CTMRWA1SentryMananager
- * contracts are stored, but other rwaTypes are also supported. 
+ * contracts are stored, but other rwaTypes are also supported.
  * This enables c3calls to be made between all the c3Caller DApps that make up AssetX
  *
  * This contract is only deployed ONCE on each chain and manages all CTMRWA contract interactions
@@ -45,19 +45,16 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
     ChainContract[] private chainContract;
 
     constructor() {
-    _disableInitializers();
+        _disableInitializers();
     }
 
-    function initialize(address _gov, address _c3callerProxy, uint256 _dappID)
-        external
-        initializer
-    {
+    function initialize(address _gov, address _c3callerProxy, uint256 _dappID) external initializer {
         __C3GovernDApp_init(_gov, _c3callerProxy, _dappID);
         cIdStr = cID().toString();
         _addChainContract(cID(), address(this));
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
 
     /// @dev Adds the address of a CTMRWAGateway contract on another chainId
     function _addChainContract(uint256 _chainId, address _contractAddr) internal {
@@ -71,17 +68,14 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
      * @notice Governor function to add addresses of CTMRWAGateway contracts on other chains.
      * @dev All input address are arrays of strings
      */
-    function addChainContract(string[] memory _newChainIdsStr, string[] memory _contractAddrsStr)
-        external
-        onlyGov
-    {
+    function addChainContract(string[] memory _newChainIdsStr, string[] memory _contractAddrsStr) external onlyGov {
         if (_newChainIdsStr.length != _contractAddrsStr.length) {
             revert CTMRWAGateway_LengthMismatch(CTMRWAErrorParam.Input);
         }
 
         for (uint256 j = 0; j < _newChainIdsStr.length; j++) {
             bool preExisted = false;
-            
+
             _newChainIdsStr[j]._checkStringLength(64);
             _contractAddrsStr[j]._checkStringLength(64);
             string memory newChainIdStr = _newChainIdsStr[j]._toLower();
@@ -324,11 +318,12 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
      * @return success True if the addresses were added successfully.
      * NOTE The local chainId is at index 0.
      */
-    function attachRWAX(uint256 _rwaType, uint256 _version, string[] memory _chainIdsStr, string[] memory _rwaXAddrsStr)
-        external
-        onlyGov
-        returns (bool)
-    {
+    function attachRWAX(
+        uint256 _rwaType,
+        uint256 _version,
+        string[] memory _chainIdsStr,
+        string[] memory _rwaXAddrsStr
+    ) external onlyGov returns (bool) {
         if (_chainIdsStr.length == 0 || _rwaXAddrsStr.length == 0) {
             revert CTMRWAGateway_InvalidLength(CTMRWAErrorParam.Input);
         }
@@ -339,7 +334,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
 
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
             bool preExisted = false;
-            
+
             _chainIdsStr[j]._checkStringLength(64);
             _rwaXAddrsStr[j]._checkStringLength(64);
             string memory rwaXAddrStr = _rwaXAddrsStr[j]._toLower();
@@ -392,7 +387,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
 
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
             bool preExisted = false;
-            
+
             _chainIdsStr[j]._checkStringLength(64);
             _storageManagerAddrsStr[j]._checkStringLength(64);
             string memory storageManagerAddrStr = _storageManagerAddrsStr[j]._toLower();
@@ -440,7 +435,7 @@ contract CTMRWAGateway is ICTMRWAGateway, C3GovernDAppUpgradeable, UUPSUpgradeab
 
         for (uint256 j = 0; j < _chainIdsStr.length; j++) {
             bool preExisted = false;
-            
+
             _chainIdsStr[j]._checkStringLength(64);
             _sentryManagerAddrsStr[j]._checkStringLength(64);
             string memory sentryManagerAddrStr = _sentryManagerAddrsStr[j]._toLower();

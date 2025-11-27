@@ -2,20 +2,20 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
-import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
-import { CTMRWA1Storage } from "../../src/storage/CTMRWA1Storage.sol";
+import {CTMRWA1} from "../../src/core/CTMRWA1.sol";
+import {ICTMRWAMap} from "../../src/shared/ICTMRWAMap.sol";
+import {CTMRWA1Storage} from "../../src/storage/CTMRWA1Storage.sol";
 
-import { CTMRWA1StorageManager } from "../../src/storage/CTMRWA1StorageManager.sol";
-import { ICTMRWA1Storage, URICategory, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
-import { ICTMRWA1StorageUtils } from "../../src/storage/ICTMRWA1StorageUtils.sol";
-import { FeeType } from "../../src/managers/IFeeManager.sol";
-import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
-import { Helpers } from "../helpers/Helpers.sol";
+import {CTMRWA1StorageManager} from "../../src/storage/CTMRWA1StorageManager.sol";
+import {ICTMRWA1Storage, URICategory, URIType} from "../../src/storage/ICTMRWA1Storage.sol";
+import {ICTMRWA1StorageUtils} from "../../src/storage/ICTMRWA1StorageUtils.sol";
+import {FeeType} from "../../src/managers/IFeeManager.sol";
+import {CTMRWAErrorParam} from "../../src/utils/CTMRWAUtils.sol";
+import {Helpers} from "../helpers/Helpers.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { Test } from "forge-std/Test.sol";
-import { console } from "forge-std/console.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Test} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 
 contract CTMRWA1StorageUtilsTest is Helpers {
     using Strings for *;
@@ -113,7 +113,11 @@ contract CTMRWA1StorageUtilsTest is Helpers {
         // Should fail for non-storageManager
         vm.prank(address(0xBEEF));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1StorageUtils.CTMRWA1StorageUtils_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.StorageManager)
+            abi.encodeWithSelector(
+                ICTMRWA1StorageUtils.CTMRWA1StorageUtils_OnlyAuthorized.selector,
+                CTMRWAErrorParam.Sender,
+                CTMRWAErrorParam.StorageManager
+            )
         );
         storageUtils.smC3Fallback(selector, data, reason);
     }

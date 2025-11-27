@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1XUtils {
     // Events
@@ -12,7 +12,7 @@ interface ICTMRWA1XUtils {
     // Errors
     error CTMRWA1XUtils_InvalidContract(CTMRWAErrorParam param);
     error CTMRWA1XUtils_InvalidVersion(uint256 version);
-    error CTMRWA1XUtils_OnlyAuthorized(CTMRWAErrorParam addr, CTMRWAErrorParam auth); 
+    error CTMRWA1XUtils_OnlyAuthorized(CTMRWAErrorParam addr, CTMRWAErrorParam auth);
     error CTMRWA1XUtils_FailedTransfer();
     error CTMRWA1XUtils_NonZeroSlot(uint256 slot);
     error CTMRWA1XUtils_NonExistentSlot(uint256 slot);
@@ -23,7 +23,7 @@ interface ICTMRWA1XUtils {
     function ctmRwaMap() external returns (address);
     function feeManager() external returns (address);
     function cIdStr() external returns (string memory);
-    
+
     // Setter functions
     function setRwa1X(address _rwa1X) external;
     function setCtmRwaMap(address _ctmRwaMap) external;
@@ -35,13 +35,9 @@ interface ICTMRWA1XUtils {
     function getAllTokensByAdminAddress(address _admin, uint256 _version) external view returns (address[] memory);
     function getAllTokensByOwnerAddress(address _owner, uint256 _version) external view returns (address[] memory);
 
-    function mintFromXForERC20(
-        uint256 ID,
-        uint256 version,
-        address to,
-        uint256 slot,
-        string memory slotName
-    ) external returns (uint256);
+    function mintFromXForERC20(uint256 ID, uint256 version, address to, uint256 slot, string memory slotName)
+        external
+        returns (uint256);
 
     function mintNewTokenValueLocal(
         address _toAddress,
@@ -52,7 +48,7 @@ interface ICTMRWA1XUtils {
         uint256 _version,
         string memory _feeTokenStr
     ) external returns (uint256);
-   
+
     function lastSelector() external returns (bytes4);
     function lastData() external returns (bytes calldata);
     function lastReason() external returns (bytes calldata);

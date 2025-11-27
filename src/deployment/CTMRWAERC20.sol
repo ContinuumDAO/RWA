@@ -2,16 +2,16 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { ICTMRWA1X } from "../crosschain/ICTMRWA1X.sol";
-import { ICTMRWA1XUtils } from "../crosschain/ICTMRWA1XUtils.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWAERC20 } from "./ICTMRWAERC20.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {ICTMRWA1} from "../core/ICTMRWA1.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {ICTMRWA1X} from "../crosschain/ICTMRWA1X.sol";
+import {ICTMRWA1XUtils} from "../crosschain/ICTMRWA1XUtils.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWAERC20} from "./ICTMRWAERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -132,7 +132,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
         // Calculate total balance from all tokenIds owned by the account in this slot
         uint256 totalBalance = 0;
         uint256 tokenCount = ICTMRWA1(ctmRwaToken).balanceOf(_account);
-        
+
         for (uint256 i = 0; i < tokenCount; i++) {
             uint256 tokenId = ICTMRWA1(ctmRwaToken).tokenOfOwnerByIndex(_account, i);
             uint256 tokenSlot = ICTMRWA1(ctmRwaToken).slotOf(tokenId);
@@ -140,7 +140,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
                 totalBalance += ICTMRWA1(ctmRwaToken).balanceOf(tokenId);
             }
         }
-        
+
         return totalBalance;
     }
 
@@ -153,7 +153,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
         // Get the array of approved tokenIds for this owner and slot
         uint256[] memory approvedTokenIds = ICTMRWA1(ctmRwaToken).getErc20Approvals(_account, slot);
         uint256 len = approvedTokenIds.length;
-        
+
         uint256 approvedBalance = 0;
         for (uint256 i = 0; i < len; i++) {
             uint256 tokenId = approvedTokenIds[i];
@@ -162,7 +162,7 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
                 approvedBalance += ICTMRWA1(ctmRwaToken).balanceOf(tokenId);
             }
         }
-        
+
         return approvedBalance;
     }
 
@@ -257,17 +257,18 @@ contract CTMRWAERC20 is ICTMRWAERC20, ReentrancyGuard, ERC20 {
 
         for (uint256 i = 0; i < len; i++) {
             tokenId = approvedTokenIds[i];
-            
+
             // Verify the tokenId is still approved for this ERC20 contract
             if (ICTMRWA1(ctmRwaToken).getApproved(tokenId) == address(this)) {
                 tokenIdBal = ICTMRWA1(ctmRwaToken).balanceOf(tokenId);
 
                 address ctmRwa1XUtilsAddr = ICTMRWA1X(ICTMRWA1(ctmRwaToken).ctmRwa1X()).ctmRwa1XUtilsAddr();
-                uint256 newTokenId = ICTMRWA1XUtils(ctmRwa1XUtilsAddr).mintFromXForERC20(ID, VERSION, _to, slot, slotName);
+                uint256 newTokenId =
+                    ICTMRWA1XUtils(ctmRwa1XUtilsAddr).mintFromXForERC20(ID, VERSION, _to, slot, slotName);
 
                 if (tokenIdBal >= valRemaining) {
                     ICTMRWA1(ctmRwaToken).transferFrom(tokenId, newTokenId, valRemaining);
-                       ICTMRWA1(ctmRwaToken).clearApprovedValuesFromERC20(tokenId);
+                    ICTMRWA1(ctmRwaToken).clearApprovedValuesFromERC20(tokenId);
                     emit Transfer(_from, _to, _value);
                     return;
                 } else {

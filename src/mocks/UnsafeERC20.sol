@@ -11,35 +11,35 @@ contract UnsafeERC20 {
     function balanceOf(address) external pure returns (uint256) {
         revert("Unsafe token");
     }
-    
+
     function totalSupply() external pure returns (uint256) {
         return 1000000;
     }
-    
+
     function transfer(address, uint256) external pure returns (bool) {
         return false;
     }
-    
+
     function transferFrom(address, address, uint256) external pure returns (bool) {
         return false;
     }
-    
+
     function approve(address, uint256) external pure returns (bool) {
         return false;
     }
-    
+
     function allowance(address, address) external pure returns (uint256) {
         return 0;
     }
-    
+
     function name() external pure returns (string memory) {
         return "Unsafe Token";
     }
-    
+
     function symbol() external pure returns (string memory) {
         return "UNSAFE";
     }
-    
+
     function decimals() external pure returns (uint8) {
         return 18;
     }

@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity 0.8.27;
 
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { FeeType, IERC20Extended, IFeeManager } from "./IFeeManager.sol";
-import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {FeeType, IERC20Extended, IFeeManager} from "./IFeeManager.sol";
+import {C3GovernDAppUpgradeable} from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -75,17 +75,14 @@ contract FeeManager is
         _disableInitializers();
     }
 
-    function initialize(address govAddr, address c3callerProxyAddr, uint256 dappID2)
-        public
-        initializer
-    {
+    function initialize(address govAddr, address c3callerProxyAddr, uint256 dappID2) public initializer {
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
         __C3GovernDApp_init(govAddr, c3callerProxyAddr, dappID2);
         __Pausable_init();
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
 
     function pause() external onlyGov {
         _pause();
@@ -94,8 +91,6 @@ contract FeeManager is
     function unpause() external onlyGov {
         _unpause();
     }
-
-  
 
     /**
      * @notice Add a new fee token to the list of fee tokens allowed to be used
@@ -114,7 +109,7 @@ contract FeeManager is
         if (feeTokenIndexMap[feeToken] != 0) {
             revert FeeManager_TokenAlreadyListed(feeToken);
         }
-        
+
         // Check if token is SafeERC20 compliant
         if (!_isSafeERC20Compliant(feeToken)) {
             revert FeeManager_UnsafeToken(feeToken);
@@ -131,7 +126,7 @@ contract FeeManager is
         if (decimals < 6 || decimals > 18) {
             revert FeeManager_InvalidDecimals(feeToken, decimals);
         }
-        
+
         uint256 index = feeTokenList.length;
         feeTokenList.push(feeToken);
         feeTokenIndexMap[feeToken] = index + 1;
@@ -315,7 +310,7 @@ contract FeeManager is
         if (fee == 0) {
             revert FeeManager_UnsetFee(feeToken);
         }
-        
+
         return fee;
     }
 
@@ -330,7 +325,7 @@ contract FeeManager is
             revert FeeManager_InvalidLength(CTMRWAErrorParam.Address);
         }
         address feeToken = _feeTokenStr._stringToAddress();
-        
+
         // Record spender balance before transfer
         uint256 senderBalanceBefore = IERC20(feeToken).balanceOf(msg.sender);
 
@@ -341,7 +336,7 @@ contract FeeManager is
         if (senderBalanceBefore - senderBalanceAfter != _fee) {
             revert FeeManager_FailedTransfer();
         }
-        
+
         return (_fee);
     }
 
@@ -395,18 +390,18 @@ contract FeeManager is
         address feeToken = _feeTokenStr._stringToAddress();
         string memory toChainIDStr = _toChainIDStr._toLower();
         uint256 baseFee = _toFeeConfigs[toChainIDStr][feeToken];
-        
+
         // Get the actual decimals of the fee token
         uint8 tokenDecimals = IERC20Extended(feeToken).decimals();
-        
+
         // If token decimals are 18, return as is (no normalization needed)
         if (tokenDecimals == 18) {
             return baseFee;
         }
-        
+
         // Calculate the difference between 18 and actual decimals
         uint256 decimalDifference = 18 - tokenDecimals;
-        
+
         // Divide by 10^(18 - actual_decimals) to normalize from 18 decimals to actual decimals
         return baseFee / (10 ** decimalDifference);
     }
@@ -441,10 +436,10 @@ contract FeeManager is
 
             feeReduction[_addresses[i]] = _reductionFactors[i];
             feeReductionExpiration[_addresses[i]] = _expirations[i];
-            
+
             emit AddFeeReduction(_addresses[i], _reductionFactors[i], _expirations[i]);
         }
-        
+
         return true;
     }
 
@@ -453,7 +448,13 @@ contract FeeManager is
      * @param _addresses Array of addresses to remove fee reduction for
      * @return success True if all fee reductions were removed successfully
      */
-    function removeFeeReduction(address[] memory _addresses) external onlyGov whenNotPaused nonReentrant returns (bool) {
+    function removeFeeReduction(address[] memory _addresses)
+        external
+        onlyGov
+        whenNotPaused
+        nonReentrant
+        returns (bool)
+    {
         for (uint256 i = 0; i < _addresses.length; i++) {
             if (_addresses[i] == address(0)) {
                 revert FeeManager_InvalidAddress(_addresses[i]);
@@ -461,10 +462,10 @@ contract FeeManager is
 
             feeReduction[_addresses[i]] = 0;
             feeReductionExpiration[_addresses[i]] = 0;
-            
+
             emit RemoveFeeReduction(_addresses[i]);
         }
-        
+
         return true;
     }
 
@@ -474,10 +475,13 @@ contract FeeManager is
      * @param _newExpirations Array of new expiration timestamps (0 for permanent)
      * @return success True if all expiration times were updated successfully
      */
-    function updateFeeReductionExpiration(
-        address[] memory _addresses,
-        uint256[] memory _newExpirations
-    ) external onlyGov whenNotPaused nonReentrant returns (bool) {
+    function updateFeeReductionExpiration(address[] memory _addresses, uint256[] memory _newExpirations)
+        external
+        onlyGov
+        whenNotPaused
+        nonReentrant
+        returns (bool)
+    {
         if (_addresses.length != _newExpirations.length) {
             revert FeeManager_InvalidLength(CTMRWAErrorParam.Input);
         }
@@ -491,10 +495,10 @@ contract FeeManager is
             }
 
             feeReductionExpiration[_addresses[i]] = _newExpirations[i];
-            
+
             emit UpdateFeeReductionExpiration(_addresses[i], _newExpirations[i]);
         }
-        
+
         return true;
     }
 
@@ -506,22 +510,22 @@ contract FeeManager is
     function getFeeReduction(address _address) external view returns (uint256) {
         uint256 reductionFactor = feeReduction[_address];
         uint256 expiration = feeReductionExpiration[_address];
-        
+
         // Return 0 if no reduction is set
         if (reductionFactor == 0) {
             return 0;
         }
-        
+
         // Return 0 if expired (expiration > 0 and current time > expiration)
         if (expiration > 0 && block.timestamp > expiration) {
             return 0;
         }
-        
+
         // Return the reduction factor if active
         return reductionFactor;
     }
 
-      /**
+    /**
      * @notice Check if a token is SafeERC20 compliant
      * @param token The token address to check
      * @return true if the token is SafeERC20 compliant, false otherwise
@@ -534,21 +538,24 @@ contract FeeManager is
 
         // Test basic ERC20 functions
         try IERC20(token).balanceOf(address(this)) returns (uint256) {
-            // Token responds to balanceOf
-        } catch {
+        // Token responds to balanceOf
+        }
+        catch {
             return false;
         }
 
         try IERC20(token).totalSupply() returns (uint256) {
-            // Token responds to totalSupply
-        } catch {
+        // Token responds to totalSupply
+        }
+        catch {
             return false;
         }
 
         // Test if token has the required ERC20 functions
         try IERC20Extended(token).decimals() returns (uint8) {
-            // Token has decimals function (IERC20Extended)
-        } catch {
+        // Token has decimals function (IERC20Extended)
+        }
+            catch {
             // This is optional, not all ERC20 tokens have decimals
         }
 
@@ -574,7 +581,7 @@ contract FeeManager is
         // Try to call getImplementation() function which is present in proxy contracts
         // This is a common function in ERC1967 proxies
         (bool success, bytes memory data) = token.staticcall(abi.encodeWithSignature("getImplementation()"));
-        
+
         if (success && data.length >= 32) {
             address impl = abi.decode(data, (address));
             if (impl != address(0)) {

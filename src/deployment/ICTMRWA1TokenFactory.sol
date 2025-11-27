@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {CTMRWAProxy} from "../utils/CTMRWAProxy.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1TokenFactory {
     error CTMRWA1TokenFactory_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);

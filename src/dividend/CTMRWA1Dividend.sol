@@ -2,17 +2,17 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
+import {ICTMRWA1} from "../core/ICTMRWA1.sol";
 
-import { ICTMRWA1InvestWithTimeLock } from "../deployment/ICTMRWA1InvestWithTimeLock.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1Dividend } from "./ICTMRWA1Dividend.sol";
-import { Checkpoints } from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
-import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
+import {ICTMRWA1InvestWithTimeLock} from "../deployment/ICTMRWA1InvestWithTimeLock.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA1Dividend} from "./ICTMRWA1Dividend.sol";
+import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
+import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -72,10 +72,10 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
     mapping(uint256 => mapping(address => uint256)) public lastClaimedIndex;
 
     /// @dev slot => dividend rate
-    mapping (uint256 => Checkpoints.Trace208) internal _dividendRate;
+    mapping(uint256 => Checkpoints.Trace208) internal _dividendRate;
 
     /// @dev slot => dividend scale
-    mapping (uint256 => uint256) public dividendScale;
+    mapping(uint256 => uint256) public dividendScale;
 
     event NewDividendToken(address newToken, address currentAdmin);
     event ChangeDividendRate(uint256 slot, uint256 newDividend, address currentAdmin);
@@ -104,7 +104,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         VERSION = _version;
     }
 
-
     /**
      * @notice Change the tokenAdmin address
      * NOTE This function can only be called by CTMRWA1X, or the existing tokenAdmin
@@ -131,12 +130,10 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         return (true);
     }
 
-
-
     /**
      * @notice Change the dividend rate for an Asset Class (slot).
      * @param _slot The Asset Class (slot) to change the dividend rate for
-     * @param _dividendPerUnit The dividend rate per CTMRWA1 unit. 
+     * @param _dividendPerUnit The dividend rate per CTMRWA1 unit.
      * NOTE A unit is 10^18 CTMRWA1 base units by default, unless set to a different value in setDividendScaleBySlot
      * @return success True if the dividend rate was changed successfully
      */
@@ -144,7 +141,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         if (!ICTMRWA1(tokenAddr).slotExists(_slot)) {
             revert CTMRWA1Dividend_InvalidSlot(_slot);
         }
-        
+
         uint256 slotIndex = ICTMRWA1(tokenAddr).allSlotsIndex(_slot);
         _dividendRate[slotIndex].push(uint48(block.timestamp), uint208(_dividendPerUnit));
         emit ChangeDividendRate(_slot, _dividendPerUnit, tokenAdmin);
@@ -165,18 +162,18 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         if (_dividendScale == 0) {
             revert CTMRWA1Dividend_InvalidDividendScale(_dividendScale);
         }
-        
+
         // Check if dividend scale has already been set for this slot
         if (dividendScale[_slot] != 0) {
             revert CTMRWA1Dividend_ScaleAlreadySetOrRateSet(_slot);
         }
-        
+
         // Check if dividend rate has ever been set for this slot (which would prevent scale changes)
         uint256 slotIndex = ICTMRWA1(tokenAddr).allSlotsIndex(_slot);
         if (_dividendRate[slotIndex].length() > 0) {
             revert CTMRWA1Dividend_ScaleAlreadySetOrRateSet(_slot);
         }
-        
+
         dividendScale[_slot] = _dividendScale;
         return (true);
     }
@@ -190,7 +187,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         if (!ICTMRWA1(tokenAddr).slotExists(_slot)) {
             revert CTMRWA1Dividend_InvalidSlot(_slot);
         }
-        
+
         return _getStoredDividendRateBySlotAt(_slot, _timestamp);
     }
 
@@ -217,10 +214,9 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
     function _getStoredDividendRateBySlot(uint256 _slot) internal view returns (uint256) {
         uint256 slotIndex = ICTMRWA1(tokenAddr).allSlotsIndex(_slot);
         uint256 storedRate = uint256(_dividendRate[slotIndex].latest());
-        return  storedRate;
+        return storedRate;
     }
 
-  
     /**
      * @notice Get the decimal information for both CTMRWA1 and dividend token
      * @return ctmRwaDecimals The decimals of the CTMRWA1 token
@@ -251,7 +247,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
                 return dividendPayable;
             }
         }
-        
+
         return 0;
     }
 
@@ -276,7 +272,7 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
     /**
      * @notice Add a new checkpoint for claiming dividends for an Asset Class (slot).
      * The function then calculates how much dividend is needed to transfer to this contract to pay the dividends
-     * and then transfers the funds to this contract ready for claiming by all holders of tokenIds in 
+     * and then transfers the funds to this contract ready for claiming by all holders of tokenIds in
      * the RWA token. It takes payment in the current dividend token.
      * @param _slot The Asset Class (slot) to add dividends for
      * @param _fundingTime The time to use to calculate the dividend
@@ -285,11 +281,12 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
      * NOTE This is not a cross-chain function. It must be called on each chain in the RWA. Use Multicall
      * with the same _fundingTime to prevent arbitrage.
      */
-    function fundDividend(
-        uint256 _slot,
-        uint256 _fundingTime,
-        string memory _bnbGreenfieldObjectName
-    ) public onlyTokenAdmin nonReentrant returns (uint256) {
+    function fundDividend(uint256 _slot, uint256 _fundingTime, string memory _bnbGreenfieldObjectName)
+        public
+        onlyTokenAdmin
+        nonReentrant
+        returns (uint256)
+    {
         if (dividendToken == address(0)) {
             revert CTMRWA1Dividend_FundTokenNotSet();
         }
@@ -325,7 +322,14 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
             revert CTMRWA1Dividend_FailedTransfer();
         }
 
-        dividendFundings.push(DividendFunding({slot: _slot, fundingTime: midnight, fundingAmount: dividendPayable, bnbGreenfieldObjectName: _bnbGreenfieldObjectName}));
+        dividendFundings.push(
+            DividendFunding({
+                slot: _slot,
+                fundingTime: midnight,
+                fundingAmount: dividendPayable,
+                bnbGreenfieldObjectName: _bnbGreenfieldObjectName
+            })
+        );
         totalDividendPayable += dividendPayable;
         emit FundDividend(dividendPayable, dividendToken, tokenAdmin);
 
@@ -336,20 +340,15 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
     /// @param _slot The slot to get the dividend to fund for
     /// @param _fundingTime The time to get the dividend to fund for
     /// @return dividendToFund The dividend to fund
-    function getDividendToFund(
-        uint256 _slot,
-        uint256 _fundingTime
-    ) public view returns(uint256) {
-
+    function getDividendToFund(uint256 _slot, uint256 _fundingTime) public view returns (uint256) {
         uint48 midnight = _midnightBefore(_fundingTime);
-        
+
         uint256 supplyInSlot;
         uint256 supplyInInvestContract;
-       
+
         (bool investContractExists, address ctmRwaInvest) =
             ICTMRWAMap(ctmRwa1Map).getInvestContract(ID, RWA_TYPE, VERSION);
 
-    
         uint256 totalSupplyInSlot = ICTMRWA1(tokenAddr).totalSupplyInSlotAt(_slot, midnight);
 
         if (investContractExists) {
@@ -361,12 +360,11 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         // If ctmRwaInvest did not exist at time midnight, then supplyInInvestContract == 0
         supplyInSlot = totalSupplyInSlot - supplyInInvestContract - tokenAdminBalance;
 
-
         uint256 dividendRate = _getStoredDividendRateBySlotAt(_slot, midnight);
 
         uint256 dividendToFund = _calculateDividendAmount(supplyInSlot, dividendRate, _slot);
 
-        return(dividendToFund);
+        return (dividendToFund);
     }
 
     /// @dev Calculate dividend amount with proper decimal handling
@@ -375,7 +373,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
     /// @param _slot The slot to calculate the dividend amount for
     /// @return dividendAmount The calculated dividend amount in dividend token wei
     function _calculateDividendAmount(uint256 _balance, uint256 _rate, uint256 _slot) internal view returns (uint256) {
-
         uint256 scale;
         (uint8 ctmRwaDecimals,) = getDecimalInfo();
 
@@ -399,7 +396,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
      * NOTE The holder can see the dividendtoken address using the dividendToken() function
      */
     function claimDividend() public nonReentrant whenDividendNotPaused returns (uint256) {
-
         uint256 dividend = getDividendPayable(msg.sender);
 
         // Update lastClaimedIndex for all slots
@@ -419,17 +415,17 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
 
         // Record balance before transfer
         uint256 balanceBefore = IERC20(dividendToken).balanceOf(address(this));
-        
+
         IERC20(dividendToken).safeTransfer(msg.sender, dividend);
-        
+
         // Record balance after transfer and verify delta
         uint256 balanceAfter = IERC20(dividendToken).balanceOf(address(this));
         uint256 balanceDelta = balanceBefore - balanceAfter;
-        
+
         if (balanceDelta != dividend) {
             revert CTMRWA1Dividend_InvalidDividend(CTMRWAErrorParam.Balance);
         }
-        
+
         totalDividendClaimed += dividend;
 
         emit ClaimDividend(msg.sender, dividend, dividendToken);
@@ -447,7 +443,6 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
         }
         return 0;
     }
-
 
     /**
      * @notice Pause the contract. Only callable by tokenAdmin.
@@ -467,6 +462,4 @@ contract CTMRWA1Dividend is ICTMRWA1Dividend, ReentrancyGuard, Pausable {
     function _midnightBefore(uint256 _timestamp) internal pure returns (uint48) {
         return uint48((_timestamp / 1 days) * 1 days);
     }
-
-
 }

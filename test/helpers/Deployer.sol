@@ -2,38 +2,38 @@
 
 pragma solidity 0.8.27;
 
-import { Utils } from "./Utils.sol";
+import {Utils} from "./Utils.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { C3CallerUpgradeable } from "@c3caller/upgradeable/C3CallerUpgradeable.sol";
-import { C3UUIDKeeperUpgradeable } from "@c3caller/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
-import {C3DAppManagerUpgradeable} from  "@c3caller/upgradeable/dapp/C3DAppManagerUpgradeable.sol";
+import {C3CallerUpgradeable} from "@c3caller/upgradeable/C3CallerUpgradeable.sol";
+import {C3UUIDKeeperUpgradeable} from "@c3caller/upgradeable/uuid/C3UUIDKeeperUpgradeable.sol";
+import {C3DAppManagerUpgradeable} from "@c3caller/upgradeable/dapp/C3DAppManagerUpgradeable.sol";
 
-import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
+import {CTMRWA1} from "../../src/core/CTMRWA1.sol";
 
-import { CTMRWA1X } from "../../src/crosschain/CTMRWA1X.sol";
-import { CTMRWA1XUtils } from "../../src/crosschain/CTMRWA1XUtils.sol";
-import { CTMRWAGateway } from "../../src/crosschain/CTMRWAGateway.sol";
+import {CTMRWA1X} from "../../src/crosschain/CTMRWA1X.sol";
+import {CTMRWA1XUtils} from "../../src/crosschain/CTMRWA1XUtils.sol";
+import {CTMRWAGateway} from "../../src/crosschain/CTMRWAGateway.sol";
 
-import { CTMRWA1TokenFactory } from "../../src/deployment/CTMRWA1TokenFactory.sol";
-import { CTMRWADeployInvest } from "../../src/deployment/CTMRWADeployInvest.sol";
-import { CTMRWADeployer } from "../../src/deployment/CTMRWADeployer.sol";
+import {CTMRWA1TokenFactory} from "../../src/deployment/CTMRWA1TokenFactory.sol";
+import {CTMRWADeployInvest} from "../../src/deployment/CTMRWADeployInvest.sol";
+import {CTMRWADeployer} from "../../src/deployment/CTMRWADeployer.sol";
 
-import { CTMRWAERC20Deployer } from "../../src/deployment/CTMRWAERC20Deployer.sol";
+import {CTMRWAERC20Deployer} from "../../src/deployment/CTMRWAERC20Deployer.sol";
 
-import { CTMRWA1DividendFactory } from "../../src/dividend/CTMRWA1DividendFactory.sol";
+import {CTMRWA1DividendFactory} from "../../src/dividend/CTMRWA1DividendFactory.sol";
 
-import { FeeManager } from "../../src/managers/FeeManager.sol";
-import { FeeType } from "../../src/managers/IFeeManager.sol";
+import {FeeManager} from "../../src/managers/FeeManager.sol";
+import {FeeType} from "../../src/managers/IFeeManager.sol";
 
-import { CTMRWA1SentryManager } from "../../src/sentry/CTMRWA1SentryManager.sol";
-import { CTMRWA1SentryUtils } from "../../src/sentry/CTMRWA1SentryUtils.sol";
+import {CTMRWA1SentryManager} from "../../src/sentry/CTMRWA1SentryManager.sol";
+import {CTMRWA1SentryUtils} from "../../src/sentry/CTMRWA1SentryUtils.sol";
 
-import { CTMRWAMap } from "../../src/shared/CTMRWAMap.sol";
+import {CTMRWAMap} from "../../src/shared/CTMRWAMap.sol";
 
-import { CTMRWA1StorageManager } from "../../src/storage/CTMRWA1StorageManager.sol";
-import { CTMRWA1StorageUtils } from "../../src/storage/CTMRWA1StorageUtils.sol";
+import {CTMRWA1StorageManager} from "../../src/storage/CTMRWA1StorageManager.sol";
+import {CTMRWA1StorageUtils} from "../../src/storage/CTMRWA1StorageUtils.sol";
 
 contract Deployer is Utils {
     using Strings for *;
@@ -82,11 +82,20 @@ contract Deployer is Utils {
 
     function _deployC3CallerContracts() internal {
         address uuidKeeperImpl = address(new C3UUIDKeeperUpgradeable());
-        uuidKeeper = C3UUIDKeeperUpgradeable(_deployProxy(uuidKeeperImpl, abi.encodeCall(C3UUIDKeeperUpgradeable.initialize, ())));
+        uuidKeeper = C3UUIDKeeperUpgradeable(
+            _deployProxy(uuidKeeperImpl, abi.encodeCall(C3UUIDKeeperUpgradeable.initialize, ()))
+        );
         address dappManagerImpl = address(new C3DAppManagerUpgradeable());
-        dappManager = C3DAppManagerUpgradeable(_deployProxy(dappManagerImpl, abi.encodeCall(C3DAppManagerUpgradeable.initialize, ())));
+        dappManager = C3DAppManagerUpgradeable(
+            _deployProxy(dappManagerImpl, abi.encodeCall(C3DAppManagerUpgradeable.initialize, ()))
+        );
         address c3callerImpl = address(new C3CallerUpgradeable());
-        c3caller = C3CallerUpgradeable(_deployProxy(c3callerImpl, abi.encodeCall(C3CallerUpgradeable.initialize, (address(uuidKeeper), address(dappManager)))));
+        c3caller = C3CallerUpgradeable(
+            _deployProxy(
+                c3callerImpl,
+                abi.encodeCall(C3CallerUpgradeable.initialize, (address(uuidKeeper), address(dappManager)))
+            )
+        );
         uuidKeeper.setC3Caller(address(c3caller));
         dappManager.setC3Caller(address(c3caller));
     }
@@ -109,7 +118,9 @@ contract Deployer is Utils {
     function _deployFeeManager(address gov, address ctm, address usdc) internal {
         address feeManagerImpl = address(new FeeManager());
         feeManager = FeeManager(
-            _deployProxy(feeManagerImpl, abi.encodeCall(FeeManager.initialize, (gov, address(c3caller), feeManagerDAppID)))
+            _deployProxy(
+                feeManagerImpl, abi.encodeCall(FeeManager.initialize, (gov, address(c3caller), feeManagerDAppID))
+            )
         );
 
         dappManager.setDAppAddr(feeManagerDAppID, address(feeManager), true);
@@ -157,7 +168,7 @@ contract Deployer is Utils {
         fees.push(10 ** 18); // 1 USDC baseFee (stored in 18 decimals, corrected to 6 decimals)
 
         feeManager.addFeeToken(destChain, tokensStr, fees);
-        
+
         // Also set up fees for the current chain ID (local fees)
         // This is needed because _includeLocal was changed to true in mintNewTokenValueLocal
         string memory currentChainId = vm.toString(block.chainid);
@@ -241,12 +252,13 @@ contract Deployer is Utils {
 
         dappManager.setDAppAddr(deployerDAppID, address(deployer), true);
 
-        ctmRwaDeployInvest = new CTMRWADeployInvest(
-            address(map),
-            address(deployer),
-            0, // commission rate = 0
-            address(feeManager)
-        );
+        ctmRwaDeployInvest =
+            new CTMRWADeployInvest(
+                address(map),
+                address(deployer),
+                0, // commission rate = 0
+                address(feeManager)
+            );
 
         ctmRwaErc20Deployer = new CTMRWAERC20Deployer(address(map), address(deployer), address(feeManager));
 
@@ -277,7 +289,14 @@ contract Deployer is Utils {
                 storageManagerImpl,
                 abi.encodeCall(
                     CTMRWA1StorageManager.initialize,
-                    (gov, address(c3caller), storageManagerDAppID, address(deployer), address(gateway), address(feeManager))
+                    (
+                        gov,
+                        address(c3caller),
+                        storageManagerDAppID,
+                        address(deployer),
+                        address(gateway),
+                        address(feeManager)
+                    )
                 )
             )
         );
@@ -310,7 +329,14 @@ contract Deployer is Utils {
                 sentryManagerImpl,
                 abi.encodeCall(
                     CTMRWA1SentryManager.initialize,
-                    (gov, address(c3caller), sentryManagerDAppID, address(deployer), address(gateway), address(feeManager))
+                    (
+                        gov,
+                        address(c3caller),
+                        sentryManagerDAppID,
+                        address(deployer),
+                        address(gateway),
+                        address(feeManager)
+                    )
                 )
             )
         );

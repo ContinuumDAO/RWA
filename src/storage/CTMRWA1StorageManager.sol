@@ -2,20 +2,20 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1, ITokenContract, TokenContract } from "../core/ICTMRWA1.sol";
-import { ITokenContract } from "../core/ICTMRWA1.sol";
-import { ICTMRWAGateway } from "../crosschain/ICTMRWAGateway.sol";
-import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1Storage, URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
-import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
-import { ICTMRWA1StorageUtils } from "./ICTMRWA1StorageUtils.sol";
-import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {ICTMRWA1, ITokenContract, TokenContract} from "../core/ICTMRWA1.sol";
+import {ITokenContract} from "../core/ICTMRWA1.sol";
+import {ICTMRWAGateway} from "../crosschain/ICTMRWAGateway.sol";
+import {FeeType, IFeeManager} from "../managers/IFeeManager.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA1Storage, URICategory, URIData, URIType} from "./ICTMRWA1Storage.sol";
+import {ICTMRWA1StorageManager} from "./ICTMRWA1StorageManager.sol";
+import {ICTMRWA1StorageUtils} from "./ICTMRWA1StorageUtils.sol";
+import {C3GovernDAppUpgradeable} from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -71,7 +71,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
     }
 
     constructor() {
-    _disableInitializers();
+        _disableInitializers();
     }
 
     /// @dev Initialize the contract
@@ -91,7 +91,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         cIdStr = cID().toString();
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
 
     /**
      * @notice Governance can update the latest version
@@ -173,7 +173,7 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
         returns (address)
     {
         address storageAddr = ICTMRWA1StorageUtils(utilsAddr).deployStorage(_ID, _tokenAddr, _rwaType, _version, _map);
-        
+
         // Verify that the deployed storage contract is for the correct version, RWA type
         if (_version != ICTMRWA1Storage(storageAddr).VERSION()) {
             revert CTMRWA1StorageManager_InvalidVersion(_version);
@@ -268,9 +268,10 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
             string memory chainIdStr = _chainIdsStr[i]._toLower();
 
             if (chainIdStr.equal(cIdStr)) {
-                ICTMRWA1Storage(storageAddr).addURILocal(
-                    _ID, _version, _objectName, _uriCategory, _uriType, _title, _slot, block.timestamp, _uriDataHash
-                );
+                ICTMRWA1Storage(storageAddr)
+                    .addURILocal(
+                        _ID, _version, _objectName, _uriCategory, _uriType, _title, _slot, block.timestamp, _uriDataHash
+                    );
             } else {
                 (, string memory toRwaSMStr) = _getSM(chainIdStr, _version);
 
@@ -309,7 +310,9 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      * for the deployment. See the function feeTokenList in the FeeManager contract for allowable values.
      * NOTE For EVM chains, the address of the fee token must be converted to a string
      */
-    function transferURI(uint256 _ID, uint256 _version, string[] memory _chainIdsStr, string memory _feeTokenStr) public {
+    function transferURI(uint256 _ID, uint256 _version, string[] memory _chainIdsStr, string memory _feeTokenStr)
+        public
+    {
         (bool ok, address storageAddr) = ICTMRWAMap(ctmRwa1Map).getStorageContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam.Storage);
@@ -359,7 +362,17 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
                 string memory funcCall =
                     "addURIX(uint256,uint256,uint256,string[],uint8[],uint8[],string[],uint256[],uint256[],bytes32[])";
                 bytes memory callData = abi.encodeWithSignature(
-                    funcCall, _ID, _version, startNonce, objectName, uriCategory, uriType, title, slot, timestamp, uriDataHash
+                    funcCall,
+                    _ID,
+                    _version,
+                    startNonce,
+                    objectName,
+                    uriCategory,
+                    uriType,
+                    title,
+                    slot,
+                    timestamp,
+                    uriDataHash
                 );
 
                 bytes32 uuid = _c3call(toRwaSMStr, chainIdStr, callData);
@@ -406,18 +419,19 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
             if (_uToType(_uriType[i]) == URIType.EMPTY) {
                 revert CTMRWA1StorageManager_InvalidType(URIType.EMPTY);
             }
-            
-            ICTMRWA1Storage(storageAddr).addURILocal(
-                _ID,
-                _version,
-                _objectName[i],
-                _uToCat(_uriCategory[i]),
-                _uToType(_uriType[i]),
-                _title[i],
-                _slot[i],
-                _timestamp[i],
-                _uriDataHash[i]
-            );
+
+            ICTMRWA1Storage(storageAddr)
+                .addURILocal(
+                    _ID,
+                    _version,
+                    _objectName[i],
+                    _uToCat(_uriCategory[i]),
+                    _uToType(_uriType[i]),
+                    _title[i],
+                    _slot[i],
+                    _timestamp[i],
+                    _uriDataHash[i]
+                );
         }
 
         emit URIAdded(_ID);
@@ -443,7 +457,11 @@ contract CTMRWA1StorageManager is ICTMRWA1StorageManager, C3GovernDAppUpgradeabl
      * @dev  Get the address of the corresponding CTMRWA1StorageManager contract on another chain
      * with chainID (converted to a string) of _toChainIdStr
      */
-    function _getSM(string memory _toChainIdStr, uint256 _version) internal view returns (string memory, string memory) {
+    function _getSM(string memory _toChainIdStr, uint256 _version)
+        internal
+        view
+        returns (string memory, string memory)
+    {
         if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1StorageManager_SameChain();
         }

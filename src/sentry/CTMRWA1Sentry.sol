@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {ICTMRWA1, ITokenContract} from "../core/ICTMRWA1.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA1Sentry} from "./ICTMRWA1Sentry.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 contract CTMRWA1Sentry is ICTMRWA1Sentry {
     using Strings for *;
@@ -42,7 +42,7 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
     bool public kybSwitch;
     bool public countryWLSwitch;
     bool public countryBLSwitch;
-    bool public accreditedSwitch; 
+    bool public accreditedSwitch;
     bool public age18Switch;
 
     modifier onlyTokenAdmin() {
@@ -85,7 +85,8 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         countryList.push("NOGO");
     }
 
-    /** @dev This function is normally called by CTMRWA1X to set a new tokenAdmin
+    /**
+     * @dev This function is normally called by CTMRWA1X to set a new tokenAdmin
      * It can also be called by the current tokenAdmin, but htis should not normally be required
      * and would only happen to clean up in the event of a cross-chain failure to reset the tokenAdmin
      * @param _tokenAdmin The new tokenAdmin address
@@ -104,7 +105,8 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         return (true);
     }
 
-    /** @dev This funtion is called by SentryManager. See there for details
+    /**
+     * @dev This funtion is called by SentryManager. See there for details
      * @param _appId The appId for the zkMe KYC service
      * @param _programNo The programNo for the zkMe KYC service
      * @param _cooperator The cooperator address for the zkMe KYC service
@@ -128,7 +130,8 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         return (appId, programNo, cooperator);
     }
 
-    /** @dev Set the sentry options on the local chain. This function is called by CTMRWA1SentryManager
+    /**
+     * @dev Set the sentry options on the local chain. This function is called by CTMRWA1SentryManager
      * @param _ID The ID of the RWA token
      * @param _version The version of the RWA token
      * @param _whitelist The whitelist switch
@@ -179,7 +182,8 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         sentryOptionsSet = true;
     }
 
-    /** @dev Set the Whitelist status on this chain. This contract holds the Whitelist state. This contract
+    /**
+     * @dev Set the Whitelist status on this chain. This contract holds the Whitelist state. This contract
      * is called by CTMRWA1SentryManager
      * @param _ID The ID of the RWA token
      * @param _version The version of the RWA token
@@ -199,7 +203,8 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         _setWhitelist(_wallets, _choices);
     }
 
-    /** @dev Set the country Whitelist ot Blacklist on this chain. This contract holds the state. This contract
+    /**
+     * @dev Set the country Whitelist ot Blacklist on this chain. This contract holds the state. This contract
      * is called by CTMRWA1SentryManager
      * @param _ID The ID of the RWA token
      * @param _version The version of the RWA token
@@ -219,9 +224,8 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         _setCountryList(_countryList, _choices);
     }
 
-    
-
-    /** @dev Internal function to manage the wallet Whitelist on this chain. This contract holds the state. This contract
+    /**
+     * @dev Internal function to manage the wallet Whitelist on this chain. This contract holds the state. This contract
      * is called by CTMRWA1SentryManager
      * @param _wallets The list of wallets to set the state for
      * @param _choices The list of choices for the wallets
@@ -260,7 +264,8 @@ contract CTMRWA1Sentry is ICTMRWA1Sentry {
         }
     }
 
-    /** @dev Internal function to manage the state for a stored country Whitelist or Blacklist on this chain
+    /**
+     * @dev Internal function to manage the state for a stored country Whitelist or Blacklist on this chain
      * @param _countries The list of countries to set the state for
      * @param _choices The list of choices for the countries
      */

@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWAMap {
     error CTMRWAMap_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
@@ -28,8 +28,10 @@ interface ICTMRWAMap {
     function setInvestmentContract(uint256 ID, uint256 rwaType, uint256 version, address investAddr)
         external
         returns (bool);
-        
-    function setErc20Contract(uint256 ID, uint256 rwaType, uint256 version, uint256 slot, address erc20Addr) external returns (bool);   
+
+    function setErc20Contract(uint256 ID, uint256 rwaType, uint256 version, uint256 slot, address erc20Addr)
+        external
+        returns (bool);
 
     function getTokenContract(uint256 ID, uint256 rwaType, uint256 version)
         external
@@ -49,7 +51,10 @@ interface ICTMRWAMap {
 
     function getInvestContract(uint256 ID, uint256 rwaType, uint256 version) external view returns (bool, address);
 
-    function getErc20Contract(uint256 ID, uint256 rwaType, uint256 version, uint256 slot) external view returns (bool, address);
+    function getErc20Contract(uint256 ID, uint256 rwaType, uint256 version, uint256 slot)
+        external
+        view
+        returns (bool, address);
 }
 
 interface ICTMRWAAttachment {

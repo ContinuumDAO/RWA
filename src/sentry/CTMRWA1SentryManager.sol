@@ -2,22 +2,22 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1, ITokenContract, TokenContract } from "../core/ICTMRWA1.sol";
-import { ITokenContract } from "../core/ICTMRWA1.sol";
-import { ICTMRWAGateway } from "../crosschain/ICTMRWAGateway.sol";
+import {ICTMRWA1, ITokenContract, TokenContract} from "../core/ICTMRWA1.sol";
+import {ITokenContract} from "../core/ICTMRWA1.sol";
+import {ICTMRWAGateway} from "../crosschain/ICTMRWAGateway.sol";
 
-import { ICTMRWA1Identity } from "../identity/ICTMRWA1Identity.sol";
-import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
-import { ICTMRWA1SentryManager } from "./ICTMRWA1SentryManager.sol";
-import { ICTMRWA1SentryUtils } from "./ICTMRWA1SentryUtils.sol";
-import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {ICTMRWA1Identity} from "../identity/ICTMRWA1Identity.sol";
+import {FeeType, IFeeManager} from "../managers/IFeeManager.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA1Sentry} from "./ICTMRWA1Sentry.sol";
+import {ICTMRWA1SentryManager} from "./ICTMRWA1SentryManager.sol";
+import {ICTMRWA1SentryUtils} from "./ICTMRWA1SentryUtils.sol";
+import {C3GovernDAppUpgradeable} from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -88,7 +88,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     }
 
     constructor() {
-    _disableInitializers();
+        _disableInitializers();
     }
 
     /// @dev Initialize the contract
@@ -108,7 +108,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         cIdStr = block.chainid.toString();
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
 
     /**
      * @notice Governance can update the latest version
@@ -141,7 +141,7 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
         if (_feeManager == address(0)) {
             revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.FeeManager);
         }
-        
+
         feeManager = _feeManager;
     }
 
@@ -309,9 +309,10 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
             string memory chainIdStr = _chainIdsStr[i]._toLower();
 
             if (chainIdStr.equal(cIdStr)) {
-                ICTMRWA1Sentry(sentryAddr).setSentryOptionsLocal(
-                    _ID, _version, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
-                );
+                ICTMRWA1Sentry(sentryAddr)
+                    .setSentryOptionsLocal(
+                        _ID, _version, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
+                    );
             } else {
                 (, string memory toRwaSentryStr) = _getSentry(chainIdStr, _version);
 
@@ -341,7 +342,13 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
      * has undergone KYC AND passes the access restrictions in the Schema (_programNo). AssetX calls the
      * hasApproved function in this contract.
      */
-    function setZkMeParams(uint256 _ID, uint256 _version, string memory _appId, string memory _programNo, address _cooperator) public {
+    function setZkMeParams(
+        uint256 _ID,
+        uint256 _version,
+        string memory _appId,
+        string memory _programNo,
+        address _cooperator
+    ) public {
         if (identity == address(0)) {
             revert CTMRWA1SentryManager_IsZeroAddress(CTMRWAErrorParam.Identity);
         }
@@ -401,15 +408,15 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
             string memory chainIdStr = _chainIdsStr[i]._toLower();
 
             if (chainIdStr.equal(cIdStr)) {
-                ICTMRWA1Sentry(sentryAddr).setSentryOptionsLocal(
-                    _ID, _version, false, true, kyb, over18, false, countryWL, countryBL
-                );
+                ICTMRWA1Sentry(sentryAddr)
+                    .setSentryOptionsLocal(_ID, _version, false, true, kyb, over18, false, countryWL, countryBL);
             } else {
                 (, string memory toRwaSentryStr) = _getSentry(chainIdStr, _version);
 
                 string memory funcCall = "setSentryOptionsX(uint256,uint256,bool,bool,bool,bool,bool,bool,bool)";
-                bytes memory callData =
-                    abi.encodeWithSignature(funcCall, _ID, _version, false, true, kyb, over18, false, countryWL, countryBL);
+                bytes memory callData = abi.encodeWithSignature(
+                    funcCall, _ID, _version, false, true, kyb, over18, false, countryWL, countryBL
+                );
 
                 bytes32 uuid = _c3call(toRwaSentryStr, chainIdStr, callData);
 
@@ -433,9 +440,8 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     ) external onlyC3Caller returns (bool) {
         (address sentryAddr,) = _getSentryAddr(_ID, _version);
 
-        ICTMRWA1Sentry(sentryAddr).setSentryOptionsLocal(
-            _ID, _version, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL
-        );
+        ICTMRWA1Sentry(sentryAddr)
+            .setSentryOptionsLocal(_ID, _version, _whitelist, _kyc, _kyb, _over18, _accredited, _countryWL, _countryBL);
 
         emit SentryOptionsSet(_ID);
 
@@ -700,7 +706,11 @@ contract CTMRWA1SentryManager is ICTMRWA1SentryManager, C3GovernDAppUpgradeable,
     /// @param _version The version of the RWA token
     /// @return fromAddressStr The address of the CTMRWA1SentryManager contract on this chain
     /// @return toSentryStr The address of the CTMRWA1SentryManager contract on the destination chain
-    function _getSentry(string memory _toChainIdStr, uint256 _version) internal view returns (string memory, string memory) {
+    function _getSentry(string memory _toChainIdStr, uint256 _version)
+        internal
+        view
+        returns (string memory, string memory)
+    {
         if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1SentryManager_SameChain();
         }

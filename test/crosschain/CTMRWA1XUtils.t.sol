@@ -2,17 +2,17 @@
 
 pragma solidity 0.8.27;
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { Test } from "forge-std/Test.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Test} from "forge-std/Test.sol";
 
-import { CTMRWA1 } from "../../src/core/CTMRWA1.sol";
-import { ICTMRWA1 } from "../../src/core/ICTMRWA1.sol";
-import { CTMRWA1X } from "../../src/crosschain/CTMRWA1X.sol";
-import { CTMRWA1XUtils } from "../../src/crosschain/CTMRWA1XUtils.sol";
-import { ICTMRWA1XUtils } from "../../src/crosschain/ICTMRWA1XUtils.sol";
-import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
-import { CTMRWAUtils, CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
-import { Helpers } from "../helpers/Helpers.sol";
+import {CTMRWA1} from "../../src/core/CTMRWA1.sol";
+import {ICTMRWA1} from "../../src/core/ICTMRWA1.sol";
+import {CTMRWA1X} from "../../src/crosschain/CTMRWA1X.sol";
+import {CTMRWA1XUtils} from "../../src/crosschain/CTMRWA1XUtils.sol";
+import {ICTMRWA1XUtils} from "../../src/crosschain/ICTMRWA1XUtils.sol";
+import {ICTMRWA1X} from "../../src/crosschain/ICTMRWA1X.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../../src/utils/CTMRWAUtils.sol";
+import {Helpers} from "../helpers/Helpers.sol";
 
 error EnforcedPause();
 
@@ -387,7 +387,7 @@ contract CTMRWA1XUtilsTest is Helpers {
 
         // Try to mint with a value that exceeds uint208 limit
         vm.prank(tokenAdmin);
-        uint256 maxUint208 = 2**208 - 1;
+        uint256 maxUint208 = 2 ** 208 - 1;
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_ValueOverflow.selector, maxUint208 + 1, maxUint208));
         rwa1XUtils.mintNewTokenValueLocal(user1, 0, 5, maxUint208 + 1, ID, VERSION, feeTokenStr);
     }
@@ -395,7 +395,7 @@ contract CTMRWA1XUtilsTest is Helpers {
     function test_overflowFuzzMint(uint256 a, uint256 b) public {
         vm.assume(a > 0 && b > 0);
         // Use uint208 limits to prevent overflow in balance calculations
-        uint256 maxUint208 = 2**208 - 1;
+        uint256 maxUint208 = 2 ** 208 - 1;
         vm.assume(a <= maxUint208 && b <= maxUint208);
         // Add constraint to prevent slot supply overflow
         vm.assume(a + b <= maxUint208);
@@ -411,12 +411,12 @@ contract CTMRWA1XUtilsTest is Helpers {
 
     function test_overflowSlotSupplyMint() public {
         string memory feeTokenStr = address(usdc).toHexString();
-        uint256 maxUint208 = 2**208 - 1;
-        
+        uint256 maxUint208 = 2 ** 208 - 1;
+
         // Mint first token with maxUint208 - 1
         vm.prank(tokenAdmin);
         rwa1XUtils.mintNewTokenValueLocal(user1, 0, 5, maxUint208 - 1, ID, VERSION, feeTokenStr);
-        
+
         // Try to mint second token with value 2 (should overflow slot supply)
         vm.prank(tokenAdmin);
         vm.expectRevert(abi.encodeWithSelector(ICTMRWA1.CTMRWA1_ValueOverflow.selector, maxUint208 + 1, maxUint208));
@@ -473,7 +473,7 @@ contract CTMRWA1XUtilsTest is Helpers {
 
     function test_mintNewTokenValueLocal_paused_unpaused() public {
         string memory feeTokenStr = address(usdc).toHexString();
-        
+
         vm.prank(tokenAdmin);
         token.pause();
 
@@ -505,7 +505,6 @@ contract CTMRWA1XUtilsTest is Helpers {
         // Verify no tokens were minted
         assertEq(token.balanceOf(address(attacker)), 0);
     }
-
 }
 
 // Mock contract for reentrancy testing

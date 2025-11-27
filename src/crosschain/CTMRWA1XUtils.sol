@@ -2,16 +2,16 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
-import { ICTMRWA1X } from "./ICTMRWA1X.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1XUtils } from "./ICTMRWA1XUtils.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ICTMRWA1} from "../core/ICTMRWA1.sol";
+import {ICTMRWA1X} from "./ICTMRWA1X.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {FeeType, IFeeManager} from "../managers/IFeeManager.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA1XUtils} from "./ICTMRWA1XUtils.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -25,7 +25,7 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
     using Strings for *;
     using CTMRWAUtils for string;
     using SafeERC20 for IERC20;
-    
+
     uint256 immutable RWA_TYPE = 1;
 
     address public rwa1X;
@@ -36,7 +36,6 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
     bytes public lastReason;
     string public cIdStr;
 
-
     /// @dev tokenAdmin address => version => array of CTMRWA1 contracts. Addresses of contracts controlled by each tokenAdmin
     mapping(address => mapping(uint256 => address[])) public adminTokens;
 
@@ -44,7 +43,6 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
      * @dev  owner address => version =>array of CTMRWA1 contracts. Addresses of CTMRWA1 contracts that an owner address has one or more tokenIds
      */
     mapping(address => mapping(uint256 => address[])) public ownedCtmRwa1;
-
 
     modifier onlyRwa1X() {
         // Allow calls originating from the RWAX proxy (external) or from self (internal delegatecall)
@@ -85,7 +83,6 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
         feeManager = _feeManager;
     }
 
-
     /// @dev Add a CTMRWA1 address to an admin's token list
     function addAdminToken(address _admin, address _tokenAddr, uint256 _version) external onlyRwa1X {
         adminTokens[_admin][_version].push(_tokenAddr);
@@ -93,7 +90,11 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
 
     /// @dev Update a list of CTMRWA1 addresses that _ownerAddr has one or more tokenIds in
     /// @return success True if the address was updated, false otherwise.
-    function updateOwnedCtmRwa1(address _ownerAddr, address _tokenAddr, uint256 _version) external onlyRwa1X returns (bool) {
+    function updateOwnedCtmRwa1(address _ownerAddr, address _tokenAddr, uint256 _version)
+        external
+        onlyRwa1X
+        returns (bool)
+    {
         uint256 len = ownedCtmRwa1[_ownerAddr][_version].length;
 
         for (uint256 i = 0; i < len; i++) {
@@ -142,10 +143,11 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
         }
     }
 
-   
-
     /// @dev Swap two tokenAdmins for a CTMRWA1
-    function swapAdminAddress(address _oldAdmin, address _newAdmin, address _ctmRwa1Addr, uint256 _version) external onlyRwa1X {
+    function swapAdminAddress(address _oldAdmin, address _newAdmin, address _ctmRwa1Addr, uint256 _version)
+        external
+        onlyRwa1X
+    {
         uint256 len = adminTokens[_oldAdmin][_version].length;
 
         for (uint256 i = 0; i < len; i++) {
@@ -169,34 +171,30 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
      * @param _slotName The slot name
      * @return newTokenId The newly created tokenId
      */
-    function mintFromXForERC20(
-        uint256 _ID,
-        uint256 _version,
-        address _to,
-        uint256 _slot,
-        string memory _slotName
-    ) external returns (uint256) {
+    function mintFromXForERC20(uint256 _ID, uint256 _version, address _to, uint256 _slot, string memory _slotName)
+        external
+        returns (uint256)
+    {
         // (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
         (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, RWA_TYPE, _version);
         if (!ok) {
             revert CTMRWA1XUtils_InvalidContract(CTMRWAErrorParam.Token);
         }
-        
+
         // Validate that the caller is an authorized ERC20 contract for this slot
         address erc20Addr = ICTMRWA1(ctmRwa1Addr).getErc20(_slot);
         if (erc20Addr != msg.sender) {
             revert CTMRWA1XUtils_OnlyAuthorized(CTMRWAErrorParam.Sender, CTMRWAErrorParam.RWAERC20);
         }
-        
+
         // Mint the tokenId through CTMRWA1
         uint256 newTokenId = ICTMRWA1(ctmRwa1Addr).mintFromX(_to, _slot, _slotName, 0);
-        
+
         // Update the ownedCtmRwa1 mapping to track this ownership
         this.updateOwnedCtmRwa1(_to, ctmRwa1Addr, _version);
-        
+
         return newTokenId;
     }
-
 
     /// @dev Returns the last revert string after c3Fallback from another chain
     function getLastReason() public view returns (string memory) {
@@ -231,7 +229,7 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
             revert CTMRWA1XUtils_InvalidContract(CTMRWAErrorParam.Token);
         }
         address currentAdmin;
-        string memory currentAdminStr;      
+        string memory currentAdminStr;
         (currentAdmin, currentAdminStr) = _checkTokenAdmin(ctmRwa1Addr);
 
         _payFee(FeeType.MINT, _feeTokenStr, cIdStr._stringToArray(), true);
@@ -327,7 +325,7 @@ contract CTMRWA1XUtils is ICTMRWA1XUtils, ReentrancyGuard {
             (, ctmRwa1Addr) = ICTMRWAMap(_map).getTokenContract(ID_, RWA_TYPE, version);
 
             address fromAddr = fromAddressStr._stringToAddress();
-            
+
             try ICTMRWA1(ctmRwa1Addr).slotName(slot) returns (string memory thisSlotName) {
                 ICTMRWA1(ctmRwa1Addr).mintFromX(fromAddr, slot, thisSlotName, value);
                 emit ReturnValueFallback(fromAddr, slot, value);

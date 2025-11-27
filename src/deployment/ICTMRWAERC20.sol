@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface ICTMRWAERC20 is IERC20 {
     error CTMRWAERC20_InvalidContract(CTMRWAErrorParam);
@@ -20,6 +20,6 @@ interface ICTMRWAERC20 is IERC20 {
 
     function RWA_TYPE() external view returns (uint256);
     function VERSION() external view returns (uint256);
-    
+
     function balanceOfApproved(address account) external view returns (uint256);
 }

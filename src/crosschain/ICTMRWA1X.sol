@@ -3,14 +3,12 @@
 pragma solidity 0.8.27;
 
 // import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { SlotData } from "../core/ICTMRWA1.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {SlotData} from "../core/ICTMRWA1.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1X {
-
     function LATEST_VERSION() external view returns (uint256);
     function RWA_TYPE() external view returns (uint256);
-
 
     /// @dev New c3call for CTMRWA1 deployment on destination chain toChainIdStr
     event DeployCTMRWA1(uint256 indexed ID, bytes32 uuid, string toChainIdStr);
@@ -104,11 +102,12 @@ interface ICTMRWA1X {
         string memory baseURI,
         uint256[] memory slotNumbers,
         string[] memory slotNames
-    ) external returns(bool); // onlyCaller function (added for DEBUG purposes)
+    ) external returns (bool); // onlyCaller function (added for DEBUG purposes)
 
-    function adminX(uint256 ID, uint256 version, string memory oldAdminStr, string memory newAdminStr) external returns (bool); // onlyCaller
+    function adminX(uint256 ID, uint256 version, string memory oldAdminStr, string memory newAdminStr)
+        external
+        returns (bool); // onlyCaller
 
-  
     function createNewSlot(
         uint256 ID,
         uint256 version,
@@ -145,6 +144,5 @@ interface ICTMRWA1X {
         string memory _toAddressStr,
         uint256 _slot,
         uint256 _balance
-    ) external returns(bool); // onlyCaller
-
+    ) external returns (bool); // onlyCaller
 }

@@ -2,12 +2,12 @@
 
 pragma solidity 0.8.27;
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { Test } from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 
-import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
-import { CTMRWAProxy } from "../../src/utils/CTMRWAProxy.sol";
+import {ICTMRWA1Storage, URICategory, URIData, URIType} from "../../src/storage/ICTMRWA1Storage.sol";
+import {CTMRWAProxy} from "../../src/utils/CTMRWAProxy.sol";
 
 contract Utils is Test {
     using Strings for *;

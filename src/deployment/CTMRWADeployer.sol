@@ -2,21 +2,20 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
-import { ICTMRWA1DividendFactory } from "../dividend/ICTMRWA1DividendFactory.sol";
-import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { ICTMRWA1StorageManager } from "../storage/ICTMRWA1StorageManager.sol";
-import { ICTMRWAERC20Deployer } from "./ICTMRWAERC20Deployer.sol";
-import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
-import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
-import { ICTMRWADeployer } from "./ICTMRWADeployer.sol";
-import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
+import {ICTMRWA1} from "../core/ICTMRWA1.sol";
+import {ICTMRWA1DividendFactory} from "../dividend/ICTMRWA1DividendFactory.sol";
+import {ICTMRWA1SentryManager} from "../sentry/ICTMRWA1SentryManager.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {ICTMRWA1StorageManager} from "../storage/ICTMRWA1StorageManager.sol";
+import {ICTMRWAERC20Deployer} from "./ICTMRWAERC20Deployer.sol";
+import {CTMRWAProxy} from "../utils/CTMRWAProxy.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA1TokenFactory} from "./ICTMRWA1TokenFactory.sol";
+import {ICTMRWADeployInvest} from "./ICTMRWADeployInvest.sol";
+import {ICTMRWADeployer} from "./ICTMRWADeployer.sol";
+import {C3GovernDAppUpgradeable} from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -79,7 +78,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
     }
 
     constructor() {
-    _disableInitializers();
+        _disableInitializers();
     }
 
     function initialize(
@@ -99,7 +98,7 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         lastCommissionRateChange = 0;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
 
     /// @notice Governance function to change the CTMRWAGateway contract address
     function setGateway(address _gateway) external onlyGov {
@@ -164,7 +163,8 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         onlyRwaX
         returns (address, address, address, address)
     {
-        address tokenAddr = ICTMRWA1TokenFactory(tokenFactory[_rwaType][_version]).deploy(_rwaType, _version, deployData);
+        address tokenAddr =
+            ICTMRWA1TokenFactory(tokenFactory[_rwaType][_version]).deploy(_rwaType, _version, deployData);
 
         if (ICTMRWA1(tokenAddr).RWA_TYPE() != _rwaType) {
             revert CTMRWADeployer_IncompatibleRWA(CTMRWAErrorParam.Type);
@@ -188,9 +188,8 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         returns (address)
     {
         if (dividendFactory[_rwaType][_version] != address(0)) {
-            address dividendAddr = ICTMRWA1DividendFactory(dividendFactory[_rwaType][_version]).deployDividend(
-                _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
-            );
+            address dividendAddr = ICTMRWA1DividendFactory(dividendFactory[_rwaType][_version])
+                .deployDividend(_ID, _tokenAddr, _rwaType, _version, ctmRwaMap);
             return (dividendAddr);
         } else {
             return (address(0));
@@ -203,9 +202,8 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         returns (address)
     {
         if (storageFactory[_rwaType][_version] != address(0)) {
-            address storageAddr = ICTMRWA1StorageManager(storageFactory[_rwaType][_version]).deployStorage(
-                _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
-            );
+            address storageAddr = ICTMRWA1StorageManager(storageFactory[_rwaType][_version])
+                .deployStorage(_ID, _tokenAddr, _rwaType, _version, ctmRwaMap);
             return (storageAddr);
         } else {
             return (address(0));
@@ -218,9 +216,8 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         returns (address)
     {
         if (sentryFactory[_rwaType][_version] != address(0)) {
-            address sentryAddr = ICTMRWA1SentryManager(sentryFactory[_rwaType][_version]).deploySentry(
-                _ID, _tokenAddr, _rwaType, _version, ctmRwaMap
-            );
+            address sentryAddr = ICTMRWA1SentryManager(sentryFactory[_rwaType][_version])
+                .deploySentry(_ID, _tokenAddr, _rwaType, _version, ctmRwaMap);
             return (sentryAddr);
         } else {
             return (address(0));
@@ -262,7 +259,10 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
             revert CTMRWADeployer_CommissionRateOutOfBounds(CTMRWAErrorParam.Commission);
         } else if (_commissionRate > commissionRate + 100) {
             revert CTMRWADeployer_CommissionRateIncreasedTooMuch(CTMRWAErrorParam.Commission);
-        } else if (_commissionRate > commissionRate && lastCommissionRateChange != 0 && block.timestamp - lastCommissionRateChange < 30 days) {
+        } else if (
+            _commissionRate > commissionRate && lastCommissionRateChange != 0
+                && block.timestamp - lastCommissionRateChange < 30 days
+        ) {
             revert CTMRWADeployer_CommissionRateChangeTooSoon(CTMRWAErrorParam.Commission);
         }
 
@@ -322,7 +322,8 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
         }
 
         // Deploy the investment contract
-        address investAddress = ICTMRWADeployInvest(deployInvest).deployInvest(_ID, _rwaType, _version, _feeToken, msg.sender);
+        address investAddress =
+            ICTMRWADeployInvest(deployInvest).deployInvest(_ID, _rwaType, _version, _feeToken, msg.sender);
 
         // Set the investment contract in the CTMRWAMap
         ICTMRWAMap(ctmRwaMap).setInvestmentContract(_ID, _rwaType, _version, investAddress);
@@ -340,10 +341,14 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
      * @param _feeToken Address of a valid fee token. See getFeeTokenList in FeeManager.
      * @return erc20Address The address of the deployed ERC20 contract
      */
-    function deployERC20(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, string memory _name, address _feeToken)
-        public
-        returns (address)
-    {
+    function deployERC20(
+        uint256 _ID,
+        uint256 _rwaType,
+        uint256 _version,
+        uint256 _slot,
+        string memory _name,
+        address _feeToken
+    ) public returns (address) {
         if (erc20Deployer == address(0)) {
             revert CTMRWADeployer_IsZeroAddress(CTMRWAErrorParam.ERC20Deployer);
         }
@@ -367,12 +372,12 @@ contract CTMRWADeployer is ICTMRWADeployer, C3GovernDAppUpgradeable, UUPSUpgrade
             revert CTMRWADeployer_InvalidContract(CTMRWAErrorParam.RWAERC20);
         }
         // Deploy the ERC20 contract
-        address erc20Address = ICTMRWAERC20Deployer(erc20Deployer).deployERC20(_ID, _rwaType, _version, _slot, _name, _feeToken, msg.sender);
+        address erc20Address = ICTMRWAERC20Deployer(erc20Deployer)
+            .deployERC20(_ID, _rwaType, _version, _slot, _name, _feeToken, msg.sender);
         ICTMRWAMap(ctmRwaMap).setErc20Contract(_ID, _rwaType, _version, _slot, erc20Address);
 
         return erc20Address;
     }
-
 
     function cID() internal view returns (uint256) {
         return block.chainid;

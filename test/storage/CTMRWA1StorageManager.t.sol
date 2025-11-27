@@ -2,16 +2,16 @@
 
 pragma solidity 0.8.27;
 
-import { Test } from "forge-std/Test.sol";
-import { console } from "forge-std/console.sol";
+import {Test} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { Helpers } from "../helpers/Helpers.sol";
+import {Helpers} from "../helpers/Helpers.sol";
 
-import { ICTMRWA1Storage } from "../../src/storage/ICTMRWA1Storage.sol";
-import { ICTMRWA1Storage, URICategory, URIData, URIType } from "../../src/storage/ICTMRWA1Storage.sol";
-import { ICTMRWA1StorageManager } from "../../src/storage/ICTMRWA1StorageManager.sol";
+import {ICTMRWA1Storage} from "../../src/storage/ICTMRWA1Storage.sol";
+import {ICTMRWA1Storage, URICategory, URIData, URIType} from "../../src/storage/ICTMRWA1Storage.sol";
+import {ICTMRWA1StorageManager} from "../../src/storage/ICTMRWA1StorageManager.sol";
 
 event AddingURI(uint256 ID, string chainIdStr);
 
@@ -385,7 +385,16 @@ contract TestStorageManager is Helpers {
         vm.startPrank(address(0));
         vm.expectRevert();
         storageManager.addURI(
-            0, VERSION, "zero", URICategory.ISSUER, URIType.CONTRACT, "Zero Address", 0, bytes32(0), _stringToArray(cIdStr), ""
+            0,
+            VERSION,
+            "zero",
+            URICategory.ISSUER,
+            URIType.CONTRACT,
+            "Zero Address",
+            0,
+            bytes32(0),
+            _stringToArray(cIdStr),
+            ""
         );
         vm.stopPrank();
     }
@@ -396,7 +405,7 @@ contract TestStorageManager is Helpers {
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        
+
         // First add the required ISSUER/CONTRACT URI
         string memory issuerData = "issuer data";
         bytes32 issuerHash = keccak256(abi.encode(issuerData));
@@ -412,7 +421,7 @@ contract TestStorageManager is Helpers {
             _stringToArray(cIdStr),
             feeTokenStr
         );
-        
+
         string memory randomData = "invalid category test";
         bytes32 junkHash = keccak256(abi.encode(randomData));
 
@@ -420,7 +429,11 @@ contract TestStorageManager is Helpers {
         // Note: We can't test with truly invalid enum values in Solidity (like 99) because
         // Solidity won't allow casting invalid values to enums. The validation logic is
         // designed to catch EMPTY enum values which represent invalid states.
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidCategory.selector, URICategory.EMPTY));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidCategory.selector, URICategory.EMPTY
+            )
+        );
         storageManager.addURI(
             ID,
             VERSION,
@@ -441,7 +454,7 @@ contract TestStorageManager is Helpers {
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        
+
         // First add the required ISSUER/CONTRACT URI
         string memory issuerData = "issuer data";
         bytes32 issuerHash = keccak256(abi.encode(issuerData));
@@ -457,7 +470,7 @@ contract TestStorageManager is Helpers {
             _stringToArray(cIdStr),
             feeTokenStr
         );
-        
+
         string memory randomData = "invalid type test";
         bytes32 junkHash = keccak256(abi.encode(randomData));
 
@@ -465,7 +478,9 @@ contract TestStorageManager is Helpers {
         // Note: We can't test with truly invalid enum values in Solidity (like 99) because
         // Solidity won't allow casting invalid values to enums. The validation logic is
         // designed to catch EMPTY enum values which represent invalid states.
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidType.selector, URIType.EMPTY));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidType.selector, URIType.EMPTY)
+        );
         storageManager.addURI(
             ID,
             VERSION,
@@ -486,7 +501,7 @@ contract TestStorageManager is Helpers {
         (ID, token) = _deployCTMRWA1(address(usdc));
         _createSomeSlots(ID, address(usdc), address(rwa1X));
         string memory feeTokenStr = _toLower((address(usdc).toHexString()));
-        
+
         // First add the required ISSUER/CONTRACT URI
         string memory issuerData = "issuer data";
         bytes32 issuerHash = keccak256(abi.encode(issuerData));
@@ -502,7 +517,7 @@ contract TestStorageManager is Helpers {
             _stringToArray(cIdStr),
             feeTokenStr
         );
-        
+
         string memory randomData = "both invalid test";
         bytes32 junkHash = keccak256(abi.encode(randomData));
 
@@ -510,7 +525,11 @@ contract TestStorageManager is Helpers {
         // Note: We can't test with truly invalid enum values in Solidity (like 99) because
         // Solidity won't allow casting invalid values to enums. The validation logic is
         // designed to catch EMPTY enum values which represent invalid states.
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidCategory.selector, URICategory.EMPTY));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidCategory.selector, URICategory.EMPTY
+            )
+        );
         storageManager.addURI(
             ID,
             VERSION,
@@ -535,7 +554,7 @@ contract TestStorageManager is Helpers {
         // First add the required ISSUER/CONTRACT URI via addURIX
         string memory issuerData = "issuer data";
         bytes32 issuerHash = keccak256(abi.encode(issuerData));
-        
+
         vm.startPrank(address(c3caller));
         storageManager.addURIX(
             ID,
@@ -556,7 +575,11 @@ contract TestStorageManager is Helpers {
 
         vm.startPrank(address(c3caller));
         // Test with invalid URICategory (99) in addURIX - should revert with CTMRWA1StorageManager_InvalidCategory
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidCategory.selector, URICategory.EMPTY));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidCategory.selector, URICategory.EMPTY
+            )
+        );
         storageManager.addURIX(
             ID,
             VERSION,
@@ -581,7 +604,7 @@ contract TestStorageManager is Helpers {
         // First add the required ISSUER/CONTRACT URI via addURIX
         string memory issuerData = "issuer data";
         bytes32 issuerHash = keccak256(abi.encode(issuerData));
-        
+
         vm.startPrank(address(c3caller));
         storageManager.addURIX(
             ID,
@@ -602,7 +625,9 @@ contract TestStorageManager is Helpers {
 
         vm.startPrank(address(c3caller));
         // Test with invalid URIType (99) in addURIX - should revert with CTMRWA1StorageManager_InvalidType
-        vm.expectRevert(abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidType.selector, URIType.EMPTY));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICTMRWA1StorageManager.CTMRWA1StorageManager_InvalidType.selector, URIType.EMPTY)
+        );
         storageManager.addURIX(
             ID,
             VERSION,

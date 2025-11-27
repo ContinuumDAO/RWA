@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.27;
 
-import { Script } from "forge-std/Script.sol";
-import { ICTMRWAGateway } from "../build/crosschain/CTMRWAGateway.sol";
-import { LoadDeployedContracts } from "./LoadDeployedContracts.s.sol";
-import { DeployedContracts } from "./Utils.s.sol";
+import {Script} from "forge-std/Script.sol";
+import {ICTMRWAGateway} from "../build/crosschain/CTMRWAGateway.sol";
+import {LoadDeployedContracts} from "./LoadDeployedContracts.s.sol";
+import {DeployedContracts} from "./Utils.s.sol";
 
 contract AddLocalContracts is Script {
     address gateway;
@@ -77,10 +77,10 @@ contract AddLocalContracts is Script {
         sentryManagersStr[0] = vm.toString(sentryManager);
 
         vm.startBroadcast();
-            ICTMRWAGateway(gateway).addChainContract(chainIdsStr, gatewaysStr);
-            ICTMRWAGateway(gateway).attachRWAX(RWA_TYPE, VERSION, chainIdsStr, rwa1XsStr);
-            ICTMRWAGateway(gateway).attachStorageManager(RWA_TYPE, VERSION, chainIdsStr, storageManagersStr);
-            ICTMRWAGateway(gateway).attachSentryManager(RWA_TYPE, VERSION, chainIdsStr, sentryManagersStr);
+        ICTMRWAGateway(gateway).addChainContract(chainIdsStr, gatewaysStr);
+        ICTMRWAGateway(gateway).attachRWAX(RWA_TYPE, VERSION, chainIdsStr, rwa1XsStr);
+        ICTMRWAGateway(gateway).attachStorageManager(RWA_TYPE, VERSION, chainIdsStr, storageManagersStr);
+        ICTMRWAGateway(gateway).attachSentryManager(RWA_TYPE, VERSION, chainIdsStr, sentryManagersStr);
         vm.stopBroadcast();
     }
 }

@@ -3,7 +3,7 @@
 pragma solidity 0.8.27;
 
 // import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1SentryManager {
     error CTMRWA1SentryManager_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);

@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.27;
 
-import { Script } from "forge-std/Script.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {Script} from "forge-std/Script.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { DeployedContracts } from "./Utils.s.sol";
+import {DeployedContracts} from "./Utils.s.sol";
 
 contract LoadDeployedContracts is Script {
     string feeManagerPrefix = "FEE_MANAGER_";

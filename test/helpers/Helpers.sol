@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.27;
 
-import { Test } from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 
-import { Accounts } from "./Accounts.sol";
-import { Deployer } from "./Deployer.sol";
-import { RWA } from "./RWA.sol";
+import {Accounts} from "./Accounts.sol";
+import {Deployer} from "./Deployer.sol";
+import {RWA} from "./RWA.sol";
 
 contract Helpers is Test, Accounts, Deployer, RWA {
     function setUp() public virtual {
@@ -52,7 +52,7 @@ contract Helpers is Test, Accounts, Deployer, RWA {
         // Give rwa1X contract token balances to pay fees
         deal(address(usdc), address(rwa1X), _100_000 * 10 ** usdc.decimals());
         deal(address(ctm), address(rwa1X), _100_000 * 10 ** ctm.decimals());
-        
+
         // Give additional tokens for minting operations
         deal(address(usdc), address(rwa1X), _100_000 * 10 ** usdc.decimals() * 2);
         deal(address(ctm), address(rwa1X), _100_000 * 10 ** ctm.decimals() * 2);

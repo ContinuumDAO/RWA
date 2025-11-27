@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWA1 } from "../core/CTMRWA1.sol";
-import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
+import {CTMRWA1} from "../core/CTMRWA1.sol";
+import {ICTMRWA1} from "../core/ICTMRWA1.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA1TokenFactory} from "./ICTMRWA1TokenFactory.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -18,7 +18,6 @@ import { ICTMRWA1TokenFactory } from "./ICTMRWA1TokenFactory.sol";
  * This contract is only deployed ONCE on each chain and manages all CTMRWA1 contract deployments
  */
 contract CTMRWA1TokenFactory is ICTMRWA1TokenFactory {
-
     uint256 public immutable RWA_TYPE = 1;
     uint256 public immutable VERSION = 1;
 
@@ -42,7 +41,11 @@ contract CTMRWA1TokenFactory is ICTMRWA1TokenFactory {
      * @param _deployData The data to deploy the CTMRWA1 contract
      * @return ctmRwa1Addr The address of the deployed CTMRWA1 contract
      */
-    function deploy(uint256 _rwaType, uint256 _version, bytes memory _deployData) external onlyDeployer returns (address) {
+    function deploy(uint256 _rwaType, uint256 _version, bytes memory _deployData)
+        external
+        onlyDeployer
+        returns (address)
+    {
         (
             uint256 ID,
             address admin,
@@ -55,7 +58,8 @@ contract CTMRWA1TokenFactory is ICTMRWA1TokenFactory {
             address ctmRwa1X
         ) = abi.decode(_deployData, (uint256, address, string, string, uint8, string, uint256[], string[], address));
 
-        address ctmRwa1Addr = address(new CTMRWA1{ salt: bytes32(ID) }(admin, ctmRwaMap, tokenName, symbol, decimals, baseURI, ctmRwa1X));
+        address ctmRwa1Addr =
+            address(new CTMRWA1{salt: bytes32(ID)}(admin, ctmRwaMap, tokenName, symbol, decimals, baseURI, ctmRwa1X));
 
         // Verify that the deployed token contract is for the correct version and RWA type
         if (_rwaType != RWA_TYPE) {

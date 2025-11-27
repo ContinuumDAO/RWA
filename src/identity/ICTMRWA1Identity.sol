@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA} from "../core/ICTMRWA.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 enum RequestId {
     PERSONHOOD,
@@ -24,7 +24,9 @@ interface ICTMRWA1Identity is ICTMRWA {
 
     function setZkMeVerifierAddress(address verifierAddress) external;
 
-    function verifyPerson(uint256 ID, uint256 version, string[] memory chainIdsStr, string memory feeTokenStr) external returns (bool);
+    function verifyPerson(uint256 ID, uint256 version, string[] memory chainIdsStr, string memory feeTokenStr)
+        external
+        returns (bool);
 
     function isKycChain() external view returns (bool);
 

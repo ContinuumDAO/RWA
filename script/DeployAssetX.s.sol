@@ -2,35 +2,34 @@
 
 pragma solidity 0.8.27;
 
-import { Script } from "forge-std/Script.sol";
-import { console } from "forge-std/console.sol";
+import {Script} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 
-import { CTMRWA1X } from "../build/crosschain/CTMRWA1X.sol";
-import { CTMRWA1XUtils } from "../build/crosschain/CTMRWA1XUtils.sol";
-import { CTMRWAGateway } from "../build/crosschain/CTMRWAGateway.sol";
+import {CTMRWA1X} from "../build/crosschain/CTMRWA1X.sol";
+import {CTMRWA1XUtils} from "../build/crosschain/CTMRWA1XUtils.sol";
+import {CTMRWAGateway} from "../build/crosschain/CTMRWAGateway.sol";
 
-import { CTMRWA1TokenFactory } from "../build/deployment/CTMRWA1TokenFactory.sol";
-import { CTMRWADeployInvest } from "../build/deployment/CTMRWADeployInvest.sol";
-import { CTMRWADeployer } from "../build/deployment/CTMRWADeployer.sol";
+import {CTMRWA1TokenFactory} from "../build/deployment/CTMRWA1TokenFactory.sol";
+import {CTMRWADeployInvest} from "../build/deployment/CTMRWADeployInvest.sol";
+import {CTMRWADeployer} from "../build/deployment/CTMRWADeployer.sol";
 
-import { CTMRWAERC20Deployer } from "../build/deployment/CTMRWAERC20Deployer.sol";
+import {CTMRWAERC20Deployer} from "../build/deployment/CTMRWAERC20Deployer.sol";
 
-import { CTMRWA1DividendFactory } from "../build/dividend/CTMRWA1DividendFactory.sol";
+import {CTMRWA1DividendFactory} from "../build/dividend/CTMRWA1DividendFactory.sol";
 
-import { FeeManager, FeeType } from "../build/managers/FeeManager.sol";
+import {FeeManager, FeeType} from "../build/managers/FeeManager.sol";
 
-import { CTMRWA1SentryManager } from "../build/sentry/CTMRWA1SentryManager.sol";
-import { CTMRWA1SentryUtils } from "../build/sentry/CTMRWA1SentryUtils.sol";
+import {CTMRWA1SentryManager} from "../build/sentry/CTMRWA1SentryManager.sol";
+import {CTMRWA1SentryUtils} from "../build/sentry/CTMRWA1SentryUtils.sol";
 
-import { CTMRWAMap } from "../build/shared/CTMRWAMap.sol";
+import {CTMRWAMap} from "../build/shared/CTMRWAMap.sol";
 
-import { CTMRWA1StorageManager } from "../build/storage/CTMRWA1StorageManager.sol";
-import { CTMRWA1StorageUtils } from "../build/storage/CTMRWA1StorageUtils.sol";
+import {CTMRWA1StorageManager} from "../build/storage/CTMRWA1StorageManager.sol";
+import {CTMRWA1StorageUtils} from "../build/storage/CTMRWA1StorageUtils.sol";
 
-import { CTMRWAProxy } from "../build/utils/CTMRWAProxy.sol";
+import {CTMRWAProxy} from "../build/utils/CTMRWAProxy.sol";
 
-
-import { DeployedContracts } from "./Utils.s.sol";
+import {DeployedContracts} from "./Utils.s.sol";
 
 contract DeployAssetX is Script {
     address feeManager;
@@ -76,9 +75,7 @@ contract DeployAssetX is Script {
     function _deployGateway(uint256 dappID, address gov, address c3caller) internal {
         address gatewayImpl = address(new CTMRWAGateway());
         gateway = address(
-            CTMRWAGateway(
-                _deployProxy(gatewayImpl, abi.encodeCall(CTMRWAGateway.initialize, (gov, c3caller, dappID)))
-            )
+            CTMRWAGateway(_deployProxy(gatewayImpl, abi.encodeCall(CTMRWAGateway.initialize, (gov, c3caller, dappID))))
         );
     }
 
@@ -110,9 +107,7 @@ contract DeployAssetX is Script {
             CTMRWADeployer(
                 _deployProxy(
                     deployerImpl,
-                    abi.encodeCall(
-                        CTMRWADeployer.initialize, (gov, gateway, feeManager, rwa1X, map, c3caller, dappID)
-                    )
+                    abi.encodeCall(CTMRWADeployer.initialize, (gov, gateway, feeManager, rwa1X, map, c3caller, dappID))
                 )
             )
         );
@@ -170,7 +165,6 @@ contract DeployAssetX is Script {
     }
 
     function run() public {
-
         RWA_TYPE = vm.envUint("RWA_TYPE");
         VERSION = vm.envUint("VERSION");
 
@@ -186,14 +180,14 @@ contract DeployAssetX is Script {
         vm.startBroadcast();
 
         chainIdStr = vm.toString(block.chainid);
-        if (block.chainid == 31337) revert ("Use --chain flag!");
+        if (block.chainid == 31337) revert("Use --chain flag!");
 
         string memory feeTokenKey = string.concat("FEE_TOKEN_", chainIdStr);
 
         try vm.envAddress(feeTokenKey) returns (address _feeToken) {
             feeToken = _feeToken;
         } catch {
-            revert (string.concat(feeTokenKey, " not set"));
+            revert(string.concat(feeTokenKey, " not set"));
         }
 
         address c3caller = vm.envAddress(string.concat("C3CALLER_", chainIdStr));
@@ -212,7 +206,24 @@ contract DeployAssetX is Script {
 
         console.log("AssetX deployed successfully");
 
-        DeployedContracts memory chainContracts = DeployedContracts(chainIdStr, feeManager, gateway, rwa1X, rwa1XFallback, map, deployer, deployInvest, erc20Deployer, tokenFactory, dividendFactory, storageManager, storageUtils, sentryManager, sentryUtils, feeToken);
+        DeployedContracts memory chainContracts = DeployedContracts(
+            chainIdStr,
+            feeManager,
+            gateway,
+            rwa1X,
+            rwa1XFallback,
+            map,
+            deployer,
+            deployInvest,
+            erc20Deployer,
+            tokenFactory,
+            dividendFactory,
+            storageManager,
+            storageUtils,
+            sentryManager,
+            sentryUtils,
+            feeToken
+        );
 
         console.log(string.concat("Deployed AssetX contracts successfully to chain ID ", chainIdStr));
     }

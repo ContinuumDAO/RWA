@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { IC3GovernDApp } from "@c3caller/gov/IC3GovernDApp.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {IC3GovernDApp} from "@c3caller/gov/IC3GovernDApp.sol";
 
 struct ChainContract {
     string chainIdStr;

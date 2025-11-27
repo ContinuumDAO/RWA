@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA} from "../core/ICTMRWA.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 enum URICategory {
     ISSUER,

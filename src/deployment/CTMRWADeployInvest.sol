@@ -2,15 +2,15 @@
 
 pragma solidity 0.8.27;
 
-import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
-import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { CTMRWA1InvestWithTimeLock } from "./CTMRWA1InvestWithTimeLock.sol";
-import { ICTMRWA1InvestWithTimeLock } from "./ICTMRWA1InvestWithTimeLock.sol";
-import { ICTMRWADeployInvest } from "./ICTMRWADeployInvest.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {FeeType, IFeeManager} from "../managers/IFeeManager.sol";
+import {CTMRWAProxy} from "../utils/CTMRWAProxy.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {CTMRWA1InvestWithTimeLock} from "./CTMRWA1InvestWithTimeLock.sol";
+import {ICTMRWA1InvestWithTimeLock} from "./ICTMRWA1InvestWithTimeLock.sol";
+import {ICTMRWADeployInvest} from "./ICTMRWADeployInvest.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -99,7 +99,7 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
         bytes32 salt = keccak256(abi.encode(_ID, _rwaType, _version));
 
         CTMRWA1InvestWithTimeLock newInvest =
-            new CTMRWA1InvestWithTimeLock{ salt: salt }(_ID, ctmRwaMap, commissionRate, feeManager);
+            new CTMRWA1InvestWithTimeLock{salt: salt}(_ID, ctmRwaMap, commissionRate, feeManager);
 
         if (_version != ICTMRWA1InvestWithTimeLock(newInvest).VERSION()) {
             revert CTMRWADeployInvest_InvalidVersion(_version);
@@ -107,7 +107,6 @@ contract CTMRWADeployInvest is ICTMRWADeployInvest {
         if (_rwaType != ICTMRWA1InvestWithTimeLock(newInvest).RWA_TYPE()) {
             revert CTMRWADeployInvest_InvalidRWAType(_rwaType);
         }
-       
 
         return (address(newInvest));
     }

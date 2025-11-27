@@ -2,25 +2,25 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1, ITokenContract, SlotData, TokenContract } from "../core/ICTMRWA1.sol";
+import {ICTMRWA1, ITokenContract, SlotData, TokenContract} from "../core/ICTMRWA1.sol";
 
-import { ICTMRWA1InvestWithTimeLock } from "../deployment/CTMRWA1InvestWithTimeLock.sol";
-import { ICTMRWADeployer } from "../deployment/ICTMRWADeployer.sol";
-import { ICTMRWA1Dividend } from "../dividend/ICTMRWA1Dividend.sol";
-import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
-import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { ICTMRWA1Storage, URICategory, URIType } from "../storage/ICTMRWA1Storage.sol";
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1X } from "./ICTMRWA1X.sol";
-import { ICTMRWA1XUtils } from "./ICTMRWA1XUtils.sol";
-import { ICTMRWAGateway } from "./ICTMRWAGateway.sol";
-import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {ICTMRWA1InvestWithTimeLock} from "../deployment/CTMRWA1InvestWithTimeLock.sol";
+import {ICTMRWADeployer} from "../deployment/ICTMRWADeployer.sol";
+import {ICTMRWA1Dividend} from "../dividend/ICTMRWA1Dividend.sol";
+import {FeeType, IFeeManager} from "../managers/IFeeManager.sol";
+import {ICTMRWA1Sentry} from "../sentry/ICTMRWA1Sentry.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {ICTMRWA1Storage, URICategory, URIType} from "../storage/ICTMRWA1Storage.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA1X} from "./ICTMRWA1X.sol";
+import {ICTMRWA1XUtils} from "./ICTMRWA1XUtils.sol";
+import {ICTMRWAGateway} from "./ICTMRWAGateway.sol";
+import {C3GovernDAppUpgradeable} from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -68,14 +68,10 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         _disableInitializers();
     }
 
-
-    function initialize(
-        address _gateway,
-        address _feeManager,
-        address _gov,
-        address _c3callerProxy,
-        uint256 _dappID
-    ) external initializer {
+    function initialize(address _gateway, address _feeManager, address _gov, address _c3callerProxy, uint256 _dappID)
+        external
+        initializer
+    {
         __ReentrancyGuard_init();
         __C3GovernDApp_init(_gov, _c3callerProxy, _dappID);
         LATEST_VERSION = 1;
@@ -85,7 +81,7 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         isMinter[address(this)] = true;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
 
     /**
      * @notice Governance can update the latest version
@@ -259,13 +255,13 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             baseURI = _baseURI;
 
             currentAdmin = msg.sender;
-            ctmRwa1Addr =
-                _deployCTMRWA1Local(ID, _version, _tokenName, _symbol, _decimals, baseURI, slotNumbers, slotNames, currentAdmin);
+            ctmRwa1Addr = _deployCTMRWA1Local(
+                ID, _version, _tokenName, _symbol, _decimals, baseURI, slotNumbers, slotNames, currentAdmin
+            );
 
             if (ID != ICTMRWA1(ctmRwa1Addr).ID()) {
                 revert CTMRWA1X_InvalidID(ID);
             }
-
         } else {
             // a CTMRWA1 token must be deployed already, so use the existing ID
             ID = _existingID;
@@ -301,7 +297,15 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
         for (uint256 i = 0; i < nChains; i++) {
             _deployCTMRWA1X(
-                _version,tokenName, symbol, decimals, baseURI, _toChainIdsStr[i], slotNumbers, slotNames, ctmRwa1AddrStr
+                _version,
+                tokenName,
+                symbol,
+                decimals,
+                baseURI,
+                _toChainIdsStr[i],
+                slotNumbers,
+                slotNames,
+                ctmRwa1AddrStr
             );
         }
 
@@ -523,8 +527,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
         return (true);
     }
 
-   
-
     /**
      * @notice Create a new Asset Class (slot).
      * @param _ID The ID for which to create a new slot
@@ -567,7 +569,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
             if (!cIdStr.equal(toChainIdStr)) {
                 (fromAddressStr, toRwaXStr) = _getRWAX(toChainIdStr, _version);
                 string memory funcCall = "createNewSlotX(uint256,uint256,string,uint256,string)";
-                bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _version, fromAddressStr, _slot, _slotName);
+                bytes memory callData =
+                    abi.encodeWithSignature(funcCall, _ID, _version, fromAddressStr, _slot, _slotName);
 
                 bytes32 uuid = _c3call(toRwaXStr, toChainIdStr, callData);
 
@@ -583,14 +586,16 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
      * This function is only callable by the MPC network. It checks that the tokenAdmin of the
      * RWA on the source chain is the same as the tokenAdmin of the RWA on this chain.
      */
-    function createNewSlotX(uint256 _ID, uint256 _version, string memory _fromAddressStr, uint256 _slot, string memory _slotName)
-        external
-        onlyC3Caller
-        returns (bool)
-    {
+    function createNewSlotX(
+        uint256 _ID,
+        uint256 _version,
+        string memory _fromAddressStr,
+        uint256 _slot,
+        string memory _slotName
+    ) external onlyC3Caller returns (bool) {
         // (bool ok, address ctmRwa1Addr) = ICTMRWAMap(ctmRwaMap).getTokenContract(_ID, RWA_TYPE, _version);
         (address ctmRwa1Addr,) = _getTokenAddr(_ID, _version);
-            
+
         if (ICTMRWA1(ctmRwa1Addr).slotExists(_slot)) {
             revert CTMRWA1X_SlotExists(_slot);
         }
@@ -663,7 +668,8 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
             string memory funcCall = "mintX(uint256,uint256,string,string,uint256,uint256)";
 
-            bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _version, fromAddressStr, _toAddressStr, slot, _value);
+            bytes memory callData =
+                abi.encodeWithSignature(funcCall, _ID, _version, fromAddressStr, _toAddressStr, slot, _value);
 
             bytes32 uuid = _c3call(toRwaXStr, toChainIdStr, callData);
 
@@ -712,13 +718,13 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
             _payFee(FeeType.TX, _feeTokenStr, toChainIdStr._stringToArray(), false);
 
-            (, uint256 value,address owner, uint256 slot,,) = ICTMRWA1(ctmRwa1Addr).getTokenInfo(_fromTokenId);
+            (, uint256 value, address owner, uint256 slot,,) = ICTMRWA1(ctmRwa1Addr).getTokenInfo(_fromTokenId);
 
             ICTMRWA1(ctmRwa1Addr).approveFromX(address(0), _fromTokenId);
             ICTMRWA1(ctmRwa1Addr).clearApprovedValues(_fromTokenId);
 
             ICTMRWA1(ctmRwa1Addr).burnValueX(_fromTokenId, value);
-            ICTMRWA1(ctmRwa1Addr).removeTokenFromOwnerEnumeration(owner, _fromTokenId); 
+            ICTMRWA1(ctmRwa1Addr).removeTokenFromOwnerEnumeration(owner, _fromTokenId);
 
             string memory funcCall = "mintX(uint256,string,string,uint256,uint256)";
             bytes memory callData = abi.encodeWithSignature(funcCall, _ID, _fromAddrStr, _toAddressStr, slot, value);
@@ -770,12 +776,14 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
     // End of cross chain transfers
 
-
-
     /// @dev Get the corresponding CTMRWA1X address on another chain with chainId _toChainIdStr
     /// @return fromAddressStr The address of the CTMRWA1X contract on this chain
     /// @return toRwaXStr The address of the CTMRWA1X contract on the destination chain
-    function _getRWAX(string memory _toChainIdStr, uint256 _version) internal view returns (string memory, string memory) {
+    function _getRWAX(string memory _toChainIdStr, uint256 _version)
+        internal
+        view
+        returns (string memory, string memory)
+    {
         if (_toChainIdStr.equal(cIdStr)) {
             revert CTMRWA1X_SameChain();
         }
@@ -824,7 +832,6 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
         return (tokenAddr, tokenAddrStr);
     }
-   
 
     /// @dev Pay a fee, calculated by the feeType, the fee token and the chains in question
     /// @return success True if the fee was paid, false otherwise.
@@ -873,5 +880,4 @@ contract CTMRWA1X is ICTMRWA1X, ReentrancyGuardUpgradeable, C3GovernDAppUpgradea
 
         return ok;
     }
-
 }

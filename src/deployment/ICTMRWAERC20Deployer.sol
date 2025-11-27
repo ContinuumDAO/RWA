@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {CTMRWAProxy} from "../utils/CTMRWAProxy.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWAERC20Deployer {
     error CTMRWAERC20Deployer_IsZeroAddress(CTMRWAErrorParam);
@@ -14,7 +14,6 @@ interface ICTMRWAERC20Deployer {
     error CTMRWAERC20Deployer_InvalidVersion(uint256);
     error CTMRWAERC20Deployer_InvalidRWAType(uint256);
     error CTMRWAERC20Deployer_InvalidSlot(uint256);
-
 
     function deployERC20(
         uint256 ID,

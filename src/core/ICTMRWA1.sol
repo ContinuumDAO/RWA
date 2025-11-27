@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA } from "./ICTMRWA.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA} from "./ICTMRWA.sol";
 
 /**
  * @title CTMRWA1 Semi-Fungible Token Standard

@@ -2,12 +2,12 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWAAttachment, ICTMRWAMap } from "./ICTMRWAMap.sol";
-import { C3GovernDAppUpgradeable } from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {ICTMRWA} from "../core/ICTMRWA.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWAAttachment, ICTMRWAMap} from "./ICTMRWAMap.sol";
+import {C3GovernDAppUpgradeable} from "@c3caller/upgradeable/gov/C3GovernDAppUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -85,23 +85,20 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
     event LogFallback(bytes4 selector, bytes data, bytes reason);
 
     constructor() {
-    _disableInitializers();
+        _disableInitializers();
     }
 
-    function initialize(
-        address _gov,
-        address _c3callerProxy,
-        uint256 _dappID,
-        address _gateway,
-        address _rwa1X
-    ) external initializer {
+    function initialize(address _gov, address _c3callerProxy, uint256 _dappID, address _gateway, address _rwa1X)
+        external
+        initializer
+    {
         __C3GovernDApp_init(_gov, _c3callerProxy, _dappID);
         gateway = _gateway;
         ctmRwa1X = _rwa1X;
         cIdStr = cID().toString();
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyGov { }
+    function _authorizeUpgrade(address newImplementation) internal override onlyGov {}
 
     modifier onlyDeployer() {
         if (msg.sender != ctmRwaDeployer) {
@@ -249,7 +246,11 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
      * @return ok True if the ID and slot exist, false otherwise
      * @return tuple (ok, erc20Addr) ok True if the ID and slot exist, false otherwise, erc20Addr The address of the CTMRWAERC20 contract
      */
-    function getErc20Contract(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot) public view returns (bool, address) {
+    function getErc20Contract(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot)
+        public
+        view
+        returns (bool, address)
+    {
         string memory _erc20Str = idToErc20[_ID][_slot];
         bool ok = _checkRwaTypeVersion(_erc20Str, _rwaType, _version);
         return ok ? (true, _erc20Str._stringToAddress()) : (false, address(0));
@@ -274,7 +275,6 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
         address _storageAddr,
         address _sentryAddr
     ) external onlyDeployer {
-
         if (_tokenAddr == address(0)) {
             revert CTMRWAMap_IsZeroAddress(CTMRWAErrorParam.Token);
         }
@@ -351,13 +351,17 @@ contract CTMRWAMap is ICTMRWAMap, C3GovernDAppUpgradeable, UUPSUpgradeable {
      * @param _erc20Addr The address of the CTMRWAERC20 contract
      * @return success True if the ERC20 contract was set, false otherwise
      */
-    function setErc20Contract(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, address _erc20Addr) external onlyDeployer returns (bool) {
+    function setErc20Contract(uint256 _ID, uint256 _rwaType, uint256 _version, uint256 _slot, address _erc20Addr)
+        external
+        onlyDeployer
+        returns (bool)
+    {
         if (_erc20Addr == address(0)) {
             revert CTMRWAMap_IsZeroAddress(CTMRWAErrorParam.RWAERC20);
         }
 
         string memory erc20AddrStr = _erc20Addr.toHexString()._toLower();
-        
+
         _checkRwaTypeVersion(erc20AddrStr, _rwaType, _version);
 
         // NOTE: Ensure that the contract has not been deployed yet

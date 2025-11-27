@@ -1,28 +1,28 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity 0.8.27;
 
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { PausableUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import { IC3GovernDApp } from "@c3caller/gov/IC3GovernDApp.sol";
-import { C3ErrorParam } from "@c3caller/utils/C3CallerUtils.sol";
+import {IC3GovernDApp} from "@c3caller/gov/IC3GovernDApp.sol";
+import {C3ErrorParam} from "@c3caller/utils/C3CallerUtils.sol";
 
-import { FeeManager } from "../../src/managers/FeeManager.sol";
-import { FeeType, IERC20Extended, IFeeManager } from "../../src/managers/IFeeManager.sol";
+import {FeeManager} from "../../src/managers/FeeManager.sol";
+import {FeeType, IERC20Extended, IFeeManager} from "../../src/managers/IFeeManager.sol";
 
-import { MaliciousERC20 } from "../../src/mocks/MaliciousERC20.sol";
-import { TestERC20 } from "../../src/mocks/TestERC20.sol";
-import { UnsafeERC20 } from "../../src/mocks/UnsafeERC20.sol";
-import { InvalidDecimalsToken } from "../../src/mocks/InvalidDecimalsToken.sol";
-import { HighDecimalsToken } from "../../src/mocks/HighDecimalsToken.sol";
-import { UpgradeableToken } from "../../src/mocks/UpgradeableToken.sol";
-import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
-import { Helpers } from "../helpers/Helpers.sol";
-import { Test } from "forge-std/Test.sol";
-import { console } from "forge-std/console.sol";
+import {MaliciousERC20} from "../../src/mocks/MaliciousERC20.sol";
+import {TestERC20} from "../../src/mocks/TestERC20.sol";
+import {UnsafeERC20} from "../../src/mocks/UnsafeERC20.sol";
+import {InvalidDecimalsToken} from "../../src/mocks/InvalidDecimalsToken.sol";
+import {HighDecimalsToken} from "../../src/mocks/HighDecimalsToken.sol";
+import {UpgradeableToken} from "../../src/mocks/UpgradeableToken.sol";
+import {CTMRWAErrorParam} from "../../src/utils/CTMRWAUtils.sol";
+import {Helpers} from "../helpers/Helpers.sol";
+import {Test} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 
 // Mock contract to test reentrancy
 contract ReentrancyAttacker {
@@ -241,20 +241,20 @@ contract TestFeeManager is Helpers {
     function test_CannotAddDuplicateFeeToken() public {
         address newToken = address(new TestERC20("New Token", "NTK", 18));
         string memory newTokenStr = addressToString(newToken);
-        
+
         // Add the token for the first time
         vm.prank(gov);
         feeManager.addFeeToken(newTokenStr);
-        
+
         // Verify token was added
         address[] memory tokenList = feeManager.getFeeTokenList();
         assertEq(tokenList[tokenList.length - 1], newToken, "New token should be added");
-        
+
         // Try to add the same token again - should revert
         vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_TokenAlreadyListed.selector, newToken));
         vm.prank(gov);
         feeManager.addFeeToken(newTokenStr);
-        
+
         // Verify token list hasn't changed
         address[] memory tokenListAfter = feeManager.getFeeTokenList();
         assertEq(tokenListAfter.length, tokenList.length, "Token list length should not change");
@@ -443,7 +443,9 @@ contract TestFeeManager is Helpers {
     function test_FeeMultiplierNoOverflow() public {
         // Set a very large multiplier (should revert)
         uint256 largeMultiplier = 1e55 + 1; // MAX_SAFE_MULTIPLIER + 1 (hardcoded, since not public)
-        vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_InvalidLength.selector, CTMRWAErrorParam.Multiplier));
+        vm.expectRevert(
+            abi.encodeWithSelector(IFeeManager.FeeManager_InvalidLength.selector, CTMRWAErrorParam.Multiplier)
+        );
         vm.prank(gov);
         feeManager.setFeeMultiplier(FeeType.TX, largeMultiplier);
         // Set a safe multiplier (should succeed)
@@ -531,91 +533,98 @@ contract TestFeeManager is Helpers {
     }
 }
 
-
 contract TestFeeManagerValidation is Helpers {
     function setUp() public override {
         super.setUp();
     }
-    
+
     function test_RejectUnsafeERC20Token() public {
         UnsafeERC20 unsafeToken = new UnsafeERC20();
         string memory unsafeTokenStr = addressToString(address(unsafeToken));
-        
+
         vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_UnsafeToken.selector, address(unsafeToken)));
         vm.prank(gov);
         feeManager.addFeeToken(unsafeTokenStr);
     }
-    
+
     function test_RejectTokenWithLowDecimals() public {
         InvalidDecimalsToken lowDecimalsToken = new InvalidDecimalsToken();
         string memory lowDecimalsTokenStr = addressToString(address(lowDecimalsToken));
-        
-        vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_InvalidDecimals.selector, address(lowDecimalsToken), uint8(3)));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(IFeeManager.FeeManager_InvalidDecimals.selector, address(lowDecimalsToken), uint8(3))
+        );
         vm.prank(gov);
         feeManager.addFeeToken(lowDecimalsTokenStr);
     }
-    
+
     function test_RejectTokenWithHighDecimals() public {
         HighDecimalsToken highDecimalsToken = new HighDecimalsToken();
         string memory highDecimalsTokenStr = addressToString(address(highDecimalsToken));
-        
-        vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_InvalidDecimals.selector, address(highDecimalsToken), uint8(25)));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IFeeManager.FeeManager_InvalidDecimals.selector, address(highDecimalsToken), uint8(25)
+            )
+        );
         vm.prank(gov);
         feeManager.addFeeToken(highDecimalsTokenStr);
     }
-    
+
     function test_RejectUpgradeableToken() public {
         UpgradeableToken upgradeableToken = new UpgradeableToken();
         string memory upgradeableTokenStr = addressToString(address(upgradeableToken));
-        
-        vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_UpgradeableToken.selector, address(upgradeableToken)));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(IFeeManager.FeeManager_UpgradeableToken.selector, address(upgradeableToken))
+        );
         vm.prank(gov);
         feeManager.addFeeToken(upgradeableTokenStr);
     }
-    
+
     function test_AcceptValidTokenWith6Decimals() public {
         TestERC20 validToken6 = new TestERC20("Valid Token 6", "VT6", 6);
         string memory validToken6Str = addressToString(address(validToken6));
-        
+
         vm.prank(gov);
         bool success = feeManager.addFeeToken(validToken6Str);
         assertTrue(success, "Valid token with 6 decimals should be accepted");
-        
+
         // Verify token was added
         address[] memory tokenList = feeManager.getFeeTokenList();
         assertEq(tokenList[tokenList.length - 1], address(validToken6), "Token should be in the list");
     }
-    
+
     function test_AcceptValidTokenWith18Decimals() public {
         TestERC20 validToken18 = new TestERC20("Valid Token 18", "VT18", 18);
         string memory validToken18Str = addressToString(address(validToken18));
-        
+
         vm.prank(gov);
         bool success = feeManager.addFeeToken(validToken18Str);
         assertTrue(success, "Valid token with 18 decimals should be accepted");
-        
+
         // Verify token was added
         address[] memory tokenList = feeManager.getFeeTokenList();
         assertEq(tokenList[tokenList.length - 1], address(validToken18), "Token should be in the list");
     }
-    
+
     function test_AcceptValidTokenWith12Decimals() public {
         TestERC20 validToken12 = new TestERC20("Valid Token 12", "VT12", 12);
         string memory validToken12Str = addressToString(address(validToken12));
-        
+
         vm.prank(gov);
         bool success = feeManager.addFeeToken(validToken12Str);
         assertTrue(success, "Valid token with 12 decimals should be accepted");
-        
+
         // Verify token was added
         address[] memory tokenList = feeManager.getFeeTokenList();
         assertEq(tokenList[tokenList.length - 1], address(validToken12), "Token should be in the list");
     }
-    
+
     function test_RejectEOAAddress() public {
         address eoa = address(0x1234567890123456789012345678901234567890);
         string memory eoaStr = addressToString(eoa);
-        
+
         vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_UnsafeToken.selector, eoa));
         vm.prank(gov);
         feeManager.addFeeToken(eoaStr);
@@ -652,7 +661,7 @@ contract TestFeeManagerFeeTypeValidation is Helpers {
     function test_GetXChainFee_RejectsFeeTypeEmpty() public {
         string[] memory chains = new string[](1);
         chains[0] = chainIdStr;
-        
+
         // Test that getXChainFee reverts with FeeManager_InvalidFeeType when FeeType.EMPTY is used
         vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_InvalidFeeType.selector, FeeType.EMPTY));
         feeManager.getXChainFee(chains, false, FeeType.EMPTY, feeTokenStr);
@@ -661,7 +670,7 @@ contract TestFeeManagerFeeTypeValidation is Helpers {
     function test_GetXChainFee_RejectsFeeTypeEmptyWithIncludeLocal() public {
         string[] memory chains = new string[](1);
         chains[0] = chainIdStr;
-        
+
         // Test that getXChainFee reverts with FeeManager_InvalidFeeType when FeeType.EMPTY is used with includeLocal=true
         vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_InvalidFeeType.selector, FeeType.EMPTY));
         feeManager.getXChainFee(chains, true, FeeType.EMPTY, feeTokenStr);
@@ -669,7 +678,7 @@ contract TestFeeManagerFeeTypeValidation is Helpers {
 
     function test_GetXChainFee_RejectsFeeTypeEmptyWithEmptyChains() public {
         string[] memory chains = new string[](0);
-        
+
         // Test that getXChainFee reverts with FeeManager_InvalidFeeType when FeeType.EMPTY is used even with empty chains array
         vm.expectRevert(abi.encodeWithSelector(IFeeManager.FeeManager_InvalidFeeType.selector, FeeType.EMPTY));
         feeManager.getXChainFee(chains, false, FeeType.EMPTY, feeTokenStr);
@@ -678,7 +687,7 @@ contract TestFeeManagerFeeTypeValidation is Helpers {
     function test_GetXChainFee_AcceptsValidFeeTypes() public view {
         string[] memory chains = new string[](1);
         chains[0] = chainIdStr;
-        
+
         // Test that valid FeeTypes work correctly
         FeeType[] memory validFeeTypes = new FeeType[](6);
         validFeeTypes[0] = FeeType.ADMIN;
@@ -687,7 +696,7 @@ contract TestFeeManagerFeeTypeValidation is Helpers {
         validFeeTypes[3] = FeeType.MINT;
         validFeeTypes[4] = FeeType.BURN;
         validFeeTypes[5] = FeeType.ISSUER;
-        
+
         for (uint256 i = 0; i < validFeeTypes.length; i++) {
             // Should not revert for valid FeeTypes
             try feeManager.getXChainFee(chains, false, validFeeTypes[i], feeTokenStr) returns (uint256) {
@@ -705,7 +714,7 @@ contract TestFeeManagerFeeTypeValidation is Helpers {
         // Test that setFeeMultiplier accepts FeeType.EMPTY (this might be used for special cases)
         vm.prank(gov);
         feeManager.setFeeMultiplier(FeeType.EMPTY, 5);
-        
+
         uint256 multiplier = feeManager.getFeeMultiplier(FeeType.EMPTY);
         assertEq(multiplier, 5, "FeeType.EMPTY multiplier should be set correctly");
     }

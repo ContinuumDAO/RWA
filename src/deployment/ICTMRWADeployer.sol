@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAProxy } from "../utils/CTMRWAProxy.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {CTMRWAProxy} from "../utils/CTMRWAProxy.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWADeployer {
     // Events
@@ -54,5 +54,12 @@ interface ICTMRWADeployer {
         returns (address);
 
     function setErc20DeployerAddress(address erc20Deployer) external;
-    function deployERC20(uint256 ID, uint256 rwaType, uint256 version, uint256 slot, string memory name, address feeToken) external returns (address);
+    function deployERC20(
+        uint256 ID,
+        uint256 rwaType,
+        uint256 version,
+        uint256 slot,
+        string memory name,
+        address feeToken
+    ) external returns (address);
 }

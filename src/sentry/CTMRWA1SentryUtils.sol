@@ -2,13 +2,13 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1 } from "../core/ICTMRWA1.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { CTMRWA1Sentry } from "./CTMRWA1Sentry.sol";
-import { ICTMRWA1Sentry } from "./ICTMRWA1Sentry.sol";
-import { ICTMRWA1SentryUtils } from "./ICTMRWA1SentryUtils.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {ICTMRWA1} from "../core/ICTMRWA1.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {CTMRWA1Sentry} from "./CTMRWA1Sentry.sol";
+import {ICTMRWA1Sentry} from "./ICTMRWA1Sentry.sol";
+import {ICTMRWA1SentryUtils} from "./ICTMRWA1SentryUtils.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -58,7 +58,7 @@ contract CTMRWA1SentryUtils is ICTMRWA1SentryUtils {
         returns (address)
     {
         CTMRWA1Sentry ctmRwa1Sentry =
-            new CTMRWA1Sentry{ salt: bytes32(_ID) }(_ID, _tokenAddr, _rwaType, _version, msg.sender, _map);
+            new CTMRWA1Sentry{salt: bytes32(_ID)}(_ID, _tokenAddr, _rwaType, _version, msg.sender, _map);
 
         return (address(ctmRwa1Sentry));
     }

@@ -2,13 +2,13 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1Storage } from "./ICTMRWA1Storage.sol";
-import { URICategory, URIData, URIType } from "./ICTMRWA1Storage.sol";
-import { ICTMRWA1StorageManager } from "./ICTMRWA1StorageManager.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {ICTMRWA1, ITokenContract} from "../core/ICTMRWA1.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA1Storage} from "./ICTMRWA1Storage.sol";
+import {URICategory, URIData, URIType} from "./ICTMRWA1Storage.sol";
+import {ICTMRWA1StorageManager} from "./ICTMRWA1StorageManager.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -228,17 +228,19 @@ contract CTMRWA1Storage is ICTMRWA1Storage {
         for (uint256 i = 0; i < _toPop; i++) {
             uint256 indexToRemove = uriData.length - 1 - i;
             URIData memory itemToRemove = uriData[indexToRemove];
-            
+
             // Remove from hash mappings
             hashExists[itemToRemove.uriHash] = false;
             delete hashToIndex[itemToRemove.uriHash];
-            
+
             // Decrease category/type counters
             categoryTypeCount[itemToRemove.uriCategory][itemToRemove.uriType]--;
-            
+
             // Remove from category/type index mapping (set to 0 to indicate removed)
             // Note: This is a simplified cleanup - in production, you might want more sophisticated cleanup
-            delete categoryTypeIndex[itemToRemove.uriCategory][itemToRemove.uriType][categoryTypeCount[itemToRemove.uriCategory][itemToRemove.uriType]];
+            delete categoryTypeIndex[
+                itemToRemove.uriCategory
+            ][itemToRemove.uriType][categoryTypeCount[itemToRemove.uriCategory][itemToRemove.uriType]];
         }
 
         // Remove items from array

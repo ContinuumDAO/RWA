@@ -2,18 +2,18 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA1, ITokenContract } from "../core/ICTMRWA1.sol";
-import { FeeType, IFeeManager } from "../managers/IFeeManager.sol";
-import { ICTMRWA1Sentry } from "../sentry/ICTMRWA1Sentry.sol";
-import { ICTMRWA1SentryManager } from "../sentry/ICTMRWA1SentryManager.sol";
-import { ICTMRWAMap } from "../shared/ICTMRWAMap.sol";
-import { CTMRWAUtils, CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { ICTMRWA1Identity } from "./ICTMRWA1Identity.sol";
-import { IZkMeVerify } from "./IZkMeVerify.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ICTMRWA1, ITokenContract} from "../core/ICTMRWA1.sol";
+import {FeeType, IFeeManager} from "../managers/IFeeManager.sol";
+import {ICTMRWA1Sentry} from "../sentry/ICTMRWA1Sentry.sol";
+import {ICTMRWA1SentryManager} from "../sentry/ICTMRWA1SentryManager.sol";
+import {ICTMRWAMap} from "../shared/ICTMRWAMap.sol";
+import {CTMRWAUtils, CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA1Identity} from "./ICTMRWA1Identity.sol";
+import {IZkMeVerify} from "./IZkMeVerify.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -153,9 +153,15 @@ contract CTMRWA1Identity is ICTMRWA1Identity, ReentrancyGuard {
 
         _payFee(_chainIdsStr, _feeTokenStr);
 
-        ICTMRWA1SentryManager(sentryManager).addWhitelist(
-            _ID, _version, msg.sender.toHexString()._stringToArray(), CTMRWAUtils._boolToArray(true), _chainIdsStr, _feeTokenStr
-        );
+        ICTMRWA1SentryManager(sentryManager)
+            .addWhitelist(
+                _ID,
+                _version,
+                msg.sender.toHexString()._stringToArray(),
+                CTMRWAUtils._boolToArray(true),
+                _chainIdsStr,
+                _feeTokenStr
+            );
 
         return (true);
     }

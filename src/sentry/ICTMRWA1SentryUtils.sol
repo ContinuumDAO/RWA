@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA} from "../core/ICTMRWA.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1SentryUtils is ICTMRWA {
     event LogFallback(bytes4 selector, bytes data, bytes reason);

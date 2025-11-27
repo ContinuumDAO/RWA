@@ -2,14 +2,14 @@
 
 pragma solidity 0.8.27;
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { Utils } from "../helpers/Utils.sol";
+import {Utils} from "../helpers/Utils.sol";
 
-import { ICTMRWA1X } from "../../src/crosschain/ICTMRWA1X.sol";
-import { CTMRWA1XUtils } from "../../src/crosschain/CTMRWA1XUtils.sol";
+import {ICTMRWA1X} from "../../src/crosschain/ICTMRWA1X.sol";
+import {CTMRWA1XUtils} from "../../src/crosschain/CTMRWA1XUtils.sol";
 
-import { ICTMRWAMap } from "../../src/shared/ICTMRWAMap.sol";
+import {ICTMRWAMap} from "../../src/shared/ICTMRWAMap.sol";
 
 contract RWA is Utils {
     using Strings for *;
@@ -31,10 +31,14 @@ contract RWA is Utils {
         ICTMRWA1X(rwa1X).createNewSlot(_ID, VERSION, slot, "this is a basic offering", someChainIdsStr, tokenStr);
     }
 
-    function _deployAFewTokensLocal(address _ctmRwaAddr, address usdc, address map, address rwa1X, address rwa1XUtils, address account)
-        internal
-        returns (uint256, uint256, uint256)
-    {
+    function _deployAFewTokensLocal(
+        address _ctmRwaAddr,
+        address usdc,
+        address map,
+        address rwa1X,
+        address rwa1XUtils,
+        address account
+    ) internal returns (uint256, uint256, uint256) {
         string memory ctmRwaAddrStr = _toLower(_ctmRwaAddr.toHexString());
         (, uint256 ID) = ICTMRWAMap(map).getTokenId(ctmRwaAddrStr, RWA_TYPE, VERSION);
 

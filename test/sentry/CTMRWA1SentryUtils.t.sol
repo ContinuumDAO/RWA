@@ -2,13 +2,13 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWA1Sentry } from "../../src/sentry/CTMRWA1Sentry.sol";
-import { ICTMRWA1SentryUtils } from "../../src/sentry/ICTMRWA1SentryUtils.sol";
-import { CTMRWAErrorParam } from "../../src/utils/CTMRWAUtils.sol";
-import { Helpers } from "../helpers/Helpers.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { Test } from "forge-std/Test.sol";
-import { console } from "forge-std/console.sol";
+import {CTMRWA1Sentry} from "../../src/sentry/CTMRWA1Sentry.sol";
+import {ICTMRWA1SentryUtils} from "../../src/sentry/ICTMRWA1SentryUtils.sol";
+import {CTMRWAErrorParam} from "../../src/utils/CTMRWAUtils.sol";
+import {Helpers} from "../helpers/Helpers.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Test} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 
 contract CTMRWA1SentryUtilsTest is Helpers {
     using Strings for *;
@@ -29,7 +29,11 @@ contract CTMRWA1SentryUtilsTest is Helpers {
         // Should fail for non-sentryManager
         vm.prank(address(0xBEEF));
         vm.expectRevert(
-            abi.encodeWithSelector(ICTMRWA1SentryUtils.CTMRWA1SentryUtils_OnlyAuthorized.selector, CTMRWAErrorParam.Sender, CTMRWAErrorParam.SentryManager)
+            abi.encodeWithSelector(
+                ICTMRWA1SentryUtils.CTMRWA1SentryUtils_OnlyAuthorized.selector,
+                CTMRWAErrorParam.Sender,
+                CTMRWAErrorParam.SentryManager
+            )
         );
         sentryUtils.sentryC3Fallback(selector, data, reason);
     }

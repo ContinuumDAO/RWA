@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { CTMRWA1Dividend } from "./CTMRWA1Dividend.sol";
-import { ICTMRWA1DividendFactory } from "./ICTMRWA1DividendFactory.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {CTMRWA1Dividend} from "./CTMRWA1Dividend.sol";
+import {ICTMRWA1DividendFactory} from "./ICTMRWA1DividendFactory.sol";
 
 /**
  * @title AssetX Multi-chain Semi-Fungible-Token for Real-World-Assets (RWAs)
@@ -41,7 +41,7 @@ contract CTMRWA1DividendFactory is ICTMRWA1DividendFactory {
         returns (address)
     {
         CTMRWA1Dividend ctmRwa1Dividend =
-            new CTMRWA1Dividend{ salt: bytes32(_ID) }(_ID, _tokenAddr, _rwaType, _version, _map);
+            new CTMRWA1Dividend{salt: bytes32(_ID)}(_ID, _tokenAddr, _rwaType, _version, _map);
 
         return (address(ctmRwa1Dividend));
     }

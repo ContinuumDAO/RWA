@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.27;
 
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1DividendFactory {
     error CTMRWA1DividendFactory_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);

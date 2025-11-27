@@ -3,10 +3,10 @@
 pragma solidity 0.8.27;
 
 // import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
-import { URICategory, URIType } from "./ICTMRWA1Storage.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
+import {URICategory, URIType} from "./ICTMRWA1Storage.sol";
 
-interface ICTMRWA1StorageManager  {
+interface ICTMRWA1StorageManager {
     error CTMRWA1StorageManager_OnlyAuthorized(CTMRWAErrorParam, CTMRWAErrorParam);
     error CTMRWA1StorageManager_IsZeroAddress(CTMRWAErrorParam);
     error CTMRWA1StorageManager_InvalidContract(CTMRWAErrorParam);

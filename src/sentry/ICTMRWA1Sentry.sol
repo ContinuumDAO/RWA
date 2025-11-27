@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.27;
 
-import { ICTMRWA } from "../core/ICTMRWA.sol";
-import { CTMRWAErrorParam } from "../utils/CTMRWAUtils.sol";
+import {ICTMRWA} from "../core/ICTMRWA.sol";
+import {CTMRWAErrorParam} from "../utils/CTMRWAUtils.sol";
 
 interface ICTMRWA1Sentry is ICTMRWA {
     error CTMRWA1Sentry_Unauthorized(CTMRWAErrorParam, CTMRWAErrorParam);
@@ -45,7 +45,8 @@ interface ICTMRWA1Sentry is ICTMRWA {
         bool countryBL
     ) external;
 
-    function setCountryListLocal(uint256 ID, uint256 version, string[] memory countryList, bool[] memory choices) external;
+    function setCountryListLocal(uint256 ID, uint256 version, string[] memory countryList, bool[] memory choices)
+        external;
 
     function getWhitelistAddressAtIndx(uint256 _indx) external view returns (string memory);
     function getWhitelistLength() external returns (uint256);
