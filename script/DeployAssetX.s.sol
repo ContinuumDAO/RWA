@@ -66,28 +66,28 @@ contract DeployAssetX is Script {
         proxy = address(new CTMRWAProxy(implementation, data));
     }
 
-    function _deployFeeManager(uint256 dappID, address gov, address c3caller, address mpc) internal {
+    function _deployFeeManager(uint256 dappID, address gov, address c3caller) internal {
         address feeManagerImpl = address(new FeeManager());
         feeManager = address(
-            FeeManager(_deployProxy(feeManagerImpl, abi.encodeCall(FeeManager.initialize, (gov, c3caller, mpc, dappID))))
+            FeeManager(_deployProxy(feeManagerImpl, abi.encodeCall(FeeManager.initialize, (gov, c3caller, dappID))))
         );
     }
 
-    function _deployGateway(uint256 dappID, address gov, address c3caller, address mpc) internal {
+    function _deployGateway(uint256 dappID, address gov, address c3caller) internal {
         address gatewayImpl = address(new CTMRWAGateway());
         gateway = address(
             CTMRWAGateway(
-                _deployProxy(gatewayImpl, abi.encodeCall(CTMRWAGateway.initialize, (gov, c3caller, mpc, dappID)))
+                _deployProxy(gatewayImpl, abi.encodeCall(CTMRWAGateway.initialize, (gov, c3caller, dappID)))
             )
         );
     }
 
-    function _deployCTMRWA1X(uint256 dappID, address gov, address c3caller, address mpc) internal {
+    function _deployCTMRWA1X(uint256 dappID, address gov, address c3caller) internal {
         address rwa1XImpl = address(new CTMRWA1X());
         rwa1X = address(
             CTMRWA1X(
                 _deployProxy(
-                    rwa1XImpl, abi.encodeCall(CTMRWA1X.initialize, (gateway, feeManager, gov, c3caller, mpc, dappID))
+                    rwa1XImpl, abi.encodeCall(CTMRWA1X.initialize, (gateway, feeManager, gov, c3caller, dappID))
                 )
             )
         );
@@ -95,23 +95,23 @@ contract DeployAssetX is Script {
         rwa1XFallback = address(new CTMRWA1XUtils(rwa1X));
     }
 
-    function _deployMap(uint256 dappID, address gov, address c3caller, address mpc) internal {
+    function _deployMap(uint256 dappID, address gov, address c3caller) internal {
         address mapImpl = address(new CTMRWAMap());
         map = address(
             CTMRWAMap(
-                _deployProxy(mapImpl, abi.encodeCall(CTMRWAMap.initialize, (gov, c3caller, mpc, dappID, gateway, rwa1X)))
+                _deployProxy(mapImpl, abi.encodeCall(CTMRWAMap.initialize, (gov, c3caller, dappID, gateway, rwa1X)))
             )
         );
     }
 
-    function _deployCTMRWADeployer(uint256 dappID, address gov, address c3caller, address mpc) internal {
+    function _deployCTMRWADeployer(uint256 dappID, address gov, address c3caller) internal {
         address deployerImpl = address(new CTMRWADeployer());
         deployer = address(
             CTMRWADeployer(
                 _deployProxy(
                     deployerImpl,
                     abi.encodeCall(
-                        CTMRWADeployer.initialize, (gov, gateway, feeManager, rwa1X, map, c3caller, mpc, dappID)
+                        CTMRWADeployer.initialize, (gov, gateway, feeManager, rwa1X, map, c3caller, dappID)
                     )
                 )
             )
@@ -137,14 +137,14 @@ contract DeployAssetX is Script {
         dividendFactory = address(new CTMRWA1DividendFactory(deployer));
     }
 
-    function _deployStorage(uint256 dappID, address gov, address c3caller, address mpc) internal {
+    function _deployStorage(uint256 dappID, address gov, address c3caller) internal {
         address storageManagerImpl = address(new CTMRWA1StorageManager());
         storageManager = address(
             CTMRWA1StorageManager(
                 _deployProxy(
                     storageManagerImpl,
                     abi.encodeCall(
-                        CTMRWA1StorageManager.initialize, (gov, c3caller, mpc, dappID, deployer, gateway, feeManager)
+                        CTMRWA1StorageManager.initialize, (gov, c3caller, dappID, deployer, gateway, feeManager)
                     )
                 )
             )
@@ -153,14 +153,14 @@ contract DeployAssetX is Script {
         storageUtils = address(new CTMRWA1StorageUtils(RWA_TYPE, VERSION, map, storageManager));
     }
 
-    function _deploySentry(uint256 dappID, address gov, address c3caller, address mpc) internal {
+    function _deploySentry(uint256 dappID, address gov, address c3caller) internal {
         address sentryManagerImpl = address(new CTMRWA1SentryManager());
         sentryManager = address(
             CTMRWA1SentryManager(
                 _deployProxy(
                     sentryManagerImpl,
                     abi.encodeCall(
-                        CTMRWA1SentryManager.initialize, (gov, c3caller, mpc, dappID, deployer, gateway, feeManager)
+                        CTMRWA1SentryManager.initialize, (gov, c3caller, dappID, deployer, gateway, feeManager)
                     )
                 )
             )
@@ -175,7 +175,6 @@ contract DeployAssetX is Script {
         VERSION = vm.envUint("VERSION");
 
         address gov = vm.envAddress("GOV");
-        address mpc = vm.envAddress("MPC");
         uint256 dappIDGateway = vm.envUint("DAPP_ID_GATEWAY");
         uint256 dappIDFeeManager = vm.envUint("DAPP_ID_FEE_MANAGER");
         uint256 dappIDRWA1X = vm.envUint("DAPP_ID_RWA1X");
@@ -199,15 +198,15 @@ contract DeployAssetX is Script {
 
         address c3caller = vm.envAddress(string.concat("C3CALLER_", chainIdStr));
 
-        _deployFeeManager(dappIDFeeManager, gov, c3caller, mpc);
-        _deployGateway(dappIDGateway, gov, c3caller, mpc);
-        _deployCTMRWA1X(dappIDRWA1X, gov, c3caller, mpc);
-        _deployMap(dappIDMap, gov, c3caller, mpc);
-        _deployCTMRWADeployer(dappIDDeployer, gov, c3caller, mpc);
+        _deployFeeManager(dappIDFeeManager, gov, c3caller);
+        _deployGateway(dappIDGateway, gov, c3caller);
+        _deployCTMRWA1X(dappIDRWA1X, gov, c3caller);
+        _deployMap(dappIDMap, gov, c3caller);
+        _deployCTMRWADeployer(dappIDDeployer, gov, c3caller);
         _deployTokenFactory();
         _deployDividendFactory();
-        _deployStorage(dappIDStorageManager, gov, c3caller, mpc);
-        _deploySentry(dappIDSentryManager, gov, c3caller, mpc);
+        _deployStorage(dappIDStorageManager, gov, c3caller);
+        _deploySentry(dappIDSentryManager, gov, c3caller);
 
         vm.stopBroadcast();
 
