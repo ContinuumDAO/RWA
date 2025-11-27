@@ -8,7 +8,7 @@ echo -e "\n💻 Running all operations..."
 ./helpers/3-build-src.sh
 ./helpers/4-build-test.sh
 ./helpers/5-build-script.sh
-# ./helpers/6-export-env.sh
-# ./helpers/6-format.sh
+./helpers/6-export-env.sh
+./helpers/7-format.sh
 
 echo -e "\n✅ All operations complete!"
